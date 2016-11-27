@@ -18,12 +18,12 @@ PyOTA requires Python v3.5 or v2.7.
 # Installation
 To install the latest stable version:
 ```
-pip install https://github.com/iotaledger/iota.lib.py/archive/master.zip
+pip install https://github.com/iotaledger/pyota/archive/master.zip
 ```
 
 To install the development version:
 ```
-pip install https://github.com/iotaledger/iota.lib.py/archive/develop.zip
+pip install https://github.com/iotaledger/pyota/archive/develop.zip
 ```
 
 # Documentation

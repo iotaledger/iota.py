@@ -1,0 +1,6 @@
+*.pyc
+
+# :see: https://packaging.python.org/distributing/
+build/*
+dist/*
+PyOTA.egg-info/*

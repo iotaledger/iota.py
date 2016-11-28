@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function, \
+  unicode_literals
 
 from setuptools import setup
 
@@ -12,6 +13,12 @@ setup(
   url         = 'https://github.com/iotaledger/iota.lib.py',
   version     = __version__,
   packages    = ['iota'],
+
+  install_requires = [
+    'requests',
+    'six',
+    'typing ; python_version < "3.5"',
+  ],
 
   data_files = [
     ('', ['LICENSE']),

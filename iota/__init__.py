@@ -11,4 +11,5 @@ from .adapter import *
 from .api import *
 
 
+# Don't forget to update version number in setup.py!
 __version__ = '1.0.0'

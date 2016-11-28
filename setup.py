@@ -5,13 +5,11 @@ from __future__ import absolute_import, division, print_function, \
 
 from setuptools import setup
 
-from iota import __version__
-
 setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = __version__,
+  version     = '1.0.0',
   packages    = ['iota'],
 
   install_requires = [

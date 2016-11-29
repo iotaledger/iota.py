@@ -12,6 +12,7 @@ from pprint import pprint
 from sys import argv
 from typing import Text
 
+from requests.exceptions import ConnectionError
 from six import text_type as text
 
 from iota import BadApiResponse, DEFAULT_PORT, HttpAdapter, IotaApi, \
@@ -24,8 +25,17 @@ def main(host, port):
 
   try:
     node_info = api.get_node_info()
+  except ConnectionError as e:
+    print("Hm.  {host}:{port} isn't responding.  Is the node running?".format(
+      host = host,
+      port = port,
+    ))
+    print(e)
   except BadApiResponse as e:
-    print("Looks like {host}:{port} isn't very talkative today ):")
+    print("Looks like {host}:{port} isn't very talkative today ):".format(
+      host = host,
+      port = port,
+    ))
     print(e)
   else:
     print('Hello {host}:{port}!'.format(host=host, port=port))

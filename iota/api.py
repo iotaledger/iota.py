@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Text
+from typing import Callable, Text
 
 from iota.adapter import BaseAdapter
 
@@ -23,8 +23,8 @@ class IotaApi(object):
 
     self.adapter = adapter # type: BaseAdapter
 
-  def __call__(self, command, **kwargs):
-    # type: (Text, dict) -> dict
+  def __getattr__(self, command):
+    # type: (Text, dict) -> Callable[[...], dict]
     """
     Sends an arbitrary API command to the node.
 
@@ -32,11 +32,13 @@ class IotaApi(object):
       methods, or if you just want to troll your node for awhile.
 
     :param command: The name of the command to send.
-    :param kwargs: Additional parameters to send with the command.
 
     :return: Decoded response from the node.
+    :raise: BadApiResponse if the node sends back an error response.
     """
-    return self.adapter.send_request(dict(command=command, **kwargs))
+    def command_sender(**kwargs):
+      return self.adapter.send_request(dict(command=command, **kwargs))
+    return command_sender
 
   def get_node_info(self):
     """
@@ -44,4 +46,4 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/getnodeinfo
     """
-    return self.__call__('getNodeInfo')
+    return self.__getattr__('getNodeInfo')()

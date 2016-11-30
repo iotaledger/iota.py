@@ -57,7 +57,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/addneighors
     """
-    return self.__getattr__('addNeighbors')(uris=uris)
+    return self.addNeighbors(uris=uris)
 
   def attach_to_tangle(
       self,
@@ -166,7 +166,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/getneighborsactivity
     """
-    return self.__getattr__('getNeighbors')()
+    return self.getNeighbors()
 
   def get_node_info(self):
     # type: () -> dict
@@ -186,7 +186,7 @@ class IotaApi(object):
     :see: https://iota.readme.io/docs/gettips
     :see: https://iota.readme.io/docs/glossary#iota-terms
     """
-    return self.__getattr__('getTips')()
+    return self.getTips()
 
   def get_transactions_to_approve(self, depth):
     # type: (int) -> dict
@@ -203,7 +203,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/gettransactionstoapprove
     """
-    return self.__getattr__('getTransactionsToApprove')(depth=depth)
+    return self.getTransactionsToApprove(depth=depth)
 
   def get_trytes(self, hashes):
     # type: (Iterable[Text]) -> dict

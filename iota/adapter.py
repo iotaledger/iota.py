@@ -6,7 +6,7 @@ import json
 from abc import ABCMeta, abstractmethod as abstract_method
 from inspect import isabstract as is_abstract
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Dict, Text
+from typing import Dict, Text, Tuple
 
 import requests
 from six import with_metaclass
@@ -74,6 +74,12 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
   Adapters make it easy to customize the way an IotaApi instance
     communicates with a node.
   """
+  supported_protocols = () # type: Tuple[Text]
+  """
+  Protocols that `resolve_adapter` can use to identify this adapter
+    type.
+  """
+
   @abstract_method
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
@@ -104,7 +110,6 @@ class HttpAdapter(BaseAdapter):
   Sends standard HTTP requests.
   """
   supported_protocols = ('udp', 'http',)
-  """Used by `resolve_adapter`."""
 
   @classmethod
   def configure(cls, uri):

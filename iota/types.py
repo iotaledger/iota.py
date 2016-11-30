@@ -47,20 +47,27 @@ class TryteString(object):
 
     return cls(trytes)
 
-  def __init__(self, trytes, pad=False):
-    # type: (Union[binary_type, bytearray], bool) -> None
+  def __init__(self, trytes, pad=None):
+    # type: (Union[binary_type, bytearray], int) -> None
+    """
+    :param trytes: Byte string or bytearray.
+    :param pad: Ensure at least this many trytes.
+      If there are too few, additional Tryte([-1, -1, -1]) values
+        will be appended to the TryteString.
+
+      Note:  If the TryteString is too long, it will _not_ be
+        truncated!
+    """
     super(TryteString, self).__init__()
 
-    if len(trytes) % 2:
-      if pad:
-        trytes += self.alphabet[0]
-      else:
-        raise ValueError(
-          'Length of TryteString must be divisible by 2.'
-        )
+    if not isinstance(trytes, bytearray):
+      trytes = bytearray(trytes)
 
-    self.trytes =\
-      trytes if isinstance(trytes, bytearray) else bytearray(trytes)
+    if pad:
+      for i in range(0, max(0, pad - len(trytes))):
+        trytes.append(self.alphabet[0])
+
+    self.trytes = trytes
 
   def __repr__(self):
     # type: () -> Text

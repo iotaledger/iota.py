@@ -57,10 +57,21 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes is b'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertFalse(trytes is bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
 
-  def test_init_error_odd_length(self):
-    """
-    Attempting to create a TryteString from a sequence with length not
-      divisible by 2.
-    """
-    with self.assertRaises(ValueError):
-      TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
+  def test_init_padding(self):
+    """Apply padding to ensure a TryteString has a minimum length."""
+    trytes = TryteString(
+      trytes =
+        b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQL'
+        b'QNLPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY',
+
+      pad = 81,
+    )
+
+    self.assertEqual(
+      trytes.trytes,
+
+      # Note the additional Tryte([-1, -1, -1]) values appended to the
+      #   end of the sequence (represented in ASCII as '9').
+      b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
+      b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999'
+    )

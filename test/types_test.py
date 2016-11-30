@@ -77,6 +77,14 @@ class TryteStringTestCase(TestCase):
       b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999'
     )
 
+  def test_init_error_invalid_characters(self):
+    """
+    Attempting to initialize a TryteString with a value that contains
+      invalid characters.
+    """
+    with self.assertRaises(ValueError):
+      TryteString(b'not valid')
+
   def test_bytes_conversion_partial_sequence(self):
     """
     Attempting to convert an odd number of trytes into bytes.

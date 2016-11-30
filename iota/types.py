@@ -7,6 +7,8 @@ from typing import Text, Union
 
 from six import PY2, binary_type
 
+from iota import TrytesCodec
+
 
 class TryteString(object):
   """
@@ -44,6 +46,16 @@ class TryteString(object):
 
     if not isinstance(trytes, bytearray):
       trytes = bytearray(trytes)
+
+    for i, ordinal in enumerate(trytes):
+      if ordinal not in TrytesCodec.index:
+        raise ValueError(
+          'Invalid character {char} at position {i} '
+          '(expected A-Z or 9).'.format(
+            char  = chr(ordinal),
+            i     = i,
+          ),
+        )
 
     if pad:
       trytes += b'9' * max(0, pad - len(trytes))

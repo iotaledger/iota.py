@@ -4,8 +4,6 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Callable, Iterable, Optional, Text, Union
 
-from six import binary_type
-
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.types import TryteString
 

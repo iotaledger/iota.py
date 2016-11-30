@@ -79,9 +79,15 @@ class TryteString(object):
     bytes_ = bytearray()
 
     for i in range(0, len(self.trytes), 2):
+      try:
+        first, second = self.trytes[i:i+2]
+      except ValueError:
+        bytes_ += b'?'
+        continue
+
       bytes_.append(
-          self.index[self.trytes[i]]
-        + (self.index[self.trytes[i + 1]] * len(self.index))
+          self.index[first]
+        + (self.index[second] * len(self.index))
       )
 
     return binary_type(bytes_)

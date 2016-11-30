@@ -7,6 +7,7 @@ from unittest import TestCase
 
 from iota import IotaApi
 from iota.adapter import BaseAdapter
+from iota.types import TryteString
 
 
 class MockAdapter(BaseAdapter):
@@ -66,15 +67,43 @@ class IotaApiTestCase(TestCase):
       [({'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}, {})],
     )
 
-  def test_supported_command(self):
-    """Sending a supported command."""
-    expected_response = {'appName': 'IRI', 'appVersion': '1.1.1'}
+  def test_get_node_info_happy_path(self):
+    """Successful invocation of `getNodeInfo`."""
+    # noinspection SpellCheckingInspection
+    expected_response = {
+      'appName': 'IRI',
+      'appVersion': '1.0.8.nu',
+      'duration': 1,
+      'jreAvailableProcessors': 4,
+      'jreFreeMemory': 91707424,
+      'jreMaxMemory': 1908932608,
+      'jreTotalMemory': 122683392,
+      'latestMilestone': 'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJRFKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
+      'latestMilestoneIndex': 107,
+      'latestSolidSubtangleMilestone': 'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJRFKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
+      'latestSolidSubtangleMilestoneIndex': 107,
+      'neighbors': 2,
+      'packetsQueueSize': 0,
+      'time': 1477037811737,
+      'tips': 3,
+      'transactionsToRequest': 0
+    }
 
     adapter = MockAdapter(expected_response)
     api     = IotaApi(adapter)
 
     response = api.get_node_info()
 
-    self.assertEqual(response, expected_response)
+    self.assertDictEqual(response, expected_response)
 
-    self.assertListEqual(adapter.requests, [({'command': 'getNodeInfo'}, {})])
+    self.assertIsInstance(response['latestMilestone'], TryteString)
+
+    self.assertIsInstance(
+      response['latestSolidSubtangleMilestone'],
+      TryteString,
+    )
+
+    self.assertListEqual(
+      adapter.requests,
+      [({'command': 'getNodeInfo'}, {})],
+    )

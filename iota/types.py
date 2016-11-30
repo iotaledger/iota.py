@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from codecs import encode, decode
 from typing import Text, Union
 
 from six import PY2, binary_type
@@ -22,30 +23,11 @@ class TryteString(object):
     (256 possible values), while the tryte string alphabet only has
     27 characters (one for each possible tryte configuration).
   """
-  # :bc: Without the bytearray cast, Python 2 will populate the dict
-  #   with characters instead of integers.
-  # noinspection SpellCheckingInspection
-  alphabet  = dict(enumerate(bytearray(b'9ABCDEFGHIJKLMNOPQRSTUVWXYZ')))
-  index     = dict(zip(alphabet.values(), alphabet.keys()))
-
   @classmethod
   def from_bytes(cls, bytes_):
     # type: (Union[binary_type, bytearray]) -> TryteString
     """Creates a TryteString from a byte string."""
-    trytes = bytearray()
-
-    # :bc: In Python 2, iterating over a byte string yields characters
-    #   instead of integers.
-    if not isinstance(bytes_, bytearray):
-      bytes_ = bytearray(bytes_)
-
-    for c in bytes_:
-      second, first = divmod(c, len(cls.alphabet))
-
-      trytes.append(cls.alphabet[first])
-      trytes.append(cls.alphabet[second])
-
-    return cls(trytes)
+    return cls(encode(bytes_, 'trytes'))
 
   def __init__(self, trytes, pad=None):
     # type: (Union[binary_type, bytearray], int) -> None
@@ -64,8 +46,7 @@ class TryteString(object):
       trytes = bytearray(trytes)
 
     if pad:
-      for i in range(0, max(0, pad - len(trytes))):
-        trytes.append(self.alphabet[0])
+      trytes += b'9' * max(0, pad - len(trytes))
 
     self.trytes = trytes
 
@@ -75,26 +56,33 @@ class TryteString(object):
 
   def __bytes__(self):
     # type: () -> Text
-    """Converts the TryteString into a byte string."""
-    bytes_ = bytearray()
+    """
+    Converts the TryteString into a byte string.
 
-    for i in range(0, len(self.trytes), 2):
-      try:
-        first, second = self.trytes[i:i+2]
-      except ValueError:
-        bytes_ += b'?'
-        continue
+    If the value contains any trytes that can't be converted, they will
+      be replaced with '?'.
 
-      bytes_.append(
-          self.index[first]
-        + (self.index[second] * len(self.index))
-      )
-
-    return binary_type(bytes_)
+    If you want different handling of un-convertible trytes, use
+      `as_bytes` instead.
+    """
+    return self.as_bytes(errors='replace')
 
   # :bc: Magic method has a different name in Python 2.
   if PY2:
     __str__ = __bytes__
+
+  def as_bytes(self, errors='strict'):
+    # type: (Text) -> binary_type
+    """
+    Converts the TryteString into a byte string.
+
+    :param errors: How to handle trytes that can't be converted:
+      - 'strict':   raise a TrytesDecodeError.
+      - 'replace':  replace with '?'.
+      - 'ignore':   omit the tryte from the byte string.
+    """
+    # :bc: In Python 2, `decode` does not accept keyword arguments.
+    return decode(self.trytes, 'trytes', errors)
 
   def __eq__(self, other):
     # type: (TryteString) -> bool

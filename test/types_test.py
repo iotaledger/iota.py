@@ -91,3 +91,26 @@ class TryteStringTestCase(TestCase):
       binary_type(trytes),
       b'Hello, IOTA!?',
     )
+
+  def test_bytes_conversion_non_ascii(self):
+    """
+    Converting a sequence of trytes into bytes yields non-ASCII
+      characters.
+
+    This most likely indicates that the trytes didn't start out as
+      bytes.  Think trying to decode a sequence of octets using UTF-8,
+      but the octets are actually JPEG data.
+    """
+    trytes = TryteString(
+      b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
+      b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
+    )
+
+    self.assertEqual(
+      binary_type(trytes),
+
+      # It's a pretty safe bet that this particular sequence of trytes
+      #   was never meant to be decoded to bytes.
+      b'??\xd2\x80??\xc3???\x16?\xd0?Q??????'
+      b'\xcd?)????\x0f??\xf5???\xb7??\x19\x00?',
+    )

@@ -75,3 +75,19 @@ class TryteStringTestCase(TestCase):
       b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
       b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999'
     )
+
+  def test_bytes_conversion_partial_sequence(self):
+    """
+    Attempting to convert an odd number of trytes into bytes.
+
+    Note:  This behavior is undefined.  Think trying to decode a
+      sequence of octets using UTF-16, and finding that there's an odd
+      number of octets.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
+
+    # The un-decodable tryte is replaced with '?'.
+    self.assertEqual(
+      binary_type(trytes),
+      b'Hello, IOTA!?',
+    )

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota.types import Trit
+from iota.types import Trit, Tryte
 
 
 class TritTestCase(TestCase):
@@ -125,3 +125,67 @@ class TritTestCase(TestCase):
 
     with self.assertRaises(TypeError):
       Trit(-1) > False
+
+
+class TryteTestCase(TestCase):
+  def test_comparison(self):
+    """Testing equality and comparison of tryte values."""
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_init_mixed_types(self):
+    """
+    As a convenience, you are allowed to initialize a Tryte using ints.
+    """
+    # Mixing Trits and ints is also OK.
+    tryte = Tryte([Trit(1), 1, -1])
+
+    self.assertEqual(tryte[0], Trit(1))
+    self.assertEqual(tryte[1], Trit(1))
+
+    # Well, shucks.
+    self.assertNotEqual(tryte[2], Trit(-1))
+    self.assertEqual(tryte[2].value, -1)
+
+  # noinspection PyTypeChecker
+  def test_error_init_wrong_type(self):
+    """
+    Attempting to initialize a tryte with something other than an array
+      of trits.
+    """
+    with self.assertRaises(TypeError):
+      Tryte(Trit(1))
+
+    with self.assertRaises(TypeError):
+      Tryte(['1', False, None])
+
+  def test_error_init_not_enough_trits(self):
+    """Attempting to initialize a tryte with less than 3 trits."""
+    with self.assertRaises(ValueError):
+      Tryte([])
+
+    with self.assertRaises(ValueError):
+      Tryte([Trit(0)])
+
+    with self.assertRaises(ValueError):
+      Tryte([Trit(0), Trit(0)])
+
+  def test_init_with_padding(self):
+    """Padding a tryte so that it has the correct number of trits."""
+    tryte1 = Tryte([Trit(1)], pad=True)
+
+    # Note that padding trits are applied first.
+    self.assertEqual(tryte1[0].value, -1)
+    self.assertEqual(tryte1[1].value, -1)
+    self.assertEqual(tryte1[2].value, 1)
+
+    tryte2 = Tryte([Trit(0), Trit(1)], pad=True)
+
+    self.assertEqual(tryte2[0].value, -1)
+    self.assertEqual(tryte2[1].value, 0)
+    self.assertEqual(tryte2[2].value, 1)
+
+  def test_error_init_too_many_trits(self):
+    """Attempting to initialize a tryte with more than 3 trits."""
+    with self.assertRaises(ValueError):
+      Tryte([Trit(-1), Trit(-1), Trit(-1), Trit(-1)])

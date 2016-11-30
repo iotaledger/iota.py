@@ -22,3 +22,11 @@ class TryteStringTestCase(TestCase):
       binary_type(TryteString(b'RBTC9D9DCDQAEAKDCDFD9DSCFA')),
       b'Hello, world!',
     )
+
+  def test_init_error_odd_length(self):
+    """
+    Attempting to create a TryteString from a sequence with length not
+      divisible by 2.
+    """
+    with self.assertRaises(ValueError):
+      TryteString(b'RBTC9D9DCDQAEAKDCDFD9DSCFA9')

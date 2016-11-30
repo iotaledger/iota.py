@@ -15,30 +15,23 @@ from typing import Text
 from requests.exceptions import ConnectionError
 from six import text_type as text
 
-from iota import BadApiResponse, DEFAULT_PORT, HttpAdapter, IotaApi, \
-  __version__
+from iota import BadApiResponse, IotaApi, __version__
 
 
-def main(host, port):
+def main(uri):
   # type: (Text, int) -> None
-  api = IotaApi(HttpAdapter(host, port))
+  api = IotaApi(uri)
 
   try:
     node_info = api.get_node_info()
   except ConnectionError as e:
-    print("Hm.  {host}:{port} isn't responding.  Is the node running?".format(
-      host = host,
-      port = port,
-    ))
+    print("Hm.  {uri} isn't responding.  Is the node running?".format(uri=uri))
     print(e)
   except BadApiResponse as e:
-    print("Looks like {host}:{port} isn't very talkative today ):".format(
-      host = host,
-      port = port,
-    ))
+    print("Looks like {uri} isn't very talkative today ):".format(uri=uri))
     print(e)
   else:
-    print('Hello {host}:{port}!'.format(host=host, port=port))
+    print('Hello {uri}!'.format(uri=uri))
     pprint(node_info)
 
 
@@ -49,23 +42,13 @@ if __name__ == '__main__':
   )
 
   parser.add_argument(
-    '--host',
+    '--uri',
       type    = text,
-      default = 'localhost',
+      default = 'udp://localhost:14265/',
 
       help =
-        'Hostname or IP address of the node to connect to '
-        '(defaults to localhost).',
-  )
-
-  parser.add_argument(
-    '--port',
-      type    = int,
-      default = DEFAULT_PORT,
-
-      help = 'Port number to connect to (defaults to {default}).'.format(
-        default = DEFAULT_PORT,
-      ),
+        'URI of the node to connect to '
+        '(defaults to udp://localhost:14265/).',
   )
 
   main(**vars(parser.parse_args(argv[1:])))

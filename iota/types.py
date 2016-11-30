@@ -82,3 +82,17 @@ class TryteString(object):
   # :bc: Magic method has a different name in Python 2.
   if PY2:
     __str__ = __bytes__
+
+  def __eq__(self, other):
+    # type: (TryteString) -> bool
+    if not isinstance(other, TryteString):
+      raise TypeError(
+        'TryteStrings can only be compared to other TryteStrings.',
+      )
+
+    return self.trytes == other.trytes
+
+  # :bc: In Python 2 this must be defined explicitly.
+  def __ne__(self, other):
+    # type: (TryteString) -> bool
+    return not (self == other)

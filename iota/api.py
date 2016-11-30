@@ -4,7 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Callable, Iterable, Optional, Text, Union
 
+from six import binary_type
+
 from iota.adapter import BaseAdapter, resolve_adapter
+from iota.types import TryteString
 
 __all__ = [
   'IotaApi',
@@ -175,7 +178,14 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/getnodeinfo
     """
-    return self.__getattr__('getNodeInfo')()
+    response = self.getNodeInfo()
+
+    for key in ('latestMilestone', 'latestSolidSubtangleMilestone'):
+      trytes = response.get(key)
+      if trytes:
+        response[key] = TryteString(trytes.encode('ascii'))
+
+    return response
 
   def get_tips(self):
     # type: () -> dict
@@ -222,7 +232,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/interruptattachingtotangle
     """
-    return self.__getattr__('interruptAttachingToTangle')()
+    return self.interruptAttachingToTangle()
 
   def remove_neighbors(self, uris):
     # type: (Iterable[Text]) -> dict
@@ -235,7 +245,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/removeneighors
     """
-    return self.__getattr__('removeNeighbors')(uris=uris)
+    return self.removeNeighbors(uris=uris)
 
   def store_transactions(self, trytes):
     # type: (Iterable[Text]) -> dict

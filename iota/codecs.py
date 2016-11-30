@@ -52,12 +52,12 @@ class TrytesCodec(Codec):
         type = type(input).__name__,
       ))
 
-    trytes = bytearray()
-
     # :bc: In Python 2, iterating over a byte string yields characters
     #   instead of integers.
     if not isinstance(input, bytearray):
       input = bytearray(input)
+
+    trytes = bytearray()
 
     for c in input:
       second, first = divmod(c, len(self.alphabet))

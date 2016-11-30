@@ -32,7 +32,7 @@ class TryteString(object):
   def from_bytes(cls, bytes_):
     # type: (Union[binary_type, bytearray]) -> TryteString
     """Creates a TryteString from a byte string."""
-    tryte_string = bytearray()
+    trytes = bytearray()
 
     # :bc: In Python 2, iterating over a byte string yields characters
     #   instead of integers.
@@ -42,41 +42,43 @@ class TryteString(object):
     for c in bytes_:
       second, first = divmod(c, len(cls.alphabet))
 
-      tryte_string.append(cls.alphabet[first])
-      tryte_string.append(cls.alphabet[second])
+      trytes.append(cls.alphabet[first])
+      trytes.append(cls.alphabet[second])
 
-    return cls(tryte_string)
+    return cls(trytes)
 
-  def __init__(self, value, pad=False):
+  def __init__(self, trytes, pad=False):
     # type: (Union[binary_type, bytearray], bool) -> None
     super(TryteString, self).__init__()
 
-    if len(value) % 2:
+    if len(trytes) % 2:
       if pad:
-        value += self.alphabet[0]
+        trytes += self.alphabet[0]
       else:
         raise ValueError(
           'Length of TryteString must be divisible by 2.'
         )
 
-    self.value = value if isinstance(value, bytearray) else bytearray(value)
+    self.trytes =\
+      trytes if isinstance(trytes, bytearray) else bytearray(trytes)
 
   def __repr__(self):
     # type: () -> Text
-    return 'TryteString({value!r})'.format(value=binary_type(self.value))
+    return 'TryteString({trytes!r})'.format(trytes=binary_type(self.trytes))
 
   def __bytes__(self):
     # type: () -> Text
     """Converts the TryteString into a byte string."""
-    byte_string = bytearray()
+    bytes_ = bytearray()
 
-    for i in range(0, len(self.value), 2):
-      byte_string.append(
-          self.index[self.value[i]]
-        + (self.index[self.value[i+1]] * len(self.index))
+    for i in range(0, len(self.trytes), 2):
+      bytes_.append(
+          self.index[self.trytes[i]]
+        + (self.index[self.trytes[i + 1]] * len(self.index))
       )
 
-    return binary_type(byte_string)
+    return binary_type(bytes_)
 
+  # :bc: Magic method has a different name in Python 2.
   if PY2:
     __str__ = __bytes__

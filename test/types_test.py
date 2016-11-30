@@ -14,7 +14,7 @@ class TryteStringTestCase(TestCase):
   def test_hello_world(self):
     """PoC test for TryteString"""
     self.assertEqual(
-      TryteString.from_bytes(b'Hello, world!').value,
+      TryteString.from_bytes(b'Hello, world!').trytes,
       b'RBTC9D9DCDQAEAKDCDFD9DSCFA',
     )
 

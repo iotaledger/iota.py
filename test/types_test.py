@@ -6,6 +6,7 @@ from unittest import TestCase
 
 from six import binary_type
 
+from iota import TrytesDecodeError
 from iota.types import TryteString
 
 
@@ -86,11 +87,8 @@ class TryteStringTestCase(TestCase):
     """
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
 
-    # The un-decodable tryte is replaced with '?'.
-    self.assertEqual(
-      binary_type(trytes),
-      b'Hello, IOTA!?',
-    )
+    with self.assertRaises(TrytesDecodeError):
+      binary_type(trytes)
 
   def test_bytes_conversion_non_ascii(self):
     """
@@ -106,11 +104,79 @@ class TryteStringTestCase(TestCase):
       b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
     )
 
-    self.assertEqual(
-      binary_type(trytes),
+    # This tryte sequence cannot be converted into a byte string; it
+    #   contains too many ordinals > 255.
+    with self.assertRaises(TrytesDecodeError):
+      binary_type(trytes)
 
-      # It's a pretty safe bet that this particular sequence of trytes
-      #   was never meant to be decoded to bytes.
-      b'??\xd2\x80??\xc3???\x16?\xd0?Q??????'
-      b'\xcd?)????\x0f??\xf5???\xb7??\x19\x00?',
+  def test_as_bytes_partial_sequence_errors_strict(self):
+    """
+    Attempting to convert an odd number of trytes into bytes using the
+      `as_bytes` method with errors='strict'.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
+
+    with self.assertRaises(TrytesDecodeError):
+      trytes.as_bytes(errors='strict')
+
+  def test_as_bytes_partial_sequence_errors_ignore(self):
+    """
+    Attempting to convert an odd number of trytes into bytes using the
+      `as_bytes` method with errors='ignore'.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
+
+    self.assertEqual(
+      trytes.as_bytes(errors='ignore'),
+
+      # The extra tryte is ignored.
+      b'Hello, IOTA!',
+    )
+
+  def test_as_bytes_partial_sequence_errors_replace(self):
+    """
+    Attempting to convert an odd number of trytes into bytes using the
+      `as_bytes` method with errors='replace'.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
+
+    self.assertEqual(
+      trytes.as_bytes(errors='replace'),
+
+      # The extra tryte is replaced with '?'.
+      b'Hello, IOTA!?',
+    )
+
+  def test_as_bytes_non_ascii_errors_strict(self):
+    """
+    Converting a sequence of trytes into bytes using the `as_bytes`
+      method yields non-ASCII characters, and errors='strict'.
+    """
+    trytes = TryteString(b'ZJVYUGTDRPDYFGFXMK')
+
+    with self.assertRaises(TrytesDecodeError):
+      trytes.as_bytes(errors='strict')
+
+  def test_as_bytes_non_ascii_errors_ignore(self):
+    """
+    Converting a sequence of trytes into bytes using the `as_bytes`
+      method yields non-ASCII characters, and errors='ignore'.
+    """
+    trytes = TryteString(b'ZJVYUGTDRPDYFGFXMK')
+
+    self.assertEqual(
+      trytes.as_bytes(errors='ignore'),
+      b'\xd2\x80\xc3',
+    )
+
+  def test_as_bytes_non_ascii_errors_replace(self):
+    """
+    Converting a sequence of trytes into bytes using the `as_bytes`
+      method yields non-ASCII characters, and errors='replace'.
+    """
+    trytes = TryteString(b'ZJVYUGTDRPDYFGFXMK')
+
+    self.assertEqual(
+      trytes.as_bytes(errors='replace'),
+      b'??\xd2\x80??\xc3??',
     )

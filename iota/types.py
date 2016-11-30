@@ -65,7 +65,7 @@ class TryteString(object):
     If you want different handling of un-convertible trytes, use
       `as_bytes` instead.
     """
-    return self.as_bytes(errors='replace')
+    return self.as_bytes()
 
   # :bc: Magic method has a different name in Python 2.
   if PY2:

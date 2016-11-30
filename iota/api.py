@@ -2,9 +2,9 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Callable, Iterable, Optional, Text
+from typing import Callable, Iterable, Optional, Text, Union
 
-from iota.adapter import BaseAdapter
+from iota.adapter import BaseAdapter, resolve_adapter
 
 __all__ = [
   'IotaApi',
@@ -18,8 +18,14 @@ class IotaApi(object):
   :see: https://iota.readme.io/docs/getting-started
   """
   def __init__(self, adapter):
-    # type: (BaseAdapter) -> None
+    # type: (Union[Text, BaseAdapter]) -> None
+    """
+    :param adapter: URI string or BaseAdapter instance.
+    """
     super(IotaApi, self).__init__()
+
+    if not isinstance(adapter, BaseAdapter):
+      adapter = resolve_adapter(adapter)
 
     self.adapter = adapter # type: BaseAdapter
 

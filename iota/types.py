@@ -32,7 +32,7 @@ class TryteString(object):
     return cls(encode(bytes_, 'trytes'))
 
   def __init__(self, trytes, pad=None):
-    # type: (Union[binary_type, bytearray], int) -> None
+    # type: (Union[binary_type, bytearray, TryteString], int) -> None
     """
     :param trytes: Byte string or bytearray.
     :param pad: Ensure at least this many trytes.
@@ -44,18 +44,23 @@ class TryteString(object):
     """
     super(TryteString, self).__init__()
 
-    if not isinstance(trytes, bytearray):
-      trytes = bytearray(trytes)
+    if isinstance(trytes, TryteString):
+      # Create a copy of the incoming TryteString's trytes, to ensure
+      #   we don't modify it when we apply padding.
+      trytes = bytearray(trytes.trytes)
+    else:
+      if not isinstance(trytes, bytearray):
+        trytes = bytearray(trytes)
 
-    for i, ordinal in enumerate(trytes):
-      if ordinal not in TrytesCodec.index:
-        raise ValueError(
-          'Invalid character {char} at position {i} '
-          '(expected A-Z or 9).'.format(
-            char  = chr(ordinal),
-            i     = i,
-          ),
-        )
+      for i, ordinal in enumerate(trytes):
+        if ordinal not in TrytesCodec.index:
+          raise ValueError(
+            'Invalid character {char} at position {i} '
+            '(expected A-Z or 9).'.format(
+              char  = chr(ordinal),
+              i     = i,
+            ),
+          )
 
     if pad:
       trytes += b'9' * max(0, pad - len(trytes))
@@ -109,3 +114,12 @@ class TryteString(object):
   def __ne__(self, other):
     # type: (TryteString) -> bool
     return not (self == other)
+
+
+class TransactionId(TryteString):
+  """A TryteString that acts as a transaction ID."""
+  def __init__(self, trytes):
+    super(TransactionId, self).__init__(trytes, pad=81)
+
+    if len(self.trytes) > 81:
+      raise ValueError('TransactionIds must be 81 trytes long.')

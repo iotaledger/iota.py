@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Callable, Iterable, Optional, Text, Union
 
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.types import TryteString
+from iota.types import TransactionId, TryteString
 
 __all__ = [
   'IotaApi',
@@ -64,10 +64,10 @@ class IotaApi(object):
       self,
       trunk_transaction,
       branch_transaction,
-      min_weight_magnitude,
-      trytes
+      trytes,
+      min_weight_magnitude = 18,
   ):
-    # type: (Text, Text, int, Iterable[Text]) -> dict
+    # type: (TransactionId, TransactionId, Iterable[TryteString], int) -> dict
     """
     Attaches the specified transactions (trytes) to the Tangle by doing
       Proof of Work. You need to supply branchTransaction as well as
@@ -80,7 +80,70 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/attachtotangle
     """
-    raise NotImplementedError('Not implemented yet.')
+    if not isinstance(trunk_transaction, TransactionId):
+      raise TypeError(
+        'trunk_transaction has wrong type '
+        '(expected TransactionID, actual {type}).'.format(
+          type = type(trunk_transaction).__name__,
+        ),
+      )
+
+    if not isinstance(branch_transaction, TransactionId):
+      raise TypeError(
+        'branch_transaction has wrong type '
+        '(expected TransactionID, actual {type}).'.format(
+          type = type(branch_transaction).__name__,
+        ),
+      )
+
+    if type(min_weight_magnitude) is not int:
+      raise TypeError(
+        'min_weight_magnitude has wrong type '
+        '(expected int, actual {type}).'.format(
+          type = type(min_weight_magnitude).__name__,
+        ),
+      )
+
+    if min_weight_magnitude < 18:
+      raise ValueError(
+        'min_weight_magnitude is too small '
+        '(expected >= 18, actual {value}).'.format(
+          value = min_weight_magnitude,
+        ),
+      )
+
+    if not isinstance(trytes, Iterable):
+      raise TypeError(
+        'trytes has wrong type (expected Iterable, actual {type}).'.format(
+          type = type(trytes).__name__,
+        ),
+      )
+
+    if not trytes:
+      raise ValueError('trytes must not be empty.')
+
+    for i, t in enumerate(trytes):
+      if not isinstance(t, TryteString):
+        raise TypeError(
+          'trytes[{i}] has wrong type '
+          '(expected TryteString, actual {type}).'.format(
+            i     = i,
+            type  = type(t).__name__,
+          ),
+        )
+
+    response = self.attachToTangle(
+      trunkTransaction    = trunk_transaction.trytes,
+      branchTransaction   = branch_transaction.trytes,
+      minWeightMagnitude  = min_weight_magnitude,
+      trytes              = [t.trytes for t in trytes],
+    )
+
+    trytes = response.get('trytes')
+    if trytes:
+      response['trytes'] = [TryteString(t.encode('ascii')) for t in trytes]
+
+    return response
 
   def broadcast_transactions(self, trytes):
     # type: (Iterable[Text]) -> dict

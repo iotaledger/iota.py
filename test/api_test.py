@@ -7,7 +7,6 @@ from unittest import TestCase
 from iota import IotaApi
 from iota.api import CustomCommand
 from iota.commands.get_node_info import GetNodeInfoCommand
-from iota.types import TryteString, TransactionId
 from test import MockAdapter
 
 
@@ -50,6 +49,15 @@ class CustomCommandTestCase(TestCase):
       self.adapter.requests,
       [({'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}, {})],
     )
+
+  def test_call_error_already_called(self):
+    """A command can only be called once."""
+    self.command()
+
+    with self.assertRaises(RuntimeError):
+      self.command(extra='params')
+
+    self.assertDictEqual(self.command.request, {'command': 'helloWorld'})
 
 
 class IotaApiTestCase(TestCase):

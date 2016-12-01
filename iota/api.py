@@ -38,6 +38,8 @@ class BaseCommand(with_metaclass(CommandMeta)):
   def __init__(self, adapter):
     # type: (BaseAdapter) -> None
     self.adapter  = adapter
+
+    self.called   = False
     self.request  = None # type: dict
     self.response = None # type: dict
 
@@ -45,7 +47,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
     # type: (dict) -> dict
     """Sends the command to the node."""
     if self.called:
-      raise ValueError('Command has already been called.')
+      raise RuntimeError('Command has already been called.')
 
     self.request = kwargs
 
@@ -61,13 +63,9 @@ class BaseCommand(with_metaclass(CommandMeta)):
     if replacement is not None:
       self.response = replacement
 
-    return self.response
+    self.called = True
 
-  @property
-  def called(self):
-    # type: () -> bool
-    """Returns whether this command has been called."""
-    return self.response is not None
+    return self.response
 
   @abstract_method
   def _prepare_request(self, request):

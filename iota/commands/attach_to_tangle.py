@@ -7,6 +7,10 @@ from collections import Iterable
 from iota.api import BaseCommand
 from iota.types import TransactionId, TryteString
 
+__all__ = [
+  'AttachToTangleCommand',
+]
+
 
 class AttachToTangleCommand(BaseCommand):
   """

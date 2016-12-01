@@ -4,6 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from iota.api import BaseCommand
 
+__all__ = [
+  'GetNodeInfoCommand',
+]
+
 
 class GetNodeInfoCommand(BaseCommand):
   """

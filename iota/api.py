@@ -2,9 +2,9 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod as abstract_method
 from inspect import isabstract as is_abstract
-from typing import Dict, Iterable, Optional, Text, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Text, Union
 
 from six import with_metaclass
 
@@ -37,7 +37,8 @@ class BaseCommand(with_metaclass(CommandMeta)):
 
   def __init__(self, adapter):
     # type: (BaseAdapter) -> None
-    self.adapter = adapter
+    self.adapter  = adapter
+    self.request  = None # type: dict
     self.response = None # type: dict
 
   def __call__(self, **kwargs):
@@ -46,7 +47,15 @@ class BaseCommand(with_metaclass(CommandMeta)):
     if self.called:
       raise ValueError('Command has already been called.')
 
-    self.response = self.adapter.send_request(self._prepare_request(kwargs))
+    self.request = kwargs
+
+    replacement = self._prepare_request(self.request)
+    if replacement is not None:
+      self.request = replacement
+
+    self.request['command'] = self.command
+
+    self.response = self.adapter.send_request(self.request)
 
     replacement = self._prepare_response(self.response)
     if replacement is not None:
@@ -60,13 +69,23 @@ class BaseCommand(with_metaclass(CommandMeta)):
     """Returns whether this command has been called."""
     return self.response is not None
 
-  def _prepare_request(self, params):
-    # type: (dict) -> dict
-    """Returns the actual payload to be sent to the node."""
-    payload = {'command': self.command}
-    payload.update(params)
-    return payload
+  @abstract_method
+  def _prepare_request(self, request):
+    # type: (dict) -> Optional[dict]
+    """
+    Modifies the request before sending it to the node.
 
+    If this method returns a dict, it will replace the request
+      entirely.
+
+    Note:  the `command` parameter will be injected later; it is
+      not necessary for this method to include it.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
+
+  @abstract_method
   def _prepare_response(self, response):
     # type: (dict) -> Optional[dict]
     """
@@ -75,7 +94,33 @@ class BaseCommand(with_metaclass(CommandMeta)):
     If this method returns a dict, it will replace the response
       entirely.
     """
-    pass
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
+
+  @staticmethod
+  def _convert_response_values(response, keys, converter):
+    # type: (dict, Iterable[Text], Callable[Any, Any]) -> None
+    """
+    Converts non-null response values at the specified keys to the
+      specified type.
+    """
+    for k in keys:
+      value = response.get(k)
+      if value is not None:
+        response[k] = converter(value)
+
+  def _convert_to_tryte_strings(self, response, keys, type_=TryteString):
+    # type: (dict, Iterable[Text], type) -> None
+    """
+    Converts non-null response values at the specified keys to
+      TryteStrings.
+    """
+    def converter(value):
+      # type: (Text) -> TryteString
+      return type_(value.encode('ascii'))
+
+    self._convert_response_values(response, keys, converter)
 
 
 class CustomCommand(BaseCommand):
@@ -85,6 +130,12 @@ class CustomCommand(BaseCommand):
     super(CustomCommand, self).__init__(adapter)
 
     self.command = command
+
+  def _prepare_request(self, request):
+    pass
+
+  def _prepare_response(self, response):
+    pass
 
 
 # Populate the command registry.
@@ -158,70 +209,12 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/attachtotangle
     """
-    if not isinstance(trunk_transaction, TransactionId):
-      raise TypeError(
-        'trunk_transaction has wrong type '
-        '(expected TransactionID, actual {type}).'.format(
-          type = type(trunk_transaction).__name__,
-        ),
-      )
-
-    if not isinstance(branch_transaction, TransactionId):
-      raise TypeError(
-        'branch_transaction has wrong type '
-        '(expected TransactionID, actual {type}).'.format(
-          type = type(branch_transaction).__name__,
-        ),
-      )
-
-    if type(min_weight_magnitude) is not int:
-      raise TypeError(
-        'min_weight_magnitude has wrong type '
-        '(expected int, actual {type}).'.format(
-          type = type(min_weight_magnitude).__name__,
-        ),
-      )
-
-    if min_weight_magnitude < 18:
-      raise ValueError(
-        'min_weight_magnitude is too small '
-        '(expected >= 18, actual {value}).'.format(
-          value = min_weight_magnitude,
-        ),
-      )
-
-    if not isinstance(trytes, Iterable):
-      raise TypeError(
-        'trytes has wrong type (expected Iterable, actual {type}).'.format(
-          type = type(trytes).__name__,
-        ),
-      )
-
-    if not trytes:
-      raise ValueError('trytes must not be empty.')
-
-    for i, t in enumerate(trytes):
-      if not isinstance(t, TryteString):
-        raise TypeError(
-          'trytes[{i}] has wrong type '
-          '(expected TryteString, actual {type}).'.format(
-            i     = i,
-            type  = type(t).__name__,
-          ),
-        )
-
-    response = self.attachToTangle(
-      trunkTransaction    = trunk_transaction.trytes,
-      branchTransaction   = branch_transaction.trytes,
-      minWeightMagnitude  = min_weight_magnitude,
-      trytes              = [t.trytes for t in trytes],
+    return self.attachToTangle(
+      trunk_transaction     = trunk_transaction,
+      branch_transaction    = branch_transaction,
+      min_weight_magnitude  = min_weight_magnitude,
+      trytes                = trytes,
     )
-
-    trytes = response.get('trytes')
-    if trytes:
-      response['trytes'] = [TryteString(t.encode('ascii')) for t in trytes]
-
-    return response
 
   def broadcast_transactions(self, trytes):
     # type: (Iterable[Text]) -> dict

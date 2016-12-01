@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from iota.api import BaseCommand
-from iota.types import TryteString
 
 
 class GetNodeInfoCommand(BaseCommand):
@@ -14,10 +13,13 @@ class GetNodeInfoCommand(BaseCommand):
   """
   command = 'getNodeInfo'
 
+  def _prepare_request(self, request):
+    pass
+
   def _prepare_response(self, response):
-    for key in ('latestMilestone', 'latestSolidSubtangleMilestone'):
-      trytes = response.get(key)
-      if trytes:
-        response[key] = TryteString(trytes.encode('ascii'))
+    self._convert_to_tryte_strings(
+      response  = response,
+      keys      = ('latestMilestone', 'latestSolidSubtangleMilestone'),
+    )
 
 

@@ -2,8 +2,6 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-
-# noinspection SpellCheckingInspection
 from unittest import TestCase
 
 from iota.commands.get_node_info import GetNodeInfoCommand
@@ -11,9 +9,10 @@ from iota.types import TryteString
 from test import MockAdapter
 
 
-class GetNodeInfoTestCase(TestCase):
+# noinspection SpellCheckingInspection
+class GetNodeInfoCommandTestCase(TestCase):
   def setUp(self):
-    super(GetNodeInfoTestCase, self).setUp()
+    super(GetNodeInfoCommandTestCase, self).setUp()
 
     self.adapter  = MockAdapter()
     self.command  = GetNodeInfoCommand(self.adapter)

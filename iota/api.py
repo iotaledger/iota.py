@@ -31,7 +31,7 @@ class IotaApi(object):
     self.adapter = adapter # type: BaseAdapter
 
   def __getattr__(self, command):
-    # type: (Text, dict) -> Callable[[...], dict]
+    # type: (Text, dict) -> Command
     """
     Sends an arbitrary API command to the node.
 
@@ -39,13 +39,8 @@ class IotaApi(object):
       methods, or if you just want to troll your node for awhile.
 
     :param command: The name of the command to send.
-
-    :return: Decoded response from the node.
-    :raise: BadApiResponse if the node sends back an error response.
     """
-    def command_sender(**kwargs):
-      return self.adapter.send_request(dict(command=command, **kwargs))
-    return command_sender
+    return Command(self.adapter, command)
 
   def add_neighbors(self, uris):
     # type: (Iterable[Text]) -> dict
@@ -318,3 +313,36 @@ class IotaApi(object):
     :see: https://iota.readme.io/docs/storetransactions
     """
     raise NotImplementedError('Not implemented yet.')
+
+
+class Command(object):
+  """An API command ready to send to the node."""
+  def __init__(self, adapter, command):
+    # type: (BaseAdapter, Text) -> None
+    super(Command, self).__init__()
+
+    self.adapter  = adapter
+    self.command  = command
+    self.response = None # type: dict
+
+  def __call__(self, **kwargs):
+    # type: (dict) -> dict
+    """Sends the command to the node."""
+    if self.called:
+      raise ValueError('Command has already been called.')
+
+    self.response = self.adapter.send_request(self.create_payload(kwargs))
+    return self.response
+
+  @property
+  def called(self):
+    # type: () -> bool
+    """Returns whether this command has been called."""
+    return self.response is not None
+
+  def create_payload(self, params):
+    # type: (dict) -> dict
+    """Returns the actual payload to be sent to the node."""
+    payload = {'command': self.command}
+    payload.update(params)
+    return payload

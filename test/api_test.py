@@ -2,29 +2,54 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional
 from unittest import TestCase
 
 from iota import IotaApi
-from iota.adapter import BaseAdapter
+from iota.api import CustomCommand
+from iota.commands.get_node_info import GetNodeInfoCommand
 from iota.types import TryteString, TransactionId
+from test import MockAdapter
 
 
-class MockAdapter(BaseAdapter):
-  """An adapter for IotaApi that always returns a mocked response."""
-  supported_protocols = ('mock',)
+class CustomCommandTestCase(TestCase):
+  def setUp(self):
+    super(CustomCommandTestCase, self).setUp()
 
-  def __init__(self, response=None):
-    # type: (Optional[dict]) -> None
-    super(MockAdapter, self).__init__()
+    self.name     = 'helloWorld'
+    self.adapter  = MockAdapter()
+    self.command  = CustomCommand(self.adapter, self.name)
 
-    self.response = response
+  def test_call(self):
+    """Sending a custom command."""
+    expected_response = {'message': 'Hello, IOTA!'}
 
-    self.requests = []
+    self.adapter.response = expected_response
 
-  def send_request(self, payload, **kwargs):
-    self.requests.append((payload, kwargs))
-    return self.response
+    response = self.command()
+
+    self.assertEqual(response, expected_response)
+    self.assertTrue(self.command.called)
+
+    self.assertListEqual(
+      self.adapter.requests,
+      [({'command': 'helloWorld'}, {})],
+    )
+
+  def test_call_with_parameters(self):
+    """Sending a custom command with parameters."""
+    expected_response = {'message': 'Hello, IOTA!'}
+
+    self.adapter.response = expected_response
+
+    response = self.command(foo='bar', baz='luhrmann')
+
+    self.assertEqual(response, expected_response)
+    self.assertTrue(self.command.called)
+
+    self.assertListEqual(
+      self.adapter.requests,
+      [({'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}, {})],
+    )
 
 
 class IotaApiTestCase(TestCase):
@@ -35,37 +60,23 @@ class IotaApiTestCase(TestCase):
     api = IotaApi('mock://')
     self.assertIsInstance(api.adapter, MockAdapter)
 
+  def test_registered_command(self):
+    """Preparing a documented command."""
+    api = IotaApi(MockAdapter())
+
+    # We just need to make sure the correct command type is
+    #   instantiated; individual commands have their own unit tests.
+    command = api.getNodeInfo
+    self.assertIsInstance(command, GetNodeInfoCommand)
+
   def test_custom_command(self):
-    """Sending an experimental/unsupported command."""
-    expected_response = {'message': 'Hello, IOTA!'}
+    """Preparing an experimental/undocumented command."""
+    api = IotaApi(MockAdapter())
 
-    adapter = MockAdapter(expected_response)
-    api     = IotaApi(adapter)
-
-    response = api.helloWorld()
-
-    self.assertEqual(response, expected_response)
-
-    self.assertListEqual(
-      adapter.requests,
-      [({'command': 'helloWorld'}, {})],
-    )
-
-  def test_custom_command_with_arguments(self):
-    """Sending an experimental/unsupported command with arguments."""
-    expected_response = {'message': 'Hello, IOTA!'}
-
-    adapter = MockAdapter(expected_response)
-    api     = IotaApi(adapter)
-
-    response = api.helloWorld(foo='bar', baz='luhrmann')
-
-    self.assertEqual(response, expected_response)
-
-    self.assertListEqual(
-      adapter.requests,
-      [({'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}, {})],
-    )
+    # We just need to make sure the correct command type is
+    #   instantiated; custom commands have their own unit tests.
+    command = api.helloWorld
+    self.assertIsInstance(command, CustomCommand)
 
 
 # noinspection SpellCheckingInspection
@@ -355,51 +366,3 @@ class AttachToTangleTestCase(TestCase):
         trunk_transaction   = trunk_transaction,
         branch_transaction  = branch_transaction,
       )
-
-
-# noinspection SpellCheckingInspection
-class GetNodeInfoTestCase(TestCase):
-  def setUp(self):
-    super(GetNodeInfoTestCase, self).setUp()
-
-    self.adapter  = MockAdapter()
-    self.api      = IotaApi(self.adapter)
-
-  def test_get_node_info_happy_path(self):
-    """Successful invocation of `getNodeInfo`."""
-    expected_response = {
-      'appName': 'IRI',
-      'appVersion': '1.0.8.nu',
-      'duration': 1,
-      'jreAvailableProcessors': 4,
-      'jreFreeMemory': 91707424,
-      'jreMaxMemory': 1908932608,
-      'jreTotalMemory': 122683392,
-      'latestMilestone': 'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJRFKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
-      'latestMilestoneIndex': 107,
-      'latestSolidSubtangleMilestone': 'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJRFKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
-      'latestSolidSubtangleMilestoneIndex': 107,
-      'neighbors': 2,
-      'packetsQueueSize': 0,
-      'time': 1477037811737,
-      'tips': 3,
-      'transactionsToRequest': 0
-    }
-
-    self.adapter.response = expected_response
-
-    response = self.api.get_node_info()
-
-    self.assertDictEqual(response, expected_response)
-
-    self.assertIsInstance(response['latestMilestone'], TryteString)
-
-    self.assertIsInstance(
-      response['latestSolidSubtangleMilestone'],
-      TryteString,
-    )
-
-    self.assertListEqual(
-      self.adapter.requests,
-      [({'command': 'getNodeInfo'}, {})],
-    )

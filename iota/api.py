@@ -2,7 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Callable, Iterable, Optional, Text, Union
+from abc import ABCMeta
+from inspect import isabstract as is_abstract
+from typing import Dict, Iterable, Optional, Text, Union
+
+from six import with_metaclass
 
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.types import TransactionId, TryteString
@@ -10,6 +14,82 @@ from iota.types import TransactionId, TryteString
 __all__ = [
   'IotaApi',
 ]
+
+
+command_registry = {} # type: Dict[Text, CommandMeta]
+"""Registry of commands, indexed by command name."""
+
+class CommandMeta(ABCMeta):
+  """Automatically register new commands."""
+  # noinspection PyShadowingBuiltins
+  def __init__(cls, what, bases=None, dict=None):
+    super(CommandMeta, cls).__init__(what, bases, dict)
+
+    if not is_abstract(cls):
+      command = getattr(cls, 'command')
+      if command:
+        command_registry[command] = cls
+
+
+class BaseCommand(with_metaclass(CommandMeta)):
+  """An API command ready to send to the node."""
+  command = None # Text
+
+  def __init__(self, adapter):
+    # type: (BaseAdapter) -> None
+    self.adapter = adapter
+    self.response = None # type: dict
+
+  def __call__(self, **kwargs):
+    # type: (dict) -> dict
+    """Sends the command to the node."""
+    if self.called:
+      raise ValueError('Command has already been called.')
+
+    self.response = self.adapter.send_request(self._prepare_request(kwargs))
+
+    replacement = self._prepare_response(self.response)
+    if replacement is not None:
+      self.response = replacement
+
+    return self.response
+
+  @property
+  def called(self):
+    # type: () -> bool
+    """Returns whether this command has been called."""
+    return self.response is not None
+
+  def _prepare_request(self, params):
+    # type: (dict) -> dict
+    """Returns the actual payload to be sent to the node."""
+    payload = {'command': self.command}
+    payload.update(params)
+    return payload
+
+  def _prepare_response(self, response):
+    # type: (dict) -> Optional[dict]
+    """
+    Modifies the response from the node.
+
+    If this method returns a dict, it will replace the response
+      entirely.
+    """
+    pass
+
+
+class CustomCommand(BaseCommand):
+  """Used to execute experimental/undocumented commands."""
+  def __init__(self, adapter, command):
+    # type: (BaseAdapter, Text) -> None
+    super(CustomCommand, self).__init__(adapter)
+
+    self.command = command
+
+
+# Populate the command registry.
+# noinspection PyUnresolvedReferences
+from iota.commands import *
 
 
 class IotaApi(object):
@@ -31,7 +111,7 @@ class IotaApi(object):
     self.adapter = adapter # type: BaseAdapter
 
   def __getattr__(self, command):
-    # type: (Text, dict) -> Command
+    # type: (Text, dict) -> CustomCommand
     """
     Sends an arbitrary API command to the node.
 
@@ -40,7 +120,10 @@ class IotaApi(object):
 
     :param command: The name of the command to send.
     """
-    return Command(self.adapter, command)
+    try:
+      return command_registry[command](self.adapter)
+    except KeyError:
+      return CustomCommand(self.adapter, command)
 
   def add_neighbors(self, uris):
     # type: (Iterable[Text]) -> dict
@@ -234,14 +317,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/getnodeinfo
     """
-    response = self.getNodeInfo()
-
-    for key in ('latestMilestone', 'latestSolidSubtangleMilestone'):
-      trytes = response.get(key)
-      if trytes:
-        response[key] = TryteString(trytes.encode('ascii'))
-
-    return response
+    return self.getNodeInfo()
 
   def get_tips(self):
     # type: () -> dict
@@ -313,36 +389,3 @@ class IotaApi(object):
     :see: https://iota.readme.io/docs/storetransactions
     """
     raise NotImplementedError('Not implemented yet.')
-
-
-class Command(object):
-  """An API command ready to send to the node."""
-  def __init__(self, adapter, command):
-    # type: (BaseAdapter, Text) -> None
-    super(Command, self).__init__()
-
-    self.adapter  = adapter
-    self.command  = command
-    self.response = None # type: dict
-
-  def __call__(self, **kwargs):
-    # type: (dict) -> dict
-    """Sends the command to the node."""
-    if self.called:
-      raise ValueError('Command has already been called.')
-
-    self.response = self.adapter.send_request(self.create_payload(kwargs))
-    return self.response
-
-  @property
-  def called(self):
-    # type: () -> bool
-    """Returns whether this command has been called."""
-    return self.response is not None
-
-  def create_payload(self, params):
-    # type: (dict) -> dict
-    """Returns the actual payload to be sent to the node."""
-    payload = {'command': self.command}
-    payload.update(params)
-    return payload

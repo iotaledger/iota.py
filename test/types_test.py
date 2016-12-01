@@ -7,7 +7,7 @@ from unittest import TestCase
 from six import binary_type
 
 from iota import TrytesDecodeError
-from iota.types import TryteString
+from iota.types import TransactionId, TryteString
 
 
 # noinspection SpellCheckingInspection
@@ -58,6 +58,14 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes is b'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertFalse(trytes is bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
 
+  def test_init_from_tryte_string(self):
+    """Initializing a TryteString from another TryteString."""
+    trytes1 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+    trytes2 = TryteString(trytes1)
+
+    self.assertFalse(trytes1 is trytes2)
+    self.assertTrue(trytes1 == trytes2)
+
   def test_init_padding(self):
     """Apply padding to ensure a TryteString has a minimum length."""
     trytes = TryteString(
@@ -76,6 +84,19 @@ class TryteStringTestCase(TestCase):
       b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
       b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999'
     )
+
+  def test_init_from_tryte_string_with_padding(self):
+    """
+    Initializing a TryteString from another TryteString, and padding
+      the new one to a specific length.
+    """
+    trytes1 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+    trytes2 = TryteString(trytes1, pad=27)
+
+    self.assertFalse(trytes1 is trytes2)
+    self.assertFalse(trytes1 == trytes2)
+
+    self.assertEqual(trytes2.trytes, b'RBTC9D9DCDQAEASBYBCCKBFA999')
 
   def test_init_error_invalid_characters(self):
     """
@@ -188,3 +209,28 @@ class TryteStringTestCase(TestCase):
       trytes.as_bytes(errors='replace'),
       b'??\xd2\x80??\xc3??',
     )
+
+# noinspection SpellCheckingInspection
+class TransactionIdTestCase(TestCase):
+  def test_init_automatic_pad(self):
+    """Transaction IDs are automatically padded to 81 trytes."""
+    txn = TransactionId(
+      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC'
+    )
+
+    self.assertEqual(
+      txn.trytes,
+
+      # Note the extra 9's added to the end.
+      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
+    )
+
+  def test_init_error_too_long(self):
+    """Attempting to create a transaction ID longer than 81 trytes."""
+    with self.assertRaises(ValueError):
+      TransactionId(
+        b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+        b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC99999'
+      )

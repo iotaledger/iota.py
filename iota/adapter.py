@@ -32,7 +32,7 @@ class InvalidUri(ValueError):
   pass
 
 
-adapter_registry = {} # type: Dict[Text, BaseAdapter]
+adapter_registry = {} # type: Dict[Text, AdapterMeta]
 """Keeps track of available adapters and their supported protocols."""
 
 

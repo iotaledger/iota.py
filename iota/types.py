@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from codecs import encode, decode
-from typing import Text, Union
+from typing import Generator, Text, Union
 
 from six import PY2, binary_type
 
@@ -44,6 +44,16 @@ class TryteString(object):
     """
     super(TryteString, self).__init__()
 
+    if isinstance(trytes, int):
+      # This is potentially a valid use case, and we might support it
+      #   at some point.
+      raise TypeError(
+        'Converting {type} to {cls} is not supported.'.format(
+          type  = type(trytes).__name__,
+          cls   = type(self).__name__,
+        ),
+      )
+
     if isinstance(trytes, TryteString):
       # Create a copy of the incoming TryteString's trytes, to ensure
       #   we don't modify it when we apply padding.
@@ -55,7 +65,7 @@ class TryteString(object):
       for i, ordinal in enumerate(trytes):
         if ordinal not in TrytesCodec.index:
           raise ValueError(
-            'Invalid character {char} at position {i} '
+            'Invalid character {char!r} at position {i} '
             '(expected A-Z or 9).'.format(
               char  = chr(ordinal),
               i     = i,
@@ -72,21 +82,27 @@ class TryteString(object):
     return 'TryteString({trytes!r})'.format(trytes=binary_type(self.trytes))
 
   def __bytes__(self):
-    # type: () -> Text
+    # type: () -> binary_type
     """
-    Converts the TryteString into a byte string.
+    Converts the TryteString into a string representation.
 
-    If the value contains any trytes that can't be converted, they will
-      be replaced with '?'.
-
-    If you want different handling of un-convertible trytes, use
-      `as_bytes` instead.
+    Note that this method will NOT convert the trytes back into bytes;
+      use `as_bytes` for that.
     """
-    return self.as_bytes()
+    return binary_type(self.trytes)
 
   # :bc: Magic method has a different name in Python 2.
   if PY2:
     __str__ = __bytes__
+
+  def __len__(self):
+    # type: () -> int
+    return len(self.trytes)
+
+  def __iter__(self):
+    # type: () -> Generator[binary_type]
+    # :see: http://stackoverflow.com/a/14267935/
+    return (self.trytes[i:i+1] for i in range(len(self)))
 
   def as_bytes(self, errors='strict'):
     # type: (Text) -> binary_type
@@ -102,17 +118,23 @@ class TryteString(object):
     return decode(self.trytes, 'trytes', errors)
 
   def __eq__(self, other):
-    # type: (TryteString) -> bool
-    if not isinstance(other, TryteString):
+    # type: (Union[TryteString, binary_type, bytearray]) -> bool
+    if isinstance(other, TryteString):
+      return self.trytes == other.trytes
+    elif isinstance(other, (binary_type, bytearray)):
+      return self.trytes == other
+    else:
       raise TypeError(
-        'TryteStrings can only be compared to other TryteStrings.',
+        'Invalid type for TryteString comparison '
+        '(expected Union[TryteString, binary_type, bytearray], '
+        'actual {type}).'.format(
+          type = type(other).__name__,
+        ),
       )
-
-    return self.trytes == other.trytes
 
   # :bc: In Python 2 this must be defined explicitly.
   def __ne__(self, other):
-    # type: (TryteString) -> bool
+    # type: (Union[TryteString, binary_type, bytearray]) -> bool
     return not (self == other)
 
 

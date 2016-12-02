@@ -20,7 +20,7 @@ class AttachToTangleCommandTestCase(TestCase):
   def test_happy_path(self):
     """Successful invocation of `attachToTangle`."""
     expected_response = {
-      'trytes':['TRYTEVALUEHERE']
+      'trytes': ['TRYTEVALUEHERE']
     }
 
     self.adapter.response = expected_response
@@ -69,6 +69,71 @@ class AttachToTangleCommandTestCase(TestCase):
       )]
     )
 
+  def test_compatible_types(self):
+    """
+    Calling `attachToTangle` with parameters that can be converted into
+      the correct types.
+    """
+    self.command(
+      # Any value that can be converted into a TransactionId is valid
+      #   here.
+      trunk_transaction =\
+        b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+        b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
+
+      branch_transaction =\
+        TryteString(
+          b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+          b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
+        ),
+
+      # This still has to be an int, however.
+      min_weight_magnitude = 30,
+
+      # Just to be extra tricky, let's see what happens if `trytes` is
+      #   a generator.
+      trytes = (
+        t for t in [
+          # `trytes` can contain any value that can be converted into a
+          #   TryteString.
+          b'TRYTEVALUEHERE',
+
+          # This is probably wrong, but maybe not.
+          TransactionId(b'TRANSACTIONIDHERE'),
+        ]
+      ),
+    )
+
+    # Not interested in the response, but we should check to make sure
+    #   that the incoming values were converted correctly.
+    request = self.adapter.requests[0][0]
+
+    self.assertDictEqual(
+      request,
+
+      {
+        'command':            'attachToTangle',
+        'minWeightMagnitude': 30,
+
+        'trunkTransaction':
+            b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+            b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
+          ,
+
+        'branchTransaction':
+            b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+            b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
+          ,
+
+        'trytes': [
+          b'TRYTEVALUEHERE',
+
+          b'TRANSACTIONIDHERE99999999999999999999999'
+          b'99999999999999999999999999999999999999999',
+        ],
+      },
+    )
+
   # noinspection PyTypeChecker
   def test_error_trunk_transaction_invalid(self):
     """
@@ -82,30 +147,6 @@ class AttachToTangleCommandTestCase(TestCase):
       )
 
     trytes = [TryteString(b'TRYTEVALUEHERE')]
-
-    with self.assertRaises(TypeError):
-      self.command(
-        # Nope; the trytes have to be in a container.
-        trunk_transaction =
-          b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-          b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
-
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-    with self.assertRaises(TypeError):
-      self.command(
-        # Sorry, not good enough; it's gotta be a TransactionId.
-        trunk_transaction =
-          TryteString(
-            b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-            b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
-          ),
-
-        branch_transaction = branch_transaction,
-        trytes             = trytes,
-      )
 
     with self.assertRaises(TypeError):
       self.command(
@@ -125,7 +166,7 @@ class AttachToTangleCommandTestCase(TestCase):
         trytes             = trytes,
       )
 
-  # noinspection PyTypeChecker
+  # noinspection PyTypeChecker,PyUnresolvedReferences
   def test_error_branch_transaction_invalid(self):
     """
     Attempting to call `attachToTangle`, but the `branchTransaction`
@@ -138,30 +179,6 @@ class AttachToTangleCommandTestCase(TestCase):
       )
 
     trytes = [TryteString(b'TRYTEVALUEHERE')]
-
-    with self.assertRaises(TypeError):
-      self.command(
-        # Nope; the trytes have to be in a container.
-        branch_transaction =
-          b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-          b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
-
-        trunk_transaction = trunk_transaction,
-        trytes            = trytes,
-      )
-
-    with self.assertRaises(TypeError):
-      self.command(
-        # Sorry, not good enough; it's gotta be a TransactionId.
-        branch_transaction =
-          TryteString(
-            b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-            b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
-          ),
-
-        trunk_transaction = trunk_transaction,
-        trytes            = trytes,
-      )
 
     with self.assertRaises(TypeError):
       self.command(
@@ -283,15 +300,6 @@ class AttachToTangleCommandTestCase(TestCase):
         # Ok, you got the list part down, but you have to put something
         #   inside it.
         trytes = [],
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-      )
-
-    with self.assertRaises(TypeError):
-      self.command(
-        # No, no, no!  They all have to be TryteStrings!
-        trytes = [TryteString(b'TRYTEVALUEHERE'), b'QUACK'],
 
         trunk_transaction   = trunk_transaction,
         branch_transaction  = branch_transaction,

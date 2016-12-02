@@ -12,16 +12,11 @@ from iota.types import TransactionId, TryteString
 
 # noinspection SpellCheckingInspection
 class TryteStringTestCase(TestCase):
-  def test_hello_world(self):
-    """PoC test for TryteString"""
+  def test_from_bytes(self):
+    """Converting a sequence of bytes into a TryteString"""
     self.assertEqual(
       TryteString.from_bytes(b'Hello, IOTA!').trytes,
       b'RBTC9D9DCDQAEASBYBCCKBFA',
-    )
-
-    self.assertEqual(
-      binary_type(TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')),
-      b'Hello, IOTA!',
     )
 
   def test_equality_comparison(self):
@@ -37,8 +32,25 @@ class TryteStringTestCase(TestCase):
     self.assertTrue(trytes1 != trytes3)
 
     self.assertTrue(trytes1 is trytes1)
+    self.assertFalse(trytes1 is not trytes1)
+
     self.assertFalse(trytes1 is trytes2)
+    self.assertTrue(trytes1 is not trytes2)
+
     self.assertFalse(trytes1 is trytes3)
+    self.assertTrue(trytes1 is not trytes3)
+
+    # Comparing against byte strings is also allowed.
+    self.assertTrue(trytes1 == b'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertFalse(trytes1 != b'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertFalse(trytes3 == b'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertTrue(trytes3 != b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    # Ditto for bytearrays.
+    self.assertTrue(trytes1 == bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
+    self.assertFalse(trytes1 != bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
+    self.assertFalse(trytes3 == bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
+    self.assertTrue(trytes3 != bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
 
   # noinspection PyTypeChecker
   def test_equality_comparison_error_wrong_type(self):
@@ -49,14 +61,17 @@ class TryteStringTestCase(TestCase):
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
 
     with self.assertRaises(TypeError):
-      trytes == b'RBTC9D9DCDQAEASBYBCCKBFA'
+      # Comparing against unicode strings is not allowed because it is
+      #   ambiguous how to encode the unicode string for comparison.
+      trytes == 'RBTC9D9DCDQAEASBYBCCKBFA'
 
     with self.assertRaises(TypeError):
-      trytes == bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA')
+      # We might support this at some point, but not at the moment.
+      trytes == 42
 
     # Identity comparison still works though.
-    self.assertFalse(trytes is b'RBTC9D9DCDQAEASBYBCCKBFA')
-    self.assertFalse(trytes is bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
+    self.assertFalse(trytes is 'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertTrue(trytes is not 'RBTC9D9DCDQAEASBYBCCKBFA')
 
   def test_init_from_tryte_string(self):
     """Initializing a TryteString from another TryteString."""
@@ -106,37 +121,39 @@ class TryteStringTestCase(TestCase):
     with self.assertRaises(ValueError):
       TryteString(b'not valid')
 
-  def test_bytes_conversion_partial_sequence(self):
-    """
-    Attempting to convert an odd number of trytes into bytes.
+  # noinspection PyTypeChecker
+  def test_init_error_int(self):
+    """Attempting to initialize a TryteString from an int."""
+    with self.assertRaises(TypeError):
+      TryteString(42)
 
-    Note:  This behavior is undefined.  Think trying to decode a
-      sequence of octets using UTF-16, and finding that there's an odd
-      number of octets.
-    """
-    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
+  def test_length(self):
+    """Just like byte strings, TryteStrings have length."""
+    self.assertEqual(len(TryteString(b'RBTC')), 4)
+    self.assertEqual(len(TryteString(b'RBTC', pad=81)), 81)
 
-    with self.assertRaises(TrytesDecodeError):
-      binary_type(trytes)
-
-  def test_bytes_conversion_non_ascii(self):
-    """
-    Converting a sequence of trytes into bytes yields non-ASCII
-      characters.
-
-    This most likely indicates that the trytes didn't start out as
-      bytes.  Think trying to decode a sequence of octets using UTF-8,
-      but the octets are actually JPEG data.
-    """
-    trytes = TryteString(
-      b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
-      b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
+  def test_iterator(self):
+    """Just like byte strings, you can iterate over TryteStrings."""
+    self.assertListEqual(
+      list(TryteString(b'RBTC')),
+      [b'R', b'B', b'T', b'C'],
     )
 
-    # This tryte sequence cannot be converted into a byte string; it
-    #   contains too many ordinals > 255.
-    with self.assertRaises(TrytesDecodeError):
-      binary_type(trytes)
+    self.assertListEqual(
+      list(TryteString(b'RBTC', pad=6)),
+      [b'R', b'B', b'T', b'C', b'9', b'9'],
+    )
+
+  def test_string_conversion(self):
+    """
+    A TryteString can be converted into an ASCII representation.
+    """
+    self.assertEqual(
+      binary_type(TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')),
+
+      # Note that the trytes are NOT converted into bytes!
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
 
   def test_as_bytes_partial_sequence_errors_strict(self):
     """

@@ -24,8 +24,11 @@ class TrytesCodec(Codec):
   # :bc: Without the bytearray cast, Python 2 will populate the dict
   #   with characters instead of integers.
   # noinspection SpellCheckingInspection
-  alphabet  = dict(enumerate(bytearray(b'9ABCDEFGHIJKLMNOPQRSTUVWXYZ')))
-  index     = dict(zip(alphabet.values(), alphabet.keys()))
+  alphabet = dict(enumerate(bytearray(b'9ABCDEFGHIJKLMNOPQRSTUVWXYZ')))
+  """Used to encode bytes into trytes."""
+
+  index = dict(zip(alphabet.values(), alphabet.keys()))
+  """Used to decode trytes into bytes."""
 
   @classmethod
   def get_codec_info(cls):

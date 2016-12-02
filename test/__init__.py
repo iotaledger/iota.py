@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Optional
+
 from iota.adapter import BaseAdapter
 
 
@@ -13,8 +15,7 @@ class MockAdapter(BaseAdapter):
     # type: (Optional[dict]) -> None
     super(MockAdapter, self).__init__()
 
-    self.response = response
-
+    self.response = response or {}
     self.requests = []
 
   def send_request(self, payload, **kwargs):

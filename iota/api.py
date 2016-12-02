@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod as abstract_method
 from inspect import isabstract as is_abstract
 from typing import Any, Callable, Dict, Iterable, Optional, Text, Union
 
-from six import with_metaclass
+from six import text_type as text, with_metaclass
 
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.types import TransactionId, TryteString
@@ -115,8 +115,11 @@ class BaseCommand(with_metaclass(CommandMeta)):
       TryteStrings.
     """
     def converter(value):
-      # type: (Text) -> TryteString
-      return type_(value.encode('ascii'))
+      if isinstance(value, text):
+        return type_(value.encode('ascii'))
+
+      elif isinstance(value, Iterable):
+        return list(map(converter, value))
 
     self._convert_response_values(response, keys, converter)
 

@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
+from six import binary_type
+
 from iota.commands.attach_to_tangle import AttachToTangleCommand
 from iota.types import TransactionId, TryteString
 from test import MockAdapter
@@ -59,10 +61,13 @@ class AttachToTangleCommandTestCase(TestCase):
       [(
         {
           'command':            'attachToTangle',
-          'trunkTransaction':   trunk_transaction.trytes,
-          'branchTransaction':  branch_transaction.trytes,
           'minWeightMagnitude': min_weight_magnitude,
-          'trytes':             [trytes[0].trytes],
+
+          # We can't send TryteString objects across the wire, so
+          #   trytes were converted into ASCII for transport.
+          'trunkTransaction':   binary_type(trunk_transaction),
+          'branchTransaction':  binary_type(branch_transaction),
+          'trytes':             [binary_type(trytes[0])],
         },
 
         {},

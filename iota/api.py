@@ -226,7 +226,7 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/broadcasttransactions
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.broadcastTransactions(trytes=trytes)
 
   def find_transactions(
       self,

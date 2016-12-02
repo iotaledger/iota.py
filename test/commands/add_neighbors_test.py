@@ -42,3 +42,17 @@ class AddNeighborsCommandTestCase(TestCase):
         {},
       )]
     )
+
+  def test_uris_error_invalid(self):
+    """Attempting to call `addNeighbors`, but `uris` is invalid."""
+    with self.assertRaises(TypeError):
+      # It's gotta be an array.
+      self.command(uris='http://localhost:8080/')
+
+    with self.assertRaises(TypeError):
+      # I meant an array of strings!
+      self.command(uris=[42, 'http://localhost:8080/'])
+
+    with self.assertRaises(ValueError):
+      # Insert "Forever Alone" meme here.
+      self.command(uris=[])

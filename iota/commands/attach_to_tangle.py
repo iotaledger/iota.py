@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, Sequence
 
-from six import binary_type
+from six import binary_type, string_types
 
 from iota.api import BaseCommand
 from iota.types import TransactionId, TryteString
@@ -47,12 +47,17 @@ class AttachToTangleCommand(BaseCommand):
         ),
       )
 
+    if isinstance(trytes, Generator):
+      # :see: https://youtrack.jetbrains.com/issue/PY-20709
+      # noinspection PyTypeChecker
+      trytes = list(trytes)
+
     # Technically, we only need `trytes` to be an Iterable, but some
     #   types (such as TryteString) are Iterable yet not acceptable
     #   here.
-    if not isinstance(trytes, (Sequence, Generator)):
+    if isinstance(trytes, string_types) or not isinstance(trytes, Sequence):
       raise TypeError(
-        'trytes has wrong type (expected Iterable, actual {type}).'.format(
+        'trytes has wrong type (expected Sequence, actual {type}).'.format(
           type = type(trytes).__name__,
         ),
       )

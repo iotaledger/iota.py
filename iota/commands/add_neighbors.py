@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota.commands import FilterCommand
+from iota.commands import FilterCommand, RequestFilter
 from iota.filters import NodeUri
 
 
@@ -17,14 +17,14 @@ class AddNeighborsCommand(FilterCommand):
   command = 'addNeighbors'
 
   def get_request_filter(self):
-    return f.FilterMapper(
-      {
-        'uris': f.Required | f.FilterRepeater(NodeUri),
-      },
-
-      allow_extra_keys    = False,
-      allow_missing_keys  = False,
-    )
+    return AddNeighborsRequestFilter
 
   def get_response_filter(self):
     pass
+
+
+class AddNeighborsRequestFilter(RequestFilter):
+  def __init__(self):
+    super(AddNeighborsRequestFilter, self).__init__({
+      'uris': f.Required | f.Array | f.FilterRepeater(f.Required | NodeUri),
+    })

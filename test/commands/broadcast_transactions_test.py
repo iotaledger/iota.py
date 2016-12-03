@@ -76,6 +76,21 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_unexpected_parameters(self):
+    """The incoming value contains unexpected parameters."""
+    self.assertFilterErrors(
+      {
+        'trytes': [TryteString(self.trytes1)],
+
+        # Alright buddy, let's see some ID.
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
+
   def test_fail_trytes_null(self):
     """`trytes` is null."""
     self.assertFilterErrors(

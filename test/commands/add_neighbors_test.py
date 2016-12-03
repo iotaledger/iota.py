@@ -37,6 +37,21 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_unexpected_parameters(self):
+    """The incoming request contains unexpected parameters."""
+    self.assertFilterErrors(
+      {
+        'uris': ['udp://localhost'],
+
+        # I've never seen that before in my life, officer.
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
+
   def test_fail_neighbors_wrong_type(self):
     """`neighbors` is not an array."""
     self.assertFilterErrors(

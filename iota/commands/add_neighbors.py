@@ -7,6 +7,10 @@ import filters as f
 from iota.commands import FilterCommand, RequestFilter
 from iota.filters import NodeUri
 
+__all__ = [
+  'AddNeighborsCommand',
+]
+
 
 class AddNeighborsCommand(FilterCommand):
   """

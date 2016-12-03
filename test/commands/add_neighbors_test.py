@@ -2,19 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from unittest import TestCase
-
 from iota.commands import FilterError
 from iota.commands.add_neighbors import AddNeighborsCommand
-from test import MockAdapter
+from test.commands import BaseFilterCommandTestCase
 
 
-class AddNeighborsCommandTestCase(TestCase):
-  def setUp(self):
-    super(AddNeighborsCommandTestCase, self).setUp()
-
-    self.adapter  = MockAdapter()
-    self.command  = AddNeighborsCommand(self.adapter)
+class AddNeighborsCommandTestCase(BaseFilterCommandTestCase):
+  command_type = AddNeighborsCommand
 
   def test_happy_path(self):
     """Successful invocation of `addNeighbors`."""
@@ -27,21 +21,12 @@ class AddNeighborsCommandTestCase(TestCase):
 
     neighbors = ['udp://node1.iotatoken.com:14265/', 'http://localhost:14265/']
 
-    response = self.command(uris=neighbors)
+    self.assertCommandSuccess(
+      expected_response = expected_response,
 
-    self.assertDictEqual(response, expected_response)
-
-    self.assertListEqual(
-      self.adapter.requests,
-
-      [(
-        {
-          'command':  'addNeighbors',
-          'uris':     neighbors,
-        },
-
-        {},
-      )]
+      request = {
+        'uris': neighbors,
+      },
     )
 
   def test_uris_error_invalid(self):

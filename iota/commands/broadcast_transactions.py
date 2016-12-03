@@ -7,6 +7,10 @@ import filters as f
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
+__all__ = [
+  'BroadcastTransactionsCommand',
+]
+
 
 class BroadcastTransactionsCommand(FilterCommand):
   """

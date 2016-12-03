@@ -2,18 +2,48 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from iota.commands.get_node_info import GetNodeInfoCommand
+import filters as f
+from filters.test import BaseFilterTestCase
+
+from iota.commands.get_node_info import GetNodeInfoRequestFilter, GetNodeInfoResponseFilter
 from iota.types import TryteString
-from test.commands import BaseFilterCommandTestCase
 
 
-# noinspection SpellCheckingInspection
-class GetNodeInfoCommandTestCase(BaseFilterCommandTestCase):
-  command_type = GetNodeInfoCommand
+class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = GetNodeInfoRequestFilter
+  skip_value_check = True
 
-  def test_happy_path(self):
-    """Successful invocation of `getNodeInfo`."""
-    self.adapter.response = {
+  def test_pass_empty(self):
+    """The incoming response is (correctly) empty."""
+    request = {}
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
+
+  def test_fail_unexpected_parameters(self):
+    """The incoming response contains unexpected parameters."""
+    self.assertFilterErrors(
+      {
+        # All you had to do was nothing!  How did you screw that up?!
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
+
+
+class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
+  filter_type = GetNodeInfoResponseFilter
+  skip_value_check = True
+
+  # noinspection SpellCheckingInspection
+  def test_pass_happy_path(self):
+    """The incoming response contains valid values."""
+    response = {
       'appName': 'IRI',
       'appVersion': '1.0.8.nu',
       'duration': 1,
@@ -38,8 +68,13 @@ class GetNodeInfoCommandTestCase(BaseFilterCommandTestCase):
         'FKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
     }
 
-    self.assertCommandSuccess(
-      expected_response = {
+    filter_ = self._filter(response)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
         'appName': 'IRI',
         'appVersion': '1.0.8.nu',
         'duration': 1,
@@ -64,7 +99,7 @@ class GetNodeInfoCommandTestCase(BaseFilterCommandTestCase):
         'latestSolidSubtangleMilestone':
           TryteString(
             b'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJR'
-            b'FKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999'
+            b'FKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
           ),
-      }
+      },
     )

@@ -2,19 +2,18 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Sequence
+import filters as f
 
-from six import binary_type, string_types
-
-from iota.commands import BaseCommand
-from iota.types import TransactionId, TryteString
+from iota.commands import FilterCommand
+from iota.filters import Trytes
+from iota.types import TransactionId
 
 __all__ = [
   'AttachToTangleCommand',
 ]
 
 
-class AttachToTangleCommand(BaseCommand):
+class AttachToTangleCommand(FilterCommand):
   """
   Executes `attachToTangle` command.
 
@@ -22,55 +21,30 @@ class AttachToTangleCommand(BaseCommand):
   """
   command = 'attachToTangle'
 
-  def _prepare_request(self, params):
-    # Required parameters.
-    trunk_transaction     = params['trunk_transaction']
-    branch_transaction    = params['branch_transaction']
-    trytes                = params['trytes']
+  def get_request_filter(self):
+    return f.FilterMapper(
+      {
+        'trunk_transaction':  f.Required | Trytes(result_type=TransactionId),
+        'branch_transaction': f.Required | Trytes(result_type=TransactionId),
 
-    # Optional parameters.
-    min_weight_magnitude  = params.get('min_weight_magnitude', 18)
+        'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
 
-    if type(min_weight_magnitude) is not int:
-      raise TypeError(
-        'min_weight_magnitude has wrong type '
-        '(expected int, actual {type}).'.format(
-          type = type(min_weight_magnitude).__name__,
-        ),
-      )
+        'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+      },
 
-    if min_weight_magnitude < 18:
-      raise ValueError(
-        'min_weight_magnitude is too small '
-        '(expected >= 18, actual {value}).'.format(
-          value = min_weight_magnitude,
-        ),
-      )
+      allow_extra_keys = False,
 
-    if isinstance(trytes, Generator):
-      # :see: https://youtrack.jetbrains.com/issue/PY-20709
-      # noinspection PyTypeChecker
-      trytes = list(trytes)
+      allow_missing_keys = {
+        'min_weight_magnitude',
+      },
+    )
 
-    # Technically, we only need `trytes` to be an Iterable, but some
-    #   types (such as TryteString) are Iterable yet not acceptable
-    #   here.
-    if isinstance(trytes, string_types) or not isinstance(trytes, Sequence):
-      raise TypeError(
-        'trytes has wrong type (expected Sequence, actual {type}).'.format(
-          type = type(trytes).__name__,
-        ),
-      )
+  def get_response_filter(self):
+    return f.FilterMapper(
+      {
+        'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
+      },
 
-    if not trytes:
-      raise ValueError('trytes must not be empty.')
-
-    return {
-      'trunkTransaction':   binary_type(TransactionId(trunk_transaction)),
-      'branchTransaction':  binary_type(TransactionId(branch_transaction)),
-      'minWeightMagnitude': min_weight_magnitude,
-      'trytes':             [binary_type(TryteString(t)) for t in trytes],
-    }
-
-  def _prepare_response(self, response):
-    self._convert_to_tryte_strings(response, ('trytes',))
+      allow_extra_keys    = True,
+      allow_missing_keys  = True,
+    )

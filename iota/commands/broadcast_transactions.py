@@ -6,7 +6,7 @@ from typing import Generator, Sequence
 
 from six import binary_type, string_types
 
-from iota.api import BaseCommand
+from iota.commands import BaseCommand
 from iota.types import TryteString
 
 

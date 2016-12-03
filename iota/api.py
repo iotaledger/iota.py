@@ -2,146 +2,15 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from abc import ABCMeta, abstractmethod as abstract_method
-from inspect import isabstract as is_abstract
-from typing import Any, Callable, Dict, Iterable, Optional, Text, Union
-
-from six import text_type, with_metaclass
+from typing import Iterable, Optional, Text, Union
 
 from iota.adapter import BaseAdapter, resolve_adapter
+from iota.commands import CustomCommand, command_registry
 from iota.types import TransactionId, TryteString
 
 __all__ = [
   'IotaApi',
 ]
-
-
-command_registry = {} # type: Dict[Text, CommandMeta]
-"""Registry of commands, indexed by command name."""
-
-class CommandMeta(ABCMeta):
-  """Automatically register new commands."""
-  # noinspection PyShadowingBuiltins
-  def __init__(cls, what, bases=None, dict=None):
-    super(CommandMeta, cls).__init__(what, bases, dict)
-
-    if not is_abstract(cls):
-      command = getattr(cls, 'command')
-      if command:
-        command_registry[command] = cls
-
-
-class BaseCommand(with_metaclass(CommandMeta)):
-  """An API command ready to send to the node."""
-  command = None # Text
-
-  def __init__(self, adapter):
-    # type: (BaseAdapter) -> None
-    self.adapter  = adapter
-
-    self.called   = False
-    self.request  = None # type: dict
-    self.response = None # type: dict
-
-  def __call__(self, **kwargs):
-    # type: (dict) -> dict
-    """Sends the command to the node."""
-    if self.called:
-      raise RuntimeError('Command has already been called.')
-
-    self.request = kwargs
-
-    replacement = self._prepare_request(self.request)
-    if replacement is not None:
-      self.request = replacement
-
-    self.request['command'] = self.command
-
-    self.response = self.adapter.send_request(self.request)
-
-    replacement = self._prepare_response(self.response)
-    if replacement is not None:
-      self.response = replacement
-
-    self.called = True
-
-    return self.response
-
-  @abstract_method
-  def _prepare_request(self, request):
-    # type: (dict) -> Optional[dict]
-    """
-    Modifies the request before sending it to the node.
-
-    If this method returns a dict, it will replace the request
-      entirely.
-
-    Note:  the `command` parameter will be injected later; it is
-      not necessary for this method to include it.
-    """
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
-
-  @abstract_method
-  def _prepare_response(self, response):
-    # type: (dict) -> Optional[dict]
-    """
-    Modifies the response from the node.
-
-    If this method returns a dict, it will replace the response
-      entirely.
-    """
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
-
-  @staticmethod
-  def _convert_response_values(response, keys, converter):
-    # type: (dict, Iterable[Text], Callable[Any, Any]) -> None
-    """
-    Converts non-null response values at the specified keys to the
-      specified type.
-    """
-    for k in keys:
-      value = response.get(k)
-      if value is not None:
-        response[k] = converter(value)
-
-  def _convert_to_tryte_strings(self, response, keys, type_=TryteString):
-    # type: (dict, Iterable[Text], type) -> None
-    """
-    Converts non-null response values at the specified keys to
-      TryteStrings.
-    """
-    def converter(value):
-      if isinstance(value, text_type):
-        return type_(value.encode('ascii'))
-
-      elif isinstance(value, Iterable):
-        return list(map(converter, value))
-
-    self._convert_response_values(response, keys, converter)
-
-
-class CustomCommand(BaseCommand):
-  """Used to execute experimental/undocumented commands."""
-  def __init__(self, adapter, command):
-    # type: (BaseAdapter, Text) -> None
-    super(CustomCommand, self).__init__(adapter)
-
-    self.command = command
-
-  def _prepare_request(self, request):
-    pass
-
-  def _prepare_response(self, response):
-    pass
-
-
-# Populate the command registry.
-# noinspection PyUnresolvedReferences
-from iota.commands import *
 
 
 class IotaApi(object):

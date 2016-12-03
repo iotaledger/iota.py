@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import IotaApi
-from iota.api import CustomCommand
+from iota.commands import CustomCommand
 from iota.commands.get_node_info import GetNodeInfoCommand
 from test import MockAdapter
 

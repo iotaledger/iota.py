@@ -14,15 +14,23 @@ class BroadcastTransactionsCommandTestCase(BaseFilterCommandTestCase):
 
   def test_happy_path(self):
     """Successful invocation of `broadcastTransactions`."""
+    self.adapter.response = {
+      'trytes': ['BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'],
+    }
+
+    trytes = [
+      # These values tend to get rather long, but for purposes of this
+      #   test, we don't have to get too realistic.
+      TryteString(b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'),
+    ]
+
     self.assertCommandSuccess(
-      expected_response = {},
+      expected_response = {
+        'trytes': trytes,
+      },
 
       request = {
-        'trytes': [
-          # These values tend to get rather long, but for purposes of
-          #   this test, we don't have to get too realistic.
-          TryteString(b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'),
-        ],
+        'trytes': trytes,
       },
     )
 
@@ -31,8 +39,16 @@ class BroadcastTransactionsCommandTestCase(BaseFilterCommandTestCase):
     Invoking `broadcastTransactions` with parameters that can be
       converted into the correct types.
     """
+    self.adapter.response = {
+      'trytes': ['BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'],
+    }
+
     self.assertCommandSuccess(
-      expected_response = {},
+      expected_response = {
+        'trytes': [
+          TryteString(b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'),
+        ],
+      },
 
       request = {
         'trytes': [

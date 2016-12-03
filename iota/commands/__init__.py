@@ -7,13 +7,12 @@ from importlib import import_module
 from inspect import isabstract as is_abstract
 from pkgutil import walk_packages
 from types import ModuleType
-from typing import Any, Callable, Dict, Iterable, Optional, Text, Union
+from typing import Dict, Optional, Text, Union
 
 from filters import BaseFilter, FilterRunner
-from six import with_metaclass, text_type, string_types
+from six import with_metaclass, string_types
 
 from iota.adapter import BaseAdapter
-from iota.types import TryteString
 
 __all__ = [
   'BaseCommand',
@@ -125,36 +124,14 @@ class BaseCommand(with_metaclass(CommandMeta)):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
-  @staticmethod
-  def _convert_response_values(response, keys, converter):
-    # type: (dict, Iterable[Text], Callable[Any, Any]) -> None
-    """
-    Converts non-null response values at the specified keys to the
-      specified type.
-    """
-    for k in keys:
-      value = response.get(k)
-      if value is not None:
-        response[k] = converter(value)
-
-  def _convert_to_tryte_strings(self, response, keys, type_=TryteString):
-    # type: (dict, Iterable[Text], type) -> None
-    """
-    Converts non-null response values at the specified keys to
-      TryteStrings.
-    """
-    def converter(value):
-      if isinstance(value, text_type):
-        return type_(value.encode('ascii'))
-
-      elif isinstance(value, Iterable):
-        return list(map(converter, value))
-
-    self._convert_response_values(response, keys, converter)
-
 
 class CustomCommand(BaseCommand):
-  """Used to execute experimental/undocumented commands."""
+  """
+  Sends an arbitrary command to the node, with no request/response
+    validation.
+
+  Useful for executing experimental/undocumented commands.
+  """
   def __init__(self, adapter, command):
     # type: (BaseAdapter, Text) -> None
     super(CustomCommand, self).__init__(adapter)
@@ -187,12 +164,30 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
   @abstract_method
   def get_request_filter(self):
     # type: () -> Optional[BaseFilter]
-    """Returns the filter that should be applied to the request."""
+    """
+    Returns the filter that should be applied to the request (if any).
+
+    Generally, this filter should be strict about validating/converting
+      the values in the request, to minimize the chance of an error
+      response from the node.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
 
   @abstract_method
   def get_response_filter(self):
     # type: () -> Optional[BaseFilter]
-    """Returns the filter that should be applied to the response."""
+    """
+    Returns the filter that should be applied to the response (if any).
+
+    Generally, this filter should be less concerned with validation and
+      more concerned with ensuring the response values have the correct
+      types, since we can't control what the node sends us.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
 
   def _prepare_request(self, request):
     return self._apply_filter(
@@ -210,6 +205,12 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
 
   @staticmethod
   def _apply_filter(value, filter_, failure_message):
+    # type: (dict, Optional[BaseFilter], Text) -> dict
+    """
+    Applies a filter to a value.  If the value does not pass the
+      filter, an exception will be raised with lots of contextual info
+      attached to it.
+    """
     if filter_:
       runner = FilterRunner(filter_, value)
 

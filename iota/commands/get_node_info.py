@@ -2,14 +2,17 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from iota.commands import BaseCommand
+import filters as f
+
+from iota.commands import FilterCommand
+from iota.filters import Trytes
 
 __all__ = [
   'GetNodeInfoCommand',
 ]
 
 
-class GetNodeInfoCommand(BaseCommand):
+class GetNodeInfoCommand(FilterCommand):
   """
   Executes `getNodeInfo` command.
 
@@ -17,13 +20,26 @@ class GetNodeInfoCommand(BaseCommand):
   """
   command = 'getNodeInfo'
 
-  def _prepare_request(self, request):
-    pass
+  def get_request_filter(self):
+    # `getNodeInfo` does not accept any parameters.
+    # Using a filter here just to enforce that the request is empty.
+    return f.FilterMapper(
+      {
+      },
 
-  def _prepare_response(self, response):
-    self._convert_to_tryte_strings(
-      response  = response,
-      keys      = ('latestMilestone', 'latestSolidSubtangleMilestone'),
+      allow_extra_keys    = False,
+      allow_missing_keys  = False,
     )
 
+  def get_response_filter(self):
+    return f.FilterMapper(
+      {
+        'latestMilestone': f.ByteString(encoding='ascii') | Trytes,
 
+        'latestSolidSubtangleMilestone':
+          f.ByteString(encoding='ascii') | Trytes,
+      },
+
+      allow_extra_keys    = True,
+      allow_missing_keys  = True,
+    )

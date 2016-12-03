@@ -27,4 +27,11 @@ class BroadcastTransactionsCommand(FilterCommand):
     )
 
   def get_response_filter(self):
-    pass
+    return f.FilterMapper(
+      {
+        'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
+      },
+
+      allow_extra_keys    = True,
+      allow_missing_keys  = True,
+    )

@@ -9,7 +9,7 @@ from pkgutil import walk_packages
 from types import ModuleType
 from typing import Dict, Optional, Text, Union
 
-from filters import BaseFilter, FilterRunner
+import filters as f
 from six import with_metaclass, string_types
 
 from iota.adapter import BaseAdapter
@@ -106,6 +106,8 @@ class BaseCommand(with_metaclass(CommandMeta)):
 
     Note:  the `command` parameter will be injected later; it is
       not necessary for this method to include it.
+
+    :param request: Guaranteed to be a dict, but it might be empty.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -119,6 +121,8 @@ class BaseCommand(with_metaclass(CommandMeta)):
 
     If this method returns a dict, it will replace the response
       entirely.
+
+    :param response: Guaranteed to be a dict, but it might be empty.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -151,7 +155,7 @@ class FilterError(ValueError):
     failed one or more filters.
   """
   def __init__(self, message, filter_runner):
-    # type: (Text, FilterRunner) -> None
+    # type: (Text, f.FilterRunner) -> None
     super(FilterError, self).__init__(message)
 
     self.context = {
@@ -159,11 +163,27 @@ class FilterError(ValueError):
     }
 
 
+class RequestFilter(f.FilterMapper):
+  """Template for filter applied to API requests."""
+  def __init__(self, filter_map):
+    # Be more strict about missing/extra keys for requests, since they
+    #   tend to come from code that the developer has control over.
+    super(RequestFilter, self).__init__(filter_map, False, False)
+
+
+class ResponseFilter(f.FilterMapper):
+  """Template for filter applied to API responses."""
+  def __init__(self, filter_map):
+    # Be a little looser about missing/extra keys for responses, since
+    #   we can't control what the node sends us back.
+    super(ResponseFilter, self).__init__(filter_map, True, True)
+
+
 class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
   """Uses filters to manipulate request/response values."""
   @abstract_method
   def get_request_filter(self):
-    # type: () -> Optional[BaseFilter]
+    # type: () -> Optional[RequestFilter]
     """
     Returns the filter that should be applied to the request (if any).
 
@@ -177,7 +197,7 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
 
   @abstract_method
   def get_response_filter(self):
-    # type: () -> Optional[BaseFilter]
+    # type: () -> Optional[ResponseFilter]
     """
     Returns the filter that should be applied to the response (if any).
 
@@ -205,14 +225,14 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
 
   @staticmethod
   def _apply_filter(value, filter_, failure_message):
-    # type: (dict, Optional[BaseFilter], Text) -> dict
+    # type: (dict, Optional[f.BaseFilter], Text) -> dict
     """
     Applies a filter to a value.  If the value does not pass the
       filter, an exception will be raised with lots of contextual info
       attached to it.
     """
     if filter_:
-      runner = FilterRunner(filter_, value)
+      runner = f.FilterRunner(filter_, value)
 
       if runner.is_valid():
         return runner.cleaned_data

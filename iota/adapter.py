@@ -32,7 +32,7 @@ class InvalidUri(ValueError):
   pass
 
 
-adapter_registry = {} # type: Dict[Text, AdapterMeta]
+adapter_registry = {} # type: Dict[Text, _AdapterMeta]
 """Keeps track of available adapters and their supported protocols."""
 
 
@@ -54,20 +54,25 @@ def resolve_adapter(uri):
   return adapter_type.configure(uri)
 
 
-class AdapterMeta(ABCMeta):
+class _AdapterMeta(ABCMeta):
   """
   Automatically registers new adapter classes in `adapter_registry`.
   """
   # noinspection PyShadowingBuiltins
   def __init__(cls, what, bases=None, dict=None):
-    super(AdapterMeta, cls).__init__(what, bases, dict)
+    super(_AdapterMeta, cls).__init__(what, bases, dict)
 
     if not is_abstract(cls):
       for protocol in getattr(cls, 'supported_protocols', ()):
         adapter_registry[protocol] = cls
 
+  def configure(cls, uri):
+    # type: (Text) -> BaseAdapter
+    """Creates a new adapter from the specified URI."""
+    return cls(uri)
 
-class BaseAdapter(with_metaclass(AdapterMeta)):
+
+class BaseAdapter(with_metaclass(_AdapterMeta)):
   """
   Interface for IOTA API adapters.
 
@@ -95,14 +100,6 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
-
-  @classmethod
-  def configure(cls, uri):
-    # type: (Text) -> BaseAdapter
-    """
-    Creates a new instance using the specified URI.
-    """
-    return cls(uri)
 
 
 class HttpAdapter(BaseAdapter):

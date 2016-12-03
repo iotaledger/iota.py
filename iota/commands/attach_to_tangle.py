@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota.commands import FilterCommand
+from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 from iota.types import TransactionId
 
@@ -22,7 +22,15 @@ class AttachToTangleCommand(FilterCommand):
   command = 'attachToTangle'
 
   def get_request_filter(self):
-    return f.FilterMapper(
+    return AttachToTangleRequestFilter()
+
+  def get_response_filter(self):
+    return AttachToTangleResponseFilter()
+
+
+class AttachToTangleRequestFilter(RequestFilter):
+  def __init__(self):
+    super(AttachToTangleRequestFilter, self).__init__(
       {
         'trunk_transaction':  f.Required | Trytes(result_type=TransactionId),
         'branch_transaction': f.Required | Trytes(result_type=TransactionId),
@@ -32,19 +40,14 @@ class AttachToTangleCommand(FilterCommand):
         'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
       },
 
-      allow_extra_keys = False,
-
       allow_missing_keys = {
         'min_weight_magnitude',
       },
     )
 
-  def get_response_filter(self):
-    return f.FilterMapper(
-      {
-        'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
-      },
 
-      allow_extra_keys    = True,
-      allow_missing_keys  = True,
-    )
+class AttachToTangleResponseFilter(ResponseFilter):
+  def __init__(self):
+    super(AttachToTangleResponseFilter, self).__init__({
+      'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
+    })

@@ -17,7 +17,7 @@ class AddNeighborsCommand(FilterCommand):
   command = 'addNeighbors'
 
   def get_request_filter(self):
-    return AddNeighborsRequestFilter
+    return AddNeighborsRequestFilter()
 
   def get_response_filter(self):
     pass

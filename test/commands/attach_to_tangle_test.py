@@ -2,278 +2,375 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from iota.commands import FilterError
-from iota.commands.attach_to_tangle import AttachToTangleCommand
+import filters as f
+from filters.test import BaseFilterTestCase
+from six import binary_type, text_type
+
+from iota.commands.attach_to_tangle import AttachToTangleRequestFilter, \
+  AttachToTangleResponseFilter
+from iota.filters import Trytes
 from iota.types import TransactionId, TryteString
-from test.commands import BaseFilterCommandTestCase
 
 
-# noinspection SpellCheckingInspection
-class AttachToTangleCommandTestCase(BaseFilterCommandTestCase):
-  command_type = AttachToTangleCommand
+class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = AttachToTangleRequestFilter
 
-  def test_happy_path(self):
-    """Successful invocation of `attachToTangle`."""
-    self.adapter.response = {
-      'trytes': ['TRYTEVALUEHERE']
-    }
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(AttachToTangleRequestFilterTestCase, self).setUp()
 
-    trunk_transaction =\
-      TransactionId(
-        b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-        b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
-      )
-
-    branch_transaction =\
-      TransactionId(
-        b'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT'
-        b'DTGAFLPLBZ9FOFWWTKMAZXZHFGQHUOXLXUALY9999'
-      )
-
-    min_weight_magnitude  = 20
-    trytes                = [TryteString(b'TRYTVALUEHERE')]
-
-    self.assertCommandSuccess(
-      expected_response = {
-        'trytes': [TryteString(b'TRYTEVALUEHERE')]
-      },
-
-      request = {
-        'trunk_transaction':    trunk_transaction,
-        'branch_transaction':   branch_transaction,
-        'min_weight_magnitude': min_weight_magnitude,
-        'trytes':               trytes,
-      },
+    # Define a few valid values here that we can reuse across multiple
+    #   tests.
+    self.txn_id = (
+      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
     )
 
-  def test_compatible_types(self):
-    """
-    Calling `attachToTangle` with parameters that can be converted into
-      the correct types.
-    """
-    self.adapter.response = {
-      'trytes': ['TRYTEVALUEHERE', 'TRANSACTIONIDHERE']
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_pass_valid_request(self):
+    """The incoming request is valid."""
+    self.assertFilterPasses({
+      'trunk_transaction':    TransactionId(self.txn_id),
+      'branch_transaction':   TransactionId(self.txn_id),
+      'min_weight_magnitude': 20,
+
+      'trytes': [
+        TryteString(self.trytes1),
+        TryteString(self.trytes2),
+      ],
+    })
+
+  def test_pass_min_weight_magnitude_missing(self):
+    """`min_weight_magnitude` is optional."""
+    request = {
+      'trunk_transaction':    TransactionId(self.txn_id),
+      'branch_transaction':   TransactionId(self.txn_id),
+
+      'trytes': [
+        TryteString(self.trytes1)
+      ],
+
+      # If not provided, this value is set to the minimum (18).
+      # 'min_weight_magnitude': 20,
     }
 
-    self.assertCommandSuccess(
-      expected_response = {
-        'trytes': [
-          TryteString(b'TRYTEVALUEHERE'),
-          TryteString(b'TRANSACTIONIDHERE'),
-        ],
-      },
+    filter_ = self._filter(request)
 
-      request = {
+    expected_value = request.copy()
+    expected_value['min_weight_magnitude'] = 18
+
+    self.assertFilterPasses(filter_, expected_value)
+
+  # noinspection SpellCheckingInspection
+  def test_pass_compatible_types(self):
+    """Incoming values can be converted into the expected types."""
+    self.assertFilterPasses(
+      {
         # Any value that can be converted into a TransactionId is valid
         #   here.
-        'trunk_transaction':
-          b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-          b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
+        'trunk_transaction':    binary_type(self.txn_id),
+        'branch_transaction':   bytearray(self.txn_id),
 
-        'branch_transaction':
-          TryteString(
-            b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-            b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
+        'trytes': [
+          # `trytes` can contain any value that can be converted into a
+          #   TryteString.
+          binary_type(self.trytes1),
+
+          # This is probably wrong, but technically it's valid.
+          TransactionId(
+            b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
           ),
+        ],
 
         # This still has to be an int, however.
         'min_weight_magnitude': 30,
+      },
+
+      # After running through the filter, all of the values have been
+      #   converted to the correct types.
+      {
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+        'min_weight_magnitude': 30,
 
         'trytes': [
-            # `trytes` can contain any value that can be converted into a
-            #   TryteString.
-            b'TRYTEVALUEHERE',
+          TryteString(self.trytes1),
 
-            # This is probably wrong, but maybe not.
-            TransactionId(b'TRANSACTIONIDHERE'),
+          TryteString(
+            b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHD'
+            b'WCTCEAKDCDFD9DSCSA99999999999999999999999',
+          ),
+        ],
+      }
+    )
+
+  def test_error_empty(self):
+    """The incoming request is empty."""
+    self.assertFilterErrors(
+      {},
+
+      {
+        'trunk_transaction':  [f.FilterMapper.CODE_MISSING_KEY],
+        'branch_transaction': [f.FilterMapper.CODE_MISSING_KEY],
+        'trytes':             [f.FilterMapper.CODE_MISSING_KEY],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_trunk_transaction_null(self):
+    """`trunk_transaction` is null."""
+    self.assertFilterErrors(
+      {
+        'trunk_transaction':  None,
+
+        'branch_transaction': TransactionId(self.txn_id),
+        'trytes':             [TryteString(self.trytes1)],
+      },
+
+      {
+        'trunk_transaction': [f.Required.CODE_EMPTY],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_trunk_transaction_wrong_type(self):
+    """`trunk_transaction` can't be converted to a TryteString."""
+    self.assertFilterErrors(
+      {
+        # Strings are not valid tryte sequences.
+        'trunk_transaction':  text_type(self.txn_id, 'ascii'),
+
+        'branch_transaction': TransactionId(self.txn_id),
+        'trytes':             [TryteString(self.trytes1)],
+      },
+
+      {
+        'trunk_transaction': [f.Type.CODE_WRONG_TYPE],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_branch_transaction_null(self):
+    """`branch_transaction` is null."""
+    self.assertFilterErrors(
+      {
+        'branch_transaction': None,
+
+        'trunk_transaction':  TransactionId(self.txn_id),
+        'trytes':             [TryteString(self.trytes1)],
+      },
+
+      {
+        'branch_transaction': [f.Required.CODE_EMPTY],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_branch_transaction_wrong_type(self):
+    """`branch_transaction` can't be converted to a TryteString."""
+    self.assertFilterErrors(
+      {
+        # Strings are not valid tryte sequences.
+        'branch_transaction': text_type(self.txn_id, 'ascii'),
+
+        'trunk_transaction':  TransactionId(self.txn_id),
+        'trytes':             [TryteString(self.trytes1)],
+      },
+
+      {
+        'branch_transaction': [f.Type.CODE_WRONG_TYPE],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_min_weight_magnitude_float(self):
+    """`min_weight_magnitude` is a float."""
+    self.assertFilterErrors(
+      {
+        # I don't care if the fpart is empty; it's still not an int!
+        'min_weight_magnitude': 20.0,
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+
+        'trytes': [
+          TryteString(self.trytes1)
+        ],
+      },
+
+      {
+        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_min_weight_magnitude_string(self):
+    """`min_weight_magnitude` is a string."""
+    self.assertFilterErrors(
+      {
+        # For want of an int cast, the transaction was lost.
+        'min_weight_magnitude': '20',
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+
+        'trytes': [
+          TryteString(self.trytes1)
+        ],
+      },
+
+      {
+        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_min_weight_magnitude_too_small(self):
+    """`min_weight_magnitude` is less than 18."""
+    self.assertFilterErrors(
+      {
+        'min_weight_magnitude': 17,
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+
+        'trytes': [
+          TryteString(self.trytes1)
+        ],
+      },
+
+      {
+        'min_weight_magnitude': [f.Min.CODE_TOO_SMALL],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_trytes_wrong_type(self):
+    """`trytes` is not an array."""
+    self.assertFilterErrors(
+      {
+        # You have to specify an array, even if you only want to attach
+        #   a single tryte sequence.
+        'trytes': TryteString(self.trytes1),
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+      },
+
+      {
+        'trytes': [f.Type.CODE_WRONG_TYPE],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_trytes_empty(self):
+    """`trytes` is an array, but it's empty."""
+    self.assertFilterErrors(
+      {
+        # Ok, you got the list part down, but you have to put something
+        #   inside it.
+        'trytes': [],
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+      },
+
+      {
+        'trytes': [f.Required.CODE_EMPTY],
+      },
+
+      self.skip_value_check,
+    )
+
+  def test_error_trytes_contents_invalid(self):
+    """`trytes` is an array, but it contains invalid values."""
+    self.assertFilterErrors(
+      {
+        'trytes': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes2),
+
+          2130706433,
+        ],
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+      },
+
+      {
+        'trytes.0': [f.NotEmpty.CODE_EMPTY],
+        'trytes.1': [f.Type.CODE_WRONG_TYPE],
+        'trytes.2': [f.Type.CODE_WRONG_TYPE],
+        'trytes.3': [f.Required.CODE_EMPTY],
+        'trytes.4': [Trytes.CODE_NOT_TRYTES],
+        'trytes.6': [f.Type.CODE_WRONG_TYPE],
+      },
+
+      self.skip_value_check,
+    )
+
+
+class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
+  filter_type = AttachToTangleResponseFilter
+
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(AttachToTangleResponseFilterTestCase, self).setUp()
+
+    # Define a few valid values here that we can reuse across multiple
+    #   tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_pass_happy_path(self):
+    """The incoming response contains valid values."""
+    self.assertFilterPasses(
+      # Responses from the node arrive as strings.
+      {
+        'trytes': [
+          text_type(self.trytes1, 'ascii'),
+          text_type(self.trytes2, 'ascii'),
+        ],
+      },
+
+      # The filter converts them into TryteStrings.
+      {
+        'trytes': [
+          TryteString(self.trytes1),
+          TryteString(self.trytes2),
         ],
       },
     )
 
-  # noinspection PyTypeChecker
-  def test_error_trunk_transaction_invalid(self):
+  def test_pass_correct_types(self):
     """
-    Attempting to call `attachToTangle`, but the `trunkTransaction`
-      parameter is not valid.
+    The incoming response already contains correct types.
+
+    This scenario is highly unusual, but who's complaining?
     """
-    branch_transaction =\
-      TransactionId(
-        b'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT'
-        b'DTGAFLPLBZ9FOFWWTKMAZXZHFGQHUOXLXUALY9999'
-      )
-
-    trytes = [TryteString(b'TRYTEVALUEHERE')]
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Bytes are allowed, but not strings.
-        trunk_transaction = 'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT',
-
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Now you're not making any sense.
-        trunk_transaction = None,
-
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Are you even listening to me?
-        trunk_transaction = 42,
-
-        branch_transaction = branch_transaction,
-        trytes             = trytes,
-      )
-
-  # noinspection PyTypeChecker,PyUnresolvedReferences
-  def test_error_branch_transaction_invalid(self):
-    """
-    Attempting to call `attachToTangle`, but the `branchTransaction`
-      parameter is not valid.
-    """
-    trunk_transaction =\
-      TransactionId(
-        b'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT'
-        b'DTGAFLPLBZ9FOFWWTKMAZXZHFGQHUOXLXUALY9999'
-      )
-
-    trytes = [TryteString(b'TRYTEVALUEHERE')]
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Bytes are allowed, but not strings.
-        branch_transaction = 'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT',
-
-        trunk_transaction = trunk_transaction,
-        trytes            = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Now you're not making any sense.
-        branch_transaction = None,
-
-        trunk_transaction = trunk_transaction,
-        trytes            = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Are you even listening to me?
-        branch_transaction = 42,
-
-        trunk_transaction = trunk_transaction,
-        trytes            = trytes,
-      )
-
-  # noinspection PyTypeChecker
-  def test_error_min_weight_magnitude_invalid(self):
-    """
-    Attempting to call `attachToTangle`, but the `minWeightMagnitude`
-      parameter is not valid.
-    """
-    trunk_transaction =\
-      TransactionId(
-        b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-        b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
-      )
-
-    branch_transaction =\
-      TransactionId(
-        b'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT'
-        b'DTGAFLPLBZ9FOFWWTKMAZXZHFGQHUOXLXUALY9999'
-      )
-
-    trytes = [TryteString(b'TRYTVALUEHERE')]
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Nice try, but it's gotta be an int.
-        min_weight_magnitude = 18.0,
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Oh, come on.  You know what I meant!
-        min_weight_magnitude = True,
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # I swear you're doing this on purpose just to annoy me.
-        min_weight_magnitude = 'eighteen',
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Better, but the minimum value for this parameter is 18.
-        min_weight_magnitude = 17,
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-        trytes              = trytes,
-      )
-
-  # noinspection PyTypeChecker
-  def test_error_trytes_invalid(self):
-    """
-    Attempting to call `attachToTangle`, but the `trytes` parameter is
-      not valid.
-    """
-    trunk_transaction =\
-      TransactionId(
-        b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-        b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
-      )
-
-    branch_transaction =\
-      TransactionId(
-        b'P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHAT'
-        b'DTGAFLPLBZ9FOFWWTKMAZXZHFGQHUOXLXUALY9999'
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # It's gotta be a list.
-        trytes = TryteString(b'TRYTEVALUEHERE'),
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # Ok, you got the list part down, but you have to put something
-        #   inside it.
-        trytes = [],
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-      )
-
-    with self.assertRaises(FilterError):
-      self.command(
-        # I hate you so much.
-        trytes = [42],
-
-        trunk_transaction   = trunk_transaction,
-        branch_transaction  = branch_transaction,
-      )
+    self.assertFilterPasses({
+      'trytes': [
+        TryteString(self.trytes1),
+        TryteString(self.trytes2),
+      ]
+    })

@@ -2,76 +2,201 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from iota.commands import FilterError
-from iota.commands.broadcast_transactions import BroadcastTransactionsCommand
+import filters as f
+from filters.test import BaseFilterTestCase
+from six import binary_type, text_type
+
+from iota.commands.broadcast_transactions import \
+  BroadcastTransactionsRequestFilter, BroadcastTransactionsResponseFilter
+from iota.filters import Trytes
 from iota.types import TryteString
-from test.commands import BaseFilterCommandTestCase
 
 
-# noinspection SpellCheckingInspection
-class BroadcastTransactionsCommandTestCase(BaseFilterCommandTestCase):
-  command_type = BroadcastTransactionsCommand
+class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = BroadcastTransactionsRequestFilter
+  skip_value_check = True
 
-  def test_happy_path(self):
-    """Successful invocation of `broadcastTransactions`."""
-    self.adapter.response = {
-      'trytes': ['BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'],
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(BroadcastTransactionsRequestFilterTestCase, self).setUp()
+
+    # Define a few valid values that we can reuse across tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_pass_happy_path(self):
+    """The incoming request is valid."""
+    request = {
+      'trytes': [
+        TryteString(self.trytes1),
+        TryteString(self.trytes2),
+      ],
     }
 
-    trytes = [
-      # These values tend to get rather long, but for purposes of this
-      #   test, we don't have to get too realistic.
-      TryteString(b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'),
-    ]
+    filter_ = self._filter(request)
 
-    self.assertCommandSuccess(
-      expected_response = {
-        'trytes': trytes,
-      },
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
 
-      request = {
-        'trytes': trytes,
+  def test_pass_compatible_types(self):
+    """
+    The incoming request contains values that can be converted into the
+      expected types.
+    """
+    # Any values that can be converted into TryteStrings are accepted.
+    filter_ = self._filter({
+      'trytes': [
+        binary_type(self.trytes1),
+        bytearray(self.trytes2),
+      ],
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      # The values are converted into TryteStrings so that they can be
+      #   sent to the node.
+      {
+        'trytes': [
+          TryteString(self.trytes1),
+          TryteString(self.trytes2),
+        ],
       },
     )
 
-  def test_compatible_types(self):
-    """
-    Invoking `broadcastTransactions` with parameters that can be
-      converted into the correct types.
-    """
-    self.adapter.response = {
-      'trytes': ['BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'],
-    }
+  def test_fail_empty(self):
+    """The incoming request is empty."""
+    self.assertFilterErrors(
+      {},
 
-    self.assertCommandSuccess(
-      expected_response = {
+      {
+        'trytes': [f.FilterMapper.CODE_MISSING_KEY],
+      },
+    )
+
+  def test_fail_trytes_null(self):
+    """`trytes` is null."""
+    self.assertFilterErrors(
+      {
+        'trytes': None,
+      },
+
+      {
+        'trytes': [f.Required.CODE_EMPTY],
+      },
+    )
+
+  def test_fail_trytes_wrong_type(self):
+    """`trytes` is not an array."""
+    self.assertFilterErrors(
+      {
+        # `trytes` has to be an array, even if there's only one
+        #   TryteString.
+        'trytes': TryteString(self.trytes1),
+      },
+
+      {
+        'trytes': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_trytes_empty(self):
+    """`trytes` is an array, but it's empty."""
+    self.assertFilterErrors(
+      {
+        'trytes': [],
+      },
+
+      {
+        'trytes': [f.Required.CODE_EMPTY],
+      },
+    )
+
+  def test_trytes_contents_invalid(self):
+    """`trytes` is an array, but it contains invalid values."""
+    self.assertFilterErrors(
+      {
         'trytes': [
-          TryteString(b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXH'),
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes2),
+
+          2130706433,
         ],
       },
 
-      request = {
-        'trytes': [
-          b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXZHOFH',
-        ],
-      }
+      {
+        'trytes.0': [f.NotEmpty.CODE_EMPTY],
+        'trytes.1': [f.Type.CODE_WRONG_TYPE],
+        'trytes.2': [f.Type.CODE_WRONG_TYPE],
+        'trytes.3': [f.Required.CODE_EMPTY],
+        'trytes.4': [Trytes.CODE_NOT_TRYTES],
+        'trytes.6': [f.Type.CODE_WRONG_TYPE],
+      },
     )
 
-  def test_error_trytes_invalid(self):
-    """
-    Attempting to call `broadcastTransactions` but `trytes` is invalid.
-    """
-    with self.assertRaises(FilterError):
-      # This won't work; `trytes` has to be an array.
-      self.command(
-        trytes = TryteString(b'BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQF'),
-      )
 
-    with self.assertRaises(FilterError):
-      # Seriously, you haven't figured this out yet?
-      self.command(trytes=['not a valid tryte string', 42])
+class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
+  filter_type = BroadcastTransactionsResponseFilter
+  skip_value_check = True
 
-    with self.assertRaises(FilterError):
-      # Got everything set up, but nothing to broadcast?
-      # Welcome to your first YouTube channel!
-      self.command(trytes=[])
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(BroadcastTransactionsResponseFilterTestCase, self).setUp()
+
+    # Define a few valid values here that we can reuse across multiple
+    #   tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_pass_happy_path(self):
+    """The incoming response contains valid values."""
+    # Responses from the node arrive as strings.
+    filter_ = self._filter({
+      'trytes': [
+        text_type(self.trytes1, 'ascii'),
+        text_type(self.trytes2, 'ascii'),
+      ],
+    })
+
+    self.assertFilterPasses(filter_)
+
+    # The filter converts them into TryteStrings.
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'trytes': [
+          TryteString(self.trytes1),
+          TryteString(self.trytes2),
+        ],
+      },
+    )
+
+  def test_pass_correct_types(self):
+    """
+    The incoming response already contains correct types.
+
+    This scenario is highly unusual, but who's complaining?
+    """
+    response = {
+      'trytes': [
+        TryteString(self.trytes1),
+        TryteString(self.trytes2),
+      ]
+    }
+
+    filter_ = self._filter(response)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, response)
+

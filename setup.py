@@ -3,7 +3,12 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from codecs import StreamReader, open
 from setuptools import setup
+
+
+with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
+  long_description = f.read()
 
 setup(
   name        = 'PyOTA',
@@ -11,6 +16,8 @@ setup(
   url         = 'https://github.com/iotaledger/iota.lib.py',
   version     = '1.0.0',
   packages    = ['iota'],
+
+  long_description = long_description,
 
   install_requires = [
     'requests',

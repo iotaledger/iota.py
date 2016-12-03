@@ -12,7 +12,7 @@ from iota.filters import NodeUri
 class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = AddNeighborsRequestFilter
 
-  def test_pass_happy_path(self):
+  def test_pass_valid_request(self):
     """The incoming request is valid."""
     self.assertFilterPasses({
       'uris': [
@@ -20,6 +20,18 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
         'http://localhost:14265/',
       ],
     })
+
+  def test_fail_empty(self):
+    """The incoming request is empty."""
+    self.assertFilterErrors(
+      {},
+
+      {
+        'uris': [f.FilterMapper.CODE_MISSING_KEY],
+      },
+
+      self.skip_value_check,
+    )
 
   def test_fail_neighbors_wrong_type(self):
     """`neighbors` is not an array."""
@@ -66,7 +78,6 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
           None,
           b'http://localhost:8080/',
           'not a valid uri',
-
 
           # This is actually valid; I just added it to make sure the
           #   filter isn't cheating!

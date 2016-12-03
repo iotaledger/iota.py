@@ -7,7 +7,7 @@ from importlib import import_module
 from inspect import isabstract as is_abstract
 from pkgutil import walk_packages
 from types import ModuleType
-from typing import Dict, Optional, Text, Union
+from typing import Dict, Mapping, Optional, Text, Union
 
 import filters as f
 from six import with_metaclass, string_types
@@ -163,20 +163,36 @@ class FilterError(ValueError):
     }
 
 
-class RequestFilter(f.FilterMapper):
+class RequestFilter(f.FilterChain):
   """Template for filter applied to API requests."""
-  def __init__(self, filter_map):
-    # Be more strict about missing/extra keys for requests, since they
-    #   tend to come from code that the developer has control over.
-    super(RequestFilter, self).__init__(filter_map, False, False)
+  # Be more strict about missing/extra keys for requests, since they
+  #   tend to come from code that the developer has control over.
+  def __init__(
+      self,
+      filter_map,
+      allow_missing_keys  = False,
+      allow_extra_keys    = False,
+  ):
+    super(RequestFilter, self).__init__(
+        f.Type(Mapping)
+      | f.FilterMapper(filter_map, allow_missing_keys, allow_extra_keys)
+    )
 
 
-class ResponseFilter(f.FilterMapper):
+class ResponseFilter(f.FilterChain):
   """Template for filter applied to API responses."""
-  def __init__(self, filter_map):
-    # Be a little looser about missing/extra keys for responses, since
-    #   we can't control what the node sends us back.
-    super(ResponseFilter, self).__init__(filter_map, True, True)
+  # Be a little looser about missing/extra keys for responses, since we
+  #   can't control what the node sends us back.
+  def __init__(
+      self,
+      filter_map,
+      allow_missing_keys  = True,
+      allow_extra_keys    = True,
+  ):
+    super(ResponseFilter, self).__init__(
+        f.Type(Mapping)
+      | f.FilterMapper(filter_map, allow_missing_keys, allow_extra_keys)
+    )
 
 
 class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):

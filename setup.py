@@ -25,6 +25,13 @@ setup(
     'typing ; python_version < "3.5"',
   ],
 
+  test_suite    = 'test',
+  test_loader   = 'nose.loader:TestLoader',
+  tests_require = [
+    'mock',
+    'nose',
+  ],
+
   data_files = [
     ('', ['LICENSE']),
   ],

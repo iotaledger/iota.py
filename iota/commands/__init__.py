@@ -177,7 +177,9 @@ class FilterError(ValueError):
     # type: (Text, FilterRunner) -> None
     super(FilterError, self).__init__(message)
 
-    self.context = filter_runner.get_errors(with_context=True)
+    self.context = {
+      'filter_errors': filter_runner.get_errors(with_context=True),
+    }
 
 
 class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
@@ -216,10 +218,11 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
       else:
         raise FilterError(
           message =
-            '{message} ({keys}) '
-            '(`exc.context` contains more information).'.format(
-              message = failure_message,
-              keys    = list(sorted(runner.filter_messages.keys())),
+            '{message} ({error_codes}) '
+            '(`exc.context["filter_errors"]` '
+            'contains more information).'.format(
+              message     = failure_message,
+              error_codes = runner.error_codes,
             ),
 
           filter_runner = runner,

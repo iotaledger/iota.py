@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota.commands import FilterCommand
+from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
 
@@ -17,21 +17,21 @@ class BroadcastTransactionsCommand(FilterCommand):
   command = 'broadcastTransactions'
 
   def get_request_filter(self):
-    return f.FilterMapper(
-      {
-        'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
-      },
-
-      allow_extra_keys    = False,
-      allow_missing_keys  = False,
-    )
+    return BroadcastTransactionsRequestFilter()
 
   def get_response_filter(self):
-    return f.FilterMapper(
-      {
-        'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
-      },
+    return BroadcastTransactionsResponseFilter()
 
-      allow_extra_keys    = True,
-      allow_missing_keys  = True,
-    )
+
+class BroadcastTransactionsRequestFilter(RequestFilter):
+  def __init__(self):
+    super(BroadcastTransactionsRequestFilter, self).__init__({
+      'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+    })
+
+
+class BroadcastTransactionsResponseFilter(ResponseFilter):
+  def __init__(self):
+    super(BroadcastTransactionsResponseFilter, self).__init__({
+      'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
+    })

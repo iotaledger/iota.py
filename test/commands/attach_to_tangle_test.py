@@ -14,6 +14,7 @@ from iota.types import TransactionId, TryteString
 
 class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
   filter_type = AttachToTangleRequestFilter
+  skip_value_check = True
 
   # noinspection SpellCheckingInspection
   def setUp(self):
@@ -32,7 +33,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_valid_request(self):
     """The incoming request is valid."""
-    self.assertFilterPasses({
+    request = {
       'trunk_transaction':    TransactionId(self.txn_id),
       'branch_transaction':   TransactionId(self.txn_id),
       'min_weight_magnitude': 20,
@@ -41,7 +42,12 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         TryteString(self.trytes1),
         TryteString(self.trytes2),
       ],
-    })
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_pass_min_weight_magnitude_missing(self):
     """`min_weight_magnitude` is optional."""
@@ -58,36 +64,39 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     }
 
     filter_ = self._filter(request)
+    self.assertFilterPasses(filter_)
 
     expected_value = request.copy()
     expected_value['min_weight_magnitude'] = 18
-
-    self.assertFilterPasses(filter_, expected_value)
+    self.assertDictEqual(filter_.cleaned_data, expected_value)
 
   # noinspection SpellCheckingInspection
   def test_pass_compatible_types(self):
     """Incoming values can be converted into the expected types."""
-    self.assertFilterPasses(
-      {
-        # Any value that can be converted into a TransactionId is valid
-        #   here.
-        'trunk_transaction':    binary_type(self.txn_id),
-        'branch_transaction':   bytearray(self.txn_id),
+    filter_ = self._filter({
+      # Any value that can be converted into a TransactionId is valid
+      #   here.
+      'trunk_transaction':    binary_type(self.txn_id),
+      'branch_transaction':   bytearray(self.txn_id),
 
-        'trytes': [
-          # `trytes` can contain any value that can be converted into a
-          #   TryteString.
-          binary_type(self.trytes1),
+      'trytes': [
+        # `trytes` can contain any value that can be converted into a
+        #   TryteString.
+        binary_type(self.trytes1),
 
-          # This is probably wrong, but technically it's valid.
-          TransactionId(
-            b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
-          ),
-        ],
+        # This is probably wrong, but technically it's valid.
+        TransactionId(
+          b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
+        ),
+      ],
 
-        # This still has to be an int, however.
-        'min_weight_magnitude': 30,
-      },
+      # This still has to be an int, however.
+      'min_weight_magnitude': 30,
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
 
       # After running through the filter, all of the values have been
       #   converted to the correct types.
@@ -107,7 +116,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       }
     )
 
-  def test_error_empty(self):
+  def test_fail_empty(self):
     """The incoming request is empty."""
     self.assertFilterErrors(
       {},
@@ -117,11 +126,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         'branch_transaction': [f.FilterMapper.CODE_MISSING_KEY],
         'trytes':             [f.FilterMapper.CODE_MISSING_KEY],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_trunk_transaction_null(self):
+  def test_fail_trunk_transaction_null(self):
     """`trunk_transaction` is null."""
     self.assertFilterErrors(
       {
@@ -134,11 +141,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trunk_transaction': [f.Required.CODE_EMPTY],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_trunk_transaction_wrong_type(self):
+  def test_fail_trunk_transaction_wrong_type(self):
     """`trunk_transaction` can't be converted to a TryteString."""
     self.assertFilterErrors(
       {
@@ -152,11 +157,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trunk_transaction': [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_branch_transaction_null(self):
+  def test_fail_branch_transaction_null(self):
     """`branch_transaction` is null."""
     self.assertFilterErrors(
       {
@@ -169,11 +172,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'branch_transaction': [f.Required.CODE_EMPTY],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_branch_transaction_wrong_type(self):
+  def test_fail_branch_transaction_wrong_type(self):
     """`branch_transaction` can't be converted to a TryteString."""
     self.assertFilterErrors(
       {
@@ -187,11 +188,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'branch_transaction': [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )
 
-  def test_min_weight_magnitude_float(self):
+  def test_fail_min_weight_magnitude_float(self):
     """`min_weight_magnitude` is a float."""
     self.assertFilterErrors(
       {
@@ -209,11 +208,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )
 
-  def test_min_weight_magnitude_string(self):
+  def test_fail_min_weight_magnitude_string(self):
     """`min_weight_magnitude` is a string."""
     self.assertFilterErrors(
       {
@@ -231,11 +228,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )
 
-  def test_min_weight_magnitude_too_small(self):
+  def test_fail_min_weight_magnitude_too_small(self):
     """`min_weight_magnitude` is less than 18."""
     self.assertFilterErrors(
       {
@@ -252,11 +247,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'min_weight_magnitude': [f.Min.CODE_TOO_SMALL],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_trytes_wrong_type(self):
+  def test_fail_trytes_wrong_type(self):
     """`trytes` is not an array."""
     self.assertFilterErrors(
       {
@@ -271,11 +264,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_trytes_empty(self):
+  def test_fail_trytes_empty(self):
     """`trytes` is an array, but it's empty."""
     self.assertFilterErrors(
       {
@@ -290,11 +281,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [f.Required.CODE_EMPTY],
       },
-
-      self.skip_value_check,
     )
 
-  def test_error_trytes_contents_invalid(self):
+  def test_fail_trytes_contents_invalid(self):
     """`trytes` is an array, but it contains invalid values."""
     self.assertFilterErrors(
       {
@@ -324,13 +313,12 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         'trytes.4': [Trytes.CODE_NOT_TRYTES],
         'trytes.6': [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )
 
 
 class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
   filter_type = AttachToTangleResponseFilter
+  skip_value_check = True
 
   # noinspection SpellCheckingInspection
   def setUp(self):
@@ -344,16 +332,20 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
 
   def test_pass_happy_path(self):
     """The incoming response contains valid values."""
-    self.assertFilterPasses(
-      # Responses from the node arrive as strings.
-      {
-        'trytes': [
-          text_type(self.trytes1, 'ascii'),
-          text_type(self.trytes2, 'ascii'),
-        ],
-      },
+    # Responses from the node arrive as strings.
+    filter_ = self._filter({
+      'trytes': [
+        text_type(self.trytes1, 'ascii'),
+        text_type(self.trytes2, 'ascii'),
+      ],
+    })
 
-      # The filter converts them into TryteStrings.
+    self.assertFilterPasses(filter_)
+
+    # The filter converts them into TryteStrings.
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
       {
         'trytes': [
           TryteString(self.trytes1),
@@ -368,9 +360,14 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
 
     This scenario is highly unusual, but who's complaining?
     """
-    self.assertFilterPasses({
+    response = {
       'trytes': [
         TryteString(self.trytes1),
         TryteString(self.trytes2),
       ]
-    })
+    }
+
+    filter_ = self._filter(response)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, response)

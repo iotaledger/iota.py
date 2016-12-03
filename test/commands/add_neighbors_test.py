@@ -11,15 +11,21 @@ from iota.filters import NodeUri
 
 class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = AddNeighborsRequestFilter
+  skip_value_check = True
 
   def test_pass_valid_request(self):
     """The incoming request is valid."""
-    self.assertFilterPasses({
+    request = {
       'uris': [
         'udp://node1.iotatoken.com',
         'http://localhost:14265/',
       ],
-    })
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_fail_empty(self):
     """The incoming request is empty."""
@@ -29,8 +35,6 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       {
         'uris': [f.FilterMapper.CODE_MISSING_KEY],
       },
-
-      self.skip_value_check,
     )
 
   def test_fail_neighbors_wrong_type(self):
@@ -45,11 +49,9 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       {
         'uris': [f.Type.CODE_WRONG_TYPE]
       },
-
-      self.skip_value_check,
     )
 
-  def test_neighbors_empty(self):
+  def test_fail_neighbors_empty(self):
     """`neighbors` is an array, but it's empty."""
     self.assertFilterErrors(
       {
@@ -60,11 +62,9 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       {
         'uris': [f.Required.CODE_EMPTY],
       },
-
-      self.skip_value_check,
     )
 
-  def test_neighbors_contents_invalid(self):
+  def test_fail_neighbors_contents_invalid(self):
     """
     `neighbors` is an array, but it contains invalid values.
     """
@@ -95,6 +95,4 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
         'uris.4':  [NodeUri.CODE_NOT_NODE_URI],
         'uris.6':  [f.Type.CODE_WRONG_TYPE],
       },
-
-      self.skip_value_check,
     )

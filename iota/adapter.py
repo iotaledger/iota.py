@@ -84,7 +84,6 @@ class BaseAdapter(with_metaclass(_AdapterMeta)):
   Protocols that `resolve_adapter` can use to identify this adapter
     type.
   """
-
   @abstract_method
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict

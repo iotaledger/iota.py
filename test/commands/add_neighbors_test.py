@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
+from iota.commands import FilterError
 from iota.commands.add_neighbors import AddNeighborsCommand
 from test import MockAdapter
 
@@ -45,14 +46,14 @@ class AddNeighborsCommandTestCase(TestCase):
 
   def test_uris_error_invalid(self):
     """Attempting to call `addNeighbors`, but `uris` is invalid."""
-    with self.assertRaises(TypeError):
+    with self.assertRaises(FilterError):
       # It's gotta be an array.
       self.command(uris='http://localhost:8080/')
 
-    with self.assertRaises(TypeError):
+    with self.assertRaises(FilterError):
       # I meant an array of strings!
       self.command(uris=[42, 'http://localhost:8080/'])
 
-    with self.assertRaises(ValueError):
+    with self.assertRaises(FilterError):
       # Insert "Forever Alone" meme here.
       self.command(uris=[])

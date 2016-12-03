@@ -20,6 +20,7 @@ setup(
   long_description = long_description,
 
   install_requires = [
+    'filters',
     'requests',
     'six',
     'typing ; python_version < "3.5"',

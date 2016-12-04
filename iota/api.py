@@ -123,7 +123,12 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/findtransactions
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.findTransactions(
+      bundles   = bundles,
+      addresses = addresses,
+      tags      = tags,
+      approvees = approvees,
+    )
 
   def get_balances(self, addresses, threshold=100):
     # type: (Iterable[Text], int) -> dict

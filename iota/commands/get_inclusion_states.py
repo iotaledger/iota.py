@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
+
 from iota.commands import FilterCommand, RequestFilter
 
 __all__ = [
@@ -27,6 +29,6 @@ class GetInclusionStatesCommand(FilterCommand):
 class GetInclusionStatesRequestFilter(RequestFilter):
   def __init__(self):
     super(GetInclusionStatesRequestFilter, self).__init__({
-      'transactions': None,
+      'transactions': f.Required | f.Array,
       'tips':         None,
     })

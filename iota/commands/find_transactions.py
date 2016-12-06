@@ -33,21 +33,25 @@ class FindTransactionsRequestFilter(RequestFilter):
         'addresses': (
             f.Array
           | f.FilterRepeater(f.Required | Trytes(result_type=Address))
+          | f.Optional(default=[])
         ),
 
         'approvees': (
             f.Array
           | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+          | f.Optional(default=[])
         ),
 
         'bundles': (
             f.Array
           | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+          | f.Optional(default=[])
         ),
 
         'tags': (
             f.Array
           | f.FilterRepeater(f.Required | Trytes(result_type=Tag))
+          | f.Optional(default=[])
         ),
       },
 

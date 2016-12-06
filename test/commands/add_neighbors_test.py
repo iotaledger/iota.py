@@ -52,8 +52,20 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_neighbors_wrong_type(self):
-    """`neighbors` is not an array."""
+  def test_fail_neighbors_null(self):
+    """`uris` is null."""
+    self.assertFilterErrors(
+      {
+        'uris': None,
+      },
+
+      {
+        'uris': [f.Required.CODE_EMPTY],
+      },
+    )
+
+  def test_fail_uris_wrong_type(self):
+    """`uris` is not an array."""
     self.assertFilterErrors(
       {
         # Nope; it's gotta be an array, even if you only want to add
@@ -66,8 +78,8 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_neighbors_empty(self):
-    """`neighbors` is an array, but it's empty."""
+  def test_fail_uris_empty(self):
+    """`uris` is an array, but it's empty."""
     self.assertFilterErrors(
       {
         # Insert "Forever Alone" meme here.
@@ -79,9 +91,9 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_neighbors_contents_invalid(self):
+  def test_fail_uris_contents_invalid(self):
     """
-    `neighbors` is an array, but it contains invalid values.
+    `uris` is an array, but it contains invalid values.
     """
     self.assertFilterErrors(
       {

@@ -4,10 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
+from six import binary_type, text_type
 
 from iota.commands.get_inclusion_states import GetInclusionStatesRequestFilter
-from iota.types import TransactionId
+from iota.filters import Trytes
+from iota.types import TransactionId, TryteString
 
 
 class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
@@ -113,23 +114,80 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_transactions_null(self):
     """`transactions` is null."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'transactions': None,
+
+        'tips': [TransactionId(self.trytes2)],
+      },
+
+      {
+        'transactions': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_transactions_wrong_type(self):
     """`transactions` is not an array."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        # Has to be an array, even if we're only querying for one
+        # transaction.
+        'transactions': TransactionId(self.trytes1),
+
+        'tips': [TransactionId(self.trytes2)],
+      },
+
+      {
+        'transactions': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_transactions_empty(self):
     """`transactions` is an array, but it is empty."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'transactions': [],
+
+        'tips': [TransactionId(self.trytes2)],
+      },
+
+      {
+        'transactions': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_transactions_contents_invalid(self):
     """`transactions` is an array, but it contains invalid values."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.failureException(
+      {
+        'transactions': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes1),
+
+          2130706433,
+          b'9' * 82,
+        ],
+
+        'tips': [TransactionId(self.trytes2)],
+      },
+
+      {
+        'transactions.0':  [f.Required.CODE_EMPTY],
+        'transactions.1':  [f.Type.CODE_WRONG_TYPE],
+        'transactions.2':  [f.Type.CODE_WRONG_TYPE],
+        'transactions.3':  [f.Required.CODE_EMPTY],
+        'transactions.4':  [Trytes.CODE_NOT_TRYTES],
+        'transactions.6':  [f.Type.CODE_WRONG_TYPE],
+        'transactions.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )
 
   def test_fail_tips_null(self):
     """`tips` is null"""

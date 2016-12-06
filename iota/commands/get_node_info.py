@@ -16,7 +16,7 @@ class GetNodeInfoCommand(FilterCommand):
   """
   Executes `getNodeInfo` command.
 
-  :see: iota.IotaApi.get_node_info
+  See :py:method:`iota.api.IotaApi.get_node_info`.
   """
   command = 'getNodeInfo'
 

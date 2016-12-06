@@ -26,6 +26,10 @@ class FindTransactionsRequestFilter(RequestFilter):
   def __init__(self):
     super(FindTransactionsRequestFilter, self).__init__(
       {
+        'addresses':  None,
+        'approvees':  None,
+        'bundles':    None,
+        'tags':       None,
       },
 
       # Technically, all of the parameters for this command are

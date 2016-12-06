@@ -6,7 +6,7 @@ from typing import Iterable, Optional, Text, Union
 
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
-from iota.types import TransactionId, TryteString
+from iota.types import Address, Tag, TransactionId, TryteString
 
 __all__ = [
   'IotaApi',
@@ -104,7 +104,7 @@ class IotaApi(object):
       tags      = None,
       approvees = None,
   ):
-    # type: (Optional[Iterable[Text]], Optional[Iterable[Text]], Optional[Iterable[Text]], Optional[Iterable[Text]]) -> dict
+    # type: (Optional[Iterable[TransactionId]], Optional[Iterable[Address]], Optional[Iterable[Tag]], Optional[Iterable[TransactionId]]) -> dict
     """
     Find the transactions which match the specified input and return.
 
@@ -115,11 +115,10 @@ class IotaApi(object):
     Using multiple of these input fields returns the intersection of
       the values.
 
-    :param bundles: List of bundle hashes.  The hashes will be extended
-      to 81 trytes if necessary.
+    :param bundles: List of transaction IDs.
     :param addresses: List of addresses.
     :param tags: List of tags. Each tag must be 27 trytes.
-    :param approvees: List of approvee transaction hashes.
+    :param approvees: List of approvee transaction IDs.
 
     :see: https://iota.readme.io/docs/findtransactions
     """

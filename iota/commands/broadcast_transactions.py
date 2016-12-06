@@ -16,7 +16,7 @@ class BroadcastTransactionsCommand(FilterCommand):
   """
   Executes `broadcastTransactions` command.
 
-  :see: iota.IotaApi.broadcast_transactions
+  See :py:method:`iota.api.IotaApi.broadcast_transactions`.
   """
   command = 'broadcastTransactions'
 

@@ -16,7 +16,7 @@ class AddNeighborsCommand(FilterCommand):
   """
   Executes `addNeighbors` command.
 
-  :see: iota.IotaApi.add_neighbors
+  See :py:method:`iota.api.IotaApi.add_neighbors`.
   """
   command = 'addNeighbors'
 

@@ -130,7 +130,7 @@ class IotaApi(object):
     )
 
   def get_balances(self, addresses, threshold=100):
-    # type: (Iterable[Text], int) -> dict
+    # type: (Iterable[Address], int) -> dict
     """
     Similar to `get_inclusion_states`. Returns the confirmed balance
       which a list of addresses have at the latest confirmed milestone.
@@ -146,7 +146,10 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/getbalances
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getBalances(
+      addresses = addresses,
+      threshold = threshold,
+    )
 
   def get_inclusion_states(self, transactions, tips):
     # type: (Iterable[Text], Iterable[Text]) -> dict

@@ -19,6 +19,8 @@ class FindTransactionsCommand(FilterCommand):
 
   See :py:method:`iota.api.IotaApi.find_transactions`.
   """
+  command = 'findTransactions'
+
   def get_request_filter(self):
     return FindTransactionsRequestFilter()
 

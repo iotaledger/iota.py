@@ -11,6 +11,9 @@ PyOTA.egg-info/*
 # :see: https://tox.readthedocs.io/en/latest/
 .tox/*
 
+# Generated documentation files.
+docs/_build
+
 #
 # Note:  For environment- or IDE-specific metadata (e.g., .DS_Store, .idea, etc.
 #   you can add these to your own "global" .gitignore file.

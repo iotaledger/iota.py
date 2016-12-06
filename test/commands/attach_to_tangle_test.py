@@ -350,24 +350,28 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
 
   def test_pass_happy_path(self):
     """The incoming response contains valid values."""
-    # Responses from the node arrive as strings.
     filter_ = self._filter({
+      # Trytes arrive from the node as strings.
       'trytes': [
         text_type(self.trytes1, 'ascii'),
         text_type(self.trytes2, 'ascii'),
       ],
+
+      'duration': 42,
     })
 
     self.assertFilterPasses(filter_)
 
-    # The filter converts them into TryteStrings.
     self.assertDictEqual(
       filter_.cleaned_data,
 
       {
+        # The filter converts them into TryteStrings.
         'trytes': [
           TryteString(self.trytes1),
           TryteString(self.trytes2),
         ],
+
+        'duration': 42,
       },
     )

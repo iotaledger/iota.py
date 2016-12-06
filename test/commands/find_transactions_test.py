@@ -6,7 +6,8 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
-from iota.commands.find_transactions import FindTransactionsRequestFilter
+from iota.commands.find_transactions import FindTransactionsRequestFilter, \
+  FindTransactionsResponseFilter
 from iota.filters import Trytes
 from iota.types import Address, Tag, TransactionId, TryteString
 
@@ -428,5 +429,68 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
         'approvees.4':  [Trytes.CODE_NOT_TRYTES],
         'approvees.6':  [f.Type.CODE_WRONG_TYPE],
         'approvees.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )
+
+
+class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
+  filter_type = FindTransactionsResponseFilter
+  skip_value_check = True
+
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(FindTransactionsResponseFilterTestCase, self).setUp()
+
+    # Define a few valid values here that we can reuse across multiple
+    #   tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_no_results(self):
+    """The incoming response contains no hashes."""
+    response = {
+      'hashes':   [],
+      'duration': 42,
+    }
+
+    filter_ = self._filter(response)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, response)
+
+  # noinspection SpellCheckingInspection
+  def test_search_results(self):
+    """The incoming response contains lots of hashes."""
+    filter_ = self._filter({
+      'hashes': [
+        'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFW'
+        'YWZRE9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA',
+
+        'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
+        'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
+      ],
+
+      'duration': 42,
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'hashes': [
+          Address(
+            b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFW'
+            b'YWZRE9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA',
+          ),
+
+          Address(
+            b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
+            b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
+          ),
+        ],
+
+        'duration': 42,
       },
     )

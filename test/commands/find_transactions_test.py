@@ -108,23 +108,111 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_bundles_only(self):
     """The request only includes bundles."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'bundles': [
+        TransactionId(self.trytes1),
+        TransactionId(self.trytes2),
+      ],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'bundles': [
+          TransactionId(self.trytes1),
+          TransactionId(self.trytes2),
+        ],
+
+        'addresses':  [],
+        'approvees':  [],
+        'tags':       [],
+      },
+    )
 
   def test_pass_addresses_only(self):
     """The request only includes addresses."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'addresses': [
+        Address(self.trytes1),
+        Address(self.trytes2),
+      ],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'addresses': [
+          Address(self.trytes1),
+          Address(self.trytes2),
+        ],
+
+        'approvees':  [],
+        'bundles':    [],
+        'tags':       [],
+      },
+    )
 
   def test_pass_tags_only(self):
     """The request only includes tags."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'tags': [
+        Tag(self.trytes1),
+        Tag(self.trytes3),
+      ],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'tags': [
+          Tag(self.trytes1),
+          Tag(self.trytes3),
+        ],
+
+        'addresses':  [],
+        'approvees':  [],
+        'bundles':    [],
+      },
+    )
 
   def test_pass_approvees_only(self):
     """The request only includes approvees."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'approvees': [
+        TransactionId(self.trytes1),
+        TransactionId(self.trytes3),
+      ],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'approvees': [
+          TransactionId(self.trytes1),
+          TransactionId(self.trytes3),
+        ],
+
+        'addresses':  [],
+        'bundles':    [],
+        'tags':       [],
+      },
+    )
 
   def test_fail_empty(self):
     """The request does not contain any parameters."""

@@ -5,6 +5,8 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 
 from iota.commands import FilterCommand, RequestFilter
+from iota.filters import Trytes
+from iota.types import TransactionId
 
 __all__ = [
   'GetInclusionStatesCommand',
@@ -29,6 +31,15 @@ class GetInclusionStatesCommand(FilterCommand):
 class GetInclusionStatesRequestFilter(RequestFilter):
   def __init__(self):
     super(GetInclusionStatesRequestFilter, self).__init__({
-      'transactions': f.Required | f.Array,
-      'tips':         None,
+      'transactions': (
+          f.Required
+        | f.Array
+        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+      ),
+
+      'tips': (
+          f.Required
+        | f.Array
+        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+      ),
     })

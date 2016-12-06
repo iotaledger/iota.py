@@ -2,7 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
+
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.filters import Trytes
+from iota.types import Address, Tag, TransactionId
 
 __all__ = [
   'FindTransactionsCommand',
@@ -26,10 +30,25 @@ class FindTransactionsRequestFilter(RequestFilter):
   def __init__(self):
     super(FindTransactionsRequestFilter, self).__init__(
       {
-        'addresses':  None,
-        'approvees':  None,
-        'bundles':    None,
-        'tags':       None,
+        'addresses': (
+            f.Array
+          | f.FilterRepeater(f.Required | Trytes(result_type=Address))
+        ),
+
+        'approvees': (
+            f.Array
+          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+        ),
+
+        'bundles': (
+            f.Array
+          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+        ),
+
+        'tags': (
+            f.Array
+          | f.FilterRepeater(f.Required | Trytes(result_type=Tag))
+        ),
       },
 
       # Technically, all of the parameters for this command are

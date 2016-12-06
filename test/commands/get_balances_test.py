@@ -181,23 +181,60 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_threshold_float(self):
     """`threshold` is a float."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        # Even with an empty fpart, floats are not accepted.
+        'threshold': 86.0,
+
+        'addresses': [Address(self.trytes1)],
+      },
+
+      {
+        'threshold': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_threshold_string(self):
     """`threshold` is a string."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'threshold': '86',
+
+        'addresses': [Address(self.trytes1)],
+      },
+
+      {
+        'threshold': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_threshold_too_small(self):
     """`threshold` is less than 0."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'threshold': -1,
+
+        'addresses': [Address(self.trytes1)],
+      },
+
+      {
+        'threshold': [f.Min.CODE_TOO_SMALL],
+      },
+    )
 
   def test_fail_threshold_too_big(self):
     """`threshold` is greater than 100."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'threshold': 101,
+
+        'addresses': [Address(self.trytes1)],
+      },
+
+      {
+        'threshold': [f.Max.CODE_TOO_BIG],
+      },
+    )
 
 
 class GetBalancesResponseFilterTestCase(BaseFilterTestCase):

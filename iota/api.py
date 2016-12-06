@@ -152,7 +152,7 @@ class IotaApi(object):
     )
 
   def get_inclusion_states(self, transactions, tips):
-    # type: (Iterable[Text], Iterable[Text]) -> dict
+    # type: (Iterable[TransactionId], Iterable[TransactionId]) -> dict
     """
     Get the inclusion states of a set of transactions. This is for
       determining if a transaction was accepted and confirmed by the
@@ -166,7 +166,10 @@ class IotaApi(object):
 
     :see: https://iota.readme.io/docs/getinclusionstates
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getInclusionStates(
+      transactions  = transactions,
+      tips          = tips,
+    )
 
   def get_neighbors(self):
     # type: () -> dict

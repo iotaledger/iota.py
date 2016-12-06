@@ -232,13 +232,13 @@ class TryteStringTestCase(TestCase):
 class AddressTestCase(TestCase):
   def test_init_automatic_pad(self):
     """Addresses are automatically padded to 81 trytes."""
-    txn = Address(
+    addy = Address(
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
       b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC'
     )
 
     self.assertEqual(
-      txn.trytes,
+      addy.trytes,
 
       # Note the extra 9's added to the end.
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'

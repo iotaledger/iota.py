@@ -1,0 +1,32 @@
+# coding=utf-8
+from __future__ import absolute_import, division, print_function, \
+  unicode_literals
+
+from iota.commands import FilterCommand, RequestFilter
+
+__all__ = [
+  'GetInclusionStatesCommand',
+]
+
+
+class GetInclusionStatesCommand(FilterCommand):
+  """
+  Executes ``getInclusionStates`` command.
+
+  See :py:method:`iota.api.IotaApi.get_inclusion_states`.
+  """
+  command = 'getInclusionStates'
+
+  def get_request_filter(self):
+    pass
+
+  def get_response_filter(self):
+    pass
+
+
+class GetInclusionStatesRequestFilter(RequestFilter):
+  def __init__(self):
+    super(GetInclusionStatesRequestFilter, self).__init__({
+      'transactions': None,
+      'tips':         None,
+    })

@@ -267,6 +267,21 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_trytes_null(self):
+    """`trytes` is null."""
+    self.assertFilterErrors(
+      {
+        'trytes': None,
+
+        'trunk_transaction':    TransactionId(self.txn_id),
+        'branch_transaction':   TransactionId(self.txn_id),
+      },
+
+      {
+        'trytes': [f.Required.CODE_EMPTY],
+      },
+    )
+
   def test_fail_trytes_wrong_type(self):
     """`trytes` is not an array."""
     self.assertFilterErrors(

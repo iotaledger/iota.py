@@ -53,5 +53,6 @@ class GetBalancesRequestFilter(RequestFilter):
 class GetBalancesResponseFilter(ResponseFilter):
   def __init__(self):
     super(GetBalancesResponseFilter, self).__init__({
-
+      'milestone':
+        f.ByteString(encoding='ascii') | Trytes(result_type=Address),
     })

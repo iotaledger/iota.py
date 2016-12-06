@@ -89,7 +89,7 @@ class HttpAdapterTestCase(TestCase):
   def test_configure_custom_path_default_port(self):
     """
     Configuring HttpAdapter to use a custom path but implicitly use
-      default port.
+    default port.
     """
     adapter = HttpAdapter.configure('http://iotatoken.com/node')
 
@@ -138,7 +138,7 @@ class HttpAdapterTestCase(TestCase):
   def test_success_response(self):
     """
     Simulates sending a command to the node and getting a success
-      response.
+    response.
     """
     adapter = HttpAdapter('localhost')
 
@@ -158,7 +158,7 @@ class HttpAdapterTestCase(TestCase):
   def test_error_response(self):
     """
     Simulates sending a command to the node and getting an error
-      response.
+    response.
     """
     adapter = HttpAdapter('localhost')
 
@@ -167,6 +167,29 @@ class HttpAdapterTestCase(TestCase):
     mocked_response = self._create_response(json.dumps({
       'error':    expected_result,
       'duration': 42,
+    }))
+
+    mocked_sender = Mock(return_value=mocked_response)
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      with self.assertRaises(BadApiResponse) as context:
+        adapter.send_request({'command': 'helloWorld'})
+
+    self.assertEqual(text(context.exception), expected_result)
+
+  def test_exception_response(self):
+    """
+    Simulates sending a command to the node and getting an exception
+    response.
+    """
+    adapter = HttpAdapter('localhost')
+
+    expected_result = 'java.lang.ArrayIndexOutOfBoundsException: 4'
+
+    mocked_response = self._create_response(json.dumps({
+      'exception':  'java.lang.ArrayIndexOutOfBoundsException: 4',
+      'duration':   16
     }))
 
     mocked_sender = Mock(return_value=mocked_response)

@@ -5,16 +5,51 @@ from __future__ import absolute_import, division, print_function, \
 from filters.test import BaseFilterTestCase
 
 from iota.commands.find_transactions import FindTransactionsRequestFilter
+from iota.types import Address, Tag, TransactionId
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = FindTransactionsRequestFilter
   skip_value_check = True
 
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(FindTransactionsRequestFilterTestCase, self).setUp()
+
+    # Define a few valid values that we can reuse across tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+    self.trytes3 = b'999999999999999999999999999'
+
   def test_pass_all_parameters(self):
     """The request contains valid values for all parameters."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'bundles':  [
+        TransactionId(self.trytes1),
+        TransactionId(self.trytes2),
+      ],
+
+      'addresses': [
+        Address(self.trytes1),
+        Address(self.trytes2),
+      ],
+
+      'tags': [
+        Tag(self.trytes1),
+        Tag(self.trytes3),
+      ],
+
+      'approvees': [
+        TransactionId(self.trytes1),
+        TransactionId(self.trytes3),
+      ],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_pass_bundles_only(self):
     """The request only includes bundles."""

@@ -7,7 +7,7 @@ from unittest import TestCase
 from six import binary_type
 
 from iota import TrytesDecodeError
-from iota.types import TransactionId, TryteString
+from iota.types import Address, Tag, TransactionId, TryteString
 
 
 # noinspection SpellCheckingInspection
@@ -226,6 +226,48 @@ class TryteStringTestCase(TestCase):
       trytes.as_bytes(errors='replace'),
       b'??\xd2\x80??\xc3??',
     )
+
+
+# noinspection SpellCheckingInspection
+class AddressTestCase(TestCase):
+  def test_init_automatic_pad(self):
+    """Addresses are automatically padded to 81 trytes."""
+    txn = Address(
+      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC'
+    )
+
+    self.assertEqual(
+      txn.trytes,
+
+      # Note the extra 9's added to the end.
+      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
+    )
+
+  def test_init_error_too_long(self):
+    """Attempting to create an address longer than 81 trytes."""
+    with self.assertRaises(ValueError):
+      Address(
+        b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+        b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC99999'
+      )
+
+
+# noinspection SpellCheckingInspection
+class TagTestCase(TestCase):
+  def test_init_automatic_pad(self):
+    """Tags are automatically padded to 27 trytes."""
+    tag = Tag(b'COLOREDCOINS')
+
+    self.assertEqual(tag.trytes, b'COLOREDCOINS999999999999999')
+
+  def test_init_error_too_long(self):
+    """Attempting to create a tag longer than 27 trytes."""
+    with self.assertRaises(ValueError):
+      # 28 chars = no va.
+      Tag(b'COLOREDCOINS9999999999999999')
+
 
 # noinspection SpellCheckingInspection
 class TransactionIdTestCase(TestCase):

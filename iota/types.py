@@ -10,20 +10,23 @@ from six import PY2, binary_type
 from iota import TrytesCodec
 
 
+TrytesCompatible = Union[binary_type, bytearray, 'TryteString']
+
+
 class TryteString(object):
   """
   A string representation of a sequence of trytes.
 
   A trit can be thought of as the ternary version of a bit.  It can
-    have one of three values:  1, 0 or unknown.
+  have one of three values:  1, 0 or unknown.
 
   A tryte can be thought of as the ternary version of a byte.  It is a
-    sequence of 3 trits.
+  sequence of 3 trits.
 
   A tryte string is similar in concept to Python's byte string, except
-    it has a more limited alphabet.  Byte strings are limited to ASCII
-    (256 possible values), while the tryte string alphabet only has
-    27 characters (one for each possible tryte configuration).
+  it has a more limited alphabet.  Byte strings are limited to ASCII
+  (256 possible values), while the tryte string alphabet only has 27
+  characters (one for each possible tryte configuration).
   """
   @classmethod
   def from_bytes(cls, bytes_):
@@ -32,15 +35,15 @@ class TryteString(object):
     return cls(encode(bytes_, 'trytes'))
 
   def __init__(self, trytes, pad=None):
-    # type: (Union[binary_type, bytearray, TryteString], int) -> None
+    # type: (TrytesCompatible, int) -> None
     """
     :param trytes: Byte string or bytearray.
     :param pad: Ensure at least this many trytes.
-      If there are too few, additional Tryte([-1, -1, -1]) values
-        will be appended to the TryteString.
+      If there are too few, additional ``Tryte([-1, -1, -1])`` values
+      will be appended to the TryteString.
 
       Note:  If the TryteString is too long, it will _not_ be
-        truncated!
+       truncated!
     """
     super(TryteString, self).__init__()
 
@@ -87,7 +90,7 @@ class TryteString(object):
     Converts the TryteString into a string representation.
 
     Note that this method will NOT convert the trytes back into bytes;
-      use `as_bytes` for that.
+    use :py:method:`as_bytes` for that.
     """
     return binary_type(self.trytes)
 
@@ -118,7 +121,7 @@ class TryteString(object):
     return decode(self.trytes, 'trytes', errors)
 
   def __eq__(self, other):
-    # type: (Union[TryteString, binary_type, bytearray]) -> bool
+    # type: (TrytesCompatible) -> bool
     if isinstance(other, TryteString):
       return self.trytes == other.trytes
     elif isinstance(other, (binary_type, bytearray)):
@@ -134,14 +137,44 @@ class TryteString(object):
 
   # :bc: In Python 2 this must be defined explicitly.
   def __ne__(self, other):
-    # type: (Union[TryteString, binary_type, bytearray]) -> bool
+    # type: (TrytesCompatible) -> bool
     return not (self == other)
+
+
+class Address(TryteString):
+  """
+  A TryteString that acts as an address, with support for generating
+  and validating checksums.
+  """
+  LEN = 81
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(Address, self).__init__(trytes, pad=self.LEN)
+
+    if len(self.trytes) > self.LEN:
+      raise ValueError('Addresses must be 81 trytes long.')
+
+
+class Tag(TryteString):
+  """A TryteString that acts as a transaction tag."""
+  LEN = 27
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(Tag, self).__init__(trytes, pad=self.LEN)
+
+    if len(self.trytes) > self.LEN:
+      raise ValueError('Tags must be 27 trytes long.')
 
 
 class TransactionId(TryteString):
   """A TryteString that acts as a transaction ID."""
-  def __init__(self, trytes):
-    super(TransactionId, self).__init__(trytes, pad=81)
+  LEN = 81
 
-    if len(self.trytes) > 81:
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(TransactionId, self).__init__(trytes, pad=self.LEN)
+
+    if len(self.trytes) > self.LEN:
       raise ValueError('TransactionIds must be 81 trytes long.')

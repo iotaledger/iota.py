@@ -158,7 +158,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_transactions_contents_invalid(self):
     """`transactions` is an array, but it contains invalid values."""
-    self.failureException(
+    self.assertFilterErrors(
       {
         'transactions': [
           b'',
@@ -191,20 +191,75 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_tips_null(self):
     """`tips` is null"""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'tips': None,
+
+        'transactions': [TransactionId(self.trytes1)],
+      },
+
+      {
+        'tips': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_tips_wrong_type(self):
     """`tips` is not an array."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'tips': TransactionId(self.trytes2),
+
+        'transactions': [TransactionId(self.trytes1)],
+      },
+
+      {
+        'tips': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_tips_empty(self):
     """`tips` is an array, but it is empty."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'tips': [],
+
+        'transactions': [TransactionId(self.trytes1)],
+      },
+
+      {
+        'tips': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_tips_contents_invalid(self):
     """`tips` is an array, but it contains invalid values."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'tips': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes1),
+
+          2130706433,
+          b'9' * 82,
+        ],
+
+        'transactions': [TransactionId(self.trytes1)],
+      },
+
+      {
+        'tips.0':  [f.Required.CODE_EMPTY],
+        'tips.1':  [f.Type.CODE_WRONG_TYPE],
+        'tips.2':  [f.Type.CODE_WRONG_TYPE],
+        'tips.3':  [f.Required.CODE_EMPTY],
+        'tips.4':  [Trytes.CODE_NOT_TRYTES],
+        'tips.6':  [f.Type.CODE_WRONG_TYPE],
+        'tips.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )

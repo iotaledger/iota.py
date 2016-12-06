@@ -36,7 +36,12 @@ class GetBalancesRequestFilter(RequestFilter):
           | f.FilterRepeater(f.Required | Trytes(result_type=Address))
         ),
 
-        'threshold': f.Optional(default=100),
+        'threshold': (
+            f.Type(int)
+          | f.Min(0)
+          | f.Max(100)
+          | f.Optional(default=100)
+        ),
       },
 
       allow_missing_keys = {

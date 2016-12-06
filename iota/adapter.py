@@ -188,10 +188,11 @@ class HttpAdapter(BaseAdapter):
       raise BadApiResponse('Non-JSON response from node: ' + raw_content)
 
     try:
-      # Response always has 200 status, even for errors, so the only way
-      #   to check for success is to inspect the response body.
-      # :see: https://github.com/iotaledger/iri/issues/9
-      error = decoded.get('error')
+      # Response always has 200 status, even for errors/exceptions, so the
+      # only way to check for success is to inspect the response body.
+      # :see:`https://github.com/iotaledger/iri/issues/9`
+      # :see:`https://github.com/iotaledger/iri/issues/12`
+      error = decoded.get('exception') or decoded.get('error')
     except AttributeError:
       raise BadApiResponse('Invalid response from node: ' + raw_content)
 

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type
 
@@ -226,13 +227,36 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_all_parameters_empty(self):
     """The request contains all parameters, but every one is empty."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'addresses':  [],
+        'approvees':  [],
+        'bundles':    [],
+        'tags':       [],
+      },
+
+      {
+        '': [FindTransactionsRequestFilter.CODE_NO_SEARCH_VALUES],
+      },
+    )
 
   def test_fail_unexpected_parameters(self):
     """The request contains unexpected parameters."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'addresses':  [Address(self.trytes1)],
+        'approvees':  [TransactionId(self.trytes1)],
+        'bundles':    [TransactionId(self.trytes1)],
+        'tags':       [Tag(self.trytes1)],
+
+        # Hey, you're not allowed in he-argh!
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
 
   def test_fail_bundles_wrong_type(self):
     """`bundles` is not an array."""

@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from filters.test import BaseFilterTestCase
+from six import binary_type
 
 from iota.commands.find_transactions import FindTransactionsRequestFilter
 from iota.types import Address, Tag, TransactionId
@@ -25,7 +26,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
   def test_pass_all_parameters(self):
     """The request contains valid values for all parameters."""
     request = {
-      'bundles':  [
+      'bundles': [
         TransactionId(self.trytes1),
         TransactionId(self.trytes2),
       ],
@@ -50,6 +51,60 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, request)
+
+  def test_pass_compatible_types(self):
+    """
+    The request contains values that can be converted to the expected
+    types.
+    """
+    filter_ = self._filter({
+      'bundles': [
+        binary_type(self.trytes1),
+        bytearray(self.trytes2),
+      ],
+
+      'addresses': [
+        binary_type(self.trytes1),
+        bytearray(self.trytes2),
+      ],
+
+      'tags': [
+        binary_type(self.trytes1),
+        bytearray(self.trytes3),
+      ],
+
+      'approvees': [
+        binary_type(self.trytes1),
+        bytearray(self.trytes3),
+      ],
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'bundles': [
+          TransactionId(self.trytes1),
+          TransactionId(self.trytes2),
+        ],
+
+        'addresses': [
+          Address(self.trytes1),
+          Address(self.trytes2),
+        ],
+
+        'tags': [
+          Tag(self.trytes1),
+          Tag(self.trytes3),
+        ],
+
+        'approvees': [
+          TransactionId(self.trytes1),
+          TransactionId(self.trytes3),
+        ],
+      },
+    )
 
   def test_pass_bundles_only(self):
     """The request only includes bundles."""

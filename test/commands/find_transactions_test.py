@@ -216,8 +216,13 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_empty(self):
     """The request does not contain any parameters."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {},
+
+      {
+        '': [FindTransactionsRequestFilter.CODE_NO_SEARCH_VALUES],
+      },
+    )
 
   def test_fail_all_parameters_empty(self):
     """The request contains all parameters, but every one is empty."""

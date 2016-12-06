@@ -27,6 +27,12 @@ class FindTransactionsCommand(FilterCommand):
 
 
 class FindTransactionsRequestFilter(RequestFilter):
+  CODE_NO_SEARCH_VALUES = 'no_search_values'
+
+  templates = {
+    CODE_NO_SEARCH_VALUES: 'No search values specified.',
+  }
+
   def __init__(self):
     super(FindTransactionsRequestFilter, self).__init__(
       {
@@ -60,6 +66,23 @@ class FindTransactionsRequestFilter(RequestFilter):
       #   empty.
       allow_missing_keys = True,
     )
+
+  def _apply(self, value):
+    value = super(FindTransactionsRequestFilter, self)._apply(value) # type: dict
+
+    if self._has_errors:
+      return value
+
+    # At least one search term is required.
+    if not any((
+        value['addresses'],
+        value['approvees'],
+        value['bundles'],
+        value['tags'],
+    )):
+      return self._invalid_value(value, self.CODE_NO_SEARCH_VALUES)
+
+    return value
 
 
 class FindTransactionsResponseFilter(ResponseFilter):

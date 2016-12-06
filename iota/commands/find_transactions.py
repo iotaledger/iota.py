@@ -87,4 +87,6 @@ class FindTransactionsRequestFilter(RequestFilter):
 
 class FindTransactionsResponseFilter(ResponseFilter):
   def __init__(self):
-    super(FindTransactionsResponseFilter, self).__init__({})
+    super(FindTransactionsResponseFilter, self).__init__({
+      'hashes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
+    })

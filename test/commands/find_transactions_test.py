@@ -4,10 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
+from six import binary_type, text_type
 
 from iota.commands.find_transactions import FindTransactionsRequestFilter
-from iota.types import Address, Tag, TransactionId
+from iota.filters import Trytes
+from iota.types import Address, Tag, TransactionId, TryteString
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -260,40 +261,172 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_bundles_wrong_type(self):
     """`bundles` is not an array."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'bundles':  TransactionId(self.trytes1),
+      },
+
+      {
+        'bundles': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_bundles_contents_invalid(self):
     """`bundles` is an array, but it contains invalid values."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'bundles': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes2),
+
+          2130706433,
+          b'9' * 82,
+        ],
+      },
+
+      {
+        'bundles.0':  [f.Required.CODE_EMPTY],
+        'bundles.1':  [f.Type.CODE_WRONG_TYPE],
+        'bundles.2':  [f.Type.CODE_WRONG_TYPE],
+        'bundles.3':  [f.Required.CODE_EMPTY],
+        'bundles.4':  [Trytes.CODE_NOT_TRYTES],
+        'bundles.6':  [f.Type.CODE_WRONG_TYPE],
+        'bundles.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )
 
   def test_fail_addresses_wrong_type(self):
     """`addresses` is not an array."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'addresses':  Address(self.trytes1),
+      },
+
+      {
+        'addresses': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_addresses_contents_invalid(self):
     """`addresses` is an array, but it contains invalid values."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'addresses': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes2),
+
+          2130706433,
+          b'9' * 82,
+        ],
+      },
+
+      {
+        'addresses.0':  [f.Required.CODE_EMPTY],
+        'addresses.1':  [f.Type.CODE_WRONG_TYPE],
+        'addresses.2':  [f.Type.CODE_WRONG_TYPE],
+        'addresses.3':  [f.Required.CODE_EMPTY],
+        'addresses.4':  [Trytes.CODE_NOT_TRYTES],
+        'addresses.6':  [f.Type.CODE_WRONG_TYPE],
+        'addresses.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )
 
   def test_fail_tags_wrong_type(self):
     """`tags` is not an array."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'tags':  Tag(self.trytes1),
+      },
+
+      {
+        'tags': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_tags_contents_invalid(self):
     """`tags` is an array, but it contains invalid values."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'tags': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes1),
+
+          2130706433,
+          b'9' * 28,
+        ],
+      },
+
+      {
+        'tags.0':  [f.Required.CODE_EMPTY],
+        'tags.1':  [f.Type.CODE_WRONG_TYPE],
+        'tags.2':  [f.Type.CODE_WRONG_TYPE],
+        'tags.3':  [f.Required.CODE_EMPTY],
+        'tags.4':  [Trytes.CODE_NOT_TRYTES],
+        'tags.6':  [f.Type.CODE_WRONG_TYPE],
+        'tags.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )
 
   def test_fail_approvees_wrong_type(self):
     """`approvees` is not an array."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'approvees':  TransactionId(self.trytes1),
+      },
+
+      {
+        'approvees': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_approvees_contents_invalid(self):
     """`approvees` is an array, but it contains invalid values."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'approvees': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes2),
+
+          2130706433,
+          b'9' * 82,
+        ],
+      },
+
+      {
+        'approvees.0':  [f.Required.CODE_EMPTY],
+        'approvees.1':  [f.Type.CODE_WRONG_TYPE],
+        'approvees.2':  [f.Type.CODE_WRONG_TYPE],
+        'approvees.3':  [f.Required.CODE_EMPTY],
+        'approvees.4':  [Trytes.CODE_NOT_TRYTES],
+        'approvees.6':  [f.Type.CODE_WRONG_TYPE],
+        'approvees.7':  [Trytes.CODE_WRONG_FORMAT],
+      },
+    )

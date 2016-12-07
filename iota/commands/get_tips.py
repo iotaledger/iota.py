@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota.commands import FilterCommand, ResponseFilter
+from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 from iota.types import Address
 
@@ -22,6 +22,13 @@ class GetTipsCommand(FilterCommand):
 
   def get_response_filter(self):
     return GetTipsResponseFilter()
+
+
+class GetTipsRequestFilter(RequestFilter):
+  def __init__(self):
+    # `getTips` doesn't accept any parameters.
+    # Using a filter here just to enforce that the request is empty.
+    super(GetTipsRequestFilter, self).__init__({})
 
 
 class GetTipsResponseFilter(ResponseFilter):

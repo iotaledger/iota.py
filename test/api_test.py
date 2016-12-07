@@ -59,6 +59,33 @@ class CustomCommandTestCase(TestCase):
 
     self.assertDictEqual(self.command.request, {'command': 'helloWorld'})
 
+  def test_call_reset(self):
+    """Resetting a command allows it to be called more than once."""
+    self.adapter.response = {'message': 'Hello, IOTA!'}
+    self.command()
+
+    self.command.reset()
+
+    self.assertFalse(self.command.called)
+    self.assertIsNone(self.command.request)
+    self.assertIsNone(self.command.response)
+
+    expected_response = {'message': 'Welcome back!'}
+    self.adapter.response = expected_response
+    response = self.command(foo='bar')
+
+    self.assertDictEqual(response, expected_response)
+    self.assertDictEqual(self.command.response, expected_response)
+
+    self.assertDictEqual(
+      self.command.request,
+
+      {
+        'command':  'helloWorld',
+        'foo':      'bar',
+      },
+    )
+
 
 class IotaApiTestCase(TestCase):
   def test_init_with_uri(self):

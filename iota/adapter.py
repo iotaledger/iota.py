@@ -12,6 +12,7 @@ import requests
 from six import with_metaclass
 
 from iota import DEFAULT_PORT
+from iota.json import JsonEncoder
 
 __all__ = [
   'BadApiResponse',
@@ -210,4 +211,8 @@ class HttpAdapter(BaseAdapter):
       tests.
     """
     kwargs.setdefault('timeout', get_default_timeout())
-    return requests.post(self.node_url, json=payload, **kwargs)
+
+    # Use a custom JSON encoder that knows how to convert Tryte values.
+    encoder = JsonEncoder()
+
+    return requests.post(self.node_url, data=encoder.encode(payload), **kwargs)

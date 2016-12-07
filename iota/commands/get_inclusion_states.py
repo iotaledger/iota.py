@@ -22,7 +22,7 @@ class GetInclusionStatesCommand(FilterCommand):
   command = 'getInclusionStates'
 
   def get_request_filter(self):
-    pass
+    return GetInclusionStatesRequestFilter()
 
   def get_response_filter(self):
     pass

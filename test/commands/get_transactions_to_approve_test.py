@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota.commands.get_transactions_to_approve import \
@@ -14,35 +15,75 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_happy_path(self):
     """Typical `getTransactionsToApprove` request."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'depth': 100,
+    }
 
-  def test_pass_empty(self):
-    """
-    Request is empty, so default values are used for all parameters.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
+
+  def test_fail_empty(self):
+    """Request is empty."""
+    self.assertFilterErrors(
+      {},
+
+      {
+        'depth': [f.FilterMapper.CODE_MISSING_KEY],
+      },
+    )
 
   def test_fail_unexpected_parameters(self):
     """Request contains unexpected parameters."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': 100,
+
+        # I knew I should have taken that left turn at Albuquerque.
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
 
   def test_fail_depth_float(self):
     """`depth` is a float."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': 100.0,
+      },
+
+      {
+        'depth': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_depth_string(self):
     """`depth` is a string."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': '100',
+      },
+
+      {
+        'depth': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_depth_too_small(self):
     """`depth` is less than 1."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': 0,
+      },
+
+      {
+        'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
 
 
 class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):

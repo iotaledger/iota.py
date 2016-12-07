@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
+
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 
 
@@ -23,7 +25,7 @@ class GetTransactionsToApproveCommand(FilterCommand):
 class GetTransactionsToApproveRequestFilter(RequestFilter):
   def __init__(self):
     super(GetTransactionsToApproveRequestFilter, self).__init__({
-
+      'depth': f.Type(int) | f.Min(1),
     })
 
 

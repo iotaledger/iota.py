@@ -7,6 +7,7 @@ from filters.test import BaseFilterTestCase
 
 from iota.commands.get_transactions_to_approve import \
   GetTransactionsToApproveRequestFilter, GetTransactionsToApproveResponseFilter
+from iota.types import TransactionId
 
 
 class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
@@ -90,7 +91,40 @@ class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
   filter_type = GetTransactionsToApproveResponseFilter
   skip_value_check = True
 
+  # noinspection SpellCheckingInspection
   def test_pass_happy_path(self):
     """Typical `getTransactionsToApprove` response."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    response = {
+      'trunkTransaction':
+        'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
+        'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999',
+
+      'branchTransaction':
+        'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
+        'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999',
+
+      'duration': 936,
+    }
+
+    filter_ = self._filter(response)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'trunkTransaction':
+          TransactionId(
+            b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
+            b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
+          ),
+
+        'branchTransaction':
+          TransactionId(
+            b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
+            b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
+          ),
+
+        'duration': 936,
+      },
+    )

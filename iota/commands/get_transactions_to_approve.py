@@ -5,6 +5,8 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.filters import Trytes
+from iota.types import TransactionId
 
 
 class GetTransactionsToApproveCommand(FilterCommand):
@@ -32,5 +34,13 @@ class GetTransactionsToApproveRequestFilter(RequestFilter):
 class GetTransactionsToApproveResponseFilter(ResponseFilter):
   def __init__(self):
     super(GetTransactionsToApproveResponseFilter, self).__init__({
+      'branchTransaction': (
+          f.ByteString(encoding='ascii')
+        | Trytes(result_type=TransactionId)
+      ),
 
+      'trunkTransaction': (
+          f.ByteString(encoding='ascii')
+        | Trytes(result_type=TransactionId)
+      ),
     })

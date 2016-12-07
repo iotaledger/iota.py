@@ -176,7 +176,11 @@ class HttpAdapter(BaseAdapter):
 
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
-    response = self._send_http_request(payload, **kwargs)
+    response = self._send_http_request(
+      # Use a custom JSON encoder that knows how to convert Tryte values.
+      payload = JsonEncoder().encode(payload),
+      **kwargs
+    )
 
     raw_content = response.text
     if not raw_content:
@@ -203,7 +207,7 @@ class HttpAdapter(BaseAdapter):
     return decoded
 
   def _send_http_request(self, payload, **kwargs):
-    # type: (dict, dict) -> requests.Response
+    # type: (Text, dict) -> requests.Response
     """
     Sends the actual HTTP request.
 
@@ -211,8 +215,4 @@ class HttpAdapter(BaseAdapter):
       tests.
     """
     kwargs.setdefault('timeout', get_default_timeout())
-
-    # Use a custom JSON encoder that knows how to convert Tryte values.
-    encoder = JsonEncoder()
-
-    return requests.post(self.node_url, data=encoder.encode(payload), **kwargs)
+    return requests.post(self.node_url, data=payload, **kwargs)

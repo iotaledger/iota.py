@@ -12,6 +12,7 @@ from six import BytesIO, text_type as text
 
 from iota import BadApiResponse, DEFAULT_PORT, InvalidUri
 from iota.adapter import HttpAdapter, resolve_adapter
+from iota.types import TryteString
 
 
 class ResolveAdapterTestCase(TestCase):
@@ -252,6 +253,40 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(
       text(context.exception),
       'Invalid response from node: ' + invalid_response,
+    )
+
+  # noinspection SpellCheckingInspection
+  def test_trytes_in_request(self):
+    """Sending a request that includes trytes."""
+    adapter = HttpAdapter('localhost')
+
+    # Response is not important for this test; we just need to make
+    # sure that the request is converted correctly.
+    mocked_sender = Mock(return_value=self._create_response('{}'))
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      adapter.send_request({
+        'command':  'helloWorld',
+        'trytes': [
+          TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA'),
+
+          TryteString(
+            b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
+          ),
+        ],
+      })
+
+    mocked_sender.assert_called_once_with(
+      payload = json.dumps({
+        'command': 'helloWorld',
+
+        # Tryte sequences are converted to strings for transport.
+        'trytes': [
+          'RBTC9D9DCDQAEASBYBCCKBFA',
+          'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
+        ],
+      }),
     )
 
   @staticmethod

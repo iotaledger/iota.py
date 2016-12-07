@@ -120,6 +120,15 @@ class TryteString(object):
     # :bc: In Python 2, `decode` does not accept keyword arguments.
     return decode(self.trytes, 'trytes', errors)
 
+  def as_json(self):
+    # type: () -> Text
+    """
+    Converts the TryteString into a JSON representation.
+
+    See :py:class:`iota.json.JsonEncoder`.
+    """
+    return self.trytes.decode('ascii')
+
   def __eq__(self, other):
     # type: (TrytesCompatible) -> bool
     if isinstance(other, TryteString):

@@ -95,6 +95,15 @@ class BaseCommand(with_metaclass(CommandMeta)):
 
     return self.response
 
+  def reset(self):
+    # type: () -> None
+    """
+    Resets the command, allowing it to be called again.
+    """
+    self.called   = False
+    self.request  = None # type: dict
+    self.response = None # type: dict
+
   @abstract_method
   def _prepare_request(self, request):
     # type: (dict) -> Optional[dict]

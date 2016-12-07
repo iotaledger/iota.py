@@ -18,7 +18,7 @@ class GetTipsCommand(FilterCommand):
   command = 'getTips'
 
   def get_request_filter(self):
-    pass
+    return GetTipsRequestFilter()
 
   def get_response_filter(self):
     return GetTipsResponseFilter()

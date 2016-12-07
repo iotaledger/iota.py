@@ -2,10 +2,38 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota.commands.get_tips import GetTipsResponseFilter
+from iota.commands.get_tips import GetTipsRequestFilter, GetTipsResponseFilter
 from iota.types import Address
+
+
+class GetTipsRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = GetTipsRequestFilter
+  skip_value_check = True
+
+  def test_pass_empty(self):
+    """The incoming response is (correctly) empty."""
+    request = {}
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
+
+  def test_fail_unexpected_parameters(self):
+    """The incoming response contains unexpected parameters."""
+    self.assertFilterErrors(
+      {
+        # All you had to do was nothing!  How did you screw that up?!
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
 
 
 class GetTipsResponseFilterTestCase(BaseFilterTestCase):

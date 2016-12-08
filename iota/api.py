@@ -289,4 +289,4 @@ class IotaApi(object):
     References:
       - https://iota.readme.io/docs/storetransactions
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.storeTransactions(trytes=trytes)

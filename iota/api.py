@@ -223,12 +223,12 @@ class IotaApi(object):
   def get_trytes(self, hashes):
     # type: (Iterable[Text]) -> dict
     """
-    Returns the raw transaction data (trytes) of a specific
-      transaction.
+    Returns the raw transaction data (trytes) of one or more
+    transactions.
 
     :see: https://iota.readme.io/docs/gettrytes
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getTrytes(hashes=hashes)
 
   def interrupt_attaching_to_tangle(self):
     # type: () -> dict
@@ -245,7 +245,8 @@ class IotaApi(object):
     Removes one or more neighbors from the node.  Lasts until the node
       is restarted.
 
-    :param uris: Use format `udp://<ip address>:<port>`.
+    :param uris:
+      Use format ``udp://<ip address>:<port>``.
       Example: `remove_neighbors(['udp://example.com:14265'])`
 
     :see: https://iota.readme.io/docs/removeneighors

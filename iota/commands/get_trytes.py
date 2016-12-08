@@ -38,5 +38,8 @@ class GetTrytesRequestFilter(RequestFilter):
 class GetTrytesResponseFilter(ResponseFilter):
   def __init__(self):
     super(GetTrytesResponseFilter, self).__init__({
-
+      'trytes': (
+          f.Array
+        | f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes)
+      ),
     })

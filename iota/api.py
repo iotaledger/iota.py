@@ -95,7 +95,7 @@ class IotaApi(object):
     )
 
   def broadcast_transactions(self, trytes):
-    # type: (Iterable[Text]) -> dict
+    # type: (Iterable[TryteString]) -> dict
     """
     Broadcast a list of transactions to all neighbors.
 
@@ -242,7 +242,7 @@ class IotaApi(object):
     return self.getTransactionsToApprove(depth=depth)
 
   def get_trytes(self, hashes):
-    # type: (Iterable[Text]) -> dict
+    # type: (Iterable[TransactionId]) -> dict
     """
     Returns the raw transaction data (trytes) of one or more
     transactions.
@@ -279,7 +279,7 @@ class IotaApi(object):
     return self.removeNeighbors(uris=uris)
 
   def store_transactions(self, trytes):
-    # type: (Iterable[Text]) -> dict
+    # type: (Iterable[TryteString]) -> dict
     """
     Store transactions into local storage.
 

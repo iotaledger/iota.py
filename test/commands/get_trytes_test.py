@@ -171,12 +171,51 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
   filter_type = GetTrytesCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(GetTrytesResponseFilter, self).setUp()
+
+    # Define some valid tryte sequences that we can re-use between
+    # tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
   def test_pass_transactions(self):
     """The response contains data for multiple transactions."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    filter_ = self._filter({
+      'trytes': [
+        # In real life, these values would be a lot longer, but for the
+        # purposes of this test, any sequence of trytes will do.
+        text_type(self.trytes1, 'ascii'),
+        text_type(self.trytes2, 'ascii'),
+      ],
+
+      'duration': 42,
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'trytes': [
+          TryteString(self.trytes1),
+          TryteString(self.trytes2),
+        ],
+
+        'duration': 42,
+      },
+    )
 
   def test_pass_no_transactions(self):
     """The response does not contain any transactions."""
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    response = {
+      'trytes': [],
+      'duration': 42,
+    }
+
+    filter_ = self._filter(response)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, response)

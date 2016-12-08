@@ -17,7 +17,8 @@ class IotaApi(object):
   """
   API to send HTTP requests for communicating with an IOTA node.
 
-  :see: https://iota.readme.io/docs/getting-started
+  References:
+    - https://iota.readme.io/docs/getting-started
   """
   def __init__(self, adapter):
     # type: (Union[Text, BaseAdapter]) -> None
@@ -36,10 +37,13 @@ class IotaApi(object):
     """
     Sends an arbitrary API command to the node.
 
-    This method is useful for invoking unsupported or experimental
-      methods, or if you just want to troll your node for awhile.
+    This method is useful for invoking undocumented or experimental
+    methods, or if you just want to troll your node for awhile.
 
     :param command: The name of the command to send.
+
+    References:
+      - https://iota.readme.io/docs/making-requests
     """
     try:
       return command_registry[command](self.adapter)
@@ -50,12 +54,14 @@ class IotaApi(object):
     # type: (Iterable[Text]) -> dict
     """
     Add one or more neighbors to the node.  Lasts until the node is
-      restarted.
+    restarted.
 
-    :param uris: Use format `udp://<ip address>:<port>`.
-      Example: `add_neighbors(['udp://example.com:14265'])`
+    :param uris:
+      Use format ``udp://<ip address>:<port>``.
+      Example: ``add_neighbors(['udp://example.com:14265'])``
 
-    :see: https://iota.readme.io/docs/addneighors
+    References:
+      - https://iota.readme.io/docs/addneighors
     """
     return self.addNeighbors(uris=uris)
 
@@ -69,15 +75,17 @@ class IotaApi(object):
     # type: (TransactionId, TransactionId, Iterable[TryteString], int) -> dict
     """
     Attaches the specified transactions (trytes) to the Tangle by doing
-      Proof of Work. You need to supply branchTransaction as well as
-      trunkTransaction (basically the tips which you're going to
-      validate and reference with this transaction) - both of which
-      you'll get through the getTransactionsToApprove API call.
+    Proof of Work. You need to supply branchTransaction as well as
+    trunkTransaction (basically the tips which you're going to
+    validate and reference with this transaction) - both of which
+    you'll get through the getTransactionsToApprove API call.
 
     The returned value is a different set of tryte values which you can
-      input into `broadcast_transactions` and `store_transactions`.
+    input into :py:method:`broadcast_transactions` and
+    :py:method:`store_transactions`.
 
-    :see: https://iota.readme.io/docs/attachtotangle
+    References:
+      - https://iota.readme.io/docs/attachtotangle
     """
     return self.attachToTangle(
       trunk_transaction     = trunk_transaction,
@@ -91,9 +99,11 @@ class IotaApi(object):
     """
     Broadcast a list of transactions to all neighbors.
 
-    The input trytes for this call are provided by `attach_to_tangle`.
+    The input trytes for this call are provided by
+    :py:method:`attach_to_tangle`.
 
-    :see: https://iota.readme.io/docs/broadcasttransactions
+    References:
+      - https://iota.readme.io/docs/broadcasttransactions
     """
     return self.broadcastTransactions(trytes=trytes)
 
@@ -109,18 +119,19 @@ class IotaApi(object):
     Find the transactions which match the specified input and return.
 
     All input values are lists, for which a list of return values
-      (transaction hashes), in the same order, is returned for all
-      individual elements.
+    (transaction hashes), in the same order, is returned for all
+    individual elements.
 
     Using multiple of these input fields returns the intersection of
-      the values.
+    the values.
 
     :param bundles: List of transaction IDs.
     :param addresses: List of addresses.
     :param tags: List of tags. Each tag must be 27 trytes.
     :param approvees: List of approvee transaction IDs.
 
-    :see: https://iota.readme.io/docs/findtransactions
+    References:
+      - https://iota.readme.io/docs/findtransactions
     """
     return self.findTransactions(
       bundles   = bundles,
@@ -133,18 +144,20 @@ class IotaApi(object):
     # type: (Iterable[Address], int) -> dict
     """
     Similar to `get_inclusion_states`. Returns the confirmed balance
-      which a list of addresses have at the latest confirmed milestone.
+    which a list of addresses have at the latest confirmed milestone.
 
     In addition to the balances, it also returns the milestone as well
-      as the index with which the confirmed balance was determined.
-      The balances are returned as a list in the same order as the
-      addresses were provided as input.
+    as the index with which the confirmed balance was determined.
+    The balances are returned as a list in the same order as the
+    addresses were provided as input.
 
-    :param addresses: List of addresses to get the confirmed balance
-      for.
+    :param addresses:
+      List of addresses to get the confirmed balance for.
+
     :param threshold: Confirmation threshold.
 
-    :see: https://iota.readme.io/docs/getbalances
+    References:
+      - https://iota.readme.io/docs/getbalances
     """
     return self.getBalances(
       addresses = addresses,
@@ -155,16 +168,19 @@ class IotaApi(object):
     # type: (Iterable[TransactionId], Iterable[TransactionId]) -> dict
     """
     Get the inclusion states of a set of transactions. This is for
-      determining if a transaction was accepted and confirmed by the
-      network or not. You can search for multiple tips (and thus,
-      milestones) to get past inclusion states of transactions.
+    determining if a transaction was accepted and confirmed by the
+    network or not. You can search for multiple tips (and thus,
+    milestones) to get past inclusion states of transactions.
 
-    :param transactions: List of transactions you want to get the
-      inclusion state for.
-    :param tips: List of tips (including milestones) you want to search
-      for the inclusion state.
+    :param transactions:
+      List of transactions you want to get the inclusion state for.
 
-    :see: https://iota.readme.io/docs/getinclusionstates
+    :param tips:
+      List of tips (including milestones) you want to search for the
+      inclusion state.
+
+    References:
+      - https://iota.readme.io/docs/getinclusionstates
     """
     return self.getInclusionStates(
       transactions  = transactions,
@@ -175,11 +191,12 @@ class IotaApi(object):
     # type: () -> dict
     """
     Returns the set of neighbors the node is connected with, as well as
-      their activity count.
+    their activity count.
 
     The activity counter is reset after restarting IRI.
 
-    :see: https://iota.readme.io/docs/getneighborsactivity
+    References:
+      - https://iota.readme.io/docs/getneighborsactivity
     """
     return self.getNeighbors()
 
@@ -188,7 +205,8 @@ class IotaApi(object):
     """
     Returns information about the node.
 
-    :see: https://iota.readme.io/docs/getnodeinfo
+    References:
+      - https://iota.readme.io/docs/getnodeinfo
     """
     return self.getNodeInfo()
 
@@ -196,27 +214,30 @@ class IotaApi(object):
     # type: () -> dict
     """
     Returns the list of tips (transactions which have no other
-      transactions referencing them).
+    transactions referencing them).
 
-    :see: https://iota.readme.io/docs/gettips
-    :see: https://iota.readme.io/docs/glossary#iota-terms
+    References:
+      - https://iota.readme.io/docs/gettips
+      - https://iota.readme.io/docs/glossary#iota-terms
     """
     return self.getTips()
 
   def get_transactions_to_approve(self, depth):
     # type: (int) -> dict
     """
-    Tip selection which returns `trunkTransaction` and
-      `branchTransaction`.
+    Tip selection which returns ``trunkTransaction`` and
+    ``branchTransaction``.
 
-    :param depth: Determines how many bundles to go back to when
-      finding the transactions to approve.
+    :param depth:
+      Determines how many bundles to go back to when finding the
+      transactions to approve.
 
       The higher the depth value, the more "babysitting" the node will
-        perform for the network (as it will confirm more transactions
-        that way).
+      perform for the network (as it will confirm more transactions
+      that way).
 
-    :see: https://iota.readme.io/docs/gettransactionstoapprove
+    References:
+      - https://iota.readme.io/docs/gettransactionstoapprove
     """
     return self.getTransactionsToApprove(depth=depth)
 
@@ -226,16 +247,19 @@ class IotaApi(object):
     Returns the raw transaction data (trytes) of one or more
     transactions.
 
-    :see: https://iota.readme.io/docs/gettrytes
+    References:
+      - https://iota.readme.io/docs/gettrytes
     """
     return self.getTrytes(hashes=hashes)
 
   def interrupt_attaching_to_tangle(self):
     # type: () -> dict
     """
-    Interrupts and completely aborts the `attach_to_tangle` process.
+    Interrupts and completely aborts the :py:method:`attach_to_tangle`
+    process.
 
-    :see: https://iota.readme.io/docs/interruptattachingtotangle
+    References:
+      - https://iota.readme.io/docs/interruptattachingtotangle
     """
     return self.interruptAttachingToTangle()
 
@@ -243,13 +267,14 @@ class IotaApi(object):
     # type: (Iterable[Text]) -> dict
     """
     Removes one or more neighbors from the node.  Lasts until the node
-      is restarted.
+    is restarted.
 
     :param uris:
       Use format ``udp://<ip address>:<port>``.
       Example: `remove_neighbors(['udp://example.com:14265'])`
 
-    :see: https://iota.readme.io/docs/removeneighors
+    References:
+      - https://iota.readme.io/docs/removeneighors
     """
     return self.removeNeighbors(uris=uris)
 
@@ -258,8 +283,10 @@ class IotaApi(object):
     """
     Store transactions into local storage.
 
-    The input trytes for this call are provided by `attach_to_tangle`.
+    The input trytes for this call are provided by
+    :py:method:`attach_to_tangle`.
 
-    :see: https://iota.readme.io/docs/storetransactions
+    References:
+      - https://iota.readme.io/docs/storetransactions
     """
     raise NotImplementedError('Not implemented yet.')

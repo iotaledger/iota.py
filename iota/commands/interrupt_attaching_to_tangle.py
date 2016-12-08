@@ -4,6 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from iota.commands import FilterCommand, RequestFilter
 
+__all__ = [
+  'InterruptAttachingToTangleCommand',
+]
+
 
 class InterruptAttachingToTangleCommand(FilterCommand):
   """

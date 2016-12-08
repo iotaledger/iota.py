@@ -6,12 +6,14 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota.commands.get_transactions_to_approve import \
-  GetTransactionsToApproveRequestFilter, GetTransactionsToApproveResponseFilter
+  GetTransactionsToApproveCommand
 from iota.types import TransactionId
+from test import MockAdapter
 
 
 class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = GetTransactionsToApproveRequestFilter
+  filter_type =\
+    GetTransactionsToApproveCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   def test_pass_happy_path(self):
@@ -88,7 +90,8 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = GetTransactionsToApproveResponseFilter
+  filter_type =\
+    GetTransactionsToApproveCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

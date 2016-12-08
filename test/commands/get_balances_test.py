@@ -6,14 +6,14 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
-from iota.commands.get_balances import GetBalancesRequestFilter, \
-  GetBalancesResponseFilter
+from iota.commands.get_balances import GetBalancesCommand
 from iota.filters import Trytes
 from iota.types import Address, TryteString
+from test import MockAdapter
 
 
 class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = GetBalancesRequestFilter
+  filter_type = GetBalancesCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection
@@ -238,7 +238,7 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = GetBalancesResponseFilter
+  filter_type = GetBalancesCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

@@ -6,13 +6,14 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
-from iota.commands.get_inclusion_states import GetInclusionStatesRequestFilter
+from iota.commands.get_inclusion_states import GetInclusionStatesCommand
 from iota.filters import Trytes
 from iota.types import TransactionId, TryteString
+from test import MockAdapter
 
 
 class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = GetInclusionStatesRequestFilter
+  filter_type = GetInclusionStatesCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

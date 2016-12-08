@@ -7,13 +7,14 @@ from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
 from iota.commands.find_transactions import FindTransactionsRequestFilter, \
-  FindTransactionsResponseFilter
+  FindTransactionsCommand
 from iota.filters import Trytes
 from iota.types import Address, Tag, TransactionId, TryteString
+from test import MockAdapter
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = FindTransactionsRequestFilter
+  filter_type = FindTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection
@@ -434,7 +435,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
 
 class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = FindTransactionsResponseFilter
+  filter_type = FindTransactionsCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

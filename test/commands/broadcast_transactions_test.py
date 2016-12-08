@@ -7,13 +7,14 @@ from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
 from iota.commands.broadcast_transactions import \
-  BroadcastTransactionsRequestFilter, BroadcastTransactionsResponseFilter
+  BroadcastTransactionsCommand
 from iota.filters import Trytes
 from iota.types import TryteString
+from test import MockAdapter
 
 
 class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = BroadcastTransactionsRequestFilter
+  filter_type = BroadcastTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection
@@ -160,7 +161,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
 
 class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = BroadcastTransactionsResponseFilter
+  filter_type = BroadcastTransactionsCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

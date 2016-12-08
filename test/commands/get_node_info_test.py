@@ -5,12 +5,13 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota.commands.get_node_info import GetNodeInfoRequestFilter, GetNodeInfoResponseFilter
+from iota.commands.get_node_info import GetNodeInfoCommand
 from iota.types import TryteString
+from test import MockAdapter
 
 
 class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = GetNodeInfoRequestFilter
+  filter_type = GetNodeInfoCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   def test_pass_empty(self):
@@ -37,7 +38,7 @@ class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = GetNodeInfoResponseFilter
+  filter_type = GetNodeInfoCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

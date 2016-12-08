@@ -2,7 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
+
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.filters import Trytes
+from iota.types import TransactionId
 
 
 class GetTrytesCommand(FilterCommand):
@@ -23,7 +27,11 @@ class GetTrytesCommand(FilterCommand):
 class GetTrytesRequestFilter(RequestFilter):
   def __init__(self):
     super(GetTrytesRequestFilter, self).__init__({
-
+      'hashes': (
+          f.Required
+        | f.Array
+        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+      ),
     })
 
 

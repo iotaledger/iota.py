@@ -2,11 +2,12 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Iterable, Optional, Text, Union
+from typing import Iterable, List, Optional, Text, Union
 
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
-from iota.types import Address, Tag, TransactionId, TryteString
+from iota.types import Address, Bundle, Tag, TransactionId, Transfer, \
+  TryteString
 
 __all__ = [
   'Iota',
@@ -302,7 +303,231 @@ class Iota(StrictIota):
   operations.
 
   References:
-      - https://iota.readme.io/docs/getting-started
-      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
+    - https://iota.readme.io/docs/getting-started
+    - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
   """
-  pass
+  def __init__(self, adapter, seed=None):
+    # type: (Union[Text, BaseAdapter], Optional[TryteString]) -> None
+    """
+    :param seed:
+      Seed used to generate new addresses.
+      If not provided, a random one will be generated.
+
+      Note: This value is never transferred to the node/network.
+    """
+    super(Iota, self).__init__(adapter)
+
+    self.seed = seed
+
+  def get_inputs(self, start=None, end=None, threshold=None):
+    # type: (Optional[int], Optional[int], Optional[int]) -> dict
+    """
+    Gets all possible inputs of a seed and returns them with the total
+    balance.
+
+    This is either done deterministically (by generating all addresses
+    until :py:method:`find_transactions` returns an empty
+    result and then doing :py:method:`get_balances`), or by providing a
+    key range to search.
+
+    :param start:     Starting key index.
+    :param end:       Starting key index.
+    :param threshold: Minimum required balance of accumulated inputs.
+
+    :return:
+      Dict with the following keys::
+
+         {
+           'inputs':        <list of Input objects>,
+           'totalBalance':  <aggregate balance of all inputs>,
+         }
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getinputs
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def prepare_transfers(self, transfers, inputs=None, change_address=None):
+    # type: (Iterable[Transfer], Optional[Iterable[TransactionId]], Optional[Address]) -> List[TryteString]
+    """
+    Prepares transactions to be broadcast to the Tangle, by generating
+    the correct bundle, as well as choosing and signing the inputs (for
+    value transfers).
+
+    :param transfers: Transfer objects to prepare.
+
+    :param inputs:
+      List of inputs used to fund the transfer.
+      Not needed for zero-value transfers.
+
+    :param change_address:
+      If inputs are provided, any unspent amount will be sent to this
+      address.
+
+      If not specified, a change address will be generated
+      automatically.
+
+    :return:
+      Array containing the trytes of the new bundle.
+      This value can be provided to :py:method:`broadcastTransaction`
+      and/or :py:method:`storeTransaction`.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def get_new_address(self, index=None, count=1):
+    # type: (Optional[int], Optional[int]) -> List[Address]
+    """
+    Generates one or more new addresses from a seed.
+
+    Note that this method always returns a list of addresses, even if
+    only one address is generated.
+
+    :param index:
+      Specify the index of the new address.
+      If not provided, the address will generated deterministically.
+
+    :param count:
+      Number of addresses to generate.
+      This is more efficient than calling :py:method:`get_new_address`
+      inside a loop.
+
+    :return: List of generated addresses.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def get_bundle(self, transaction):
+    # type: (TransactionId) -> List[Bundle]
+    """
+    Returns the bundle associated with the specified transaction hash.
+
+    :param transaction:
+      Transaction hash.  Can be any type of transaction (tail or non-
+      tail).
+
+    :return:
+      List of bundles associated with the transaction.
+      If there are multiple bundles (e.g., because of a replay), all
+      valid matching bundles will be returned.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def get_transfers(self, indexes=None, inclusion_states=False):
+    # type: (Optional[Iterable[int]], bool) -> List[Bundle]
+    """
+    Returns all transfers associated with the seed.
+
+    :param indexes:
+      If specified, use addresses at these indexes to perform the
+      search.
+
+      If not provided, _all_ transfers associated with the seed will be
+      returned.
+
+    :param inclusion_states:
+      Whether to also fetch the inclusion states of the transfers.
+
+      This requires an additional API call to the node, so it is
+      disabled by default.
+
+    :return: List of bundles.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def replay_transfer(self, transaction):
+    # type: (TransactionId) -> Bundle
+    """
+    Takes a tail transaction hash as input, gets the bundle associated
+    with the transaction and then replays the bundle by attaching it to
+    the tangle.
+
+    :param transaction: Transaction hash.  Must be a tail.
+
+    :return: The bundle containing the replayed transfer.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#replaytransfer
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def send_transfer(
+      self,
+      depth,
+      transfers,
+      inputs                = None,
+      change_address        = None,
+      min_weight_magnitude  = 18,
+  ):
+    # type: (int, Iterable[Transfer], Optional[Iterable[TransactionId]], Optional[Address], int) -> Bundle
+    """
+    Prepares a set of transfers and creates the bundle, then attaches
+    the bundle to the Tangle, and broadcasts and stores the
+    transactions.
+
+    :param depth: Depth at which to attach the bundle.
+    :param transfers: Transfers to include in the bundle.
+
+    :param inputs:
+      List of inputs used to fund the transfer.
+      Not needed for zero-value transfers.
+
+    :param change_address:
+      If inputs are provided, any unspent amount will be sent to this
+      address.
+
+      If not specified, a change address will be generated
+      automatically.
+
+    :param min_weight_magnitude:
+      Min weight magnitude, used by the node to calibrate Proof of
+      Work.
+
+    :return: The newly-attached bundle.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtransfer
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def send_trytes(self, trytes, depth, min_weight_magnitude=18):
+    # type: (Iterable[TryteString], int, int) -> List[TryteString]
+    """
+    Attaches transaction trytes to the Tangle, then broadcasts and
+    stores them.
+
+    :param trytes:
+      Transaction encoded as a tryte sequence.
+
+    :param depth: Depth at which to attach the bundle.
+
+    :param min_weight_magnitude:
+      Min weight magnitude, used by the node to calibrate Proof of
+      Work.
+
+    :return: The trytes that were attached to the Tangle.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
+    """
+    raise NotImplementedError('Not implemented yet.')
+
+  def broadcast_and_store(self, trytes):
+    # type: (Iterable[TryteString]) -> List[TryteString]
+    """
+    Broadcasts and stores a set of transaction trytes.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
+    """
+    raise NotImplementedError('Not implemented yet.')

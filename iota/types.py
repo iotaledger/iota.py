@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from codecs import encode, decode
-from typing import Generator, Text, Union
+from typing import Generator, Optional, Text, Union, List
 
 from six import PY2, binary_type
 
@@ -187,3 +187,17 @@ class TransactionId(TryteString):
 
     if len(self.trytes) > self.LEN:
       raise ValueError('TransactionIds must be 81 trytes long.')
+
+
+class Transfer(object):
+  """A message [to be] published to the Tangle."""
+  def __init__(self, recipient, value, message=None, tag=None):
+    # type: (Address, int, Optional[TryteString], Optional[Tag]) -> None
+    self.recipient  = recipient
+    self.value      = value,
+    self.message    = TryteString(message or b'')
+    self.tag        = Tag(tag or b'')
+
+
+Bundle = List[Transfer]
+"""Placeholder for Bundle type in docstrings."""

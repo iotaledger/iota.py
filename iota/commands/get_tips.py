@@ -8,6 +8,10 @@ from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 from iota.types import Address
 
+__all__ = [
+  'GetTipsCommand',
+]
+
 
 class GetTipsCommand(FilterCommand):
   """

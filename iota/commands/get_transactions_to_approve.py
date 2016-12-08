@@ -17,7 +17,7 @@ class GetTransactionsToApproveCommand(FilterCommand):
   """
   Executes ``getTransactionsToApprove`` command.
 
-  See :py:method:`iota.api.IotaApi.get_transactions_to_approve`.
+  See :py:method:`iota.api.StrictIota.get_transactions_to_approve`.
   """
   command = 'getTransactionsToApprove'
 

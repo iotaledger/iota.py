@@ -77,7 +77,7 @@ class BaseAdapter(with_metaclass(_AdapterMeta)):
   """
   Interface for IOTA API adapters.
 
-  Adapters make it easy to customize the way an IotaApi instance
+  Adapters make it easy to customize the way an StrictIota instance
     communicates with a node.
   """
   supported_protocols = () # type: Tuple[Text]

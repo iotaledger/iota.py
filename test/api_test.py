@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import IotaApi
+from iota import StrictIota
 from iota.commands import CustomCommand
 from iota.commands.get_node_info import GetNodeInfoCommand
 from test import MockAdapter
@@ -92,12 +92,12 @@ class IotaApiTestCase(TestCase):
     """
     Passing a URI to the initializer instead of an adapter instance.
     """
-    api = IotaApi('mock://')
+    api = StrictIota('mock://')
     self.assertIsInstance(api.adapter, MockAdapter)
 
   def test_registered_command(self):
     """Preparing a documented command."""
-    api = IotaApi(MockAdapter())
+    api = StrictIota(MockAdapter())
 
     # We just need to make sure the correct command type is
     #   instantiated; individual commands have their own unit tests.
@@ -106,7 +106,7 @@ class IotaApiTestCase(TestCase):
 
   def test_custom_command(self):
     """Preparing an experimental/undocumented command."""
-    api = IotaApi(MockAdapter())
+    api = StrictIota(MockAdapter())
 
     # We just need to make sure the correct command type is
     #   instantiated; custom commands have their own unit tests.

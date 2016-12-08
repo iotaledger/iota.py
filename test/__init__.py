@@ -8,7 +8,7 @@ from iota.adapter import BaseAdapter
 
 
 class MockAdapter(BaseAdapter):
-  """An adapter for IotaApi that always returns a mocked response."""
+  """An adapter for StrictIota that always returns a mocked response."""
   supported_protocols = ('mock',)
 
   def __init__(self, response=None):

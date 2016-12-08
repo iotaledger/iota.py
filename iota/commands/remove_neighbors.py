@@ -12,7 +12,7 @@ class RemoveNeighborsCommand(FilterCommand):
   """
   Executes ``removeNeighbors`` command.
 
-  See :py:method:`iota.api.IotaApi.remove_neighbors`.
+  See :py:method:`iota.api.StrictIota.remove_neighbors`.
   """
   command = 'removeNeighbors'
 

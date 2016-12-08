@@ -9,13 +9,17 @@ from iota.commands import CustomCommand, command_registry
 from iota.types import Address, Tag, TransactionId, TryteString
 
 __all__ = [
-  'IotaApi',
+  'Iota',
+  'StrictIota',
 ]
 
 
-class IotaApi(object):
+class StrictIota(object):
   """
   API to send HTTP requests for communicating with an IOTA node.
+
+  This implementation only exposes the "core" API methods.  For a more
+  feature-complete implementation, use :py:class:`Iota` instead.
 
   References:
     - https://iota.readme.io/docs/getting-started
@@ -25,7 +29,7 @@ class IotaApi(object):
     """
     :param adapter: URI string or BaseAdapter instance.
     """
-    super(IotaApi, self).__init__()
+    super(StrictIota, self).__init__()
 
     if not isinstance(adapter, BaseAdapter):
       adapter = resolve_adapter(adapter)
@@ -290,3 +294,15 @@ class IotaApi(object):
       - https://iota.readme.io/docs/storetransactions
     """
     return self.storeTransactions(trytes=trytes)
+
+
+class Iota(StrictIota):
+  """
+  Implements the core API, plus additional wrapper methods for common
+  operations.
+
+  References:
+      - https://iota.readme.io/docs/getting-started
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
+  """
+  pass

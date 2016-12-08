@@ -17,7 +17,7 @@ class GetTrytesCommand(FilterCommand):
   """
   Executes ``getTrytes`` command.
 
-  See :py:method:`iota.api.IotaApi.get_trytes`.
+  See :py:method:`iota.api.StrictIota.get_trytes`.
   """
   command = 'getTrytes'
 

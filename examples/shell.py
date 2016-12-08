@@ -10,12 +10,12 @@ from typing import Text
 
 from six import text_type as text
 
-from iota import IotaApi, __version__
+from iota import Iota, __version__
 
 
 def main(uri):
   # type: (Text) -> None
-  iota = IotaApi(uri)
+  iota = Iota(uri)
 
   _banner = (
     'IOTA API client for {uri} initialized as variable `iota`. '

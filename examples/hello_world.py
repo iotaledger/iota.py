@@ -15,12 +15,12 @@ from typing import Text
 from requests.exceptions import ConnectionError
 from six import text_type as text
 
-from iota import BadApiResponse, IotaApi, __version__
+from iota import BadApiResponse, StrictIota, __version__
 
 
 def main(uri):
   # type: (Text, int) -> None
-  api = IotaApi(uri)
+  api = StrictIota(uri)
 
   try:
     node_info = api.get_node_info()

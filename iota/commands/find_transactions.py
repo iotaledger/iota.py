@@ -17,7 +17,7 @@ class FindTransactionsCommand(FilterCommand):
   """
   Executes `findTransactions` command.
 
-  See :py:method:`iota.api.IotaApi.find_transactions`.
+  See :py:method:`iota.api.StrictIota.find_transactions`.
   """
   command = 'findTransactions'
 

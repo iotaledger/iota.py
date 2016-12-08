@@ -17,7 +17,7 @@ class GetInclusionStatesCommand(FilterCommand):
   """
   Executes ``getInclusionStates`` command.
 
-  See :py:method:`iota.api.IotaApi.get_inclusion_states`.
+  See :py:method:`iota.api.StrictIota.get_inclusion_states`.
   """
   command = 'getInclusionStates'
 

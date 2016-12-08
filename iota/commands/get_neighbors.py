@@ -13,7 +13,7 @@ class GetNeighborsCommand(FilterCommand):
   """
   Executes ``getNeighbors`` command.
 
-  See :py:method:`iota.api.IotaApi.get_neighbors`.
+  See :py:method:`iota.api.StrictIota.get_neighbors`.
   """
   command = 'getNeighbors'
 

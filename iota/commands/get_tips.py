@@ -17,7 +17,7 @@ class GetTipsCommand(FilterCommand):
   """
   Executes ``getTips`` command.
 
-  See :py:method:`iota.api.IotaApi.get_tips`.
+  See :py:method:`iota.api.StrictIota.get_tips`.
   """
   command = 'getTips'
 

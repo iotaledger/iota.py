@@ -6,14 +6,14 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
-from iota.commands.attach_to_tangle import AttachToTangleRequestFilter, \
-  AttachToTangleResponseFilter
+from iota.commands.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
 from iota.types import TransactionId, TryteString
+from test import MockAdapter
 
 
 class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = AttachToTangleRequestFilter
+  filter_type = AttachToTangleCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection
@@ -350,7 +350,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
 
 
 class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = AttachToTangleResponseFilter
+  filter_type = AttachToTangleCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

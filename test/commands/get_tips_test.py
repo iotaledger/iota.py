@@ -5,12 +5,13 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota.commands.get_tips import GetTipsRequestFilter, GetTipsResponseFilter
+from iota.commands.get_tips import GetTipsCommand
 from iota.types import Address
+from test import MockAdapter
 
 
 class GetTipsRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = GetTipsRequestFilter
+  filter_type = GetTipsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   def test_pass_empty(self):
@@ -37,7 +38,7 @@ class GetTipsRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetTipsResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = GetTipsResponseFilter
+  filter_type = GetTipsCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection

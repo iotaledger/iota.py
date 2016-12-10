@@ -26,10 +26,6 @@ To install the latest stable version::
 
   pip install pyota
 
-To install the development version::
-
-  pip install https://github.com/iotaledger/pyota/archive/develop.zip
-
 Installing from Source
 ======================
 PyOTA uses the `curl extension`_, which requires `SWIG`_ in order to build.
@@ -38,7 +34,6 @@ PyOTA uses the `curl extension`_, which requires `SWIG`_ in order to build.
 2. ``git clone https://github.com/iotaledger/pyota.git``
 3. ``git submodule init --recursive``
 4. ``pip install -e .``
-   - This step will fail if `SWIG`_ is not installed.
 
 Running Unit Tests
 ------------------

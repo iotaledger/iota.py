@@ -5,14 +5,17 @@
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
+from distutils.spawn import find_executable
 
 from os.path import join, basename
 from setuptools import Extension, setup
 from setuptools.glob import iglob
 from six import PY3
 
-with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
-  long_description = f.read()
+if not find_executable('swig'):
+  raise EnvironmentError(
+    'Unable to find `swig` executable.  Check that SWIG is installed.'
+  )
 
 ccurl_sources = [
   f for f in iglob(join('ext', 'ccurl', 'src', '*.[ci]'))
@@ -25,6 +28,9 @@ if not ccurl_sources:
   )
 
 swig_opts = ['-py3'] if PY3 else []
+
+with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
+  long_description = f.read()
 
 setup(
   name        = 'PyOTA',

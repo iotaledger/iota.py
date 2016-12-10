@@ -38,7 +38,7 @@ PyOTA uses the `curl extension`_, which requires `SWIG`_ in order to build.
 2. ``git clone https://github.com/iotaledger/pyota.git``
 3. ``git submodule init --recursive``
 4. ``pip install -e .``
-    - This step will fail if `SWIG`_ is not installed.
+   - This step will fail if `SWIG`_ is not installed.
 
 Running Unit Tests
 ------------------
@@ -61,7 +61,7 @@ For the full documentation of this library, please refer to the
 .. _Create virtualenv: https://virtualenvwrapper.readthedocs.io/
 .. _curl extension: https://github.com/iotaledger/ccurl
 .. _dedicated forum: http://forum.iotatoken.com/
-.. _official API: https://iota.readme.io/README.rst
+.. _official API: https://iota.readme.io/
 .. _Slack: http://slack.iotatoken.com/
 .. _SWIG: http://www.swig.org/download.html
 .. _tox: https://tox.readthedocs.io/

@@ -1,3 +1,0 @@
-[submodule "ext/ccurl"]
-	path = ext/ccurl
-	url = https://github.com/iotaledger/ccurl.git

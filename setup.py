@@ -1,33 +1,12 @@
 #!/usr/bin/env python
 # coding=utf-8
 # :bc: Not importing unicode_literals because in Python 2 distutils,
-# certain values (e.g., extension name) have to be byte strings.
+# some values are expected to be byte strings.
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
-from distutils.spawn import find_executable
 
-from os.path import join, basename
-from setuptools import Extension, setup
-from setuptools.glob import iglob
-from six import PY3
-
-if not find_executable('swig'):
-  raise EnvironmentError(
-    'Unable to find `swig` executable.  Check that SWIG is installed.'
-  )
-
-ccurl_sources = [
-  f for f in iglob(join('ext', 'ccurl', 'src', '*.[ci]'))
-    if not basename(f).endswith('_wrap.c')
-]
-
-if not ccurl_sources:
-  raise EnvironmentError(
-    'Unable to find ccurl sources.  Try running `git submodule init` first.',
-  )
-
-swig_opts = ['-py3'] if PY3 else []
+from setuptools import setup
 
 with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
   long_description = f.read()
@@ -38,11 +17,7 @@ setup(
   url         = 'https://github.com/iotaledger/pyota',
   version     = '1.0.0',
 
-  packages    = ['iota', 'ccurl'],
-  package_dir = {
-    'iota':   '',
-    'ccurl':  'ext/ccurl/src',
-  },
+  packages    = ['iota'],
 
   long_description = long_description,
 
@@ -51,10 +26,6 @@ setup(
     'requests',
     'six',
     'typing ; python_version < "3.5"',
-  ],
-
-  ext_modules = [
-    Extension('_ccurl', ccurl_sources, swig_opts=swig_opts),
   ],
 
   test_suite    = 'test',

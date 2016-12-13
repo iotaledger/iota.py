@@ -83,9 +83,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
     if replacement is not None:
       self.request = replacement
 
-    self.request['command'] = self.command
-
-    self.response = self.adapter.send_request(self.request)
+    self.response = self.send_request(self.request)
 
     replacement = self._prepare_response(self.response)
     if replacement is not None:
@@ -103,6 +101,17 @@ class BaseCommand(with_metaclass(CommandMeta)):
     self.called   = False
     self.request  = None # type: dict
     self.response = None # type: dict
+
+  def send_request(self, request):
+    # type: (dict) -> dict
+    """
+    Sends the request object to the adapter and returns the response.
+
+    The command name will be automatically injected into the request
+    before it is sent (note: this will modify the request object).
+    """
+    request['command'] = self.command
+    return self.adapter.send_request(request)
 
   @abstract_method
   def _prepare_request(self, request):

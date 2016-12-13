@@ -5,11 +5,21 @@
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
+from sys import version_info
 
 from setuptools import setup
 
 with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
   long_description = f.read()
+
+dependencies = [
+    'filters',
+    'requests',
+    'six',
+  ]
+
+if version_info[0:2] < (3, 5):
+  dependencies.append('typing')
 
 setup(
   name        = 'PyOTA',
@@ -21,12 +31,7 @@ setup(
 
   long_description = long_description,
 
-  install_requires = [
-    'filters',
-    'requests',
-    'six',
-    'typing ; python_version < "3.5"',
-  ],
+  install_requires = dependencies,
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',

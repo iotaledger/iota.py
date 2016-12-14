@@ -197,21 +197,3 @@ class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
         ],
       },
     )
-
-  def test_pass_correct_types(self):
-    """
-    The incoming response already contains correct types.
-
-    This scenario is highly unusual, but who's complaining?
-    """
-    response = {
-      'trytes': [
-        TryteString(self.trytes1),
-        TryteString(self.trytes2),
-      ]
-    }
-
-    filter_ = self._filter(response)
-
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(filter_.cleaned_data, response)

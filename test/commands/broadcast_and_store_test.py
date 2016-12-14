@@ -59,7 +59,7 @@ class BroadcastAndStoreRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       # The values are converted into TryteStrings so that they can be
-      #   sent to the node.
+      # sent to the node.
       {
         'trytes': [
           TryteString(self.trytes1),
@@ -110,7 +110,7 @@ class BroadcastAndStoreRequestFilterTestCase(BaseFilterTestCase):
     self.assertFilterErrors(
       {
         # `trytes` has to be an array, even if there's only one
-        #   TryteString.
+        # TryteString.
         'trytes': TryteString(self.trytes1),
       },
 
@@ -143,7 +143,7 @@ class BroadcastAndStoreRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes2),
 
           2130706433,
@@ -159,61 +159,6 @@ class BroadcastAndStoreRequestFilterTestCase(BaseFilterTestCase):
         'trytes.6': [f.Type.CODE_WRONG_TYPE],
       },
     )
-
-class BroadcastAndStoreResponseFilterTestCase(BaseFilterTestCase):
-  filter_type = BroadcastAndStoreCommand(MockAdapter()).get_response_filter
-  skip_value_check = True
-
-  # noinspection SpellCheckingInspection
-  def setUp(self):
-    super(BroadcastAndStoreResponseFilterTestCase, self).setUp()
-
-    # Define a few valid values that we can reuse across tests.
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
-    self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
-
-  def test_pass_happy_path(self):
-    """The incoming response contains valid values."""
-    # Responses from the node arrive as strings.
-    filter_ = self._filter({
-      'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
-      ],
-    })
-
-    self.assertFilterPasses(filter_)
-
-    # The filter converts them into TryteStrings.
-    self.assertDictEqual(
-      filter_.cleaned_data,
-
-      {
-        'trytes': [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
-        ],
-      },
-    )
-
-  def test_pass_correct_types(self):
-    """
-    The incoming response already contains correct types.
-
-    This scenario is highly unusual, but who's complaining?
-    """
-    response = {
-      'trytes': [
-        TryteString(self.trytes1),
-        TryteString(self.trytes2),
-      ]
-    }
-
-    filter_ = self._filter(response)
-
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(filter_.cleaned_data, response)
 
 
 class BroadcastAndStoreCommandTestCase(TestCase):
@@ -238,12 +183,7 @@ class BroadcastAndStoreCommandTestCase(TestCase):
       ],
     })
 
-    self.adapter.seed_response('storeTransactions', {
-      'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
-      ],
-    })
+    self.adapter.seed_response('storeTransactions', {})
 
     trytes = [
       TryteString(self.trytes1),
@@ -252,7 +192,7 @@ class BroadcastAndStoreCommandTestCase(TestCase):
 
     response = self.command(trytes=trytes)
 
-    self.assertDictEqual(response, {'trytes': trytes})
+    self.assertDictEqual(response, {})
 
     self.assertListEqual(
       self.adapter.requests,

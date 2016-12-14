@@ -37,14 +37,7 @@ class MockAdapter(BaseAdapter):
     # Store a snapshot so that we can inspect the request later.
     self.requests.append(payload.copy())
 
-    try:
-      command = payload['command']
-    except KeyError:
-      raise BadApiResponse(
-        'Payload missing `command` value: {payload!r}'.format(
-          payload = payload,
-        ),
-      )
+    command = payload['command']
 
     try:
       response = self.responses[command]

@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.commands.broadcast_transactions import BroadcastTransactionsCommand
+from iota.commands.store_transactions import StoreTransactionsCommand
 from iota.filters import Trytes
 
 __all__ = [
@@ -24,6 +26,10 @@ class BroadcastAndStoreCommand(FilterCommand):
 
   def get_response_filter(self):
     return BroadcastAndStoreResponseFilter()
+
+  def send_request(self, request):
+    BroadcastTransactionsCommand(self.adapter)(trytes=request['trytes'])
+    return StoreTransactionsCommand(self.adapter)(trytes=request['trytes'])
 
 
 class BroadcastAndStoreRequestFilter(RequestFilter):

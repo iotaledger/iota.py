@@ -6,6 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import BadApiResponse
 from iota.commands.broadcast_and_store import BroadcastAndStoreCommand
 from iota.filters import Trytes
 from iota.types import TryteString
@@ -267,4 +268,25 @@ class BroadcastAndStoreCommandTestCase(TestCase):
           'trytes':   trytes,
         },
       ],
+    )
+
+  def test_broadcast_fails(self):
+    """
+    Calling `broadcastAndStore`, but the initial API call fails.
+    """
+    self.adapter.seed_response('broadcastTransactions', {
+      'error': "I'm a teapot.",
+    })
+
+    with self.assertRaises(BadApiResponse):
+      self.command(trytes=[TryteString(self.trytes1)])
+
+    # The command stopped after the first request failed.
+    self.assertListEqual(
+      self.adapter.requests,
+
+      [{
+        'command':  'broadcastTransactions',
+        'trytes':   [TryteString(self.trytes1)],
+      }],
     )

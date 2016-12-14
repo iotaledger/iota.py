@@ -47,7 +47,7 @@ class MockAdapter(BaseAdapter):
       )
 
     try:
-      return self.responses[command]
+      response = self.responses[command]
     except KeyError:
       raise BadApiResponse(
         'Unknown request {command!r} (expected one of: {seeds!r}).'.format(
@@ -55,3 +55,9 @@ class MockAdapter(BaseAdapter):
           seeds   = list(sorted(self.responses.keys())),
         ),
       )
+
+    error = response.get('exception') or response.get('error')
+    if error:
+      raise BadApiResponse(error)
+
+    return response

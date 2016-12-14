@@ -281,7 +281,7 @@ class BroadcastAndStoreCommandTestCase(TestCase):
     with self.assertRaises(BadApiResponse):
       self.command(trytes=[TryteString(self.trytes1)])
 
-    # The command stopped after the first request failed.
+    #w The command stopped after the first request failed.
     self.assertListEqual(
       self.adapter.requests,
 

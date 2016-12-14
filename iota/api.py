@@ -520,7 +520,11 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
     """
-    raise NotImplementedError('Not implemented yet.')
+    raise self.sendTrytes(
+      trytes                = trytes,
+      depth                 = depth,
+      min_weight_magnitude  = min_weight_magnitude,
+    )
 
   def broadcast_and_store(self, trytes):
     # type: (Iterable[TryteString]) -> List[TryteString]

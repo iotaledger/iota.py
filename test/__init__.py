@@ -8,7 +8,9 @@ from iota.adapter import BaseAdapter, BadApiResponse
 
 
 class MockAdapter(BaseAdapter):
-  """An adapter for StrictIota that always returns a mocked response."""
+  """
+  An adapter for IotaApi that always returns a mocked response.
+  """
   supported_protocols = ('mock',)
 
   # noinspection PyUnusedLocal

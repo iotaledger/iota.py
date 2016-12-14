@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota.commands.broadcast_and_store import BroadcastAndStoreCommand
@@ -211,3 +213,58 @@ class BroadcastAndStoreResponseFilterTestCase(BaseFilterTestCase):
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, response)
+
+
+class BroadcastAndStoreCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    self.adapter = MockAdapter()
+    self.command = BroadcastAndStoreCommand(self.adapter)
+
+    # Define a few valid values that we can reuse across tests.
+    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes2 =\
+      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_happy_path(self):
+    """
+    Successful invocation of `broadcastAndStore`.
+    """
+    self.adapter.seed_response('broadcastTransactions', {
+      'trytes': [
+        text_type(self.trytes1, 'ascii'),
+        text_type(self.trytes2, 'ascii'),
+      ],
+    })
+
+    self.adapter.seed_response('storeTransactions', {
+      'trytes': [
+        text_type(self.trytes1, 'ascii'),
+        text_type(self.trytes2, 'ascii'),
+      ],
+    })
+
+    trytes = [
+      TryteString(self.trytes1),
+      TryteString(self.trytes2),
+    ]
+
+    response = self.command(trytes=trytes)
+
+    self.assertDictEqual(response, {'trytes': trytes})
+
+    self.assertListEqual(
+      self.adapter.requests,
+
+      [
+        {
+          'command':  'broadcastTransactions',
+          'trytes':   trytes,
+        },
+
+        {
+          'command':  'storeTransactions',
+          'trytes':   trytes,
+        },
+      ]
+    )

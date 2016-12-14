@@ -530,4 +530,4 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.broadcastAndStore(trytes=trytes)

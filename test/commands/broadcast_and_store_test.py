@@ -266,5 +266,5 @@ class BroadcastAndStoreCommandTestCase(TestCase):
           'command':  'storeTransactions',
           'trytes':   trytes,
         },
-      ]
+      ],
     )

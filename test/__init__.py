@@ -34,7 +34,8 @@ class MockAdapter(BaseAdapter):
 
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
-    self.requests.append(payload)
+    # Store a snapshot so that we can inspect the request later.
+    self.requests.append(payload.copy())
 
     try:
       command = payload['command']

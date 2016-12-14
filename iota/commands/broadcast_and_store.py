@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-from iota.commands import FilterCommand, RequestFilter
+from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
 __all__ = [
@@ -23,11 +23,18 @@ class BroadcastAndStoreCommand(FilterCommand):
     return BroadcastAndStoreRequestFilter()
 
   def get_response_filter(self):
-    pass
+    return BroadcastAndStoreResponseFilter()
 
 
 class BroadcastAndStoreRequestFilter(RequestFilter):
   def __init__(self):
     super(BroadcastAndStoreRequestFilter, self).__init__({
       'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+    })
+
+
+class BroadcastAndStoreResponseFilter(ResponseFilter):
+  def __init__(self):
+    super(BroadcastAndStoreResponseFilter, self).__init__({
+      'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
     })

@@ -22,7 +22,7 @@ class CustomCommandTestCase(TestCase):
     """Sending a custom command."""
     expected_response = {'message': 'Hello, IOTA!'}
 
-    self.adapter.response = expected_response
+    self.adapter.seed_response('helloWorld', expected_response)
 
     response = self.command()
 
@@ -31,14 +31,14 @@ class CustomCommandTestCase(TestCase):
 
     self.assertListEqual(
       self.adapter.requests,
-      [({'command': 'helloWorld'}, {})],
+      [{'command': 'helloWorld'}],
     )
 
   def test_call_with_parameters(self):
     """Sending a custom command with parameters."""
     expected_response = {'message': 'Hello, IOTA!'}
 
-    self.adapter.response = expected_response
+    self.adapter.seed_response('helloWorld', expected_response)
 
     response = self.command(foo='bar', baz='luhrmann')
 
@@ -47,11 +47,12 @@ class CustomCommandTestCase(TestCase):
 
     self.assertListEqual(
       self.adapter.requests,
-      [({'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}, {})],
+      [{'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}],
     )
 
   def test_call_error_already_called(self):
     """A command can only be called once."""
+    self.adapter.seed_response('helloWorld', {})
     self.command()
 
     with self.assertRaises(RuntimeError):
@@ -61,7 +62,7 @@ class CustomCommandTestCase(TestCase):
 
   def test_call_reset(self):
     """Resetting a command allows it to be called more than once."""
-    self.adapter.response = {'message': 'Hello, IOTA!'}
+    self.adapter.seed_response('helloWorld', {'message': 'Hello, IOTA!'})
     self.command()
 
     self.command.reset()
@@ -71,7 +72,7 @@ class CustomCommandTestCase(TestCase):
     self.assertIsNone(self.command.response)
 
     expected_response = {'message': 'Welcome back!'}
-    self.adapter.response = expected_response
+    self.adapter.seed_response('helloWorld', expected_response)
     response = self.command(foo='bar')
 
     self.assertDictEqual(response, expected_response)

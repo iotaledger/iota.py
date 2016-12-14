@@ -37,7 +37,7 @@ class MockAdapter(BaseAdapter):
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
     # Store a snapshot so that we can inspect the request later.
-    self.requests.append(payload.copy())
+    self.requests.append(dict(payload))
 
     command = payload['command']
 
@@ -45,14 +45,18 @@ class MockAdapter(BaseAdapter):
       response = self.responses[command]
     except KeyError:
       raise BadApiResponse(
-        'Unknown request {command!r} (expected one of: {seeds!r}).'.format(
-          command = command,
-          seeds   = list(sorted(self.responses.keys())),
+        message = (
+          'Unknown request {command!r} (expected one of: {seeds!r}).'.format(
+            command = command,
+            seeds   = list(sorted(self.responses.keys())),
+          )
         ),
+
+        request = payload,
       )
 
     error = response.get('exception') or response.get('error')
     if error:
-      raise BadApiResponse(error)
+      raise BadApiResponse(error, payload)
 
     return response

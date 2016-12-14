@@ -24,7 +24,13 @@ class BadApiResponse(ValueError):
   """
   Indicates that a non-success response was received from the node.
   """
-  pass
+  def __init__(self, message, request):
+    # Type: (Text, dict) -> None
+    super(BadApiResponse, self).__init__(message)
+
+    self.context = {
+      'request': request,
+    }
 
 class InvalidUri(ValueError):
   """
@@ -184,13 +190,19 @@ class HttpAdapter(BaseAdapter):
 
     raw_content = response.text
     if not raw_content:
-      raise BadApiResponse('Empty response from node.')
+      raise BadApiResponse('Empty response from node.', payload)
 
     try:
       decoded = json.loads(raw_content) # type: dict
     # :bc: py2k doesn't have JSONDecodeError
     except ValueError:
-      raise BadApiResponse('Non-JSON response from node: ' + raw_content)
+      raise BadApiResponse(
+        message = 'Non-JSON response from node: {raw_content}'.format(
+          raw_content = raw_content,
+        ),
+
+        request = payload,
+      )
 
     try:
       # Response always has 200 status, even for errors/exceptions, so the
@@ -199,10 +211,16 @@ class HttpAdapter(BaseAdapter):
       # :see:`https://github.com/iotaledger/iri/issues/12`
       error = decoded.get('exception') or decoded.get('error')
     except AttributeError:
-      raise BadApiResponse('Invalid response from node: ' + raw_content)
+      raise BadApiResponse(
+        message = 'Invalid response from node: {raw_content}'.format(
+          raw_content = raw_content,
+        ),
+
+        request = payload,
+      )
 
     if error:
-      raise BadApiResponse(error)
+      raise BadApiResponse(error, payload)
 
     return decoded
 

@@ -31,7 +31,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     self.trytes2 =\
       b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
-  def test_pass_valid_request(self):
+  def test_pass_happy_path(self):
     """The incoming request is valid."""
     request = {
       'trunk_transaction':    TransactionId(self.txn_id),

@@ -2,22 +2,55 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional
+from typing import Dict, List, Optional, Text
 
-from iota.adapter import BaseAdapter
+from iota.adapter import BaseAdapter, BadApiResponse
 
 
 class MockAdapter(BaseAdapter):
   """An adapter for StrictIota that always returns a mocked response."""
   supported_protocols = ('mock',)
 
-  def __init__(self, response=None):
+  # noinspection PyUnusedLocal
+  @classmethod
+  def configure(cls, uri):
+    return cls()
+
+  def __init__(self):
     # type: (Optional[dict]) -> None
     super(MockAdapter, self).__init__()
 
-    self.response = response or {}
-    self.requests = []
+    self.responses  = {} # type: Dict[Text, dict]
+    self.requests   = [] # type: List[dict]
+
+  def seed_response(self, command, response):
+    # type: (Text, dict) -> MockAdapter
+    """
+    Sets the response that the adapter will return for the specified
+    command.
+    """
+    self.responses[command] = response
+    return self
 
   def send_request(self, payload, **kwargs):
-    self.requests.append((payload, kwargs))
-    return self.response
+    # type: (dict, dict) -> dict
+    self.requests.append(payload)
+
+    try:
+      command = payload['command']
+    except KeyError:
+      raise BadApiResponse(
+        'Payload missing `command` value: {payload!r}'.format(
+          payload = payload,
+        ),
+      )
+
+    try:
+      return self.responses[command]
+    except KeyError:
+      raise BadApiResponse(
+        'Unknown request {command!r} (expected one of: {seeds!r}).'.format(
+          command = command,
+          seeds   = list(sorted(self.responses.keys())),
+        ),
+      )

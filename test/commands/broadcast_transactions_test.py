@@ -215,4 +215,3 @@ class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, response)
-

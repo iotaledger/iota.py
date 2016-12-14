@@ -28,8 +28,8 @@ class BroadcastAndStoreCommand(FilterCommand):
     return BroadcastAndStoreResponseFilter()
 
   def send_request(self, request):
-    BroadcastTransactionsCommand(self.adapter)(trytes=request['trytes'])
-    return StoreTransactionsCommand(self.adapter)(trytes=request['trytes'])
+    BroadcastTransactionsCommand(self.adapter).send_request(request)
+    return StoreTransactionsCommand(self.adapter).send_request(request)
 
 
 class BroadcastAndStoreRequestFilter(RequestFilter):

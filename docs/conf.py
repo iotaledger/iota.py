@@ -57,7 +57,11 @@ author = 'Phoenix Zerin'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-from iota import __version__
+
+# :see: http://stackoverflow.com/a/2073599/
+from pkg_resources import require
+__version__ = require('PyOTA')[0].version
+
 # The short X.Y version.
 version = __version__
 # The full version, including alpha/beta/rc tags.

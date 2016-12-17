@@ -10,9 +10,8 @@ import requests
 from mock import Mock, patch
 from six import BytesIO, text_type as text
 
-from iota import BadApiResponse, DEFAULT_PORT, InvalidUri
+from iota import BadApiResponse, DEFAULT_PORT, InvalidUri, TryteString
 from iota.adapter import HttpAdapter, resolve_adapter
-from iota.types import TryteString
 
 
 class ResolveAdapterTestCase(TestCase):

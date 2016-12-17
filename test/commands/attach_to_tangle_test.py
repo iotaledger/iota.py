@@ -6,9 +6,9 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
+from iota import TransactionId, TryteString
 from iota.commands.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
-from iota.types import TransactionId, TryteString
 from test import MockAdapter
 
 

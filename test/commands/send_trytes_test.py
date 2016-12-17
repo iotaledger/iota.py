@@ -4,9 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import BadApiResponse
+from iota import BadApiResponse, TransactionId, TryteString
 from iota.commands.send_trytes import SendTrytesCommand
-from iota.types import TransactionId, TryteString
 from six import text_type
 from test import MockAdapter
 

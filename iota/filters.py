@@ -7,8 +7,8 @@ from typing import Text, Union
 import filters as f
 from six import binary_type, text_type
 
+from iota import TryteString
 from iota.adapter import resolve_adapter, InvalidUri
-from iota.types import TryteString
 
 
 class NodeUri(f.BaseFilter):

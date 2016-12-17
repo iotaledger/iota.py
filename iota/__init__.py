@@ -8,6 +8,8 @@ DEFAULT_PORT = 14265
 from .codecs import *
 
 # Make some imports accessible from the top level of the package.
+# Note that order is important, to prevent circular imports.
+from .types import *
 from .adapter import *
 from .api import *
 

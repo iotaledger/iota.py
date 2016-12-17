@@ -15,7 +15,8 @@ class Curl(object):
   **IMPORTANT: Not thread-safe!**
   """
   def __init__(self):
-    self.reset()
+    self._state = []
+    self._dirty = False
 
   def absorb(self, trytes):
     # type: (TryteString) -> None
@@ -35,7 +36,6 @@ class Curl(object):
     self._transform()
     return TryteString.from_trytes(self._state)
 
-  # noinspection PyAttributeOutsideInit
   def reset(self):
     # type: () -> None
     """

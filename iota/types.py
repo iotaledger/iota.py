@@ -10,8 +10,22 @@ from six import PY2, binary_type
 
 from iota import TrytesCodec
 
+__all__ = [
+  'Address',
+  'Bundle',
+  'Tag',
+  'TransactionId',
+  'TryteString',
+  'TrytesCompatible',
+  'int_from_trits',
+  'trits_from_int',
+  'trytes_from_int',
+]
 
-TrytesCompatible = Union[binary_type, bytearray, 'TryteString']
+
+# Custom types for type hints and docstrings.
+Bundle            = Iterable['Transfer']
+TrytesCompatible  = Union[binary_type, bytearray, 'TryteString']
 
 
 def trytes_from_int(n):
@@ -398,9 +412,3 @@ class Transfer(object):
     self.value      = value,
     self.message    = TryteString(message or b'')
     self.tag        = Tag(tag or b'')
-
-
-Bundle = List[Transfer]
-"""
-Placeholder for Bundle type in docstrings.
-"""

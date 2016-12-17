@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import encode, decode
 from itertools import chain
-from typing import Dict, Generator, Optional, Text, Union, List
+from typing import Dict, Generator, Iterable, Optional, Text, Union, List
 
 from six import PY2, binary_type
 
@@ -79,6 +79,16 @@ def trits_from_int(n):
   return [remainder] + trits_from_int(quotient)
 
 
+def int_from_trits(trits):
+  # type: (Iterable[int]) -> int
+  """
+  Converts a sequence of trits into an integer value.
+  """
+  # Normally we'd have to wrap ``enumerate`` inside ``reversed``, but
+  # balanced ternary puts least significant digits first.
+  return sum(base * (3 ** power) for power, base in enumerate(trits))
+
+
 class TryteString(object):
   """
   A string representation of a sequence of trytes.
@@ -97,6 +107,71 @@ class TryteString(object):
     Creates a TryteString from an ASCII representation.
     """
     return cls(encode(bytes_, 'trytes'))
+
+  @classmethod
+  def from_trytes(cls, trytes):
+    # type: (Iterable[Iterable[int]]) -> TryteString
+    """
+    Creates a TryteString from a sequence of trytes.
+
+    References:
+      - :py:func:`trytes_from_int`
+      - :py:meth:`as_trytes`
+    """
+    chars = bytearray()
+
+    for t in trytes:
+      converted = int_from_trits(t)
+
+      # :py:meth:`_tryte_from_int`
+      if converted < 0:
+        converted += 27
+
+      chars.append(TrytesCodec.alphabet[converted])
+
+    return cls(chars)
+
+  @classmethod
+  def from_trits(cls, trits, pad=False):
+    # type: (Iterable[int], bool) -> TryteString
+    """
+    Creates a TryteString from a sequence of trits.
+
+    :param trits:
+      Iterable of trit values (-1, 0, 1).
+
+    :param pad:
+      How to handle a sequence with length not divisible by 3:
+
+      - ``False`` (default): raise a :py:class:`ValueError`.
+      - ``True``: pad to a valid length, using null trits.
+
+      Note that this parameter behaves differently than in
+        :py:meth:`__init__`.
+
+    References:
+      - :py:func:`int_from_trits`
+      - :py:meth:`as_trits`
+    """
+    # Allow passing a generator or other non-Sized value to this
+    # method.
+    trits = list(trits)
+
+    if pad:
+      trits += [0] * max(0, 3 - (len(trits) % 3))
+
+    if len(trits) % 3:
+      raise ValueError(
+        'Cannot convert sequence with length {length} to trytes; '
+        'length must be divisible by 3.'.format(
+          length = len(trits),
+        ),
+      )
+
+    return cls.from_trytes([
+      # :see: http://stackoverflow.com/a/1751478/
+      trits[i:i+3] for i in range(0, len(trits), 3)
+    ])
 
   def __init__(self, trytes, pad=None):
     # type: (TrytesCompatible, int) -> None

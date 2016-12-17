@@ -23,6 +23,7 @@ def trytes_from_int(n):
 
   while True:
     # divmod does weird things if ``n`` is negative.
+    # :see: http://stackoverflow.com/q/10063546/
     quotient, remainder = divmod(abs(n), 27)
 
     sign = -1 if n < 0 else 1

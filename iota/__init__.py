@@ -13,5 +13,8 @@ from .types import *
 from .adapter import *
 from .api import *
 
+# Load Curl implementation.
+import iota.pycurl as curl
+
 # Don't forget to update version number in setup.py!
 __version__ = '1.0.0'

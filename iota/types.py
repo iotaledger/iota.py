@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from codecs import encode, decode
+from itertools import chain
 from typing import Generator, Optional, Text, Union, List
 
 from six import PY2, binary_type
@@ -31,25 +32,31 @@ class TryteString(object):
   @classmethod
   def from_bytes(cls, bytes_):
     # type: (Union[binary_type, bytearray]) -> TryteString
-    """Creates a TryteString from a byte string."""
+    """
+    Creates a TryteString from an ASCII representation.
+    """
     return cls(encode(bytes_, 'trytes'))
 
   def __init__(self, trytes, pad=None):
     # type: (TrytesCompatible, int) -> None
     """
-    :param trytes: Byte string or bytearray.
-    :param pad: Ensure at least this many trytes.
+    :param trytes:
+      Byte string or bytearray.
+
+    :param pad:
+      Ensure at least this many trytes.
+
       If there are too few, additional ``Tryte([-1, -1, -1])`` values
       will be appended to the TryteString.
 
       Note:  If the TryteString is too long, it will _not_ be
-       truncated!
+      truncated!
     """
     super(TryteString, self).__init__()
 
     if isinstance(trytes, int):
       # This is potentially a valid use case, and we might support it
-      #   at some point.
+      # at some point.
       raise TypeError(
         'Converting {type} to {cls} is not supported.'.format(
           type  = type(trytes).__name__,
@@ -59,7 +66,7 @@ class TryteString(object):
 
     if isinstance(trytes, TryteString):
       # Create a copy of the incoming TryteString's trytes, to ensure
-      #   we don't modify it when we apply padding.
+      # we don't modify it when we apply padding.
       trytes = bytearray(trytes.trytes)
     else:
       if not isinstance(trytes, bytearray):
@@ -112,10 +119,11 @@ class TryteString(object):
     """
     Converts the TryteString into a byte string.
 
-    :param errors: How to handle trytes that can't be converted:
-      - 'strict':   raise a TrytesDecodeError.
-      - 'replace':  replace with '?'.
-      - 'ignore':   omit the tryte from the byte string.
+    :param errors:
+      How to handle trytes that can't be converted:
+        - 'strict':   raise a TrytesDecodeError.
+        - 'replace':  replace with '?'.
+        - 'ignore':   omit the tryte from the byte string.
     """
     # :bc: In Python 2, `decode` does not accept keyword arguments.
     return decode(self.trytes, 'trytes', errors)
@@ -128,6 +136,63 @@ class TryteString(object):
     See :py:class:`iota.json.JsonEncoder`.
     """
     return self.trytes.decode('ascii')
+
+  def as_trytes(self):
+    """
+    Converts the TryteString into a sequence of trytes.
+
+    Each tryte is represented as a list with 3 trit values.
+
+    See :py:method:`as_trits` for more info.
+    """
+    return [
+      self._tryte_from_int(TrytesCodec.index[c])
+        for c in self.trytes
+    ]
+
+  def as_trits(self):
+    """
+    Converts the TryteString into a sequence of trit values.
+
+    A trit may have value 1, 0, or -1.
+
+    References:
+      - https://en.wikipedia.org/wiki/Balanced_ternary
+    """
+    # http://stackoverflow.com/a/952952/5568265#comment4204394_952952
+    return list(chain.from_iterable(self.as_trytes()))
+
+  def _tryte_from_int(self, n):
+    """
+    Converts an integer into a tryte.
+    """
+    # For values greater than 13, trigger an overflow.
+    # E.g., 14 => -13, 15 => -12, etc.
+    if n > 13:
+      n -= 27
+
+    trits = self._trits_from_int(n)
+
+    # Pad the tryte out to 3 trits if necessary.
+    trits += [0] * (3 - len(trits))
+
+    return trits
+
+  def _trits_from_int(self, n):
+    """
+    Converts an integer into a sequence of trits.
+    """
+    if n == 0:
+      return []
+
+    quotient, remainder = divmod(n, 3)
+
+    if remainder == 2:
+      # Lend 1 to the next place so we can make this trit negative.
+      quotient  += 1
+      remainder = -1
+
+    return [remainder] + self._trits_from_int(quotient)
 
   def __eq__(self, other):
     # type: (TrytesCompatible) -> bool
@@ -166,7 +231,9 @@ class Address(TryteString):
 
 
 class Tag(TryteString):
-  """A TryteString that acts as a transaction tag."""
+  """
+  A TryteString that acts as a transaction tag.
+  """
   LEN = 27
 
   def __init__(self, trytes):
@@ -178,7 +245,9 @@ class Tag(TryteString):
 
 
 class TransactionId(TryteString):
-  """A TryteString that acts as a transaction ID."""
+  """
+  A TryteString that acts as a transaction or bundle ID.
+  """
   LEN = 81
 
   def __init__(self, trytes):
@@ -190,7 +259,9 @@ class TransactionId(TryteString):
 
 
 class Transfer(object):
-  """A message [to be] published to the Tangle."""
+  """
+  A message [to be] published to the Tangle.
+  """
   def __init__(self, recipient, value, message=None, tag=None):
     # type: (Address, int, Optional[TryteString], Optional[Tag]) -> None
     self.recipient  = recipient
@@ -200,4 +271,6 @@ class Transfer(object):
 
 
 Bundle = List[Transfer]
-"""Placeholder for Bundle type in docstrings."""
+"""
+Placeholder for Bundle type in docstrings.
+"""

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import encode, decode
 from itertools import chain
-from typing import Generator, Optional, Text, Union, List
+from typing import Dict, Generator, Optional, Text, Union, List
 
 from six import PY2, binary_type
 
@@ -14,20 +14,71 @@ from iota import TrytesCodec
 TrytesCompatible = Union[binary_type, bytearray, 'TryteString']
 
 
+def trytes_from_int(n):
+  # type: (int) -> List[List[int]]
+  """
+  Returns a tryte representation of an integer value.
+  """
+  trytes = []
+
+  while True:
+    # divmod does weird things if ``n`` is negative.
+    quotient, remainder = divmod(abs(n), 27)
+
+    sign = -1 if n < 0 else 1
+    remainder *= sign
+    quotient  *= sign
+
+    if remainder not in _trytes_dict:
+      trits = trits_from_int(remainder)
+      # Pad the tryte out to 3 trits if necessary.
+      trits += [0] * (3 - len(trits))
+
+      _trytes_dict[remainder] = trits
+
+    trytes.append(_trytes_dict[remainder])
+
+    if quotient == 0:
+      break
+
+    n = quotient
+
+  return trytes
+
+_trytes_dict = {} # type: Dict[int, List[int]]
+"""
+Caches tryte values for :py:func:`trytes_from_int`.
+"""
+
+
+def trits_from_int(n):
+  # type: (int) -> List[int]
+  """
+  Returns a trit representation of an integer value.
+  """
+  if n == 0:
+    return []
+
+  quotient, remainder = divmod(n, 3)
+
+  if remainder == 2:
+    # Lend 1 to the next place so we can make this trit negative.
+    quotient  += 1
+    remainder = -1
+
+  return [remainder] + trits_from_int(quotient)
+
+
 class TryteString(object):
   """
   A string representation of a sequence of trytes.
-
-  A trit can be thought of as the ternary version of a bit.  It can
-  have one of three values:  1, 0 or unknown.
-
-  A tryte can be thought of as the ternary version of a byte.  It is a
-  sequence of 3 trits.
 
   A tryte string is similar in concept to Python's byte string, except
   it has a more limited alphabet.  Byte strings are limited to ASCII
   (256 possible values), while the tryte string alphabet only has 27
   characters (one for each possible tryte configuration).
+
+  IMPORTANT: A TryteString does not represent a numeric value!
   """
   @classmethod
   def from_bytes(cls, bytes_):
@@ -46,19 +97,18 @@ class TryteString(object):
     :param pad:
       Ensure at least this many trytes.
 
-      If there are too few, additional ``Tryte([-1, -1, -1])`` values
-      will be appended to the TryteString.
+      If there are too few, null trytes will be appended to the
+      TryteString.
 
       Note:  If the TryteString is too long, it will _not_ be
       truncated!
     """
     super(TryteString, self).__init__()
 
-    if isinstance(trytes, int):
-      # This is potentially a valid use case, and we might support it
-      # at some point.
+    if isinstance(trytes, (int, float)):
       raise TypeError(
-        'Converting {type} to {cls} is not supported.'.format(
+        'Converting {type} is not supported; '
+        '{cls} is not a numeric type.'.format(
           type  = type(trytes).__name__,
           cls   = type(self).__name__,
         ),
@@ -67,7 +117,7 @@ class TryteString(object):
     if isinstance(trytes, TryteString):
       # Create a copy of the incoming TryteString's trytes, to ensure
       # we don't modify it when we apply padding.
-      trytes = bytearray(trytes.trytes)
+      trytes = bytearray(trytes._trytes)
     else:
       if not isinstance(trytes, bytearray):
         trytes = bytearray(trytes)
@@ -85,11 +135,11 @@ class TryteString(object):
     if pad:
       trytes += b'9' * max(0, pad - len(trytes))
 
-    self.trytes = trytes
+    self._trytes = trytes
 
   def __repr__(self):
     # type: () -> Text
-    return 'TryteString({trytes!r})'.format(trytes=binary_type(self.trytes))
+    return 'TryteString({trytes!r})'.format(trytes=binary_type(self._trytes))
 
   def __bytes__(self):
     # type: () -> binary_type
@@ -97,9 +147,9 @@ class TryteString(object):
     Converts the TryteString into a string representation.
 
     Note that this method will NOT convert the trytes back into bytes;
-    use :py:method:`as_bytes` for that.
+    use :py:meth:`as_bytes` for that.
     """
-    return binary_type(self.trytes)
+    return binary_type(self._trytes)
 
   # :bc: Magic method has a different name in Python 2.
   if PY2:
@@ -107,12 +157,12 @@ class TryteString(object):
 
   def __len__(self):
     # type: () -> int
-    return len(self.trytes)
+    return len(self._trytes)
 
   def __iter__(self):
     # type: () -> Generator[binary_type]
     # :see: http://stackoverflow.com/a/14267935/
-    return (self.trytes[i:i+1] for i in range(len(self)))
+    return (self._trytes[i:i + 1] for i in range(len(self)))
 
   def as_bytes(self, errors='strict'):
     # type: (Text) -> binary_type
@@ -126,7 +176,7 @@ class TryteString(object):
         - 'ignore':   omit the tryte from the byte string.
     """
     # :bc: In Python 2, `decode` does not accept keyword arguments.
-    return decode(self.trytes, 'trytes', errors)
+    return decode(self._trytes, 'trytes', errors)
 
   def as_json(self):
     # type: () -> Text
@@ -135,7 +185,7 @@ class TryteString(object):
 
     See :py:class:`iota.json.JsonEncoder`.
     """
-    return self.trytes.decode('ascii')
+    return self._trytes.decode('ascii')
 
   def as_trytes(self):
     """
@@ -143,11 +193,14 @@ class TryteString(object):
 
     Each tryte is represented as a list with 3 trit values.
 
-    See :py:method:`as_trits` for more info.
+    See :py:meth:`as_trits` for more info.
+
+    IMPORTANT: TryteString is not a numeric type, so the result of this
+    method should not be interpreted as an integer!
     """
     return [
       self._tryte_from_int(TrytesCodec.index[c])
-        for c in self.trytes
+        for c in self._trytes
     ]
 
   def as_trits(self):
@@ -158,48 +211,40 @@ class TryteString(object):
 
     References:
       - https://en.wikipedia.org/wiki/Balanced_ternary
+
+    IMPORTANT: TryteString is not a numeric type, so the result of this
+    method should not be interpreted as an integer!
     """
     # http://stackoverflow.com/a/952952/5568265#comment4204394_952952
     return list(chain.from_iterable(self.as_trytes()))
 
-  def _tryte_from_int(self, n):
+  @staticmethod
+  def _tryte_from_int(n):
     """
-    Converts an integer into a tryte.
+    Converts an integer into a single tryte.
+
+    This method is specialized for TryteStrings:
+      - The value must fit inside a single tryte.
+      - If the value is greater than 13, it will trigger an overflow.
     """
+    if n > 26:
+      raise ValueError('{n} cannot be represented by a single tryte.'.format(
+        n = n,
+      ))
+
     # For values greater than 13, trigger an overflow.
     # E.g., 14 => -13, 15 => -12, etc.
     if n > 13:
       n -= 27
 
-    trits = self._trits_from_int(n)
-
-    # Pad the tryte out to 3 trits if necessary.
-    trits += [0] * (3 - len(trits))
-
-    return trits
-
-  def _trits_from_int(self, n):
-    """
-    Converts an integer into a sequence of trits.
-    """
-    if n == 0:
-      return []
-
-    quotient, remainder = divmod(n, 3)
-
-    if remainder == 2:
-      # Lend 1 to the next place so we can make this trit negative.
-      quotient  += 1
-      remainder = -1
-
-    return [remainder] + self._trits_from_int(quotient)
+    return trytes_from_int(n)[0]
 
   def __eq__(self, other):
     # type: (TrytesCompatible) -> bool
     if isinstance(other, TryteString):
-      return self.trytes == other.trytes
+      return self._trytes == other._trytes
     elif isinstance(other, (binary_type, bytearray)):
-      return self.trytes == other
+      return self._trytes == other
     else:
       raise TypeError(
         'Invalid type for TryteString comparison '
@@ -226,7 +271,7 @@ class Address(TryteString):
     # type: (TrytesCompatible) -> None
     super(Address, self).__init__(trytes, pad=self.LEN)
 
-    if len(self.trytes) > self.LEN:
+    if len(self._trytes) > self.LEN:
       raise ValueError('Addresses must be 81 trytes long.')
 
 
@@ -240,7 +285,7 @@ class Tag(TryteString):
     # type: (TrytesCompatible) -> None
     super(Tag, self).__init__(trytes, pad=self.LEN)
 
-    if len(self.trytes) > self.LEN:
+    if len(self._trytes) > self.LEN:
       raise ValueError('Tags must be 27 trytes long.')
 
 
@@ -254,7 +299,7 @@ class TransactionId(TryteString):
     # type: (TrytesCompatible) -> None
     super(TransactionId, self).__init__(trytes, pad=self.LEN)
 
-    if len(self.trytes) > self.LEN:
+    if len(self._trytes) > self.LEN:
       raise ValueError('TransactionIds must be 81 trytes long.')
 
 

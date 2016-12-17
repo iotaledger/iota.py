@@ -47,7 +47,7 @@ class Curl(object):
   def _transform(self):
     # type: () -> None
     """
-    Prepares internal state.
+    Transforms internal state.
     """
     if self._dirty:
       index = 0

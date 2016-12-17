@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import TrytesDecodeError
+from iota import TrytesDecodeError, TrytesCodec
 from iota.types import Address, Tag, TransactionId, TryteString
 from six import binary_type
 
@@ -247,33 +247,42 @@ class TryteStringTestCase(TestCase):
     """
     # Fortunately, there's only 27 possible tryte configurations, so
     # it's not too painful to test them all.
-    self.assertListEqual(TryteString(b'9').as_trytes(), [[ 0,  0,  0]])
-    self.assertListEqual(TryteString(b'A').as_trytes(), [[ 1,  0,  0]])
-    self.assertListEqual(TryteString(b'B').as_trytes(), [[-1,  1,  0]])
-    self.assertListEqual(TryteString(b'C').as_trytes(), [[ 0,  1,  0]])
-    self.assertListEqual(TryteString(b'D').as_trytes(), [[ 1,  1,  0]])
-    self.assertListEqual(TryteString(b'E').as_trytes(), [[-1, -1,  1]])
-    self.assertListEqual(TryteString(b'F').as_trytes(), [[ 0, -1,  1]])
-    self.assertListEqual(TryteString(b'G').as_trytes(), [[ 1, -1,  1]])
-    self.assertListEqual(TryteString(b'H').as_trytes(), [[-1,  0,  1]])
-    self.assertListEqual(TryteString(b'I').as_trytes(), [[ 0,  0,  1]])
-    self.assertListEqual(TryteString(b'J').as_trytes(), [[ 1,  0,  1]])
-    self.assertListEqual(TryteString(b'K').as_trytes(), [[-1,  1,  1]])
-    self.assertListEqual(TryteString(b'L').as_trytes(), [[ 0,  1,  1]])
-    self.assertListEqual(TryteString(b'M').as_trytes(), [[ 1,  1,  1]])
-    self.assertListEqual(TryteString(b'N').as_trytes(), [[-1, -1, -1]])
-    self.assertListEqual(TryteString(b'O').as_trytes(), [[ 0, -1, -1]])
-    self.assertListEqual(TryteString(b'P').as_trytes(), [[ 1, -1, -1]])
-    self.assertListEqual(TryteString(b'Q').as_trytes(), [[-1,  0, -1]])
-    self.assertListEqual(TryteString(b'R').as_trytes(), [[ 0,  0, -1]])
-    self.assertListEqual(TryteString(b'S').as_trytes(), [[ 1,  0, -1]])
-    self.assertListEqual(TryteString(b'T').as_trytes(), [[-1,  1, -1]])
-    self.assertListEqual(TryteString(b'U').as_trytes(), [[ 0,  1, -1]])
-    self.assertListEqual(TryteString(b'V').as_trytes(), [[ 1,  1, -1]])
-    self.assertListEqual(TryteString(b'W').as_trytes(), [[-1, -1,  0]])
-    self.assertListEqual(TryteString(b'X').as_trytes(), [[ 0, -1,  0]])
-    self.assertListEqual(TryteString(b'Y').as_trytes(), [[ 1, -1,  0]])
-    self.assertListEqual(TryteString(b'Z').as_trytes(), [[-1,  0,  0]])
+    self.assertDictEqual(
+      {
+        chr(c): TryteString(chr(c).encode('ascii')).as_trytes()
+          for c in TrytesCodec.alphabet.values()
+      },
+
+      {
+        '9': [[ 0,  0,  0]],
+        'A': [[ 1,  0,  0]],
+        'B': [[-1,  1,  0]],
+        'C': [[ 0,  1,  0]],
+        'D': [[ 1,  1,  0]],
+        'E': [[-1, -1,  1]],
+        'F': [[ 0, -1,  1]],
+        'G': [[ 1, -1,  1]],
+        'H': [[-1,  0,  1]],
+        'I': [[ 0,  0,  1]],
+        'J': [[ 1,  0,  1]],
+        'K': [[-1,  1,  1]],
+        'L': [[ 0,  1,  1]],
+        'M': [[ 1,  1,  1]],
+        'N': [[-1, -1, -1]],
+        'O': [[ 0, -1, -1]],
+        'P': [[ 1, -1, -1]],
+        'Q': [[-1,  0, -1]],
+        'R': [[ 0,  0, -1]],
+        'S': [[ 1,  0, -1]],
+        'T': [[-1,  1, -1]],
+        'U': [[ 0,  1, -1]],
+        'V': [[ 1,  1, -1]],
+        'W': [[-1, -1,  0]],
+        'X': [[ 0, -1,  0]],
+        'Y': [[ 1, -1,  0]],
+        'Z': [[-1,  0,  0]],
+      },
+    )
 
   def test_as_trytes_mulitple_trytes(self):
     """
@@ -312,33 +321,42 @@ class TryteStringTestCase(TestCase):
     """
     # Fortunately, there's only 27 possible tryte configurations, so
     # it's not too painful to test them all.
-    self.assertListEqual(TryteString(b'9').as_trits(), [ 0,  0,  0])
-    self.assertListEqual(TryteString(b'A').as_trits(), [ 1,  0,  0])
-    self.assertListEqual(TryteString(b'B').as_trits(), [-1,  1,  0])
-    self.assertListEqual(TryteString(b'C').as_trits(), [ 0,  1,  0])
-    self.assertListEqual(TryteString(b'D').as_trits(), [ 1,  1,  0])
-    self.assertListEqual(TryteString(b'E').as_trits(), [-1, -1,  1])
-    self.assertListEqual(TryteString(b'F').as_trits(), [ 0, -1,  1])
-    self.assertListEqual(TryteString(b'G').as_trits(), [ 1, -1,  1])
-    self.assertListEqual(TryteString(b'H').as_trits(), [-1,  0,  1])
-    self.assertListEqual(TryteString(b'I').as_trits(), [ 0,  0,  1])
-    self.assertListEqual(TryteString(b'J').as_trits(), [ 1,  0,  1])
-    self.assertListEqual(TryteString(b'K').as_trits(), [-1,  1,  1])
-    self.assertListEqual(TryteString(b'L').as_trits(), [ 0,  1,  1])
-    self.assertListEqual(TryteString(b'M').as_trits(), [ 1,  1,  1])
-    self.assertListEqual(TryteString(b'N').as_trits(), [-1, -1, -1])
-    self.assertListEqual(TryteString(b'O').as_trits(), [ 0, -1, -1])
-    self.assertListEqual(TryteString(b'P').as_trits(), [ 1, -1, -1])
-    self.assertListEqual(TryteString(b'Q').as_trits(), [-1,  0, -1])
-    self.assertListEqual(TryteString(b'R').as_trits(), [ 0,  0, -1])
-    self.assertListEqual(TryteString(b'S').as_trits(), [ 1,  0, -1])
-    self.assertListEqual(TryteString(b'T').as_trits(), [-1,  1, -1])
-    self.assertListEqual(TryteString(b'U').as_trits(), [ 0,  1, -1])
-    self.assertListEqual(TryteString(b'V').as_trits(), [ 1,  1, -1])
-    self.assertListEqual(TryteString(b'W').as_trits(), [-1, -1,  0])
-    self.assertListEqual(TryteString(b'X').as_trits(), [ 0, -1,  0])
-    self.assertListEqual(TryteString(b'Y').as_trits(), [ 1, -1,  0])
-    self.assertListEqual(TryteString(b'Z').as_trits(), [-1,  0,  0])
+    self.assertDictEqual(
+      {
+        chr(c): TryteString(chr(c).encode('ascii')).as_trits()
+          for c in TrytesCodec.alphabet.values()
+      },
+
+      {
+        '9': [ 0,  0,  0],
+        'A': [ 1,  0,  0],
+        'B': [-1,  1,  0],
+        'C': [ 0,  1,  0],
+        'D': [ 1,  1,  0],
+        'E': [-1, -1,  1],
+        'F': [ 0, -1,  1],
+        'G': [ 1, -1,  1],
+        'H': [-1,  0,  1],
+        'I': [ 0,  0,  1],
+        'J': [ 1,  0,  1],
+        'K': [-1,  1,  1],
+        'L': [ 0,  1,  1],
+        'M': [ 1,  1,  1],
+        'N': [-1, -1, -1],
+        'O': [ 0, -1, -1],
+        'P': [ 1, -1, -1],
+        'Q': [-1,  0, -1],
+        'R': [ 0,  0, -1],
+        'S': [ 1,  0, -1],
+        'T': [-1,  1, -1],
+        'U': [ 0,  1, -1],
+        'V': [ 1,  1, -1],
+        'W': [-1, -1,  0],
+        'X': [ 0, -1,  0],
+        'Y': [ 1, -1,  0],
+        'Z': [-1,  0,  0],
+      },
+    )
 
   def test_as_trits_multiple_trytes(self):
     """

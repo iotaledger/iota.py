@@ -4,10 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from six import binary_type
-
-from iota import TrytesCodec, TrytesDecodeError
+from iota import TrytesDecodeError
 from iota.types import Address, Tag, TransactionId, TryteString
+from six import binary_type
 
 
 # noinspection SpellCheckingInspection
@@ -17,7 +16,7 @@ class TryteStringTestCase(TestCase):
     Converting a sequence of bytes into a TryteString.
     """
     self.assertEqual(
-      TryteString.from_bytes(b'Hello, IOTA!').trytes,
+      binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
@@ -100,7 +99,7 @@ class TryteStringTestCase(TestCase):
     )
 
     self.assertEqual(
-      trytes.trytes,
+      binary_type(trytes),
 
       # Note the additional Tryte([-1, -1, -1]) values appended to the
       #   end of the sequence (represented in ASCII as '9').
@@ -119,7 +118,7 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes1 is trytes2)
     self.assertFalse(trytes1 == trytes2)
 
-    self.assertEqual(trytes2.trytes, b'RBTC9D9DCDQAEASBYBCCKBFA999')
+    self.assertEqual(binary_type(trytes2), b'RBTC9D9DCDQAEASBYBCCKBFA999')
 
   def test_init_error_invalid_characters(self):
     """
@@ -383,7 +382,7 @@ class AddressTestCase(TestCase):
     )
 
     self.assertEqual(
-      addy.trytes,
+      binary_type(addy),
 
       # Note the extra 9's added to the end.
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
@@ -409,7 +408,7 @@ class TagTestCase(TestCase):
     """
     tag = Tag(b'COLOREDCOINS')
 
-    self.assertEqual(tag.trytes, b'COLOREDCOINS999999999999999')
+    self.assertEqual(binary_type(tag), b'COLOREDCOINS999999999999999')
 
   def test_init_error_too_long(self):
     """
@@ -432,7 +431,7 @@ class TransactionIdTestCase(TestCase):
     )
 
     self.assertEqual(
-      txn.trytes,
+      binary_type(txn),
 
       # Note the extra 9's added to the end.
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'

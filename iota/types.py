@@ -48,6 +48,10 @@ def trytes_from_int(n):
 _trytes_dict = {} # type: Dict[int, List[int]]
 """
 Caches tryte values for :py:func:`trytes_from_int`.
+
+There are only 27 possible tryte configurations, so it's a relatively
+small amount of memory; the tradeoff is usually worth it for the
+reduced CPU load.
 """
 
 
@@ -55,6 +59,11 @@ def trits_from_int(n):
   # type: (int) -> List[int]
   """
   Returns a trit representation of an integer value.
+
+  References:
+    - https://dev.to/buntine/the-balanced-ternary-machines-of-soviet-russia
+    - https://en.wikipedia.org/wiki/Balanced_ternary
+    - https://rosettacode.org/wiki/Balanced_ternary#Python
   """
   if n == 0:
     return []

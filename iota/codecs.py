@@ -13,28 +13,36 @@ __all__ = [
 
 
 class TrytesDecodeError(ValueError):
-  """Indicates that a tryte string could not be decoded to bytes."""
+  """
+  Indicates that a tryte string could not be decoded to bytes.
+  """
   pass
 
 
 class TrytesCodec(Codec):
-  """Codec for converting byte strings into trytes and vice versa."""
+  """
+  Codec for converting byte strings into trytes, and vice versa.
+  """
   name = 'trytes'
 
   # :bc: Without the bytearray cast, Python 2 will populate the dict
-  #   with characters instead of integers.
+  # with characters instead of integers.
   # noinspection SpellCheckingInspection
   alphabet = dict(enumerate(bytearray(b'9ABCDEFGHIJKLMNOPQRSTUVWXYZ')))
-  """Used to encode bytes into trytes."""
+  """
+  Used to encode bytes into trytes.
+  """
 
   index = dict(zip(alphabet.values(), alphabet.keys()))
-  """Used to decode trytes into bytes."""
+  """
+  Used to decode trytes into bytes.
+  """
 
   @classmethod
   def get_codec_info(cls):
     """
     Returns information used by the codecs library to configure the
-      codec for use.
+    codec for use.
     """
     codec = cls()
 
@@ -46,7 +54,9 @@ class TrytesCodec(Codec):
 
   # noinspection PyShadowingBuiltins
   def encode(self, input, errors='strict'):
-    """Encodes a byte string into trytes."""
+    """
+    Encodes a byte string into trytes.
+    """
     if isinstance(input, memoryview):
       input = input.tobytes()
 
@@ -56,7 +66,7 @@ class TrytesCodec(Codec):
       ))
 
     # :bc: In Python 2, iterating over a byte string yields characters
-    #   instead of integers.
+    # instead of integers.
     if not isinstance(input, bytearray):
       input = bytearray(input)
 
@@ -72,7 +82,9 @@ class TrytesCodec(Codec):
 
   # noinspection PyShadowingBuiltins
   def decode(self, input, errors='strict'):
-    """Decodes a tryte string into bytes."""
+    """
+    Decodes a tryte string into bytes.
+    """
     if isinstance(input, memoryview):
       input = input.tobytes()
 
@@ -111,7 +123,7 @@ class TrytesCodec(Codec):
         )
       except ValueError:
         # This combination of trytes yields a value > 255 when
-        #   decoded.  Naturally, we can't represent this using ASCII.
+        # decoded.  Naturally, we can't represent this using ASCII.
         if errors == 'strict':
           raise TrytesDecodeError(
             "'{name}' codec can't decode trytes {pair} at position {i}-{j}: "

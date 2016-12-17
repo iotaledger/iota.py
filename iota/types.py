@@ -15,6 +15,7 @@ __all__ = [
   'Bundle',
   'Tag',
   'TransactionId',
+  'Transfer',
   'TryteString',
   'TrytesCompatible',
   'int_from_trits',

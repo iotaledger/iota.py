@@ -5,9 +5,9 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
+from iota import TransactionId
 from iota.commands.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
-from iota.types import TransactionId
 from test import MockAdapter
 
 

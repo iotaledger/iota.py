@@ -5,8 +5,8 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
+from iota import TryteString
 from iota.commands.get_node_info import GetNodeInfoCommand
-from iota.types import TryteString
 from test import MockAdapter
 
 

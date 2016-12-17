@@ -4,10 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Iterable, List, Optional, Text, Union
 
+from iota import Address, Bundle, Tag, TransactionId, Transfer, TryteString
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
-from iota.types import Address, Bundle, Tag, TransactionId, Transfer, \
-  TryteString
 
 __all__ = [
   'Iota',

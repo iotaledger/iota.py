@@ -5,8 +5,8 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
+from iota import TryteString, TransactionId
 from iota.filters import NodeUri, Trytes
-from iota.types import TryteString, TransactionId
 
 
 class NodeUriTestCase(BaseFilterTestCase):

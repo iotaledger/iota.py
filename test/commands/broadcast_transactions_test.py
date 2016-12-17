@@ -6,10 +6,10 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
+from iota import TryteString
 from iota.commands.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
-from iota.types import TryteString
 from test import MockAdapter
 
 

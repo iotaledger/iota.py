@@ -4,8 +4,14 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import TrytesDecodeError, TrytesCodec
-from iota.types import Address, Tag, TransactionId, TryteString
+from iota import (
+  Address,
+  Tag,
+  TransactionId,
+  TryteString,
+  TrytesCodec,
+  TrytesDecodeError,
+)
 from six import binary_type
 
 

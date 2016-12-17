@@ -11,15 +11,6 @@ from six import binary_type
 
 # noinspection SpellCheckingInspection
 class TryteStringTestCase(TestCase):
-  def test_from_bytes(self):
-    """
-    Converting a sequence of bytes into a TryteString.
-    """
-    self.assertEqual(
-      binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
-      b'RBTC9D9DCDQAEASBYBCCKBFA',
-    )
-
   def test_equality_comparison(self):
     """Comparing TryteStrings for equality."""
     trytes1 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
@@ -385,6 +376,119 @@ class TryteStringTestCase(TestCase):
          1,  1,  1,
         -1,  1,  1,
       ],
+    )
+
+  def test_from_bytes(self):
+    """
+    Converting a sequence of bytes into a TryteString.
+    """
+    self.assertEqual(
+      binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
+
+  def test_from_trytes(self):
+    """
+    Converting a sequence of tryte values into a TryteString.
+    """
+    trytes = [
+      [0, 0, -1],
+      [-1, 1, 0],
+      [-1, 1, -1],
+      [0, 1, 0],
+      [0, 0, 0],
+      [1, 1, 0],
+      [0, 0, 0],
+      [1, 1, 0],
+      [0, 1, 0],
+      [1, 1, 0],
+      [-1, 0, -1],
+      [1, 0, 0],
+      [-1, -1, 1],
+      [1, 0, 0],
+      [1, 0, -1],
+      [-1, 1, 0],
+      [1, -1, 0],
+      [-1, 1, 0],
+      [0, 1, 0],
+      [0, 1, 0],
+      [-1, 1, 1],
+      [-1, 1, 0],
+      [0, -1, 1],
+      [1, 0, 0],
+    ]
+
+    self.assertEqual(
+      binary_type(TryteString.from_trytes(trytes)),
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
+
+  def test_from_trits(self):
+    """
+    Converting a sequence of trit values into a TryteString.
+    """
+    trits = [
+      0, 0, -1,
+      -1, 1, 0,
+      -1, 1, -1,
+      0, 1, 0,
+      0, 0, 0,
+      1, 1, 0,
+      0, 0, 0,
+      1, 1, 0,
+      0, 1, 0,
+      1, 1, 0,
+      -1, 0, -1,
+      1, 0, 0,
+      -1, -1, 1,
+      1, 0, 0,
+      1, 0, -1,
+      -1, 1, 0,
+      1, -1, 0,
+      -1, 1, 0,
+      0, 1, 0,
+      0, 1, 0,
+      -1, 1, 1,
+      -1, 1, 0,
+      0, -1, 1,
+      1, 0, 0,
+    ]
+
+    self.assertEqual(
+      binary_type(TryteString.from_trits(trits)),
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
+
+  def test_from_trits_error_wrong_length(self):
+    """
+    Converting a sequence of trit values with length not divisible by 3
+    into a TryteString.
+    """
+    trits = [
+      0, 0, -1,
+      -1, 1, 0,
+      -1, 1, -1,
+      0, 1, # 0, <- Oops, did you lose something?
+    ]
+
+    with self.assertRaises(ValueError):
+      TryteString.from_trits(trits)
+
+  def test_from_trits_wrong_length_padded(self):
+    """
+    Automatically padding a sequence of trit values with length not
+    divisible by 3 so that it can be converted into a TryteString.
+    """
+    trits = [
+      0, 0, -1,
+      -1, 1, 0,
+      -1, 1, -1,
+      0, 1, # 0, <- Oops, did you lose something?
+    ]
+
+    self.assertEqual(
+      binary_type(TryteString.from_trits(trits, pad=True)),
+      b'RBTC',
     )
 
 

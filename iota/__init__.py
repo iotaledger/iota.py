@@ -16,5 +16,7 @@ from .api import *
 # Load Curl implementation.
 import iota.pycurl as curl
 
-# Don't forget to update version number in setup.py!
-__version__ = '1.0.0'
+# :see: http://stackoverflow.com/a/2073599/
+from pkg_resources import require
+__version__ = require('PyOTA')[0].version
+del require

@@ -17,7 +17,7 @@ You can also ask questions on our `dedicated forum`_.
 ============
 Dependencies
 ============
-PyOTA requires Python v3.5 or v2.7.
+PyOTA is compatible with Python 3.6, 3.5 and 2.7.
 
 ============
 Installation

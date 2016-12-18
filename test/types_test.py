@@ -670,12 +670,12 @@ class AddressTestCase(TestCase):
     An address is created with an invalid checksum.
     """
     trytes = (
-      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
-      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA'
+      b'IGKUOZGEFNSVJXETLIBKRSUZAWMYSVDPMHGQPCETEFNZP'
+      b'XSJLZMBLAWDRLUBWPIPKFNEPADIWMXMYYRKQ'
     )
 
     addy = Address(
-      trytes + b'FOXM9MUBQ' # <- Last tryte s/b 'X'.
+      trytes + b'IGUKNUNAX' # <- Last tryte s/b 'W'.
     )
 
     self.assertFalse(addy.is_valid())
@@ -683,8 +683,8 @@ class AddressTestCase(TestCase):
     self.assertEqual(
       binary_type(addy.with_checksum()),
 
-      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
-      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX',
+      b'IGKUOZGEFNSVJXETLIBKRSUZAWMYSVDPMHGQPCETEFNZP'
+      b'XSJLZMBLAWDRLUBWPIPKFNEPADIWMXMYYRKQIGUKNUNAW',
     )
 
   def test_checksum_null(self):
@@ -692,8 +692,8 @@ class AddressTestCase(TestCase):
     An address is created without a checksum.
     """
     trytes = (
-      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
-      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA'
+      b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+      b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMV'
     )
 
     addy = Address(trytes)
@@ -703,8 +703,8 @@ class AddressTestCase(TestCase):
     self.assertEqual(
       binary_type(addy.with_checksum()),
 
-      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
-      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX',
+      b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+      b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVSDPEKQPMM',
     )
 
 

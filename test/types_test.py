@@ -448,12 +448,12 @@ class TryteStringTestCase(TestCase):
       ],
     )
 
-  def test_from_bytes(self):
+  def test_from_ascii(self):
     """
-    Converting a sequence of bytes into a TryteString.
+    Converting a sequence of ASCII chars into a TryteString.
     """
     self.assertEqual(
-      binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
+      binary_type(TryteString.from_ascii(b'Hello, IOTA!')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 

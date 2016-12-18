@@ -119,7 +119,7 @@ class TryteString(object):
   IMPORTANT: A TryteString does not represent a numeric value!
   """
   @classmethod
-  def from_bytes(cls, bytes_):
+  def from_ascii(cls, bytes_):
     # type: (Union[binary_type, bytearray]) -> TryteString
     """
     Creates a TryteString from an ASCII representation.

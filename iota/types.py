@@ -378,16 +378,27 @@ class Address(TryteString):
   A TryteString that acts as an address, with support for generating
   and validating checksums.
   """
-  LEN = 81
+  LEN_ADDRESS   = 81
+  LEN_CHECKSUM  = 9
+
+  checksum = None
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
-    super(Address, self).__init__(trytes, pad=self.LEN)
+    super(Address, self).__init__(trytes, pad=self.LEN_ADDRESS)
 
-    self.checksum = None # type: Optional[TryteString]
+    self.checksum = None
+    if len(self._trytes) == (self.LEN_ADDRESS + self.LEN_CHECKSUM):
+      self.checksum = self[self.LEN_ADDRESS:] # type: Optional[TryteString]
 
-    if len(self._trytes) > self.LEN:
-      raise ValueError('Addresses must be 81 trytes long.')
+    elif len(self._trytes) > self.LEN_ADDRESS:
+      raise ValueError(
+        'Addresses must be either {len_no_checksum} trytes (no checksum), '
+        'or {len_with_checksum} trytes (with checksum).'.format(
+          len_no_checksum   = self.LEN_ADDRESS,
+          len_with_checksum = self.LEN_ADDRESS + self.LEN_CHECKSUM,
+        ),
+      )
 
 
 class Tag(TryteString):

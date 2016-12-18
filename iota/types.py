@@ -12,6 +12,7 @@ from iota import TrytesCodec
 
 __all__ = [
   'Address',
+  'AddressChecksum',
   'Bundle',
   'Tag',
   'TransactionId',
@@ -378,27 +379,41 @@ class Address(TryteString):
   A TryteString that acts as an address, with support for generating
   and validating checksums.
   """
-  LEN_ADDRESS   = 81
-  LEN_CHECKSUM  = 9
-
-  checksum = None
+  LEN = 81
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
-    super(Address, self).__init__(trytes, pad=self.LEN_ADDRESS)
+    super(Address, self).__init__(trytes, pad=self.LEN)
 
     self.checksum = None
-    if len(self._trytes) == (self.LEN_ADDRESS + self.LEN_CHECKSUM):
-      self.checksum = self[self.LEN_ADDRESS:] # type: Optional[TryteString]
+    if len(self._trytes) == (self.LEN + AddressChecksum.LEN):
+      self.checksum = AddressChecksum(self[self.LEN:]) # type: Optional[AddressChecksum]
 
-    elif len(self._trytes) > self.LEN_ADDRESS:
+    elif len(self._trytes) > self.LEN:
       raise ValueError(
         'Addresses must be either {len_no_checksum} trytes (no checksum), '
         'or {len_with_checksum} trytes (with checksum).'.format(
-          len_no_checksum   = self.LEN_ADDRESS,
-          len_with_checksum = self.LEN_ADDRESS + self.LEN_CHECKSUM,
+          len_no_checksum   = self.LEN,
+          len_with_checksum = self.LEN + AddressChecksum.LEN,
         ),
       )
+
+    # Make the address sans checksum accessible.
+    self.address = self[:self.LEN] # type: TryteString
+
+
+class AddressChecksum(TryteString):
+  """
+  A TryteString that acts as an address checksum.
+  """
+  LEN = 9
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(AddressChecksum, self).__init__(trytes)
+
+    if len(self._trytes) != self.LEN:
+      raise ValueError('Address checksums must be exactly 9 trytes.')
 
 
 class Tag(TryteString):

@@ -517,6 +517,9 @@ class AddressTestCase(TestCase):
       b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
     )
 
+    # Checksum is not generated automatically.
+    self.assertIsNone(addy.checksum)
+
   def test_init_error_too_long(self):
     """
     Attempting to create an address longer than 81 trytes.

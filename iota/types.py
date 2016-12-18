@@ -371,6 +371,8 @@ class Address(TryteString):
     # type: (TrytesCompatible) -> None
     super(Address, self).__init__(trytes, pad=self.LEN)
 
+    self.checksum = None # type: Optional[TryteString]
+
     if len(self._trytes) > self.LEN:
       raise ValueError('Addresses must be 81 trytes long.')
 

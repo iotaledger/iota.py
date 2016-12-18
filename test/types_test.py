@@ -73,6 +73,19 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes is 'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertTrue(trytes is not 'RBTC9D9DCDQAEASBYBCCKBFA')
 
+  def test_slice(self):
+    """
+    Taking slices of a TryteString.
+    """
+    ts = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    self.assertEqual(ts[4], TryteString(b'9'))
+    self.assertEqual(ts[:4], TryteString(b'RBTC'))
+    self.assertEqual(ts[:-4], TryteString(b'RBTC9D9DCDQAEASBYBCC'))
+    self.assertEqual(ts[4:], TryteString(b'9D9DCDQAEASBYBCCKBFA'))
+    self.assertEqual(ts[-4:], TryteString(b'KBFA'))
+    self.assertEqual(ts[4:-4:4], TryteString(b'9CEY'))
+
   def test_init_from_tryte_string(self):
     """
     Initializing a TryteString from another TryteString.

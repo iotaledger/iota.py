@@ -6,6 +6,7 @@ from unittest import TestCase
 
 from iota import (
   Address,
+  AddressChecksum,
   Tag,
   TransactionId,
   TryteString,
@@ -527,7 +528,16 @@ class AddressTestCase(TestCase):
 
       # Note the extra 9's added to the end.
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
+    )
+
+    # This attribute will make more sense once we start working with
+    # address checksums.
+    self.assertEqual(
+      binary_type(addy.address),
+
+      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
     )
 
     # Checksum is not generated automatically.
@@ -563,6 +573,13 @@ class AddressTestCase(TestCase):
     )
 
     self.assertEqual(
+      binary_type(addy.address),
+
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA',
+    )
+
+    self.assertEqual(
       binary_type(addy.checksum),
       b'FOXM9MUBX',
     )
@@ -579,6 +596,31 @@ class AddressTestCase(TestCase):
         b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
         b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX9'
       )
+
+
+# noinspection SpellCheckingInspection
+class AddressChecksumTestCase(TestCase):
+  def test_init_happy_path(self):
+    """
+    Creating a valid address checksum.
+    """
+    self.assertEqual(binary_type(AddressChecksum(b'FOXM9MUBX')), b'FOXM9MUBX')
+
+  def test_init_error_too_short(self):
+    """
+    Attempting to create an address checksum shorter than 9 trytes.
+    """
+    with self.assertRaises(ValueError):
+      AddressChecksum(b'FOXM9MUB')
+
+  def test_init_error_too_long(self):
+    """
+    Attempting to create an address checksum longer than 9 trytes.
+    """
+    with self.assertRaises(ValueError):
+      # Extra padding characters are not ignored.
+      # If it's an address checksum, it must be 9 trytes exactly.
+      AddressChecksum(b'FOXM9MUBX9')
 
 
 # noinspection SpellCheckingInspection

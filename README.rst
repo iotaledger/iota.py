@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/iotaledger/pyota.svg?branch=develop
+   :target: https://travis-ci.org/iotaledger/pyota
+
 =====
 PyOTA
 =====

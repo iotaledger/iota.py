@@ -235,7 +235,7 @@ class TryteString(object):
     if pad:
       trytes += b'9' * max(0, pad - len(trytes))
 
-    self._trytes = trytes
+    self._trytes = trytes # type: bytearray
 
   def __repr__(self):
     # type: () -> Text
@@ -263,6 +263,19 @@ class TryteString(object):
     # type: () -> Generator[binary_type]
     # :see: http://stackoverflow.com/a/14267935/
     return (self._trytes[i:i + 1] for i in range(len(self)))
+
+  def __getitem__(self, item):
+    # type: (Union[int, slice]) -> TryteString
+    new_trytes = bytearray()
+
+    sliced = self._trytes[item]
+
+    if isinstance(sliced, int):
+      new_trytes.append(sliced)
+    else:
+      new_trytes.extend(sliced)
+
+    return TryteString(new_trytes)
 
   def as_bytes(self, errors='strict'):
     # type: (Text) -> binary_type

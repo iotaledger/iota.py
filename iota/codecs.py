@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import Codec, CodecInfo, register as lookup_function
 
-from six import binary_type
+from six import PY3, binary_type
 
 __all__ = [
   'TrytesCodec',
@@ -46,11 +46,17 @@ class TrytesCodec(Codec):
     """
     codec = cls()
 
-    return CodecInfo(
-      encode            = codec.encode,
-      decode            = codec.decode,
-      _is_text_encoding = False,
-    )
+    codec_info = {
+      'encode': codec.encode,
+      'decode': codec.decode,
+    }
+
+    # In Python 2, all codecs are made equal.
+    # In Python 3, some codecs are more equal than others.
+    if PY3:
+      codec_info['_is_text_encoding'] = False
+
+    return CodecInfo(**codec_info)
 
   # noinspection PyShadowingBuiltins
   def encode(self, input, errors='strict'):

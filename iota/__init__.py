@@ -13,9 +13,6 @@ from .types import *
 from .adapter import *
 from .api import *
 
-# Load Curl implementation.
-import iota.pycurl as curl
-
 # :see: http://stackoverflow.com/a/2073599/
 from pkg_resources import require
 __version__ = require('PyOTA')[0].version

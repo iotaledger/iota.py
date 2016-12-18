@@ -539,8 +539,45 @@ class AddressTestCase(TestCase):
     """
     with self.assertRaises(ValueError):
       Address(
+        # Extra padding at the end is not ignored.
+        # If it's an address (without checksum), then it must be 81
+        # trytes exactly.
         b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
         b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC99999'
+      )
+
+  def test_init_with_checksum(self):
+    """
+    Creating an address with checksum already attached.
+    """
+    addy = Address(
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
+    )
+
+    self.assertEqual(
+      binary_type(addy),
+
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX',
+    )
+
+    self.assertEqual(
+      binary_type(addy.checksum),
+      b'FOXM9MUBX',
+    )
+
+  def test_init_error_checksum_too_long(self):
+    """
+    Attempting to create an address longer than 90 trytes.
+    """
+    with self.assertRaises(ValueError):
+      Address(
+        # Extra padding at the end is not ignored.
+        # If it's a checksummed address, then it must be 90 trytes
+        # exactly.
+        b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+        b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX9'
       )
 
 

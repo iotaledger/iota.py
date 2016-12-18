@@ -18,7 +18,7 @@ from six import binary_type
 
 # noinspection SpellCheckingInspection
 class TryteStringTestCase(TestCase):
-  def test_equality_comparison(self):
+  def test_comparison(self):
     """Comparing TryteStrings for equality."""
     trytes1 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
     trytes2 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
@@ -54,25 +54,75 @@ class TryteStringTestCase(TestCase):
     self.assertTrue(trytes3 != bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
 
   # noinspection PyTypeChecker
-  def test_equality_comparison_error_wrong_type(self):
+  def test_comparison_error_wrong_type(self):
     """
     Attempting to compare a TryteString with something that is not a
-    TryteString.
+    TrytesCompatible.
     """
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
 
     with self.assertRaises(TypeError):
       # Comparing against unicode strings is not allowed because it is
-      # ambiguous how to encode the unicode string for comparison.
+      # ambiguous how to encode the unicode string into trits (should
+      # we treat the unicode string as an ASCII representation, or
+      # should we encode the unicode value into bytes and convert the
+      # result into trytes?).
       trytes == 'RBTC9D9DCDQAEASBYBCCKBFA'
 
     with self.assertRaises(TypeError):
-      # We might support this at some point, but not at the moment.
+      # TryteString is not a numeric type, so comparing against a
+      # numeric value doesn't make any sense.
       trytes == 42
 
     # Identity comparison still works though.
     self.assertFalse(trytes is 'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertTrue(trytes is not 'RBTC9D9DCDQAEASBYBCCKBFA')
+
+  def test_concatenate(self):
+    """
+    Concatenating TryteStrings with TrytesCompatibles.
+    """
+    trytes1 = TryteString(b'RBTC9D9DCDQA')
+    trytes2 = TryteString(b'EASBYBCCKBFA')
+
+    concat = trytes1 + trytes2
+    self.assertIsInstance(concat, TryteString)
+    self.assertEqual(binary_type(concat), b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    # You can also concatenate a TryteString with any TrytesCompatible.
+    self.assertEqual(
+      binary_type(trytes1 + b'EASBYBCCKBFA'),
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
+
+    self.assertEqual(
+      binary_type(trytes1 + bytearray(b'EASBYBCCKBFA')),
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
+
+  def test_concatenate_error_wrong_type(self):
+    """
+    Attempting to concatenate a TryteString with something that is not
+    a TrytesCompatible.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQA')
+
+    with self.assertRaises(TypeError):
+      # Concatenating unicode strings is not allowed because it is
+      # ambiguous how to encode the unicode string into trits (should
+      # we treat the unicode string as an ASCII representation, or
+      # should we encode the unicode value into bytes and convert the
+      # result into trytes?).
+      trytes += 'EASBYBCCKBFA'
+
+    with self.assertRaises(TypeError):
+      # TryteString is not a numeric type, so adding a numeric value
+      # doesn't make any sense.
+      trytes += 42
+
+    with self.assertRaises(TypeError):
+      # What is this I don't even..
+      trytes += None
 
   def test_slice(self):
     """
@@ -596,6 +646,66 @@ class AddressTestCase(TestCase):
         b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
         b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX9'
       )
+
+  def test_checksum_valid(self):
+    """
+    An address is created with a valid checksum.
+    """
+    addy = Address(
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
+    )
+
+    self.assertTrue(addy.is_valid())
+
+    self.assertEqual(
+      binary_type(addy.with_checksum()),
+
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
+    )
+
+  def test_checksum_invalid(self):
+    """
+    An address is created with an invalid checksum.
+    """
+    trytes = (
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA'
+    )
+
+    addy = Address(
+      trytes + b'FOXM9MUBQ' # <- Last tryte s/b 'X'.
+    )
+
+    self.assertFalse(addy.is_valid())
+
+    self.assertEqual(
+      binary_type(addy.with_checksum()),
+
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX',
+    )
+
+  def test_checksum_null(self):
+    """
+    An address is created without a checksum.
+    """
+    trytes = (
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA'
+    )
+
+    addy = Address(trytes)
+
+    self.assertFalse(addy.is_valid())
+
+    self.assertEqual(
+      binary_type(addy.with_checksum()),
+
+      b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX',
+    )
 
 
 # noinspection SpellCheckingInspection

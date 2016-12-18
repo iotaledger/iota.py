@@ -9,6 +9,8 @@ from typing import Dict, Generator, Iterable, Optional, Text, Union, List
 from six import PY2, binary_type
 
 from iota import TrytesCodec
+from iota.curl import Curl
+
 
 __all__ = [
   'Address',
@@ -278,6 +280,43 @@ class TryteString(object):
 
     return TryteString(new_trytes)
 
+  def __add__(self, other):
+    # type: (TrytesCompatible) -> TryteString
+    if isinstance(other, TryteString):
+      return TryteString(self._trytes + other._trytes)
+    elif isinstance(other, (binary_type, bytearray)):
+      return TryteString(self._trytes + other)
+    else:
+      raise TypeError(
+        'Invalid type for TryteString concatenation '
+        '(expected Union[TryteString, {binary_type}, bytearray], '
+        'actual {type}).'.format(
+          binary_type = binary_type.__name__,
+          type        = type(other).__name__,
+        ),
+      )
+
+  def __eq__(self, other):
+    # type: (TrytesCompatible) -> bool
+    if isinstance(other, TryteString):
+      return self._trytes == other._trytes
+    elif isinstance(other, (binary_type, bytearray)):
+      return self._trytes == other
+    else:
+      raise TypeError(
+        'Invalid type for TryteString comparison '
+        '(expected Union[TryteString, {binary_type}, bytearray], '
+        'actual {type}).'.format(
+          binary_type = binary_type.__name__,
+          type        = type(other).__name__,
+        ),
+      )
+
+  # :bc: In Python 2 this must be defined explicitly.
+  def __ne__(self, other):
+    # type: (TrytesCompatible) -> bool
+    return not (self == other)
+
   def as_bytes(self, errors='strict'):
     # type: (Text) -> binary_type
     """
@@ -353,26 +392,6 @@ class TryteString(object):
 
     return trytes_from_int(n)[0]
 
-  def __eq__(self, other):
-    # type: (TrytesCompatible) -> bool
-    if isinstance(other, TryteString):
-      return self._trytes == other._trytes
-    elif isinstance(other, (binary_type, bytearray)):
-      return self._trytes == other
-    else:
-      raise TypeError(
-        'Invalid type for TryteString comparison '
-        '(expected Union[TryteString, binary_type, bytearray], '
-        'actual {type}).'.format(
-          type = type(other).__name__,
-        ),
-      )
-
-  # :bc: In Python 2 this must be defined explicitly.
-  def __ne__(self, other):
-    # type: (TrytesCompatible) -> bool
-    return not (self == other)
-
 
 class Address(TryteString):
   """
@@ -400,6 +419,34 @@ class Address(TryteString):
 
     # Make the address sans checksum accessible.
     self.address = self[:self.LEN] # type: TryteString
+
+  def is_valid(self):
+    # type: () -> bool
+    """
+    Returns whether this address has a valid checksum.
+    """
+    if self.checksum:
+      return self.checksum == self._generate_checksum()
+
+    return False
+
+  def with_checksum(self):
+    # type: () -> Address
+    """
+    Returns the address with a valid checksum attached.
+    """
+    return Address(self.address + self._generate_checksum())
+
+  def _generate_checksum(self):
+    # type: () -> TryteString
+    """
+    Generates the actual checksum for this address.
+    """
+    return TryteString.from_trits(
+      # Multiply by 3 because AddressChecksum.LEN is number of trytes,
+      # but Curl returns trits.
+      Curl(self.address.as_trits())[:AddressChecksum.LEN * 3]
+    )
 
 
 class AddressChecksum(TryteString):

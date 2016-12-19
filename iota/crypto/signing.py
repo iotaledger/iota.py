@@ -9,6 +9,7 @@ from iota.crypto import Curl
 
 __all__ = [
   'KeyGenerator',
+  'Seed',
   'SigningKey',
 ]
 
@@ -35,17 +36,23 @@ class SigningKey(TryteString):
   A TryteString that acts as a signing key, e.g., for generating
   message signatures, new addresses, etc.
   """
-  LEN = 6561
+  LEN_MULTIPLE = 2187
+  """
+  Similar to RSA keys, SigningKeys must have a length that is divisible
+  by a certain number of trytes.
+  """
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
-    super(SigningKey, self).__init__(trytes, pad=self.LEN)
+    super(SigningKey, self).__init__(trytes)
 
-    if len(self._trytes) > self.LEN:
-      raise ValueError('{cls} values must be {len} trytes long.'.format(
-        cls = type(self).__name__,
-        len = self.LEN
-      ))
+    if len(self._trytes) % self.LEN_MULTIPLE:
+      raise ValueError(
+        'Length of {cls} values must be a multiple of {len} trytes.'.format(
+          cls = type(self).__name__,
+          len = self.LEN_MULTIPLE
+        ),
+      )
 
 
 class KeyGenerator(object):
@@ -57,29 +64,6 @@ class KeyGenerator(object):
     super(KeyGenerator, self).__init__()
 
     self.seed = Seed(seed).as_trits()
-
-  def __getitem__(self, slice_):
-    # type: (Union[int, slice]) -> Union[SigningKey, List[SigningKey]]
-    """
-    Generates and returns one or more keys at the specified index(es).
-
-    :param slice_:
-      Index of key to generate, or a slice.
-
-      Warning: This method may take awhile to run if the requested
-      index(es) is a large number!
-
-    :return:
-      Behavior matches slicing behavior of other collections:
-
-      - If an int is provided, a single key will be returned.
-      - If a slice is provided, a list of keys will be returned.
-    """
-    return (
-      self.get_keys(slice_.start, slice_.stop, slice_.step)
-        if isinstance(slice_, slice)
-        else self.get_keys(slice_)[0]
-    )
 
   def get_keys(self, start, stop=None, step=1, iterations=1):
     # type: (int, Optional[int], int, int) -> List[SigningKey]
@@ -128,7 +112,7 @@ class KeyGenerator(object):
 
     return keys
 
-  def create_generator(self, start, step=1, iterations=1):
+  def create_generator(self, start=0, step=1, iterations=1):
     # type: (int, int) -> Generator[SigningKey]
     """
     Creates a generator that can be used to progressively generate new

@@ -4,12 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
-
 from iota import Address, Tag, TransactionId, TryteString
-from iota.commands.find_transactions import FindTransactionsRequestFilter, \
+from iota.commands.core.find_transactions import FindTransactionsRequestFilter, \
   FindTransactionsCommand
 from iota.filters import Trytes
+from six import binary_type, text_type
 from test import MockAdapter
 
 

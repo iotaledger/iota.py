@@ -4,11 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
-
 from iota import Address, TryteString
-from iota.commands.get_balances import GetBalancesCommand
+from iota.commands.core.get_balances import GetBalancesCommand
 from iota.filters import Trytes
+from six import binary_type, text_type
 from test import MockAdapter
 
 

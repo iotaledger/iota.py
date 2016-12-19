@@ -4,12 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
-
 from iota import TryteString
-from iota.commands.broadcast_transactions import \
+from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
+from six import binary_type, text_type
 from test import MockAdapter
 
 

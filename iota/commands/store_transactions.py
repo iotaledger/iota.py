@@ -16,7 +16,7 @@ class StoreTransactionsCommand(FilterCommand):
   """
   Executes ``storeTransactions`` command.
 
-  See :py:method:`iota.api.StrictIota.store_transactions`.
+  See :py:meth:`iota.api.StrictIota.store_transactions`.
   """
   command = 'storeTransactions'
 

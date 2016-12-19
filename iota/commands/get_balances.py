@@ -17,7 +17,7 @@ class GetBalancesCommand(FilterCommand):
   """
   Executes `getBalances` command.
 
-  See :py:method:`iota.api.StrictIota.get_balances`.
+  See :py:meth:`iota.api.StrictIota.get_balances`.
   """
   def get_request_filter(self):
     return GetBalancesRequestFilter()

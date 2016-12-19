@@ -19,7 +19,7 @@ class SendTrytesCommand(FilterCommand):
   """
   Executes `sendTrytes` extended API command.
 
-  See :py:method:`iota.api.IotaApi.send_trytes` for more info.
+  See :py:meth:`iota.api.IotaApi.send_trytes` for more info.
   """
   command = 'sendTrytes'
 

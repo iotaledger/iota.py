@@ -13,7 +13,7 @@ class InterruptAttachingToTangleCommand(FilterCommand):
   """
   Executes ``interruptAttachingToTangle`` command.
 
-  See :py:method:`iota.api.StrictIota.interrupt_attaching_to_tangle`.
+  See :py:meth:`iota.api.StrictIota.interrupt_attaching_to_tangle`.
   """
   command = 'interruptAttachingToTangle'
 

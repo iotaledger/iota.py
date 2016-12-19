@@ -15,7 +15,7 @@ class BroadcastAndStoreCommand(FilterCommand):
   """
   Executes `broadcastAndStore` extended API command.
 
-  See :py:method:`iota.api.IotaApi.broadcast_and_store` for more info.
+  See :py:meth:`iota.api.IotaApi.broadcast_and_store` for more info.
   """
   command = 'broadcastAndStore'
 

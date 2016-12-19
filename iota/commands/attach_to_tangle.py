@@ -17,7 +17,7 @@ class AttachToTangleCommand(FilterCommand):
   """
   Executes `attachToTangle` command.
 
-  See :py:method:`iota.api.StrictIota.attach_to_tangle`.
+  See :py:meth:`iota.api.StrictIota.attach_to_tangle`.
   """
   command = 'attachToTangle'
 

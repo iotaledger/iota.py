@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Iterable, List, Optional, Text, Union
+from typing import Iterable, List, Optional, Text
 
 from iota import Address, Bundle, Tag, TransactionId, Transfer, TryteString
-from iota.adapter import BaseAdapter, resolve_adapter
+from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
 
 __all__ = [
@@ -25,7 +25,7 @@ class StrictIota(object):
     - https://iota.readme.io/docs/getting-started
   """
   def __init__(self, adapter):
-    # type: (Union[Text, BaseAdapter]) -> None
+    # type: (AdapterSpec) -> None
     """
     :param adapter:
       URI string or BaseAdapter instance.
@@ -317,7 +317,7 @@ class Iota(StrictIota):
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
   """
   def __init__(self, adapter, seed=None):
-    # type: (Union[Text, BaseAdapter], Optional[TryteString]) -> None
+    # type: (AdapterSpec, Optional[TryteString]) -> None
     """
     :param seed:
       Seed used to generate new addresses.
@@ -392,17 +392,18 @@ class Iota(StrictIota):
     """
     raise NotImplementedError('Not implemented yet.')
 
-  def get_new_address(self, index=None, count=1):
+  def get_new_addresses(self, index=None, count=1):
     # type: (Optional[int], Optional[int]) -> List[Address]
     """
-    Generates one or more new addresses from a seed.
+    Generates one or more new addresses from the seed.
 
     :param index:
-      Specify the index of the new address.
-      If not provided, the address will generated deterministically.
+      Specify the index of the new address (must be >= 1).
+
+      If not provided, the address will be generated deterministically.
 
     :param count:
-      Number of addresses to generate.
+      Number of addresses to generate (must be >= 1).
 
       Note: This is more efficient than calling ``get_new_address``
       inside a loop.
@@ -416,7 +417,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
   def get_bundle(self, transaction):
     # type: (TransactionId) -> List[Bundle]

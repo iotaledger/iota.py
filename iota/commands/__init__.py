@@ -207,6 +207,11 @@ class RequestFilter(f.FilterChain):
       | f.FilterMapper(filter_map, allow_missing_keys, allow_extra_keys)
     )
 
+  def _apply_none(self):
+    # Some commands do accept/require empty requests, but in those
+    # cases, the request must be an empty object, not ``None``.
+    return self._filter(None, f.Required)
+
 
 class ResponseFilter(f.FilterChain):
   """Template for filter applied to API responses."""
@@ -222,6 +227,12 @@ class ResponseFilter(f.FilterChain):
         f.Type(Mapping)
       | f.FilterMapper(filter_map, allow_missing_keys, allow_extra_keys)
     )
+
+  def _apply_none(self):
+    # If for some reason we don't get a response from the node, and the
+    # adapter didn't complain, pretend like the response was an empty
+    # object.
+    return self._apply({})
 
 
 class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):

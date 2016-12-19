@@ -6,7 +6,7 @@ import json
 from abc import ABCMeta, abstractmethod as abstract_method
 from inspect import isabstract as is_abstract
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Dict, Text, Tuple
+from typing import Dict, Text, Tuple, Union
 
 import requests
 from six import with_metaclass
@@ -15,9 +15,14 @@ from iota import DEFAULT_PORT
 from iota.json import JsonEncoder
 
 __all__ = [
+  'AdapterSpec',
   'BadApiResponse',
   'InvalidUri',
 ]
+
+
+# Custom types for type hints and docstrings.
+AdapterSpec = Union[Text, 'BaseAdapter']
 
 
 class BadApiResponse(ValueError):
@@ -44,8 +49,11 @@ adapter_registry = {} # type: Dict[Text, _AdapterMeta]
 
 
 def resolve_adapter(uri):
-  # type: (Text) -> BaseAdapter
+  # type: (AdapterSpec) -> BaseAdapter
   """Given a URI, returns a properly-configured adapter instance."""
+  if isinstance(uri, BaseAdapter):
+    return uri
+
   try:
     protocol, _ = uri.split('://', 1)
   except ValueError:

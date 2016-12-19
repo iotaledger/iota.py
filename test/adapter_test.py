@@ -12,34 +12,54 @@ from six import BytesIO, text_type as text
 
 from iota import BadApiResponse, DEFAULT_PORT, InvalidUri, TryteString
 from iota.adapter import HttpAdapter, resolve_adapter
+from test import MockAdapter
 
 
 class ResolveAdapterTestCase(TestCase):
-  """Unit tests for the `resolve_adapter` function."""
+  """
+  Unit tests for the `resolve_adapter` function.
+  """
+  def test_adapter_instance(self):
+    """
+    Resolving an adapter instance.
+    """
+    adapter = MockAdapter()
+    self.assertIs(resolve_adapter(adapter), adapter)
+
   def test_udp(self):
-    """Resolving a valid udp:// URI."""
+    """
+    Resolving a valid udp:// URI.
+    """
     adapter = resolve_adapter('udp://localhost:14265/')
     self.assertIsInstance(adapter, HttpAdapter)
 
   def test_http(self):
-    """Resolving a valid http:// URI."""
+    """
+    Resolving a valid http:// URI.
+    """
     adapter = resolve_adapter('http://localhost:14265/')
     self.assertIsInstance(adapter, HttpAdapter)
 
   def test_missing_protocol(self):
-    """The URI does not include a protocol."""
+    """
+    The URI does not include a protocol.
+    """
     with self.assertRaises(InvalidUri):
       resolve_adapter('localhost:14265')
 
   def test_unknown_protocol(self):
-    """The URI references a protocol that has no associated adapter."""
+    """
+    The URI references a protocol that has no associated adapter.
+    """
     with self.assertRaises(InvalidUri):
       resolve_adapter('foobar://localhost:14265')
 
 
 class HttpAdapterTestCase(TestCase):
   def test_configure_udp(self):
-    """Configuring an HttpAdapter using a valid udp:// URI."""
+    """
+    Configuring an HttpAdapter using a valid udp:// URI.
+    """
     adapter = HttpAdapter.configure('udp://localhost:14265/')
 
     self.assertEqual(adapter.host, 'localhost')
@@ -47,7 +67,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_http(self):
-    """Configuring HttpAdapter using a valid http:// URI."""
+    """
+    Configuring HttpAdapter using a valid http:// URI.
+    """
     adapter = HttpAdapter.configure('http://localhost:14265/')
 
     self.assertEqual(adapter.host, 'localhost')
@@ -55,7 +77,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_ipv4_address(self):
-    """Configuring an HttpAdapter using an IPv4 address."""
+    """
+    Configuring an HttpAdapter using an IPv4 address.
+    """
     adapter = HttpAdapter.configure('udp://127.0.0.1:8080/')
 
     self.assertEqual(adapter.host, '127.0.0.1')
@@ -63,7 +87,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_default_port_udp(self):
-    """Implicitly use default UDP port for HttpAdapter."""
+    """
+    Implicitly use default UDP port for HttpAdapter.
+    """
     adapter = HttpAdapter.configure('udp://iotatoken.com/')
 
     self.assertEqual(adapter.host, 'iotatoken.com')
@@ -71,7 +97,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_default_port_http(self):
-    """Implicitly use default HTTP port for HttpAdapter."""
+    """
+    Implicitly use default HTTP port for HttpAdapter.
+    """
     adapter = HttpAdapter.configure('http://iotatoken.com/')
 
     self.assertEqual(adapter.host, 'iotatoken.com')
@@ -79,7 +107,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_path(self):
-    """Specifying a different path for HttpAdapter."""
+    """
+    Specifying a different path for HttpAdapter.
+    """
     adapter = HttpAdapter.configure('http://iotatoken.com:443/node')
 
     self.assertEqual(adapter.host, 'iotatoken.com')
@@ -98,7 +128,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/node')
 
   def test_configure_default_path(self):
-    """Implicitly use default path for HttpAdapter."""
+    """
+    Implicitly use default path for HttpAdapter.
+    """
     adapter = HttpAdapter.configure('udp://example.com:8000')
 
     self.assertEqual(adapter.host, 'example.com')
@@ -106,7 +138,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_default_port_and_path(self):
-    """Implicitly use default port and path for HttpAdapter."""
+    """
+    Implicitly use default port and path for HttpAdapter.
+    """
     adapter = HttpAdapter.configure('udp://localhost')
 
     self.assertEqual(adapter.host, 'localhost')
@@ -114,7 +148,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(adapter.path, '/')
 
   def test_configure_error_missing_protocol(self):
-    """Forgetting to add the protocol to the URI."""
+    """
+    Forgetting to add the protocol to the URI.
+    """
     with self.assertRaises(InvalidUri):
       HttpAdapter.configure('localhost:14265')
 
@@ -126,12 +162,16 @@ class HttpAdapterTestCase(TestCase):
       HttpAdapter.configure('ftp://localhost:14265/')
 
   def test_configure_error_empty_host(self):
-    """Attempting to configure HttpAdapter with empty host."""
+    """
+    Attempting to configure HttpAdapter with empty host.
+    """
     with self.assertRaises(InvalidUri):
       HttpAdapter.configure('udp://:14265')
 
   def test_configure_error_non_numeric_port(self):
-    """Attempting to configure HttpAdapter with non-numeric port."""
+    """
+    Attempting to configure HttpAdapter with non-numeric port.
+    """
     with self.assertRaises(InvalidUri):
       HttpAdapter.configure('udp://localhost:iota/')
 
@@ -202,7 +242,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(text(context.exception), expected_result)
 
   def test_empty_response(self):
-    """The response is empty."""
+    """
+    The response is empty.
+    """
     adapter = HttpAdapter('localhost')
 
     mocked_response = self._create_response('')
@@ -217,7 +259,9 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(text(context.exception), 'Empty response from node.')
 
   def test_non_json_response(self):
-    """The response is not JSON."""
+    """
+    The response is not JSON.
+    """
     adapter = HttpAdapter('localhost')
 
     invalid_response  = 'EHLO iotatoken.com' # Erm...
@@ -236,7 +280,9 @@ class HttpAdapterTestCase(TestCase):
     )
 
   def test_non_object_response(self):
-    """The response is valid JSON, but it's not an object."""
+    """
+    The response is valid JSON, but it's not an object.
+    """
     adapter = HttpAdapter('localhost')
 
     invalid_response  = '["message", "Hello, IOTA!"]'
@@ -256,7 +302,9 @@ class HttpAdapterTestCase(TestCase):
 
   # noinspection SpellCheckingInspection
   def test_trytes_in_request(self):
-    """Sending a request that includes trytes."""
+    """
+    Sending a request that includes trytes.
+    """
     adapter = HttpAdapter('localhost')
 
     # Response is not important for this test; we just need to make
@@ -291,7 +339,9 @@ class HttpAdapterTestCase(TestCase):
   @staticmethod
   def _create_response(content):
     # type: (Text) -> requests.Response
-    """Creates a Response object for a test."""
+    """
+    Creates a Response object for a test.
+    """
     # :see: requests.adapters.HTTPAdapter.build_response
     response = requests.Response()
 

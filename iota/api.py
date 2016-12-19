@@ -27,7 +27,8 @@ class StrictIota(object):
   def __init__(self, adapter):
     # type: (Union[Text, BaseAdapter]) -> None
     """
-    :param adapter: URI string or BaseAdapter instance.
+    :param adapter:
+      URI string or BaseAdapter instance.
     """
     super(StrictIota, self).__init__()
 
@@ -44,7 +45,8 @@ class StrictIota(object):
     This method is useful for invoking undocumented or experimental
     methods, or if you just want to troll your node for awhile.
 
-    :param command: The name of the command to send.
+    :param command:
+      The name of the command to send.
 
     References:
       - https://iota.readme.io/docs/making-requests
@@ -85,8 +87,8 @@ class StrictIota(object):
     you'll get through the getTransactionsToApprove API call.
 
     The returned value is a different set of tryte values which you can
-    input into :py:method:`broadcast_transactions` and
-    :py:method:`store_transactions`.
+    input into :py:meth:`broadcast_transactions` and
+    :py:meth:`store_transactions`.
 
     References:
       - https://iota.readme.io/docs/attachtotangle
@@ -104,7 +106,7 @@ class StrictIota(object):
     Broadcast a list of transactions to all neighbors.
 
     The input trytes for this call are provided by
-    :py:method:`attach_to_tangle`.
+    :py:meth:`attach_to_tangle`.
 
     References:
       - https://iota.readme.io/docs/broadcasttransactions
@@ -129,10 +131,17 @@ class StrictIota(object):
     Using multiple of these input fields returns the intersection of
     the values.
 
-    :param bundles: List of transaction IDs.
-    :param addresses: List of addresses.
-    :param tags: List of tags. Each tag must be 27 trytes.
-    :param approvees: List of approvee transaction IDs.
+    :param bundles:
+      List of transaction IDs.
+
+    :param addresses:
+      List of addresses.
+
+    :param tags:
+      List of tags.
+
+    :param approvees:
+      List of approvee transaction IDs.
 
     References:
       - https://iota.readme.io/docs/findtransactions
@@ -147,8 +156,9 @@ class StrictIota(object):
   def get_balances(self, addresses, threshold=100):
     # type: (Iterable[Address], int) -> dict
     """
-    Similar to `get_inclusion_states`. Returns the confirmed balance
-    which a list of addresses have at the latest confirmed milestone.
+    Similar to :py:meth:`get_inclusion_states`. Returns the confirmed
+    balance which a list of addresses have at the latest confirmed
+    milestone.
 
     In addition to the balances, it also returns the milestone as well
     as the index with which the confirmed balance was determined.
@@ -158,7 +168,8 @@ class StrictIota(object):
     :param addresses:
       List of addresses to get the confirmed balance for.
 
-    :param threshold: Confirmation threshold.
+    :param threshold:
+      Confirmation threshold.
 
     References:
       - https://iota.readme.io/docs/getbalances
@@ -259,7 +270,7 @@ class StrictIota(object):
   def interrupt_attaching_to_tangle(self):
     # type: () -> dict
     """
-    Interrupts and completely aborts the :py:method:`attach_to_tangle`
+    Interrupts and completely aborts the :py:meth:`attach_to_tangle`
     process.
 
     References:
@@ -288,7 +299,7 @@ class StrictIota(object):
     Store transactions into local storage.
 
     The input trytes for this call are provided by
-    :py:method:`attach_to_tangle`.
+    :py:meth:`attach_to_tangle`.
 
     References:
       - https://iota.readme.io/docs/storetransactions
@@ -325,13 +336,18 @@ class Iota(StrictIota):
     balance.
 
     This is either done deterministically (by generating all addresses
-    until :py:method:`find_transactions` returns an empty
-    result and then doing :py:method:`get_balances`), or by providing a
+    until :py:meth:`find_transactions` returns an empty
+    result and then doing :py:meth:`get_balances`), or by providing a
     key range to search.
 
-    :param start:     Starting key index.
-    :param end:       Starting key index.
-    :param threshold: Minimum required balance of accumulated inputs.
+    :param start:
+      Starting key index.
+
+    :param end:
+      Starting key index.
+
+    :param threshold:
+      Minimum required balance of accumulated inputs.
 
     :return:
       Dict with the following keys::
@@ -368,8 +384,8 @@ class Iota(StrictIota):
 
     :return:
       Array containing the trytes of the new bundle.
-      This value can be provided to :py:method:`broadcastTransaction`
-      and/or :py:method:`storeTransaction`.
+      This value can be provided to :py:meth:`broadcastTransaction`
+      and/or :py:meth:`storeTransaction`.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
@@ -381,19 +397,21 @@ class Iota(StrictIota):
     """
     Generates one or more new addresses from a seed.
 
-    Note that this method always returns a list of addresses, even if
-    only one address is generated.
-
     :param index:
       Specify the index of the new address.
       If not provided, the address will generated deterministically.
 
     :param count:
       Number of addresses to generate.
-      This is more efficient than calling :py:method:`get_new_address`
+
+      Note: This is more efficient than calling ``get_new_address``
       inside a loop.
 
-    :return: List of generated addresses.
+    :return:
+      List of generated addresses.
+
+      Note that this method always returns a list, even if only one
+      address is generated.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
@@ -437,7 +455,8 @@ class Iota(StrictIota):
       This requires an additional API call to the node, so it is
       disabled by default.
 
-    :return: List of bundles.
+    :return:
+      List of bundles.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers
@@ -451,9 +470,11 @@ class Iota(StrictIota):
     with the transaction and then replays the bundle by attaching it to
     the tangle.
 
-    :param transaction: Transaction hash.  Must be a tail.
+    :param transaction:
+      Transaction hash.  Must be a tail.
 
-    :return: The bundle containing the replayed transfer.
+    :return:
+      The bundle containing the replayed transfer.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#replaytransfer
@@ -474,8 +495,11 @@ class Iota(StrictIota):
     the bundle to the Tangle, and broadcasts and stores the
     transactions.
 
-    :param depth: Depth at which to attach the bundle.
-    :param transfers: Transfers to include in the bundle.
+    :param depth:
+      Depth at which to attach the bundle.
+
+    :param transfers:
+      Transfers to include in the bundle.
 
     :param inputs:
       List of inputs used to fund the transfer.
@@ -492,7 +516,8 @@ class Iota(StrictIota):
       Min weight magnitude, used by the node to calibrate Proof of
       Work.
 
-    :return: The newly-attached bundle.
+    :return:
+      The newly-attached bundle.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtransfer
@@ -508,13 +533,15 @@ class Iota(StrictIota):
     :param trytes:
       Transaction encoded as a tryte sequence.
 
-    :param depth: Depth at which to attach the bundle.
+    :param depth:
+      Depth at which to attach the bundle.
 
     :param min_weight_magnitude:
       Min weight magnitude, used by the node to calibrate Proof of
       Work.
 
-    :return: The trytes that were attached to the Tangle.
+    :return:
+      The trytes that were attached to the Tangle.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes

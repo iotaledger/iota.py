@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from iota import StrictIota
 from iota.commands import CustomCommand
-from iota.commands.get_node_info import GetNodeInfoCommand
+from iota.commands.core.get_node_info import GetNodeInfoCommand
 from test import MockAdapter
 
 

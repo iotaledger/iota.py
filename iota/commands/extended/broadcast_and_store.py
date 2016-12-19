@@ -3,8 +3,9 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from iota.commands import FilterCommand
-from iota.commands.broadcast_transactions import BroadcastTransactionsCommand
-from iota.commands.store_transactions import StoreTransactionsCommand
+from iota.commands.core.broadcast_transactions import \
+  BroadcastTransactionsCommand
+from iota.commands.core.store_transactions import StoreTransactionsCommand
 
 __all__ = [
   'BroadcastAndStoreCommand',

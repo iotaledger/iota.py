@@ -4,10 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from iota.commands import FilterCommand, RequestFilter
-from iota.commands.attach_to_tangle import AttachToTangleCommand
-from iota.commands.broadcast_and_store import BroadcastAndStoreCommand
-from iota.commands.get_transactions_to_approve import \
+from iota.commands.core.attach_to_tangle import AttachToTangleCommand
+from iota.commands.core.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
+from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 from iota.filters import Trytes
 
 __all__ = [

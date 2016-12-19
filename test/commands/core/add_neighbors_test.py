@@ -4,14 +4,13 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-
-from iota.commands.remove_neighbors import RemoveNeighborsCommand
+from iota.commands.core.add_neighbors import AddNeighborsCommand
 from iota.filters import NodeUri
 from test import MockAdapter
 
 
-class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = RemoveNeighborsCommand(MockAdapter()).get_request_filter
+class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = AddNeighborsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   def test_pass_valid_request(self):

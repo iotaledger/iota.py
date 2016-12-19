@@ -4,18 +4,16 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-
-from iota.commands.interrupt_attaching_to_tangle import \
-  InterruptAttachingToTangleCommand
+from iota.commands.core.get_neighbors import GetNeighborsCommand
 from test import MockAdapter
 
 
-class InterruptAttachingToTangleRequestFilterTestCase(BaseFilterTestCase):
-  filter_type =\
-    InterruptAttachingToTangleCommand(MockAdapter()).get_request_filter
+class GetNeighborsRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = GetNeighborsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   def test_pass_empty(self):
+    """The request is (correctly) empty."""
     filter_ = self._filter({})
 
     self.assertFilterPasses(filter_)
@@ -25,7 +23,7 @@ class InterruptAttachingToTangleRequestFilterTestCase(BaseFilterTestCase):
     """The request contains unexpected parameters."""
     self.assertFilterErrors(
       {
-        # You're tearing me apart Lisa!
+        # Fool of a Took!
         'foo': 'bar',
       },
 

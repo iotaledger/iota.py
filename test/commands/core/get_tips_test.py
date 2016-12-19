@@ -4,9 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from filters.test import BaseFilterTestCase
-
 from iota import Address
-from iota.commands.get_tips import GetTipsCommand
+from iota.commands.core.get_tips import GetTipsCommand
 from test import MockAdapter
 
 

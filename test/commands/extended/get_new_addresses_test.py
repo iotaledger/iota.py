@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TryteString
+from iota import Address, TryteString
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -239,11 +241,11 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_index_too_small(self):
     """
-    ``index`` is less than 1.
+    ``index`` is less than 0.
     """
     self.assertFilterErrors(
       {
-        'index':  0,
+        'index':  -1,
         'seed':   TryteString(self.seed),
       },
 

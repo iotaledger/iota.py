@@ -4,12 +4,12 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import encode, decode
 from itertools import chain
-from typing import Dict, Generator, Iterable, Optional, Text, Union, List
-
-from six import PY2, binary_type
+from typing import Dict, Generator, Iterable, List, MutableSequence, \
+  Optional, Text, Union
 
 from iota import TrytesCodec
-from iota.curl import Curl
+from iota.crypto import Curl
+from six import PY2, binary_type
 
 
 __all__ = [
@@ -192,7 +192,7 @@ class TryteString(object):
     ])
 
   def __init__(self, trytes, pad=None):
-    # type: (TrytesCompatible, int) -> None
+    # type: (TrytesCompatible, Optional[int]) -> None
     """
     :param trytes:
       Byte string or bytearray.
@@ -410,7 +410,7 @@ class Address(TryteString):
 
     elif len(self._trytes) > self.LEN:
       raise ValueError(
-        'Addresses must be either {len_no_checksum} trytes (no checksum), '
+        'Address values must be {len_no_checksum} trytes (no checksum), '
         'or {len_with_checksum} trytes (with checksum).'.format(
           len_no_checksum   = self.LEN,
           len_with_checksum = self.LEN + AddressChecksum.LEN,
@@ -440,13 +440,17 @@ class Address(TryteString):
   def _generate_checksum(self):
     # type: () -> TryteString
     """
-    Generates the actual checksum for this address.
+    Generates the correct checksum for this address.
     """
-    return TryteString.from_trits(
-      # Multiply by 3 because AddressChecksum.LEN is number of trytes,
-      # but Curl returns trits.
-      Curl(self.address.as_trits())[:AddressChecksum.LEN * 3]
-    )
+    # Multiply by 3 because AddressChecksum.LEN is number of trytes,
+    # but Curl returns trits.
+    checksum_trits = [0] * (AddressChecksum.LEN * 3) # type: MutableSequence[int]
+
+    sponge = Curl()
+    sponge.absorb(self.address.as_trits())
+    sponge.squeeze(checksum_trits)
+
+    return TryteString.from_trits(checksum_trits)
 
 
 class AddressChecksum(TryteString):
@@ -457,10 +461,15 @@ class AddressChecksum(TryteString):
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
-    super(AddressChecksum, self).__init__(trytes)
+    super(AddressChecksum, self).__init__(trytes, pad=None)
 
     if len(self._trytes) != self.LEN:
-      raise ValueError('Address checksums must be exactly 9 trytes.')
+      raise ValueError(
+        '{cls} values must be exactly {len} trytes long.'.format(
+          cls = type(self).__name__,
+          len = self.LEN,
+        ),
+      )
 
 
 class Tag(TryteString):
@@ -474,7 +483,10 @@ class Tag(TryteString):
     super(Tag, self).__init__(trytes, pad=self.LEN)
 
     if len(self._trytes) > self.LEN:
-      raise ValueError('Tags must be 27 trytes long.')
+      raise ValueError('{cls} values must be {len} trytes long.'.format(
+        cls = type(self).__name__,
+        len = self.LEN
+      ))
 
 
 class TransactionId(TryteString):
@@ -488,7 +500,10 @@ class TransactionId(TryteString):
     super(TransactionId, self).__init__(trytes, pad=self.LEN)
 
     if len(self._trytes) > self.LEN:
-      raise ValueError('TransactionIds must be 81 trytes long.')
+      raise ValueError('{cls} values must be {len} trytes long.'.format(
+        cls = type(self).__name__,
+        len = self.LEN
+      ))
 
 
 class Transfer(object):

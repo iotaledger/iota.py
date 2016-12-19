@@ -26,13 +26,16 @@ class GetNewAddressesCommand(FilterCommand):
   def get_response_filter(self):
     pass
 
+  def _send_request(self, request):
+    pass
+
 
 class GetNewAddressesRequestFilter(RequestFilter):
   def __init__(self):
     super(GetNewAddressesRequestFilter, self).__init__(
       {
         'count':  f.Type(int) | f.Min(1) | f.Optional(1),
-        'index':  f.Type(int) | f.Min(1),
+        'index':  f.Type(int) | f.Min(0),
         'seed':   f.Required | Trytes,
       },
 

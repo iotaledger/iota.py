@@ -183,7 +183,7 @@ class TryteStringTestCase(TestCase):
 
   def test_init_error_invalid_characters(self):
     """
-    Attempting to initialize a TryteString with a value that contains
+    Attempting to reset a TryteString with a value that contains
     invalid characters.
     """
     with self.assertRaises(ValueError):
@@ -192,7 +192,7 @@ class TryteStringTestCase(TestCase):
   # noinspection PyTypeChecker
   def test_init_error_int(self):
     """
-    Attempting to initialize a TryteString from an int.
+    Attempting to reset a TryteString from an int.
     """
     with self.assertRaises(TypeError):
       TryteString(42)

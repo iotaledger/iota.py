@@ -444,7 +444,7 @@ class Iota(StrictIota):
     """
     raise NotImplementedError('Not implemented yet.')
 
-  def replay_transfer(self, transaction):
+  def replay_bundle(self, transaction):
     # type: (TransactionId) -> Bundle
     """
     Takes a tail transaction hash as input, gets the bundle associated

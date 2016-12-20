@@ -26,16 +26,16 @@ class KeyGeneratorTestCase(TestCase):
   References:
     - http://stackoverflow.com/a/1751478/
   """
-  def test_generate_single_key(self):
+  def test_get_keys_single(self):
     """
     Generating a single key.
     """
-    ag = KeyGenerator(
+    kg = KeyGenerator(
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999ZTRFNBTRBSDIHWKOWCFBOQYQTENWL',
     )
 
     self.assertListEqual(
-      ag.get_keys(0),
+      kg.get_keys(start=0),
 
       # Note that the result is always a list, even when generating a
       # single key.
@@ -80,7 +80,7 @@ class KeyGeneratorTestCase(TestCase):
     )
 
     self.assertListEqual(
-      ag.get_keys(1),
+      kg.get_keys(start=1),
 
       [
         SigningKey(
@@ -127,7 +127,7 @@ class KeyGeneratorTestCase(TestCase):
     # Note: this can be a slow process, so we'll keep the numbers small
     # so that tests don't take too long.
     self.assertListEqual(
-      ag.get_keys(13),
+      kg.get_keys(start=13),
 
       [
         SigningKey(
@@ -169,18 +169,16 @@ class KeyGeneratorTestCase(TestCase):
       ],
     )
 
-  def test_generate_multiple_keys(self):
+  def test_get_keys_multiple(self):
     """
     Generating multiple keys in one go.
     """
-    ag = KeyGenerator(
+    kg = KeyGenerator(
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999TPXGCGPRTMI9QQNCW9PKWTAAOPYHU',
     )
 
     self.assertListEqual(
-      # ``get_keys`` parameters have the same behavior as slices.
-      # I.E., ``ag.get_keys(1, 3) == ag[1:3]``.
-      ag.get_keys(1, 3),
+      kg.get_keys(start=1, count=2),
 
       [
         SigningKey(
@@ -259,18 +257,143 @@ class KeyGeneratorTestCase(TestCase):
       ],
     )
 
+  def test_get_keys_error_start_too_small(self):
+    """
+    Providing a negative ``start`` value to ``get_keys``.
+
+    :py:class:`KeyGenerator` can potentially generate an infinite
+    number of keys, so there is no "end" to offset against.
+    """
+    kg = KeyGenerator(seed=b'')
+
+    with self.assertRaises(ValueError):
+      kg.get_keys(start=-1)
+
+  def test_get_keys_error_count_too_small(self):
+    """
+    Providing a ``count`` value less than 1 to ``get_keys``.
+
+    :py:class:`KeyGenerator` can potentially generate an infinite
+    number of keys, so there is no "end" to offset against.
+    """
+    kg = KeyGenerator(seed=b'')
+
+    with self.assertRaises(ValueError):
+      kg.get_keys(start=42, count=0)
+
+  def test_get_keys_error_step_zero(self):
+    """
+    Providing a ``step`` value of 0 to ``get_keys``.
+    """
+    kg = KeyGenerator(seed=b'')
+
+    with self.assertRaises(ValueError):
+      kg.get_keys(start=42, step=0)
+
+  def test_get_keys_step_negative(self):
+    """
+    Providing a negative ``step`` value to ``get_keys``.
+
+    This is probably a weird use case, but what the heck.
+    """
+    kg = KeyGenerator(
+      seed = b'TESTSEED9DONTUSEINPRODUCTION99999JKOJGZVGHCUXXGFZEMMGDSGWDCKJX',
+    )
+
+    self.assertListEqual(
+      kg.get_keys(start=1, count=2, step=-1),
+
+      # This is the same as ``kg.get_keys(start=0, count=2)``, except
+      # the order is reversed.
+      [
+        SigningKey(
+          b'ODJGKFVKDKETMOUH9OCDBIDQCEMEDVKMEOIKSDTIQFECONPDCZUITROKXYCTNEMVQI'
+          b'KZWKIJQZVYEAEUFGWAZUJEQMZLBPPYLJYEBOEZNYDFWKLYB9S9GTVZOXGGQ9CVYVVX'
+          b'ZNIPHGIARTYMUXOJVTQZSASWVK9CSRUJODBJRPCCDDFEPZRNYHIGMFRFXAFGPMACLZ'
+          b'WTNBVFISOJGBYRBONVFSLUWNZGERXLOCWRSNDFSZHKZMKVQDUXALLWDDOZZAEEXDDK'
+          b'SXBZC9NDTIKMEZE9ZMDLUVFXKFPEZGPSFVHLQXLVZNCQGITVJKOABSRXALRMECHAZS'
+          b'EXXDKEKLHXYVG9U9FZXWQHRGZKDUIA9XACNYPPWWLTXTGEAGXCQV9ZRA9OTGQVVWTG'
+          b'OMHKSOA9YYBHZFNUGX9YF9LBXHK9DFFNIESPRMVESGMIXPNGOJLWMBAXIRIDQNPSLQ'
+          b'XFELX9QDANRNJYKQLSOFUFQKSXWFGOB9HZQZDND9TKWYONT9LPWMUSYBZNRXJQLWDH'
+          b'JMDODMYPHNWACOQG9ROBLJJCDDEJHWFXAJAGTILEO9BODJJMFYJPOK9DMTXCFAGSEJ'
+          b'BMJQTPCETXDRKKUGWHDND9SGZZZDNFNVWYJYRDWPGIQZJMKQAEZPHIEZUVXIHHUWQN'
+          b'TI9YMTVWZBHKZJVJJEPUNEACXMOKZXDKDSRMLYSETAHODDZGFDW9BQRQ9ULXSSQRQN'
+          b'RYCRL9YJQZYHBSTXHGVQLNIXBETRHZQNYZPDNPMHXIQZVLHZUVYWXHPNWVMAIAJYHF'
+          b'DSF9XKYLGPEOQCVEFBIMBNSMUVLEWOMBOTPNGOLWKFUHQWLFTEBKUPZSAXHLK9JIKY'
+          b'CNPLLDTLGNJUNELVRIKPXPONORRXUHKIA9BWFRKATZZHHISN9GWBEKCZXLLXVAZPVT'
+          b'OBGGUYPAGLPCD9HADLEIBWGWALONELBMZU9HGDBRXPHL9TFU9EPRGUUZQKPPHJRFBC'
+          b'C9LNXCKGDRZMWJSGSMWI9VDQGKXEULXWTMROCADMYBFWBEGQXTANPOPAWEQAKYNHLO'
+          b'LGALTNSIEZJXHIMRQPBJKDOCMZSNQMDKMOQMXRVULJCPEBNK9ELRAZ9XTCKCKUJKLH'
+          b'FNBVFKYCTKELJSKCDVOOACVEAFPFUIZNXUES9KRVPSVMXVFLYVN9UQCNKWMJAAJA9E'
+          b'DSYFEUUJTNTAOUZXVAUDNZBC9WCUJ9QNWMSWWIQXKUNNFUUUJXWAPOQDBKVXDUVERI'
+          b'AXMCSUFLSRIFAYBNU9FDPVGOZOU9HYK9NUUV9WOLHVETGNASJPRHKBTFFURRIXWRPP'
+          b'RXBOPZZYUFCVHZYBR9DXKSPVAKJKMSSBHOXKTAGTEUUCGDAZWWXQT9QJZQEASYJKTF'
+          b'SBCXRJQBSACBPNCTAHEZQSNYCEJGVEDK9VTSDR9NYIBMQDUSCMMARWBWTVTYUMTVMU'
+          b'TCIRIYGSGSLUUABTVBNAGQ99HSFTMJDMEUFNTDUKBCXWVLPEAHDIQREFBWKZXRUTRV'
+          b'OARCTDNCSPLVP9YAJKFJZG9MVMNIKMBNKT9NEPNRMCAYNPNSYDVOJEFJOMAIEUOPUA'
+          b'DOFCJBZBULOMFHQCQUDTPNYC9GV9LHSUYFNAEWCIUCNWERVIAKBMPNFKOXGMOMWUV9'
+          b'9DCI9HFOGWELJUEBHKOBT9DFXRUNJIFIHJWSUIMRBOUGUVR9QUIJOZ9FKABGGKOOFS'
+          b'QATVJEJVUTXIU9NXLUHFCOVHRV9AGBUMBGGBJQKVFZFCDWOVGPZAIAKMKQYQFXLNNS'
+          b'PPYNGFVYPZZFCCCF9FPJMDBCCMQHANYURFWEZQIAYCCRIGQETJLUOFKPVC9ESXMGAC'
+          b'SUQZNWNLQTTKRJ9QMAXPFFGNYHALLPIVNCEPMJFEYPVPXYGKYMJNQESUUWRICVFPTV'
+          b'VOOGJFJB9T9KZRAPYHIHLXA9HGKSRTEGNHCUWZPUSIQOTFWEMHCHBEYFXXFWJTSQIC'
+          b'RKRJIBBVEGGNILSTXROYHEXKQBWALNKPMAFSTVCOSOTOKVFRVMFTXGQKOZJRDICBRF'
+          b'TOMK9FDMKAWUSKJDEVHCSHNLK9IHODD9ZIHXBCKV9QDEIRTKYPLEZLPHCBGCNXUJCL'
+          b'EQFHFJDLXIL9P9WRSBKVFTZXMZEIHWJWJJVSEJZTUDAOXULUB9OJZQHEVD9DTFKDTF'
+          b'KVEPFJDTR'
+        ),
+
+        SigningKey(
+          b'TIOBFKKFAELHQOCLGJBGJZWVNSZMBPK9D9GTBZWDJBFFIKJWJBKIAAAAPDMYOCPDRN'
+          b'BMK9QGJZAMIQZKSBNVVDLIVNRYVWQSHSJZZNGJGWNHGDMYCDZLIIUAPIPBKYSWIFNP'
+          b'ZLVUGCN9MIQTYFYJWVIKXOUOFHAMCYZEVBHYABYPEQHXPHIPM9NWENCXRLUYQFILME'
+          b'HZYQUAOCIT9HZUDRLNOJPZGWURENUPQFG9CJCAKZRRNKICSUCLYWVEFDLMXIVQCBDP'
+          b'RQXLSCFVRIZBDCWENUPAIEWKZLTIUWLWFGOAQRVANDCTVTDWKJOGNICUOUGVQAHKRR'
+          b'EGIDORXMBADYNBXLEUMP9PK9TAMVBJEFGFGCXQZQSJNUBOUUCKDYMUAVOJIWMDA9LF'
+          b'WPDZHSOMXJFUFCXUIVHRMDCOVSRO9ACUHNEAWCPQCEYVRTMGJWARYYNEYUXQQLQDPS'
+          b'RAABZ9WYQUQDCOOYBZYBXDEMINQHLWKXLLOUCRTAWLGSCZTASUVIJJBVDUPTNMOBIY'
+          b'BC9CVDPJNGTBOZZHLDWIGLAHYQVKNWKQQXBY9GPSD9R9KZWNNUDDYXYXJHNDURRTJF'
+          b'9NXPMVGVSEEHNOKESYRVFBMJGHQLGHGTTEBEPMWW9JNOMKFTVJR9VHHWEXEOAIBNQI'
+          b'CFNUXLTZCYHHLADHHHAQHSWDTEVUGXHPMUDSIKGZHRMDDLBPZYNNHUXTSUBWUWZMDF'
+          b'999AKZSRZLAKVDQVWWTN9DPNAMHCJENMKMS9ISTDLB9PBBJVPTHAEX99JZQQXPPCS9'
+          b'PIOHNVUWINMCLVZVAO9SDEKIQOLZFDOCIQKNPLR9EEEVX9TSNWIP9GOBLWUCUVGTJI'
+          b'WTZKLWRQTCXZNDFSMJTHSEGNDRMTJP9UQBLZSNWWI9DPI9XPPCDBW9SJIKHODBMJNM'
+          b'HIEEHLJXOXVUTSWXJ9IPGGCVKLSNVVVNJC9Q9CJYHGGCMGUCBMBIVAODZVANGATWI9'
+          b'GJFJBTBGFGIDKJUHRXGNVFJCMCADBYKKGAOOCDIXTBKBRQFVCVGPTSEZFTXIMT9PUX'
+          b'QECAOKJZOPDHXZTFVNNUKUGGZMLVNZYFSHSYWKNXNIIHRBCRGMHVWSWMTS9DCTNLMG'
+          b'ONAP9EIAUDDZ9HZLITHGENXAWZMXJWUARORECXLWSNWCBOSEUMAQGGIISHXWUZ9A9M'
+          b'WATL9IZNLH9JJCGAZGJMNEAOWRODWE9DXGPCOVCQGGJOGCH9AA9NFKHYJLCDWUFCNF'
+          b'WQNZC9PYPGHNPSWT9DZEFUZFPOTNLDLQSRCTSG9YHFWVNDVTGPGGPC9OYOGEUDAGFV'
+          b'OMVZDQXSWYFAYRSHEZ9PNZMIJPQMYXLIXHYEHZTFSDMCUCKMABZKAMZFUXOGIGHRUG'
+          b'XABWWL9GRWPATDHEEMOJEMJSSVWKNVOYLQHXUVHIAMMQDEWNWAOPJXBAQVKCBIXDYO'
+          b'DSPKQHOBVSJNHALPEYCJAZCGWKSXLZZQXYD9ZXAJOOXNB9WEKKVLFFISCBIEIEHJMU'
+          b'OLMZP9VTHGXDYPQVQO9FYTPMAYDWRRAOQGBDFCEWBXQGLYXGBHCDNDKEVJPWDCYDCR'
+          b'HZVXTSOSNFXCVZWFJMCSMMUTWMBVDLIUDYTELXUKFSHXH9VKBQAXFPZOKDJBF9LJAF'
+          b'TR9MYBJLRADSLKU9VVAAPYYEZBRQYKPHGQQHFTYPZUIFIWMWVESRZXPIAIAFQIBKEZ'
+          b'DIIVTJMHDTPZBQVXSLPTPZBCYVJFYKETYIJQSURIDGRLYZHQKNWKMWKTVTSBFVUZFS'
+          b'QXUAKQE9AGO9JHBDYCMTGDIRKWJCACCJLWKFOKLAIYBXMPF9XHCT9SWETORWSDLBPY'
+          b'HSIFZBREQLVLSARPYAFRQUDXYRB999FZFOILTR9GZDTVEFXOQZCAX9FQJRXOSXF9S9'
+          b'KWJJSRIBDKKPPLWWXPJDLXYUTTRPZBCJRRWLIUEZKOBEAWUVVHKVEEQUKK9MMWWCLI'
+          b'GEC9LMBXBJ9HSJR9OBWOLUKSXRJAJAIPXXASTICFAYELQEOIRQZKXHPWOSXGEUNQED'
+          b'VUZNFZ9T9CSECMDQ9ENSXLFNONKZNCNCCQGIJQAKSJSKFUXXSYWVNBFTGKLDMALNHD'
+          b'WYGBJ99Y9OSENWWKYPWP9IKFSMRFI9QCEFTUZKZTZRHHNXXMEPBGBWHBKYRSCHQ9U9'
+          b'JJTUIQBXZ'
+        )
+      ],
+    )
+
   def test_iterations(self):
     """
     Using more iterations to generate longer, more secure keys.
     """
-    ag = KeyGenerator(
+    kg = KeyGenerator(
       # Using the same seed as the previous test, just to make sure the
       # key generator doesn't cheat.
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999TPXGCGPRTMI9QQNCW9PKWTAAOPYHU',
     )
 
     self.assertListEqual(
-      ag.get_keys(start=1, iterations=2),
+      kg.get_keys(start=1, iterations=2),
 
       [
         # 2 iterations = key is twice as long!
@@ -350,11 +473,11 @@ class KeyGeneratorTestCase(TestCase):
     """
     Creating a generator.
     """
-    ag = KeyGenerator(
+    kg = KeyGenerator(
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999IPKZWMLYYOLWBJGINLSO9EEYQMCUJ',
     )
 
-    generator = ag.create_generator()
+    generator = kg.create_generator()
 
     self.assertEqual(
       next(generator),
@@ -442,11 +565,11 @@ class KeyGeneratorTestCase(TestCase):
     """
     Creating a generator that starts at an offset greater than 0.
     """
-    ag = KeyGenerator(
+    kg = KeyGenerator(
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999FFRFYAMRNWLGSGZNYUJNEBNWJQNYF',
     )
 
-    generator = ag.create_generator(start=3, step=2)
+    generator = kg.create_generator(start=3, step=2)
 
     self.assertEqual(
       next(generator),
@@ -535,13 +658,13 @@ class KeyGeneratorTestCase(TestCase):
     Creating a generator that uses multiple iterations in order to
     create longer keys.
     """
-    ag = KeyGenerator(
+    kg = KeyGenerator(
       # Using the same seed as the previous test, just to make sure the
       # key generator doesn't cheat.
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999FFRFYAMRNWLGSGZNYUJNEBNWJQNYF',
     )
 
-    generator = ag.create_generator(start=3, iterations=2)
+    generator = kg.create_generator(start=3, iterations=2)
 
     self.assertEqual(
       next(generator),

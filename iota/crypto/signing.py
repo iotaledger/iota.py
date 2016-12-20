@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, List, MutableSequence, Optional
+from typing import Generator, List, MutableSequence
 
 from iota import TryteString, TrytesCompatible
 from iota.crypto import Curl, HASH_LENGTH
@@ -125,8 +125,8 @@ class KeyGenerator(object):
 
     self.seed = Seed(seed).as_trits()
 
-  def get_keys(self, start, stop=None, step=1, iterations=1):
-    # type: (int, Optional[int], int, int) -> List[SigningKey]
+  def get_keys(self, start, count=1, step=1, iterations=1):
+    # type: (int, int, int, int) -> List[SigningKey]
     """
     Generates and returns one or more keys at the specified index(es).
 
@@ -140,13 +140,15 @@ class KeyGenerator(object):
 
     :param start:
       Starting index.
+      Must be >= 0.
 
-    :param stop:
-      Stop before this index.
-      If ``None``, only generate a single key.
+    :param count:
+      Number of keys to generate.
+      Must be > 0.
 
     :param step:
       Number of indexes to advance after each key.
+      This may be any non-zero (positive or negative) integer.
 
     :param iterations:
       Number of _transform iterations to apply to each key.
@@ -157,12 +159,21 @@ class KeyGenerator(object):
 
     :return:
       Always returns a list, even if only one key is generated.
+
+      The returned list will contain ``count`` keys, except when
+      ``step * count < start`` (only applies when ``step`` is
+      negative).
     """
+    if count < 1:
+      raise ValueError('``count`` must be positive.')
+
+    if not step:
+      raise ValueError('``step`` must not be zero.')
+
     generator = self.create_generator(start, step, iterations)
-    interval  = range(start, start+1 if stop is None else stop, step)
 
     keys = []
-    for _ in interval:
+    for _ in range(count):
       try:
         next_key = next(generator)
       except StopIteration:
@@ -200,6 +211,9 @@ class KeyGenerator(object):
       Increasing this value makes key generation slower, but more
       resistant to brute-forcing.
     """
+    if start < 0:
+      raise ValueError('``start`` cannot be negative.')
+
     current = start
 
     while current >= 0:

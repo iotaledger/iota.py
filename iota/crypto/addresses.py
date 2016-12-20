@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterable, List, MutableSequence, Optional, Union
+from typing import Generator, Iterable, List, MutableSequence
 
 from iota import Address, TryteString, TrytesCompatible
 from iota.crypto import Curl
@@ -33,40 +33,16 @@ class AddressGenerator(Iterable[Address]):
 
     self.seed = TryteString(seed)
 
-  def __getitem__(self, slice_):
-    # type: (Union[int, slice]) -> Union[Address, List[Address]]
-    """
-    Generates and returns one or more addresses at the specified
-    index(es).
-
-    :param slice_:
-      Index of address to generate, or a slice.
-
-      Warning: This method may take awhile to run if the requested
-      index(es) is a large number!
-
-    :return:
-      Behavior matches slicing behavior of other collections:
-
-      - If an int is provided, a single address will be returned.
-      - If a slice is provided, a list of addresses will be returned.
-    """
-    return (
-      self.get_addresses(slice_.start, slice_.stop, slice_.step)
-        if isinstance(slice_, slice)
-        else self.get_addresses(slice_)[0]
-    )
-
   def __iter__(self):
     # type: () -> Generator[Address]
     """
     Returns a generator for creating new addresses, starting at index
     0 and potentially continuing on forever.
     """
-    return self.create_generator(0)
+    return self.create_generator()
 
-  def get_addresses(self, start, stop=None, step=1):
-    # type: (int, Optional[int], int) -> List[Address]
+  def get_addresses(self, start, count=1, step=1):
+    # type: (int, int, int) -> List[Address]
     """
     Generates and returns one or more addresses at the specified
     index(es).
@@ -81,22 +57,33 @@ class AddressGenerator(Iterable[Address]):
 
     :param start:
       Starting index.
+      Must be >= 0.
 
-    :param stop:
-      Stop before this index.  This value must be positive.
-      If ``None`` (default), only generate a single address.
+    :param count:
+      Number of addresses to generate.
+      Must be > 0.
 
     :param step:
       Number of indexes to advance after each address.
+      This may be any non-zero (positive or negative) integer.
 
     :return:
       Always returns a list, even if only one address is generated.
+
+      The returned list will contain ``count`` addresses, except when
+      ``step * count < start`` (only applies when ``step`` is
+      negative).
     """
+    if count < 1:
+      raise ValueError('``count`` must be positive.')
+
+    if not step:
+      raise ValueError('``step`` must not be zero.')
+
     generator = self.create_generator(start, step)
-    interval  = range(start, start+1 if stop is None else stop, step)
 
     addresses = []
-    for _ in interval:
+    for _ in range(count):
       try:
         next_key = next(generator)
       except StopIteration:
@@ -106,7 +93,7 @@ class AddressGenerator(Iterable[Address]):
 
     return addresses
 
-  def create_generator(self, start, step=1):
+  def create_generator(self, start=0, step=1):
     # type: (int, int) -> Generator[Address]
     """
     Creates a generator that can be used to progressively generate new
@@ -124,14 +111,15 @@ class AddressGenerator(Iterable[Address]):
       Warning: The generator may take awhile to advance between
       iterations if ``step`` is a large number!
     """
-    key_generator = (
-      KeyGenerator(self.seed)
-        .create_generator(start, step, iterations=self.DIGEST_ITERATIONS)
-    )
+    if start < 0:
+      raise ValueError('``start`` cannot be negative.')
 
-    while True:
-      signing_key = next(key_generator) # type: SigningKey
-      digest      = signing_key.get_digest_trits()
+    digest_generator = self._create_digest_generator(start, step)
+
+    current = start
+
+    while current >= 0:
+      digest = next(digest_generator) # type: List[int]
 
       # Multiply by 3 to convert from trits to trytes.
       address_trits = [0] * (Address.LEN * 3) # type: MutableSequence[int]
@@ -141,3 +129,22 @@ class AddressGenerator(Iterable[Address]):
       sponge.squeeze(address_trits)
 
       yield Address.from_trits(address_trits)
+
+      current += step
+
+  def _create_digest_generator(self, start, step):
+    # type: (int, int) -> Generator[SigningKey]
+    """
+    Initializes a generator to create SigningKey digests.
+
+    Implemented as a separate method so that it can be mocked during
+    unit tests.
+    """
+    key_generator = (
+      KeyGenerator(self.seed)
+        .create_generator(start, step, iterations=self.DIGEST_ITERATIONS)
+    )
+
+    while True:
+      signing_key = next(key_generator) # type: SigningKey
+      yield signing_key.get_digest_trits()

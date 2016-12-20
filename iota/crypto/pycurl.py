@@ -94,11 +94,15 @@ class Curl(object):
     state_length  = STATE_LENGTH
     truth_table   = TRUTH_TABLE
 
-    # Optimization for Python 2
+    # Optimization: Ensure that we use a generator to create ranges.
     if PY2:
+      # In Python 2, ``range`` returns a list, while ``xrange`` returns
+      # a generator.
       # noinspection PyUnresolvedReferences
       range_ = xrange
     else:
+      # In Python 3, ``range`` returns a generator, and ``xrange`` is
+      # baleeted.
       range_ = range
 
     # Operate on a copy of ``self._state`` to avoid the number of dot

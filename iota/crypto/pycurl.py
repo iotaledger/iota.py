@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from math import ceil
 from typing import List, MutableSequence, Optional, Sequence
 
 from six import PY2
@@ -55,7 +54,7 @@ class Curl(object):
       # Copy the next hash worth of trits to internal state.
       self._state[0:stop-start] = trits[start:stop]
 
-      # Transform
+      # Transform.
       self._transform()
 
       # Move on to the next hash.
@@ -72,13 +71,16 @@ class Curl(object):
       Note: this object will be modified!
     """
     # Squeeze is kind of like the opposite of absorb; it copies trits
-    # from internal state to the ``trits`` parameter.
+    # from internal state to the ``trits`` parameter, one hash at a
+    # time, and transforming internal state in between hashes.
     # However, internal state is always exactly 1 hash in length, so
     # the implementation can be simplified somewhat.
 
     # Note that we copy at most len(trits) trits!
     length = min(HASH_LENGTH, len(trits))
     trits[0:length] = self._state[0:length]
+
+    # One hash worth of trits copied; now transform.
     self._transform()
 
   def _transform(self):

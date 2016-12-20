@@ -2,82 +2,81 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Generator, List
 from unittest import TestCase
 
-from iota import Address
+from mock import patch
+
+from iota import Address, TryteString
 from iota.crypto.addresses import AddressGenerator
 
 
 # noinspection SpellCheckingInspection
 class AddressGeneratorTestCase(TestCase):
+  def setUp(self):
+    super(AddressGeneratorTestCase, self).setUp()
+
+    # Addresses that correspond to the digests defined in
+    # :py:meth:`_mock_digest_gen`.
+    self.addy0 =\
+      Address(
+        b'VOPYUSDRHYGGOHLAYDWCLLOFWBLK99PYYKENW9IQ'
+        b'IVIOYMLCCPXGICDBZKCQVJLDWWJLTTUVIXCTOZ9TN'
+      )
+
+    self.addy1 =\
+      Address(
+        b'SKKMQAGLZMXWSXRVVRFWMGN9TIXDACQMCXZJRPMS'
+        b'UFNSXMFOGEBZZPUJBVKVSJNYPSGSXQIUHTRKECVQE'
+      )
+
+    self.addy2 =\
+      Address(
+        b'VMMFSGEYJ9SANRULNIMKEZUYVRTWMVR9UKCYDZXW'
+        b'9TENBWIRMFODOSNMDH9QOVBLQWALOHMSBGEVIXSXY'
+      )
+
+    self.addy3 =\
+      Address(
+        b'G9PLHPOMET9NWIBGRGMIF9HFVETTWGKCXWGFYRNG'
+        b'CFANWBQFGMFKITZBJDSYLGXYUIQVCMXFWSWFRNHRV'
+      )
+
+
   def test_get_addresses_single(self):
     """
     Generating a single address.
     """
-    ag = AddressGenerator(
-      seed = b'ITJVZTRFNBTRBSDIHWKOWCFBOQYQTENWLRUVHIBCBRTXYGDCCLLMM9DI9OQO',
-    )
+    # Seed is not important for this test; it is only used by
+    # :py:class:`KeyGenerator`, which we will mock in this test.
+    ag = AddressGenerator(seed=b'')
 
-    self.assertListEqual(
-      ag.get_addresses(start=0),
+    # noinspection PyUnresolvedReferences
+    with patch.object(ag, '_create_digest_generator', self._mock_digest_gen):
+      addresses = ag.get_addresses(start=0)
 
-      [
-        Address(
-          b'QIMWUZUX9RBGQZQDMAVBHLMUP9SHRUDYACNRRRBX'
-          b'QWRLTYFHDLQKYVHLLGBLSSKACNRIQJVX99OUFNUFE'
-        ),
-      ],
-    )
+    self.assertListEqual(addresses, [self.addy0])
 
-    self.assertListEqual(
-      ag.get_addresses(start=1),
+    # noinspection PyUnresolvedReferences
+    with patch.object(ag, '_create_digest_generator', self._mock_digest_gen):
+      # You can provide any positive integer as the ``start`` value.
+      addresses = ag.get_addresses(start=2)
 
-      [
-        Address(
-          b'IGNEVQHYMVIMZB9XZAFQT9EMDGQJZQUKIVWGOESQ'
-          b'DFDOEG9YQUPPD9MSKGDLP9QIHKGOSQZ9PTPEAZGNK'
-        ),
-      ],
-    )
-
-    # You can request an address at any arbitrary index, and the result
-    # will always be consistent (assuming the seed doesn't change).
-    # Note: this can be a slow process, so we'll keep the numbers small
-    # so that tests don't take too long.
-    self.assertListEqual(
-      ag.get_addresses(start=13),
-
-      [
-        Address(
-          b'VYJG9FMDTLHJXWXSEMIXJGMNCXWVNKQVBXUCWYLF'
-          b'FYBBWUXNTECCHZQRA9WWHOKTYVRZTQAVFAKBQRXPJ'
-        ),
-      ],
-    )
+    self.assertListEqual(addresses, [self.addy2])
 
   def test_get_addresses_multiple(self):
     """
     Generating multiple addresses in one go.
     """
-    ag = AddressGenerator(
-      seed = b'TESTSEED9DONTUSEINPRODUCTION99999TPXGCGPRTMI9QQNCW9PKWTAAOPYHU',
-    )
+    # Seed is not important for this test; it is only used by
+    # :py:class:`KeyGenerator`, which we will mock in this test.
+    ag = AddressGenerator(seed=b'')
 
-    self.assertListEqual(
-      ag.get_addresses(start=1, count=2),
+    # noinspection PyUnresolvedReferences
+    with patch.object(ag, '_create_digest_generator', self._mock_digest_gen):
+      addresses = ag.get_addresses(start=1, count=2)
 
-      [
-        Address(
-          b'AZNEMINAIYSTVTTLPJOXSECRCYJUNUSHDPKKHLJA'
-          b'SHU9DAYROZP99ZHMCERMKHGALVUJQPGGK9TDMBHMB'
-        ),
-
-        Address(
-          b'LOBJATMDBWOZWXZESPPCGFPCHKGAVWRYREQLCKAC'
-          b'DOUDVDFVFJMIAOZZQHYCCQUOXWZOGEIL9HYFHDQ9S'
-        ),
-      ],
-    )
+    self.assertListEqual(addresses, [self.addy1, self.addy2])
 
   def test_get_addresses_error_start_too_small(self):
     """
@@ -118,80 +117,79 @@ class AddressGeneratorTestCase(TestCase):
 
     This is probably a weird use case, but what the heck.
     """
-    ag = AddressGenerator(
-      seed = b'TESTSEED9DONTUSEINPRODUCTION99999GIDXIZGHXKLOMIQVQRFSRUGYDWZA9',
-    )
+    # Seed is not important for this test; it is only used by
+    # :py:class:`KeyGenerator`, which we will mock in this test.
+    ag = AddressGenerator(seed=b'')
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(ag, '_create_digest_generator', self._mock_digest_gen):
+      addresses = ag.get_addresses(start=1, count=2, step=-1)
 
     self.assertListEqual(
-      ag.get_addresses(start=1, count=2, step=-1),
+      addresses,
 
       # This is the same as ``ag.get_addresses(start=0, count=2)``, but
       # the order is reversed.
-      [
-        Address(
-          b'OEEOXMWT99FDFSXJYCKXZ9YKHDVJYWLMYFGWKWTB'
-          b'LELJPTRZULNTCMIUY9GEGJF9OVIAYJOVKXVPCQGLZ'
-        ),
-
-        Address(
-          b'TZIXDQENXNLLVIRAQFZOEZKKZDWJIVJCUH9APDTF'
-          b'9BNXQUBJAUXZANSBPISZUCBSYQ9UKVAZNEMOKFKOA'
-        ),
-      ],
+      [self.addy1, self.addy0],
     )
 
   def test_generator(self):
     """
     Creating a generator.
     """
-    ag = AddressGenerator(
-      seed = b'TESTSEED9DONTUSEINPRODUCTION99999IPKZWMLYYOLWBJGINLSO9EEYQMCUJ',
-    )
+    # Seed is not important for this test; it is only used by
+    # :py:class:`KeyGenerator`, which we will mock in this test.
+    ag = AddressGenerator(seed=b'')
 
-    generator = ag.create_generator()
+    # noinspection PyUnresolvedReferences
+    with patch.object(ag, '_create_digest_generator', self._mock_digest_gen):
+      generator = ag.create_generator()
 
-    self.assertEqual(
-      next(generator),
-
-      Address(
-        b'EFJQQFBNRDDEB9PFSOJTXZGXPVPEZUGWAUWGFEXV'
-        b'NQEQE9PTXHGIWKDXAHBQGRHSFQQAJORUBGRKVXVNC'
-      ),
-    )
-
-    self.assertEqual(
-      next(generator),
-
-      Address(
-        b'UIFOSKQQMEFFCHOCDRZPXGTDXUJLBTVYELZQXOQ9'
-        b'DOOHIUFMIXJZFWMQXGNHJNZ9XHTNNSQCGLQBMNDPJ'
-      ),
-    )
+      self.assertEqual(next(generator), self.addy0)
+      self.assertEqual(next(generator), self.addy1)
+      # ... ad infinitum ...
 
   def test_generator_with_offset(self):
     """
     Creating a generator that starts at an offset greater than 0.
     """
-    ag = AddressGenerator(
-      seed = b'TESTSEED9DONTUSEINPRODUCTION99999FFRFYAMRNWLGSGZNYUJNEBNWJQNYF',
-    )
+    # Seed is not important for this test; it is only used by
+    # :py:class:`KeyGenerator`, which we will mock in this test.
+    ag = AddressGenerator(seed=b'')
 
-    generator = ag.create_generator(start=3, step=2)
+    # noinspection PyUnresolvedReferences
+    with patch.object(ag, '_create_digest_generator', self._mock_digest_gen):
+      generator = ag.create_generator(start=1, step=2)
 
-    self.assertEqual(
-      next(generator),
+      self.assertEqual(next(generator), self.addy1)
+      self.assertEqual(next(generator), self.addy3)
 
-      Address(
-        b'HTSDTNXY9MTVRUAGKTDFIMD9ZOYYELHDCHHWUZYF'
-        b'GCNOJVJVPLPPTONWYQDIPELEHYX9HHKXWWUSOIJUE'
-      ),
-    )
+  @staticmethod
+  def _mock_digest_gen(start, step):
+    # type: (int, int) -> Generator[List[int]]
+    """
+    Mocks the behavior of :py:class:`KeyGenerator`, to speed up unit
+    tests.
 
-    self.assertEqual(
-      next(generator),
+    Note that :py:class:`KeyGenerator` has its own test case, so we're
+    not impacting the stability of the codebase by doing this.
+    """
+    digests = [
+      b'KDWISSPKPF9DZNKMYEVPPYI9CXMFZRAAKCQNMFJI'
+      b'JIQLT9IPMEVVNYBTIBTN9CBCJMYTUMSRJAEMUUMIA',
 
-      Address(
-        b'EGNGQFXNJQDUQJGIUMPBGGHFJTH9EXROLGQINOCW'
-        b'GIDXIZGHXKLOMIQVQRFSRUGYDWZA9EQCEZCJGEBHX'
-      ),
-    )
+      b'XUWRYOZQYEVM9CRZZPZQRTAHBMLM9EYMZZIYRFV9'
+      b'GZST9XGK9LWUDGIXCCRFLWHUJPYQ9MMYDZEMAJZOI',
+
+      b'SEJHPHEF9NXPPZQUOVGZNUZSP9DQOBRVSAGADUAD'
+      b'EPRDFQJPXTOJGFPEXUPRQUYTTSD9GVPXTWWZQSGXA',
+
+      b'LNXDEKQCP9OXMBNDUJCZIMVRVGJLKFVMMRPHROSH'
+      b'XCWW9M9QGYVUMPXCR9ANPEPVGBI9WOERTFDAGKCVZ',
+    ]
+
+    # This should still behave like the real thing, so that we can
+    # verify that :py:class`AddressGenerator` is invoking the key
+    # generator correctly.
+    for d in digests[start::step]:
+      yield TryteString(d).as_trits()

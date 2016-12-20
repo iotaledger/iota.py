@@ -133,7 +133,7 @@ class AddressGenerator(Iterable[Address]):
       current += step
 
   def _create_digest_generator(self, start, step):
-    # type: (int, int) -> Generator[SigningKey]
+    # type: (int, int) -> Generator[List[int]]
     """
     Initializes a generator to create SigningKey digests.
 

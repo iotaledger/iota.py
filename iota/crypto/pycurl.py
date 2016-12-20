@@ -76,9 +76,8 @@ class Curl(object):
     """
     Transforms internal state.
     """
-    # Copy some values locally so we can reduce the number of dot
-    # lookups we have to perform per list iteration.
-    # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
+    # Copy some values locally so we can avoid global lookups.
+    # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Local_Variables
     state_length  = STATE_LENGTH
     truth_table   = TRUTH_TABLE
 
@@ -89,6 +88,9 @@ class Curl(object):
     else:
       range_ = range
 
+    # Operate on a copy of ``self._state`` to avoid the number of dot
+    # lookups that we perform in the inner loop.
+    # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
     # :see: http://stackoverflow.com/a/2612990/
     prev_state  = self._state[:]
     new_state   = prev_state[:]

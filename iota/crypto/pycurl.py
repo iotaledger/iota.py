@@ -97,7 +97,6 @@ class Curl(object):
 
     index = 0
     for _ in range_(NUMBER_OF_ROUNDS):
-      # noinspection PyUnusedLocal
       for pos in range_(state_length):
         prev_index = index
         index += (364 if index < 365 else -365)
@@ -113,4 +112,4 @@ class Curl(object):
       prev_state  = new_state
       new_state   = new_state[:]
 
-    self._state = prev_state
+    self._state = new_state

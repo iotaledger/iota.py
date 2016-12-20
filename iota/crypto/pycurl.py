@@ -47,6 +47,8 @@ class Curl(object):
     length  = len(trits)
     offset  = 0
 
+    # Copy trits from ``trits`` into internal state, one hash at a
+    # time, transforming internal state in between hashes.
     while offset < length:
       start = offset
       stop  = min(start + HASH_LENGTH, length)
@@ -59,7 +61,6 @@ class Curl(object):
 
       # Move on to the next hash.
       offset += HASH_LENGTH
-
 
   def squeeze(self, trits):
     # type: (MutableSequence[int]) -> None

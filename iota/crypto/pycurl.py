@@ -44,9 +44,23 @@ class Curl(object):
 
     :param trits:
       Sequence of trits to absorb.
-      Note: Only the first 729 trits will be absorbed.
     """
-    self._copy_and_transform(trits, self._state, len(trits))
+    length  = len(trits)
+    offset  = 0
+
+    while offset < length:
+      start = offset
+      stop  = min(start + HASH_LENGTH, length)
+
+      # Copy the next hash worth of trits to internal state.
+      self._state[0:stop-start] = trits[start:stop]
+
+      # Transform
+      self._transform()
+
+      # Move on to the next hash.
+      offset += HASH_LENGTH
+
 
   def squeeze(self, trits):
     # type: (MutableSequence[int]) -> None
@@ -57,19 +71,15 @@ class Curl(object):
       Sequence that the squeezed trits will be copied to.
       Note: this object will be modified!
     """
-    self._copy_and_transform(self._state, trits, len(trits))
+    # Squeeze is kind of like the opposite of absorb; it copies trits
+    # from internal state to the ``trits`` parameter.
+    # However, internal state is always exactly 1 hash in length, so
+    # the implementation can be simplified somewhat.
 
-  def _copy_and_transform(self, source, target, length):
-    """
-    Copies trits from ``source`` to ``target`` one hash at a time,
-    transforming in between hashes.
-    """
-    for i in range(int(ceil(length / HASH_LENGTH))):
-      start = i * HASH_LENGTH
-      stop  = min(len(target), len(source), start + HASH_LENGTH)
-
-      target[start:stop] = source[start:stop]
-      self._transform()
+    # Note that we copy at most len(trits) trits!
+    length = min(HASH_LENGTH, len(trits))
+    trits[0:length] = self._state[0:length]
+    self._transform()
 
   def _transform(self):
     # type: () -> None

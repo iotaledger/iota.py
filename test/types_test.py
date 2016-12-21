@@ -682,10 +682,10 @@ class AddressTestCase(TestCase):
       b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
     )
 
-    self.assertTrue(addy.is_valid())
+    self.assertTrue(addy.is_checksum_valid())
 
     self.assertEqual(
-      binary_type(addy.with_checksum()),
+      binary_type(addy.with_valid_checksum()),
 
       b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
       b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
@@ -704,10 +704,10 @@ class AddressTestCase(TestCase):
       trytes + b'IGUKNUNAX' # <- Last tryte s/b 'W'.
     )
 
-    self.assertFalse(addy.is_valid())
+    self.assertFalse(addy.is_checksum_valid())
 
     self.assertEqual(
-      binary_type(addy.with_checksum()),
+      binary_type(addy.with_valid_checksum()),
 
       b'IGKUOZGEFNSVJXETLIBKRSUZAWMYSVDPMHGQPCETEFNZP'
       b'XSJLZMBLAWDRLUBWPIPKFNEPADIWMXMYYRKQIGUKNUNAW',
@@ -724,10 +724,10 @@ class AddressTestCase(TestCase):
 
     addy = Address(trytes)
 
-    self.assertFalse(addy.is_valid())
+    self.assertFalse(addy.is_checksum_valid())
 
     self.assertEqual(
-      binary_type(addy.with_checksum()),
+      binary_type(addy.with_valid_checksum()),
 
       b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
       b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVSDPEKQPMM',

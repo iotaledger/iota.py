@@ -4,9 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
-from iota.types import Address
 
 __all__ = [
   'GetBalancesCommand',

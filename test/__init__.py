@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from collections import defaultdict
 from typing import Dict, List, Optional, Text
 
 from iota.adapter import BaseAdapter, BadApiResponse
@@ -22,7 +23,7 @@ class MockAdapter(BaseAdapter):
     # type: (Optional[dict]) -> None
     super(MockAdapter, self).__init__()
 
-    self.responses  = {} # type: Dict[Text, dict]
+    self.responses  = defaultdict(list) # type: Dict[Text, List[dict]]
     self.requests   = [] # type: List[dict]
 
   def seed_response(self, command, response):
@@ -30,8 +31,23 @@ class MockAdapter(BaseAdapter):
     """
     Sets the response that the adapter will return for the specified
     command.
+
+    You can seed multiple responses per command; the adapter will put
+    them into a FIFO queue.  When a request comes in, the adapter will
+    pop the corresponding response off of the queue.
+
+    Example::
+
+       adapter.seed_response('sayHello', {'message': 'Hi!'})
+       adapter.seed_response('sayHello', {'message': 'Hello!'})
+
+       adapter.send_request({'command': 'sayHello'})
+       # {'message': 'Hi!'}
+
+       adapter.send_request({'command': 'sayHello'})
+       # {'message': 'Hello!'}
     """
-    self.responses[command] = response
+    self.responses[command].append(response)
     return self
 
   def send_request(self, payload, **kwargs):
@@ -42,8 +58,8 @@ class MockAdapter(BaseAdapter):
     command = payload['command']
 
     try:
-      response = self.responses[command]
-    except KeyError:
+      response = self.responses[command].pop(0)
+    except (KeyError, IndexError):
       raise BadApiResponse(
         message = (
           'Unknown request {command!r} (expected one of: {seeds!r}).'.format(

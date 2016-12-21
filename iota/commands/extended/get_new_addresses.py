@@ -34,13 +34,15 @@ class GetNewAddressesRequestFilter(RequestFilter):
   def __init__(self):
     super(GetNewAddressesRequestFilter, self).__init__(
       {
+        # ``count`` and ``index`` are optional.
         'count':  f.Type(int) | f.Min(1) | f.Optional(1),
         'index':  f.Type(int) | f.Min(0),
+
         'seed':   f.Required | Trytes,
       },
 
       allow_missing_keys = {
         'count',
         'index',
-      }
+      },
     )

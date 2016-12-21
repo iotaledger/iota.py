@@ -2,11 +2,9 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from unittest import TestCase
-
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, TryteString
+from iota import TryteString
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type

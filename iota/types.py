@@ -432,7 +432,7 @@ class Address(TryteString):
     # Make the address sans checksum accessible.
     self.address = self[:self.LEN] # type: TryteString
 
-  def is_valid(self):
+  def is_checksum_valid(self):
     # type: () -> bool
     """
     Returns whether this address has a valid checksum.
@@ -442,7 +442,7 @@ class Address(TryteString):
 
     return False
 
-  def with_checksum(self):
+  def with_valid_checksum(self):
     # type: () -> Address
     """
     Returns the address with a valid checksum attached.

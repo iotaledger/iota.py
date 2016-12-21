@@ -28,7 +28,7 @@ class GetNewAddressesCommand(FilterCommand):
   def get_response_filter(self):
     pass
 
-  def _send_request(self, request):
+  def _execute(self, request):
     # Optional parameters.
     count = request.get('count')
     index = request.get('index')

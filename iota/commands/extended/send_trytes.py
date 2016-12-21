@@ -29,7 +29,7 @@ class SendTrytesCommand(FilterCommand):
   def get_response_filter(self):
     pass
 
-  def _send_request(self, request):
+  def _execute(self, request):
     # Call ``getTransactionsToApprove`` to locate trunk and branch
     # transactions so that we can attach the bundle to the Tangle.
     gta_command = GetTransactionsToApproveCommand(

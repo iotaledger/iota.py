@@ -26,7 +26,7 @@ class BroadcastAndStoreCommand(FilterCommand):
   def get_response_filter(self):
     pass
 
-  def _send_request(self, request):
+  def _execute(self, request):
     bt_command = BroadcastTransactionsCommand(
       adapter         = self.adapter,
       prepare_request = self.prepare_request,

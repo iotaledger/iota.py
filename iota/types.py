@@ -218,9 +218,21 @@ class TryteString(object):
       )
 
     if isinstance(trytes, TryteString):
-      # Create a copy of the incoming TryteString's trytes, to ensure
-      # we don't modify it when we apply padding.
-      trytes = bytearray(trytes._trytes)
+      incoming_type = type(trytes)
+
+      if incoming_type is TryteString or issubclass(incoming_type, type(self)):
+        # Create a copy of the incoming TryteString's trytes, to ensure
+        # we don't modify it when we apply padding.
+        trytes = bytearray(trytes._trytes)
+
+      else:
+        raise TypeError(
+          '{cls} cannot be initialized from a(n) {type}.'.format(
+            type  = type(trytes).__name__,
+            cls   = type(self).__name__,
+          ),
+        )
+
     else:
       if not isinstance(trytes, bytearray):
         trytes = bytearray(trytes)

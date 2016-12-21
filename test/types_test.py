@@ -147,6 +147,32 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes1 is trytes2)
     self.assertTrue(trytes1 == trytes2)
 
+  def test_init_from_tryte_string_error_wrong_subclass(self):
+    """
+    Initializing a TryteString from a conflicting subclass instance.
+
+    This restriction does not apply when initializing a TryteString
+    instance; only subclasses.
+    """
+    tag = Tag(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    with self.assertRaises(TypeError):
+      # When initializing a subclassed TryteString, you have to use the
+      # same type (or a generic TryteString).
+      Address(tag)
+
+    # If you are 110% confident that you know what you are doing, you
+    # can force the conversion by casting as a generic TryteString
+    # first.
+    addy = Address(TryteString(tag))
+
+    self.assertEqual(
+      binary_type(addy),
+
+      b'RBTC9D9DCDQAEASBYBCCKBFA9999999999999999'
+      b'99999999999999999999999999999999999999999',
+    )
+
   def test_init_padding(self):
     """
     Apply padding to ensure a TryteString has a minimum length.

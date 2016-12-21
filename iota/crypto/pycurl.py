@@ -116,8 +116,8 @@ class Curl(object):
       # baleeted.
       range_ = range
 
-    # Operate on a copy of ``self._state`` to avoid the number of dot
-    # lookups that we perform in the inner loop.
+    # Operate on a copy of ``self._state`` to eliminate dot lookups in
+    # the inner loop.
     # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
     # :see: http://stackoverflow.com/a/2612990/
     prev_state  = self._state[:]

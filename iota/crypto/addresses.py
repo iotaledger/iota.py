@@ -4,9 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, Iterable, List, MutableSequence
 
-from iota import Address, TrytesCompatible
+from iota import Address, TryteString, TrytesCompatible
 from iota.crypto import Curl
-from iota.crypto.signing import KeyGenerator, Seed, SigningKey
+from iota.crypto.signing import KeyGenerator
+from iota.crypto.types import SigningKey
 
 __all__ = [
   'AddressGenerator',
@@ -31,7 +32,7 @@ class AddressGenerator(Iterable[Address]):
     # type: (TrytesCompatible) -> None
     super(AddressGenerator, self).__init__()
 
-    self.seed = Seed(seed)
+    self.seed = TryteString(seed)
 
   def __iter__(self):
     # type: () -> Generator[Address]

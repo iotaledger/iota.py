@@ -94,7 +94,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
       if replacement is not None:
         self.request = replacement
 
-    self.response = self._send_request(self.request)
+    self.response = self._execute(self.request)
 
     replacement = self._prepare_response(self.response)
     if replacement is not None:
@@ -113,7 +113,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
     self.request  = None # type: dict
     self.response = None # type: dict
 
-  def _send_request(self, request):
+  def _execute(self, request):
     # type: (dict) -> dict
     """
     Sends the request object to the adapter and returns the response.

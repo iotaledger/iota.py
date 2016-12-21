@@ -54,6 +54,9 @@ class Curl(object):
       stop  = min(start + HASH_LENGTH, length)
 
       # Copy the next hash worth of trits to internal state.
+      # Note that we always copy the trits to the start of the state;
+      # ``self._state`` is 3 hashes long, which means the last 2 hashes
+      # are only modified by :py:meth:`_transform`.
       self._state[0:stop-start] = trits[start:stop]
 
       # Transform.

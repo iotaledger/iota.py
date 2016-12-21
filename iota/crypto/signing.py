@@ -238,7 +238,8 @@ class KeyGenerator(object):
     """
     Prepares the Curl sponge for the generator.
     """
-    seed = list(self.seed) # type: MutableSequence[int]
+    # :see: http://stackoverflow.com/a/2612990/
+    seed = self.seed[:] # type: MutableSequence[int]
 
     for i in range(index):
       # Increment each tryte unless/until we overflow.

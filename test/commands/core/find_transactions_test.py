@@ -480,12 +480,12 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
 
       {
         'hashes': [
-          Address(
+          TransactionId(
             b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFW'
             b'YWZRE9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA',
           ),
 
-          Address(
+          TransactionId(
             b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
             b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
           ),

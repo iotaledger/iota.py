@@ -5,6 +5,8 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 
 from iota.commands import FilterCommand, RequestFilter
+from iota.commands.core.find_transactions import FindTransactionsCommand
+from iota.crypto.addresses import AddressGenerator
 from iota.filters import Trytes
 
 __all__ = [
@@ -27,7 +29,25 @@ class GetNewAddressesCommand(FilterCommand):
     pass
 
   def _send_request(self, request):
-    pass
+    # Optional parameters.
+    count = request.get('count')
+    index = request.get('index')
+
+    # Required parameters.
+    seed  = request['seed']
+
+    generator = AddressGenerator(seed)
+
+    if count is None:
+      # Connect to Tangle and find the first address without any
+      # transactions.
+      for addy in generator.create_generator(start=index):
+        response = FindTransactionsCommand(self.adapter)(addresses=[addy])
+
+        if not response.get('hashes'):
+          return [addy]
+
+    return generator.get_addresses(start=index, count=count)
 
 
 class GetNewAddressesRequestFilter(RequestFilter):
@@ -35,7 +55,7 @@ class GetNewAddressesRequestFilter(RequestFilter):
     super(GetNewAddressesRequestFilter, self).__init__(
       {
         # ``count`` and ``index`` are optional.
-        'count':  f.Type(int) | f.Min(1) | f.Optional(1),
+        'count':  f.Type(int) | f.Min(1),
         'index':  f.Type(int) | f.Min(0),
 
         'seed':   f.Required | Trytes,

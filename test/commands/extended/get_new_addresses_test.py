@@ -6,8 +6,9 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, TryteString
+from iota import Address
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
+from iota.crypto.types import Seed
 from iota.filters import Trytes
 from mock import patch
 from six import binary_type, text_type
@@ -30,7 +31,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'seed':   TryteString(self.seed),
+      'seed':   Seed(self.seed),
       'index':  1,
       'count':  1,
     }
@@ -45,7 +46,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     Request omits ``index`` and ``count``.
     """
     filter_ = self._filter({
-      'seed':   TryteString(self.seed),
+      'seed':   Seed(self.seed),
     })
 
     self.assertFilterPasses(filter_)
@@ -53,7 +54,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   TryteString(self.seed),
+        'seed':   Seed(self.seed),
         'index':  None,
         'count':  None,
       },
@@ -78,7 +79,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   TryteString(self.seed),
+        'seed':   Seed(self.seed),
         'index':  100,
         'count':  8,
       },
@@ -102,7 +103,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed':   TryteString(self.seed),
+        'seed':   Seed(self.seed),
         'index':  None,
         'count':  1,
 
@@ -166,7 +167,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         # Not valid; it must be an int.
         'count': '42',
 
-        'seed': TryteString(self.seed),
+        'seed': Seed(self.seed),
       },
 
       {
@@ -183,7 +184,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         # Not valid, even with an empty fpart; it must be an int.
         'count': 42.0,
 
-        'seed': TryteString(self.seed),
+        'seed': Seed(self.seed),
       },
 
       {
@@ -198,7 +199,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     self.assertFilterErrors(
       {
         'count':  0,
-        'seed':   TryteString(self.seed),
+        'seed':   Seed(self.seed),
       },
 
       {
@@ -215,7 +216,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         # Not valid; it must be an int.
         'index': '42',
 
-        'seed': TryteString(self.seed),
+        'seed': Seed(self.seed),
       },
 
       {
@@ -232,7 +233,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         # Not valid, even with an empty fpart; it must be an int.
         'index': 42.0,
 
-        'seed': TryteString(self.seed),
+        'seed': Seed(self.seed),
       },
 
       {
@@ -247,7 +248,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     self.assertFilterErrors(
       {
         'index':  -1,
-        'seed':   TryteString(self.seed),
+        'seed':   Seed(self.seed),
       },
 
       {

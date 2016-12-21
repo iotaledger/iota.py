@@ -279,6 +279,22 @@ class TryteString(object):
     # :see: http://stackoverflow.com/a/14267935/
     return (self._trytes[i:i + 1] for i in range(len(self)))
 
+  def __contains__(self, other):
+    # type: (TrytesCompatible) -> bool
+    if isinstance(other, TryteString):
+      return other._trytes in self._trytes
+    elif isinstance(other, (binary_type, bytearray)):
+      return other in self._trytes
+    else:
+      raise TypeError(
+        'Invalid type for TryteString contains check '
+        '(expected Union[TryteString, {binary_type}, bytearray], '
+        'actual {type}).'.format(
+          binary_type = binary_type.__name__,
+          type        = type(other).__name__,
+        ),
+      )
+
   def __getitem__(self, item):
     # type: (Union[int, slice]) -> TryteString
     new_trytes = bytearray()

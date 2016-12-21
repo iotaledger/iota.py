@@ -78,7 +78,65 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes is 'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertTrue(trytes is not 'RBTC9D9DCDQAEASBYBCCKBFA')
 
-  def test_concatenate(self):
+  def test_container(self):
+    """
+    Checking whether a TryteString contains a sequence.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    self.assertTrue(trytes in trytes)
+    self.assertTrue(TryteString(b'RBTC9D') in trytes)
+    self.assertTrue(TryteString(b'DQAEAS') in trytes)
+    self.assertTrue(TryteString(b'CCKBFA') in trytes)
+
+    self.assertFalse(TryteString(b'9RBTC9D9DCDQAEASBYBCCKBFA') in trytes)
+    self.assertFalse(TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9') in trytes)
+    self.assertFalse(TryteString(b'RBTC9D9DCDQA9EASBYBCCKBFA') in trytes)
+    self.assertFalse(TryteString(b'X') in trytes)
+
+    # Any TrytesCompatible value will work here.
+    self.assertTrue(b'EASBY' in trytes)
+    self.assertFalse(b'QQQ' in trytes)
+    self.assertTrue(bytearray(b'CCKBF') in trytes)
+    self.assertFalse(b'ZZZ' in trytes)
+
+  def test_container_error_wrong_type(self):
+    """
+    Checking whether a TryteString contains a sequence with an
+    incompatible type.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    with self.assertRaises(TypeError):
+      # Comparing against unicode strings is not allowed because it is
+      # ambiguous how to encode the unicode string into trits (should
+      # we treat the unicode string as an ASCII representation, or
+      # should we encode the unicode value into bytes and convert the
+      # result into trytes?).
+      'RBTC9D9DCDQAEASBYBCCKBFA' in trytes
+
+    with self.assertRaises(TypeError):
+      # TryteString is not a numeric type, so this makes about as much
+      # sense as ``16 in b'Hello, world!'``.
+      16 in trytes
+
+    with self.assertRaises(TypeError):
+      # This is too ambiguous.  Is this a list of trit values that can
+      # appar anywhere in the tryte sequence, or does it have to match
+      # a tryte exactly?
+      [0, 1, 1, 0, -1, 0] in trytes
+
+    with self.assertRaises(TypeError):
+      # This makes more sense than the previous example, but for
+      # consistency, we will not allow checking for trytes inside
+      # of a TryteString.
+      [[0, 0, 0], [1, 1, 0]] in trytes
+
+    with self.assertRaises(TypeError):
+      # Did I miss something? When did we get to DisneyLand?
+      None in trytes
+
+  def test_concatenation(self):
     """
     Concatenating TryteStrings with TrytesCompatibles.
     """
@@ -100,7 +158,7 @@ class TryteStringTestCase(TestCase):
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
-  def test_concatenate_error_wrong_type(self):
+  def test_concatenation_error_wrong_type(self):
     """
     Attempting to concatenate a TryteString with something that is not
     a TrytesCompatible.

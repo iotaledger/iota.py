@@ -13,7 +13,7 @@ from sys import argv
 from typing import Text
 
 from requests.exceptions import ConnectionError
-from six import text_type as text
+from six import text_type
 
 from iota import BadApiResponse, StrictIota, __version__
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
   parser.add_argument(
     '--uri',
-      type    = text,
+      type    = text_type,
       default = 'udp://localhost:14265/',
 
       help =

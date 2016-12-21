@@ -469,6 +469,15 @@ class KeyGeneratorTestCase(TestCase):
       ],
     )
 
+  def test_error_iterations_zero(self):
+    """
+    Attempting to generate a key with a number of iterations < 1.
+    """
+    kg = KeyGenerator(seed=b'')
+
+    with self.assertRaises(ValueError):
+      kg.get_keys(start=0, iterations=0)
+
   def test_generator(self):
     """
     Creating a generator.

@@ -7,6 +7,7 @@ import filters as f
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.crypto.addresses import AddressGenerator
+from iota.crypto.types import Seed
 from iota.filters import Trytes
 
 __all__ = [
@@ -58,7 +59,7 @@ class GetNewAddressesRequestFilter(RequestFilter):
         'count':  f.Type(int) | f.Min(1),
         'index':  f.Type(int) | f.Min(0),
 
-        'seed':   f.Required | Trytes,
+        'seed':   f.Required | Trytes(result_type=Seed),
       },
 
       allow_missing_keys = {

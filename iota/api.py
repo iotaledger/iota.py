@@ -348,21 +348,37 @@ class Iota(StrictIota):
     :param end:
       Starting key index.
 
+      If not specified, then this method will not stop until it finds
+      an unused address.
+
     :param threshold:
-      Minimum required balance of accumulated inputs.
+      Stop once the accumulated inputs meet or exceed this amount.
 
     :return:
       Dict with the following keys::
 
          {
-           'inputs':        <list of Input objects>,
+           'inputs': [
+              {
+                'address':  <Address object>,
+                'balance':  <address balance>,
+                'keyIndex`: <index of the address>,
+              },
+              ... <one object per input found>
+           ]
+
            'totalBalance':  <aggregate balance of all inputs>,
          }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getinputs
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getInputs(
+      seed      = self.seed,
+      start     = start,
+      end       = end,
+      threshold = threshold,
+    )
 
   def prepare_transfers(self, transfers, inputs=None, change_address=None):
     # type: (Iterable[Transfer], Optional[Iterable[TransactionId]], Optional[Address]) -> List[TryteString]

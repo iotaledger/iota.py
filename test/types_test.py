@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from os import urandom
 from unittest import TestCase
 
 from iota import (
@@ -532,14 +533,26 @@ class TryteStringTestCase(TestCase):
       ],
     )
 
-  def test_from_ascii(self):
+  def test_from_bytes(self):
     """
-    Converting a sequence of ASCII chars into a TryteString.
+    Converting a sequence of bytes into a TryteString.
     """
     self.assertEqual(
-      binary_type(TryteString.from_ascii(b'Hello, IOTA!')),
+      binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
+
+  def test_from_bytes_random(self):
+    """
+    Generating a TryteString from a sequence of random bytes.
+    """
+    bytes_ = urandom(81)
+    trytes = TryteString.from_bytes(bytes_)
+
+    # We can't predict exactly what the result will be, but we can at
+    # least verify that the bytes were correctly interpreted, and no
+    # errors were generated.
+    self.assertEqual(trytes.as_bytes(), bytes_)
 
   def test_from_trytes(self):
     """

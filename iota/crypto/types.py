@@ -2,14 +2,44 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import List
+from os import urandom
+from typing import Callable, List, Optional
 
 from iota import TryteString, TrytesCompatible
 from iota.crypto import HASH_LENGTH, Curl
+from six import binary_type
 
 __all__ = [
   'SigningKey',
 ]
+
+
+class Seed(TryteString):
+  """
+  A TryteString that acts as a seed for crypto functions.
+  """
+  @classmethod
+  def random(cls, length=81, source=urandom):
+    # type: (int, Optional[Callable[[int], binary_type]]) -> Seed
+    """
+    Generates a new random seed.
+
+    :param length:
+      Number of trytes to generate.
+      This should be at least 81 (one hash).
+
+    :param source:
+      CSPRNG function or method to use to generate randomness.
+
+      Note:  This parameter must be a function/method that accepts an
+      int and returns random bytes.
+
+      Example::
+
+         from Crypto import Random
+         new_seed = Seed.random(81, source=Random.new().read)
+    """
+    return cls.from_bytes(source(length))
 
 
 class SigningKey(TryteString):

@@ -42,7 +42,6 @@ class AddressGeneratorTestCase(TestCase):
         b'CFANWBQFGMFKITZBJDSYLGXYUIQVCMXFWSWFRNHRV'
       )
 
-
   def test_get_addresses_single(self):
     """
     Generating a single address.

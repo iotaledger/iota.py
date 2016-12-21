@@ -7,6 +7,7 @@ from typing import Callable, List, Optional
 
 from iota import TryteString, TrytesCompatible
 from iota.crypto import HASH_LENGTH, Curl
+from math import ceil
 from six import binary_type
 
 __all__ = [
@@ -25,7 +26,7 @@ class Seed(TryteString):
     Generates a new random seed.
 
     :param length:
-      Number of trytes to generate.
+      Minimum number of trytes to generate.
       This should be at least 81 (one hash).
 
     :param source:
@@ -39,7 +40,8 @@ class Seed(TryteString):
          from Crypto import Random
          new_seed = Seed.random(81, source=Random.new().read)
     """
-    return cls.from_bytes(source(length))
+    # Encoding bytes -> trytes yields 2 trytes per byte.
+    return cls.from_bytes(source(ceil(length / 2)))
 
 
 class SigningKey(TryteString):

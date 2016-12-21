@@ -4,9 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Iterable, List, Optional, Text
 
-from iota import Address, Bundle, Tag, TransactionId, Transfer, TryteString
+from iota import Address, Bundle, Tag, TransactionId, Transfer, TryteString, \
+  TrytesCompatible
 from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
+from iota.crypto.types import Seed
 
 __all__ = [
   'Iota',
@@ -317,7 +319,7 @@ class Iota(StrictIota):
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
   """
   def __init__(self, adapter, seed=None):
-    # type: (AdapterSpec, Optional[TryteString]) -> None
+    # type: (AdapterSpec, Optional[TrytesCompatible]) -> None
     """
     :param seed:
       Seed used to generate new addresses.
@@ -327,7 +329,7 @@ class Iota(StrictIota):
     """
     super(Iota, self).__init__(adapter)
 
-    self.seed = seed
+    self.seed = Seed(seed) if seed else Seed.random()
 
   def get_inputs(self, start=None, end=None, threshold=None):
     # type: (Optional[int], Optional[int], Optional[int]) -> dict

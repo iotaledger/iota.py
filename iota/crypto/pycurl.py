@@ -53,10 +53,14 @@ class Curl(object):
       start = offset
       stop  = min(start + HASH_LENGTH, length)
 
+      #
       # Copy the next hash worth of trits to internal state.
-      # Note that we always copy the trits to the start of the state;
-      # ``self._state`` is 3 hashes long, which means the last 2 hashes
-      # are only modified by :py:meth:`_transform`.
+      #
+      # Note that we always copy the trits to the start of the state.
+      # ``self._state`` is 3 hashes long, but only the first hash is
+      # "public"; the other 2 are only accessible to
+      # :py:meth:`_transform`.
+      #
       self._state[0:stop-start] = trits[start:stop]
 
       # Transform.
@@ -74,11 +78,14 @@ class Curl(object):
       Sequence that the squeezed trits will be copied to.
       Note: this object will be modified!
     """
+    #
     # Squeeze is kind of like the opposite of absorb; it copies trits
     # from internal state to the ``trits`` parameter, one hash at a
     # time, and transforming internal state in between hashes.
-    # However, internal state is always exactly 1 hash in length, so
-    # the implementation can be simplified somewhat.
+    #
+    # However, only the first hash of the state is "public", so we
+    # can simplify the implementation somewhat.
+    #
 
     # Note that we copy at most len(trits) trits!
     length = min(HASH_LENGTH, len(trits))
@@ -92,7 +99,8 @@ class Curl(object):
     """
     Transforms internal state.
     """
-    # Copy some values locally so we can avoid global lookups.
+    # Copy some values locally so we can avoid global lookups in the
+    # inner loop.
     # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Local_Variables
     state_length  = STATE_LENGTH
     truth_table   = TRUTH_TABLE

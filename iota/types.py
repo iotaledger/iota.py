@@ -454,15 +454,16 @@ class Address(TryteString):
     """
     Generates the correct checksum for this address.
     """
-    # Multiply by 3 because AddressChecksum.LEN is number of trytes,
-    # but Curl returns trits.
-    checksum_trits = [0] * (AddressChecksum.LEN * 3) # type: MutableSequence[int]
+    checksum_trits = [] # type: MutableSequence[int]
 
     sponge = Curl()
     sponge.absorb(self.address.as_trits())
     sponge.squeeze(checksum_trits)
 
-    return TryteString.from_trits(checksum_trits)
+    # Multiply by 3 to convert trytes into trits.
+    checksum_length = (AddressChecksum.LEN * 3)
+
+    return TryteString.from_trits(checksum_trits[:checksum_length])
 
 
 class AddressChecksum(TryteString):

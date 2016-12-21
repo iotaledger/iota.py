@@ -87,9 +87,11 @@ class Curl(object):
     # can simplify the implementation somewhat.
     #
 
-    # Note that we copy at most len(trits) trits!
-    length = min(HASH_LENGTH, len(trits))
-    trits[0:length] = self._state[0:length]
+    # Ensure that ``trits`` can hold at least one hash worth of trits.
+    trits.extend([0] * max(0, HASH_LENGTH - len(trits)))
+
+    # Copy exactly one hash.
+    trits[0:HASH_LENGTH] = self._state[0:HASH_LENGTH]
 
     # One hash worth of trits copied; now transform.
     self._transform()

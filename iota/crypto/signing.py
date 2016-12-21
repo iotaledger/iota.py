@@ -17,11 +17,16 @@ class KeyGenerator(object):
   """
   Generates signing keys for messages.
   """
+  HASHES_PER_BLOCK = 27
+  """
+  Number of hashes that make up one block in a signing key.
+  """
+
   def __init__(self, seed):
     # type: (TrytesCompatible) -> None
     super(KeyGenerator, self).__init__()
 
-    self.seed = TryteString(seed, pad=81).as_trits()
+    self.seed = TryteString(seed)
 
   def get_keys(self, start, count=1, step=1, iterations=1):
     # type: (int, int, int, int) -> List[SigningKey]
@@ -112,20 +117,30 @@ class KeyGenerator(object):
     if start < 0:
       raise ValueError('``start`` cannot be negative.')
 
+    if iterations < 1:
+      raise ValueError('``iterations`` must be >= 1.')
+
     current = start
 
     while current >= 0:
       sponge = self._create_sponge(current)
 
-      key = []
+      # Multiply by 3 to convert trytes into trits.
+      block_length = SigningKey.BLOCK_LEN * 3
 
-      for i in range(iterations):
-        for j in range(27):
-          # Multiply by 3 because sponge works with trits, but
-          # ``Seed.LEN`` is a quantity of trytes.
-          buffer = [0] * HASH_LENGTH # type: MutableSequence[int]
+      key     = [0] * (block_length * iterations)
+      buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
+
+      for block_seq in range(iterations):
+        # Squeeze trits from the buffer and append them to the key, one
+        # hash at a time.
+        for hash_seq in range(self.HASHES_PER_BLOCK):
           sponge.squeeze(buffer)
-          key += buffer
+
+          key_start = (block_seq * block_length) + (hash_seq * HASH_LENGTH)
+          key_stop  = key_start + HASH_LENGTH
+
+          key[key_start:key_stop] = buffer
 
       yield SigningKey.from_trits(key)
 
@@ -136,8 +151,7 @@ class KeyGenerator(object):
     """
     Prepares the Curl sponge for the generator.
     """
-    # :see: http://stackoverflow.com/a/2612990/
-    seed = self.seed[:] # type: MutableSequence[int]
+    seed = self.seed.as_trits() # type: MutableSequence[int]
 
     for i in range(index):
       # Increment each tryte unless/until we overflow.

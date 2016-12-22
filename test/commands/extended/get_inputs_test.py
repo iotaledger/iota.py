@@ -279,6 +279,23 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_interval_too_large(self):
+    """
+    ``end`` is way more than ``start``.
+    """
+    self.assertFilterErrors(
+      {
+        'start':  0,
+        'end':    GetInputsRequestFilter.MAX_INTERVAL + 1,
+
+        'seed': Seed(self.seed),
+      },
+
+      {
+        'end':  [GetInputsRequestFilter.CODE_INTERVAL_TOO_BIG],
+      },
+    )
+
   def test_fail_threshold_string(self):
     """
     ``threshold`` is a string.
@@ -337,3 +354,31 @@ class GetInputsCommandTestCase(TestCase):
 
     self.adapter = MockAdapter()
     self.command = GetInputsCommand(self.adapter)
+
+  def test_start_and_end_with_threshold(self):
+    """
+    ``start`` and ``end`` values provided, with ``threshold``.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_start_and_end_no_threshold(self):
+    """
+    ``start`` and ``end`` values provided, no ``threshold``.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_no_end_with_threshold(self):
+    """
+    No ``end`` value provided, with ``threshold``.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_no_end_no_threshold(self):
+    """
+    No ``end`` value provided, no ``threshold``.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')

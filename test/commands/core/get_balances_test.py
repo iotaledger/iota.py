@@ -236,15 +236,17 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
+# noinspection SpellCheckingInspection
 class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
   filter_type = GetBalancesCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
-  def test_no_balances(self):
-    """Incoming response contains no balances."""
+  def test_balances(self):
+    """
+    Typical ``getBalances`` response.
+    """
     filter_ = self._filter({
-      'balances':       [],
+      'balances':       ['114544444', '0', '8175737'],
       'duration':       42,
       'milestoneIndex': 128,
 
@@ -258,7 +260,7 @@ class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'balances':       [],
+        'balances':       [114544444, 0, 8175737],
         'duration':       42,
         'milestoneIndex': 128,
 
@@ -266,38 +268,6 @@ class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
           Address(
             b'INRTUYSZCWBHGFGGXXPWRWBZACYAFGVRRP9VYEQJ'
             b'OHYD9URMELKWAFYFMNTSP9MCHLXRGAFMBOZPZ9999',
-          )
-      }
-    )
-
-  # noinspection SpellCheckingInspection
-  def test_all_balances(self):
-    """
-    Incoming response contains balances for all requested addresses.
-    """
-    filter_ = self._filter({
-      'balances':       [114544444, 8175737],
-      'duration':       42,
-      'milestoneIndex': 128,
-
-      'milestone':
-        'INRTUYSZCWBHGFGGXXPWRWBZACYAFGVRRP9VYEQJ'
-        'OHYD9URMELKWAFYFMNTSP9MCHLXRGAFMBOZPZ9999',
-    })
-
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
-
-      {
-        'balances':       [114544444, 8175737],
-        'duration':       42,
-        'milestoneIndex': 128,
-
-        'milestone':
-          Address(
-            b'INRTUYSZCWBHGFGGXXPWRWBZACYAFGVRRP9VYEQJ'
-            b'OHYD9URMELKWAFYFMNTSP9MCHLXRGAFMBOZPZ9999',
-          )
-      }
+          ),
+      },
     )

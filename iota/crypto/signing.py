@@ -7,6 +7,7 @@ from typing import Generator, List, MutableSequence
 from iota import TryteString, TrytesCompatible
 from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.types import SigningKey
+from iota.exceptions import with_context
 
 __all__ = [
   'KeyGenerator',
@@ -68,10 +69,28 @@ class KeyGenerator(object):
       negative).
     """
     if count < 1:
-      raise ValueError('``count`` must be positive.')
+      raise with_context(
+        exc = ValueError('``count`` must be positive.'),
+
+        context = {
+          'start':      start,
+          'count':      count,
+          'step':       step,
+          'iterations': iterations,
+        },
+      )
 
     if not step:
-      raise ValueError('``step`` must not be zero.')
+      raise with_context(
+        exc = ValueError('``step`` must not be zero.'),
+
+        context = {
+          'start':      start,
+          'count':      count,
+          'step':       step,
+          'iterations': iterations,
+        },
+      )
 
     generator = self.create_generator(start, step, iterations)
 
@@ -115,10 +134,26 @@ class KeyGenerator(object):
       resistant to brute-forcing.
     """
     if start < 0:
-      raise ValueError('``start`` cannot be negative.')
+      raise with_context(
+        exc = ValueError('``start`` cannot be negative.'),
+
+        context = {
+          'start':      start,
+          'step':       step,
+          'iterations': iterations,
+        },
+      )
 
     if iterations < 1:
-      raise ValueError('``iterations`` must be >= 1.')
+      raise with_context(
+        exc = ValueError('``iterations`` must be >= 1.'),
+
+        context = {
+          'start':      start,
+          'step':       step,
+          'iterations': iterations,
+        },
+      )
 
     current = start
 

@@ -8,6 +8,8 @@ from typing import Callable, List, Optional
 from iota import Hash, TryteString, TrytesCompatible
 from iota.crypto import HASH_LENGTH, Curl
 from math import ceil
+
+from iota.exceptions import with_context
 from six import binary_type
 
 __all__ = [
@@ -61,11 +63,17 @@ class SigningKey(TryteString):
     super(SigningKey, self).__init__(trytes)
 
     if len(self._trytes) % self.BLOCK_LEN:
-      raise ValueError(
-        'Length of {cls} values must be a multiple of {len} trytes.'.format(
-          cls = type(self).__name__,
-          len = self.BLOCK_LEN
+      raise with_context(
+        exc = ValueError(
+          'Length of {cls} values must be a multiple of {len} trytes.'.format(
+            cls = type(self).__name__,
+            len = self.BLOCK_LEN
+          ),
         ),
+
+        context = {
+          'trytes': trytes,
+        },
       )
 
   @property

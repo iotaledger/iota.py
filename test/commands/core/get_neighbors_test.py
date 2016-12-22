@@ -2,8 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import Iota
 from iota.commands.core.get_neighbors import GetNeighborsCommand
 from test import MockAdapter
 
@@ -30,4 +33,20 @@ class GetNeighborsRequestFilterTestCase(BaseFilterTestCase):
       {
         'foo': [f.FilterMapper.CODE_EXTRA_KEY],
       },
+    )
+
+
+class GetNeighborsCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetNeighborsCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getNeighbors,
+      GetNeighborsCommand,
     )

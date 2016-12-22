@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address
+from iota import Address, Iota
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
@@ -277,6 +277,15 @@ class GetNewAddressesCommandTestCase(TestCase):
         b'ADDYTWO999AGAQKYXHRMSFAQNPWCIYUYTXPWUEUR'
         b'VNZTCTFUPQ9ESTKNSSLLIZWDQISJVEWIJDVGIECXF'
       )
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getNewAddresses,
+      GetNewAddressesCommand,
+    )
 
   def test_get_addresses_offline(self):
     """

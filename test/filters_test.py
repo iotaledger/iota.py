@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import TryteString, TransactionId
+from iota import TryteString, TransactionHash
 from iota.filters import NodeUri, Trytes
 
 
@@ -106,10 +106,10 @@ class TrytesTestCase(BaseFilterTestCase):
       b'99999999999999999999999999999999999999999'
     )
 
-    filter_ = self._filter(input_trytes, result_type=TransactionId)
+    filter_ = self._filter(input_trytes, result_type=TransactionHash)
 
     self.assertFilterPasses(filter_, result_trytes)
-    self.assertIsInstance(filter_.cleaned_data, TransactionId)
+    self.assertIsInstance(filter_.cleaned_data, TransactionHash)
 
   def test_fail_not_trytes(self):
     """
@@ -139,7 +139,7 @@ class TrytesTestCase(BaseFilterTestCase):
     )
 
     self.assertFilterErrors(
-      self._filter(trytes, result_type=TransactionId),
+      self._filter(trytes, result_type=TransactionHash),
       [Trytes.CODE_WRONG_FORMAT],
     )
 

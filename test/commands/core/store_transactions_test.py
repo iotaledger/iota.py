@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TryteString
+from iota import Iota, TryteString
 from iota.commands.core.store_transactions import StoreTransactionsCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -156,4 +158,20 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
         'trytes.4': [Trytes.CODE_NOT_TRYTES],
         'trytes.6': [f.Type.CODE_WRONG_TYPE],
       },
+    )
+
+
+class StoreTransactionsCommandTestCase(TestCase):
+  def setUp(self):
+    super(StoreTransactionsCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).storeTransactions,
+      StoreTransactionsCommand,
     )

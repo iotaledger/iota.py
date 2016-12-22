@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-
+from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -37,8 +37,9 @@ class GetNodeInfoRequestFilter(RequestFilter):
 class GetNodeInfoResponseFilter(ResponseFilter):
   def __init__(self):
     super(GetNodeInfoResponseFilter, self).__init__({
-      'latestMilestone': f.ByteString(encoding='ascii') | Trytes,
+      'latestMilestone':
+        f.ByteString(encoding='ascii') | Trytes(result_type=TransactionHash),
 
       'latestSolidSubtangleMilestone':
-        f.ByteString(encoding='ascii') | Trytes,
+        f.ByteString(encoding='ascii') | Trytes(result_type=TransactionHash),
     })

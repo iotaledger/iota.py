@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import BadApiResponse, TryteString
+from iota import BadApiResponse, Iota, TryteString
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 from six import text_type
 from test import MockAdapter
@@ -20,6 +20,15 @@ class BroadcastAndStoreCommandTestCase(TestCase):
     self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
       b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).broadcastAndStore,
+      BroadcastAndStoreCommand,
+    )
 
   def test_happy_path(self):
     """

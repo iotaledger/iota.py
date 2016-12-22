@@ -2,11 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Tag, TransactionId, TryteString
-from iota.commands.core.find_transactions import FindTransactionsRequestFilter, \
-  FindTransactionsCommand
+from iota import Address, Iota, Tag, TransactionHash, TryteString
+from iota.commands.core.find_transactions import FindTransactionsCommand, \
+  FindTransactionsRequestFilter
 from iota.filters import Trytes
 from six import binary_type, text_type
 from test import MockAdapter
@@ -30,8 +32,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """The request contains valid values for all parameters."""
     request = {
       'bundles': [
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes2),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes2),
       ],
 
       'addresses': [
@@ -45,8 +47,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       ],
 
       'approvees': [
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes3),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes3),
       ],
     }
 
@@ -88,8 +90,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'bundles': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes2),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes2),
         ],
 
         'addresses': [
@@ -103,8 +105,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
         ],
 
         'approvees': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes3),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes3),
         ],
       },
     )
@@ -113,8 +115,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """The request only includes bundles."""
     request = {
       'bundles': [
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes2),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes2),
       ],
     }
 
@@ -126,8 +128,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'bundles': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes2),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes2),
         ],
 
         'addresses':  [],
@@ -194,8 +196,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """The request only includes approvees."""
     request = {
       'approvees': [
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes3),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes3),
       ],
     }
 
@@ -207,8 +209,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'approvees': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes3),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes3),
         ],
 
         'addresses':  [],
@@ -247,8 +249,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     self.assertFilterErrors(
       {
         'addresses':  [Address(self.trytes1)],
-        'approvees':  [TransactionId(self.trytes1)],
-        'bundles':    [TransactionId(self.trytes1)],
+        'approvees':  [TransactionHash(self.trytes1)],
+        'bundles':    [TransactionHash(self.trytes1)],
         'tags':       [Tag(self.trytes1)],
 
         # Hey, you're not allowed in he-argh!
@@ -264,7 +266,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """`bundles` is not an array."""
     self.assertFilterErrors(
       {
-        'bundles':  TransactionId(self.trytes1),
+        'bundles': TransactionHash(self.trytes1),
       },
 
       {
@@ -393,7 +395,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """`approvees` is not an array."""
     self.assertFilterErrors(
       {
-        'approvees':  TransactionId(self.trytes1),
+        'approvees': TransactionHash(self.trytes1),
       },
 
       {
@@ -480,12 +482,12 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
 
       {
         'hashes': [
-          TransactionId(
+          TransactionHash(
             b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFW'
             b'YWZRE9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA',
           ),
 
-          TransactionId(
+          TransactionHash(
             b'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
             b'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
           ),
@@ -493,4 +495,20 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
 
         'duration': 42,
       },
+    )
+
+
+class FindTransactionsCommandTestCase(TestCase):
+  def setUp(self):
+    super(FindTransactionsCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).findTransactions,
+      FindTransactionsCommand,
     )

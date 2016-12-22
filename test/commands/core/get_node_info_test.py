@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TryteString
+from iota import Iota, TransactionHash
 from iota.commands.core.get_node_info import GetNodeInfoCommand
 from test import MockAdapter
 
@@ -91,15 +93,31 @@ class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
         'transactionsToRequest': 0,
 
         'latestMilestone':
-          TryteString(
+          TransactionHash(
             b'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJR'
             b'FKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
           ),
 
         'latestSolidSubtangleMilestone':
-          TryteString(
+          TransactionHash(
             b'VBVEUQYE99LFWHDZRFKTGFHYGDFEAMAEBGUBTTJR'
             b'FKHCFBRTXFAJQ9XIUEZQCJOQTZNOOHKUQIKOY9999',
           ),
       },
+    )
+
+
+class GetNodeInfoCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetNodeInfoCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getNodeInfo,
+      GetNodeInfoCommand,
     )

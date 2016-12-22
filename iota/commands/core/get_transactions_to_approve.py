@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota import TransactionId
+from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -40,11 +40,11 @@ class GetTransactionsToApproveResponseFilter(ResponseFilter):
     super(GetTransactionsToApproveResponseFilter, self).__init__({
       'branchTransaction': (
           f.ByteString(encoding='ascii')
-        | Trytes(result_type=TransactionId)
+        | Trytes(result_type=TransactionHash)
       ),
 
       'trunkTransaction': (
           f.ByteString(encoding='ascii')
-        | Trytes(result_type=TransactionId)
+        | Trytes(result_type=TransactionHash)
       ),
     })

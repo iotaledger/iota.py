@@ -2,8 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import Iota
 from iota.commands.core.interrupt_attaching_to_tangle import \
   InterruptAttachingToTangleCommand
 from test import MockAdapter
@@ -31,4 +34,20 @@ class InterruptAttachingToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'foo': [f.FilterMapper.CODE_EXTRA_KEY],
       },
+    )
+
+
+class InterruptAttachingToTangleCommandTestCase(TestCase):
+  def setUp(self):
+    super(InterruptAttachingToTangleCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).interruptAttachingToTangle,
+      InterruptAttachingToTangleCommand,
     )

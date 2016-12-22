@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address
+from iota import Address, Iota
 from iota.commands.core.get_tips import GetTipsCommand
 from test import MockAdapter
 
@@ -97,3 +99,19 @@ class GetTipsResponseFilterTestCase(BaseFilterTestCase):
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, response)
+
+
+class GetTipsCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetTipsCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getTips,
+      GetTipsCommand,
+    )

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import BadApiResponse, TransactionId, TryteString
+from iota import BadApiResponse, Iota, TransactionHash, TryteString
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from six import text_type
 from test import MockAdapter
@@ -31,6 +31,15 @@ class SendTrytesCommandTestCase(TestCase):
     self.transaction2 = (
       b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
       b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
+    )
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).sendTrytes,
+      SendTrytesCommand,
     )
 
   def test_happy_path(self):
@@ -82,8 +91,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction':    TransactionId(self.transaction1),
-          'branch_transaction':   TransactionId(self.transaction2),
+          'trunk_transaction': TransactionHash(self.transaction1),
+          'branch_transaction': TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [
@@ -182,8 +191,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction':    TransactionId(self.transaction1),
-          'branch_transaction':   TransactionId(self.transaction2),
+          'trunk_transaction': TransactionHash(self.transaction1),
+          'branch_transaction': TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [
@@ -239,8 +248,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction':    TransactionId(self.transaction1),
-          'branch_transaction':   TransactionId(self.transaction2),
+          'trunk_transaction': TransactionHash(self.transaction1),
+          'branch_transaction': TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [
@@ -310,8 +319,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction':    TransactionId(self.transaction1),
-          'branch_transaction':   TransactionId(self.transaction2),
+          'trunk_transaction': TransactionHash(self.transaction1),
+          'branch_transaction': TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [

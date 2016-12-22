@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, TryteString
+from iota import Address, Iota, TryteString
 from iota.commands.core.get_balances import GetBalancesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -270,4 +272,20 @@ class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
             b'OHYD9URMELKWAFYFMNTSP9MCHLXRGAFMBOZPZ9999',
           ),
       },
+    )
+
+
+class GetBalancesCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetBalancesCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getBalances,
+      GetBalancesCommand,
     )

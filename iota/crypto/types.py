@@ -41,7 +41,8 @@ class Seed(TryteString):
          new_seed = Seed.random(source=Random.new().read)
     """
     # Encoding bytes -> trytes yields 2 trytes per byte.
-    return cls.from_bytes(source(ceil(length / 2)))
+    # Note: int cast for compatibility with Python 2.
+    return cls.from_bytes(source(int(ceil(length / 2))))
 
 
 class SigningKey(TryteString):

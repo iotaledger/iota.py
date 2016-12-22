@@ -118,13 +118,13 @@ class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
 
       {
         'trunkTransaction':
-                    TransactionHash(
+          TransactionHash(
             b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
             b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
           ),
 
         'branchTransaction':
-                    TransactionHash(
+          TransactionHash(
             b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
             b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
           ),

@@ -2,8 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import Iota
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
@@ -309,3 +312,22 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
         'inclusion_states': [f.Type.CODE_WRONG_TYPE],
       },
     )
+
+
+class GetTransfersCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetTransfersCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+    self.command = GetTransfersCommand(self.adapter)
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getTransfers,
+      GetTransfersCommand,
+    )
+
+  # :todo: Unit tests.

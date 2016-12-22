@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TransactionId, TryteString
+from iota import Iota, TransactionHash, TryteString
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -33,11 +35,11 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
   def test_pass_happy_path(self):
     """The incoming request is valid."""
     request = {
-      'trunk_transaction':    TransactionId(self.txn_id),
-      'branch_transaction':   TransactionId(self.txn_id),
+      'trunk_transaction':    TransactionHash(self.txn_id),
+      'branch_transaction':   TransactionHash(self.txn_id),
       'min_weight_magnitude': 20,
 
-      'trytes': [
+      'trytes':               [
         TryteString(self.trytes1),
         TryteString(self.trytes2),
       ],
@@ -51,10 +53,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
   def test_pass_min_weight_magnitude_missing(self):
     """`min_weight_magnitude` is optional."""
     request = {
-      'trunk_transaction':    TransactionId(self.txn_id),
-      'branch_transaction':   TransactionId(self.txn_id),
+      'trunk_transaction':  TransactionHash(self.txn_id),
+      'branch_transaction': TransactionHash(self.txn_id),
 
-      'trytes': [
+      'trytes':             [
         TryteString(self.trytes1)
       ],
 
@@ -73,7 +75,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
   def test_pass_compatible_types(self):
     """Incoming values can be converted into the expected types."""
     filter_ = self._filter({
-      # Any value that can be converted into a TransactionId is valid
+      # Any value that can be converted into a TransactionHash is valid
       #   here.
       'trunk_transaction':    binary_type(self.txn_id),
       'branch_transaction':   bytearray(self.txn_id),
@@ -84,7 +86,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         binary_type(self.trytes1),
 
         # This is probably wrong, but technically it's valid.
-        TransactionId(
+        TransactionHash(
           b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
         ),
       ],
@@ -100,11 +102,11 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       # After running through the filter, all of the values have been
       #   converted to the correct types.
       {
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':    TransactionHash(self.txn_id),
+        'branch_transaction':   TransactionHash(self.txn_id),
         'min_weight_magnitude': 30,
 
-        'trytes': [
+        'trytes':               [
           TryteString(self.trytes1),
 
           TryteString(
@@ -131,8 +133,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     """The incoming request contains unexpected parameters."""
     self.assertFilterErrors(
       {
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':    TransactionHash(self.txn_id),
+        'branch_transaction':   TransactionHash(self.txn_id),
         'min_weight_magnitude': 20,
         'trytes':               [TryteString(self.trytes1)],
 
@@ -151,7 +153,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trunk_transaction':  None,
 
-        'branch_transaction': TransactionId(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
         'trytes':             [TryteString(self.trytes1)],
       },
 
@@ -167,7 +169,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         # Strings are not valid tryte sequences.
         'trunk_transaction':  text_type(self.txn_id, 'ascii'),
 
-        'branch_transaction': TransactionId(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
         'trytes':             [TryteString(self.trytes1)],
       },
 
@@ -182,7 +184,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'branch_transaction': None,
 
-        'trunk_transaction':  TransactionId(self.txn_id),
+        'trunk_transaction':  TransactionHash(self.txn_id),
         'trytes':             [TryteString(self.trytes1)],
       },
 
@@ -198,7 +200,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         # Strings are not valid tryte sequences.
         'branch_transaction': text_type(self.txn_id, 'ascii'),
 
-        'trunk_transaction':  TransactionId(self.txn_id),
+        'trunk_transaction':  TransactionHash(self.txn_id),
         'trytes':             [TryteString(self.trytes1)],
       },
 
@@ -214,10 +216,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         # I don't care if the fpart is empty; it's still not an int!
         'min_weight_magnitude': 20.0,
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':    TransactionHash(self.txn_id),
+        'branch_transaction':   TransactionHash(self.txn_id),
 
-        'trytes': [
+        'trytes':               [
           TryteString(self.trytes1)
         ],
       },
@@ -234,10 +236,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         # For want of an int cast, the transaction was lost.
         'min_weight_magnitude': '20',
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':    TransactionHash(self.txn_id),
+        'branch_transaction':   TransactionHash(self.txn_id),
 
-        'trytes': [
+        'trytes':               [
           TryteString(self.trytes1)
         ],
       },
@@ -253,10 +255,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'min_weight_magnitude': 17,
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':    TransactionHash(self.txn_id),
+        'branch_transaction':   TransactionHash(self.txn_id),
 
-        'trytes': [
+        'trytes':               [
           TryteString(self.trytes1)
         ],
       },
@@ -270,10 +272,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     """`trytes` is null."""
     self.assertFilterErrors(
       {
-        'trytes': None,
+        'trytes':             None,
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':  TransactionHash(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
       },
 
       {
@@ -287,10 +289,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         # You have to specify an array, even if you only want to attach
         #   a single tryte sequence.
-        'trytes': TryteString(self.trytes1),
+        'trytes':             TryteString(self.trytes1),
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':  TransactionHash(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
       },
 
       {
@@ -304,10 +306,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         # Ok, you got the list part down, but you have to put something
         #   inside it.
-        'trytes': [],
+        'trytes':             [],
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':  TransactionHash(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
       },
 
       {
@@ -319,7 +321,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     """`trytes` is an array, but it contains invalid values."""
     self.assertFilterErrors(
       {
-        'trytes': [
+        'trytes':             [
           b'',
           text_type(self.trytes1, 'ascii'),
           True,
@@ -333,8 +335,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
           2130706433,
         ],
 
-        'trunk_transaction':    TransactionId(self.txn_id),
-        'branch_transaction':   TransactionId(self.txn_id),
+        'trunk_transaction':  TransactionHash(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
       },
 
       {
@@ -388,4 +390,20 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
 
         'duration': 42,
       },
+    )
+
+
+class AttachToTangleCommandTestCase(TestCase):
+  def setUp(self):
+    super(AttachToTangleCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).attachToTangle,
+      AttachToTangleCommand,
     )

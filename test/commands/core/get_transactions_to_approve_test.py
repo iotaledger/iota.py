@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TransactionId
+from iota import Iota, TransactionHash
 from iota.commands.core.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
 from test import MockAdapter
@@ -116,17 +118,33 @@ class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
 
       {
         'trunkTransaction':
-          TransactionId(
+                    TransactionHash(
             b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
             b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
           ),
 
         'branchTransaction':
-          TransactionId(
+                    TransactionHash(
             b'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'
             b'CTHHSSEQCD9YLDPEXYERCNJVASRGWMAVKFQTC9999'
           ),
 
         'duration': 936,
       },
+    )
+
+
+class GetTransactionsToApproveTestCase(TestCase):
+  def setUp(self):
+    super(GetTransactionsToApproveTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getTransactionsToApprove,
+      GetTransactionsToApproveCommand,
     )

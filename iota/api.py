@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Iterable, List, Optional, Text
 
-from iota import Address, Bundle, Tag, TransactionId, Transaction, TryteString, \
+from iota import Address, Bundle, Tag, TransactionHash, Transaction, TryteString, \
   TrytesCompatible
 from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
@@ -80,7 +80,7 @@ class StrictIota(object):
       trytes,
       min_weight_magnitude = 18,
   ):
-    # type: (TransactionId, TransactionId, Iterable[TryteString], int) -> dict
+    # type: (TransactionHash, TransactionHash, Iterable[TryteString], int) -> dict
     """
     Attaches the specified transactions (trytes) to the Tangle by doing
     Proof of Work. You need to supply branchTransaction as well as
@@ -122,7 +122,7 @@ class StrictIota(object):
       tags      = None,
       approvees = None,
   ):
-    # type: (Optional[Iterable[TransactionId]], Optional[Iterable[Address]], Optional[Iterable[Tag]], Optional[Iterable[TransactionId]]) -> dict
+    # type: (Optional[Iterable[TransactionHash]], Optional[Iterable[Address]], Optional[Iterable[Tag]], Optional[Iterable[TransactionHash]]) -> dict
     """
     Find the transactions which match the specified input and return.
 
@@ -182,7 +182,7 @@ class StrictIota(object):
     )
 
   def get_inclusion_states(self, transactions, tips):
-    # type: (Iterable[TransactionId], Iterable[TransactionId]) -> dict
+    # type: (Iterable[TransactionHash], Iterable[TransactionHash]) -> dict
     """
     Get the inclusion states of a set of transactions. This is for
     determining if a transaction was accepted and confirmed by the
@@ -259,7 +259,7 @@ class StrictIota(object):
     return self.getTransactionsToApprove(depth=depth)
 
   def get_trytes(self, hashes):
-    # type: (Iterable[TransactionId]) -> dict
+    # type: (Iterable[TransactionHash]) -> dict
     """
     Returns the raw transaction data (trytes) of one or more
     transactions.
@@ -392,7 +392,7 @@ class Iota(StrictIota):
     )
 
   def prepare_transfers(self, transfers, inputs=None, change_address=None):
-    # type: (Iterable[Transaction], Optional[Iterable[TransactionId]], Optional[Address]) -> List[TryteString]
+    # type: (Iterable[Transaction], Optional[Iterable[TransactionHash]], Optional[Address]) -> List[TryteString]
     """
     Prepares transactions to be broadcast to the Tangle, by generating
     the correct bundle, as well as choosing and signing the inputs (for
@@ -420,6 +420,22 @@ class Iota(StrictIota):
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
     """
     raise NotImplementedError('Not implemented yet.')
+
+  def get_latest_inclusion(self, hashes):
+    # type: (Iterable[TransactionHash]) -> Dict[TransactionHash, bool]
+    """
+    Fetches the inclusion state for the specified transaction hashes,
+    as of the latest milestone that the node has processed.
+
+    Effectively, this is ``getNodeInfo`` + ``getInclusionStates``.
+
+    :param hashes:
+      Iterable of transaction hashes.
+
+    :return:
+      {<TransactionHash>: <bool>}
+    """
+    return self.getLatestInclusion(hashes=hashes)
 
   def get_new_addresses(self, index=None, count=1):
     # type: (Optional[int], Optional[int]) -> List[Address]
@@ -449,7 +465,7 @@ class Iota(StrictIota):
     return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
   def get_bundle(self, transaction):
-    # type: (TransactionId) -> List[Bundle]
+    # type: (TransactionHash) -> List[Bundle]
     """
     Returns the bundle associated with the specified transaction hash.
 
@@ -504,7 +520,7 @@ class Iota(StrictIota):
     )
 
   def replay_bundle(self, transaction):
-    # type: (TransactionId) -> Bundle
+    # type: (TransactionHash) -> Bundle
     """
     Takes a tail transaction hash as input, gets the bundle associated
     with the transaction and then replays the bundle by attaching it to
@@ -529,7 +545,7 @@ class Iota(StrictIota):
       change_address        = None,
       min_weight_magnitude  = 18,
   ):
-    # type: (int, Iterable[Transaction], Optional[Iterable[TransactionId]], Optional[Address], int) -> Bundle
+    # type: (int, Iterable[Transaction], Optional[Iterable[TransactionHash]], Optional[Address], int) -> Bundle
     """
     Prepares a set of transfers and creates the bundle, then attaches
     the bundle to the Tangle, and broadcasts and stores the

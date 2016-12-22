@@ -20,7 +20,7 @@ __all__ = [
   'Hash',
   'Tag',
   'Transaction',
-  'TransactionId',
+  'TransactionHash',
   'TryteString',
   'TrytesCompatible',
   'int_from_trits',
@@ -500,9 +500,9 @@ class Tag(TryteString):
       ))
 
 
-class TransactionId(Hash):
+class TransactionHash(Hash):
   """
-  A TryteString that acts as a transaction or bundle ID.
+  A TryteString that acts as a transaction hash.
   """
   pass
 
@@ -526,7 +526,7 @@ class Transaction(object):
     sponge.squeeze(hash_)
 
     return cls(
-      hash_ = Hash.from_trits(hash_),
+      hash_ = TransactionHash.from_trits(hash_),
       signature_message_fragment = tryte_string[0:2187],
       recipient = Address(tryte_string[2187:2268]),
       value = int_from_trits(tryte_string[2268:2295].as_trits()),
@@ -535,8 +535,8 @@ class Transaction(object):
       current_index = int_from_trits(tryte_string[2331:2340].as_trits()),
       last_index = int_from_trits(tryte_string[2340:2349].as_trits()),
       bundle_id = BundleId(tryte_string[2349:2430]),
-      trunk_transaction_id = TransactionId(tryte_string[2430:2511]),
-      branch_transaction_id = TransactionId(tryte_string[2511:2592]),
+      trunk_transaction_id = TransactionHash(tryte_string[2430:2511]),
+      branch_transaction_id = TransactionHash(tryte_string[2511:2592]),
       nonce = Hash(tryte_string[2592:2673]),
     )
 
@@ -555,7 +555,7 @@ class Transaction(object):
       branch_transaction_id,
       nonce,
   ):
-    # type: (Hash, TryteString, Address, int, Tag, int, int, int, Hash, TransactionId, TransactionId, Hash) -> None
+    # type: (Hash, TryteString, Address, int, Tag, int, int, int, Hash, TransactionHash, TransactionHash, Hash) -> None
     self.hash       = hash_
     self.bundle_id  = bundle_id
 
@@ -575,6 +575,24 @@ class Transaction(object):
 
     self.signature_message_fragment =\
       TryteString(signature_message_fragment or b'')
+
+    self.is_confirmed = None # type: Optional[bool]
+    """
+    Whether this transaction has been confirmed by neighbor nodes.
+    Must be set manually via the ``getInclusionStates`` API command.
+
+    References:
+      - :py:meth:`iota.api.StrictIota.get_inclusion_states`
+      - :py:meth:`iota.api.Iota.get_transfers`
+    """
+
+  @property
+  def is_tail(self):
+    # type: () -> bool
+    """
+    Returns whether this transaction is a tail.
+    """
+    return self.current_index == 0
 
   def as_tryte_string(self):
     # type: () -> TryteString

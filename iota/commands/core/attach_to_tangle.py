@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota import TransactionId
+from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -32,8 +32,8 @@ class AttachToTangleRequestFilter(RequestFilter):
   def __init__(self):
     super(AttachToTangleRequestFilter, self).__init__(
       {
-        'trunk_transaction':  f.Required | Trytes(result_type=TransactionId),
-        'branch_transaction': f.Required | Trytes(result_type=TransactionId),
+        'trunk_transaction':  f.Required | Trytes(result_type=TransactionHash),
+        'branch_transaction': f.Required | Trytes(result_type=TransactionHash),
 
         'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
 

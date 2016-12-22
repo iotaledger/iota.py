@@ -6,6 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import Iota
 from iota.commands.extended.get_inputs import GetInputsCommand, \
   GetInputsRequestFilter
 from iota.crypto.types import Seed
@@ -354,6 +355,15 @@ class GetInputsCommandTestCase(TestCase):
 
     self.adapter = MockAdapter()
     self.command = GetInputsCommand(self.adapter)
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getInputs,
+      GetInputsCommand,
+    )
 
   def test_start_and_end_with_threshold(self):
     """

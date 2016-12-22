@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TryteString
+from iota import Iota, TryteString
 from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
@@ -195,4 +197,20 @@ class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
           TryteString(self.trytes2),
         ],
       },
+    )
+
+
+class BroadcastTransactionsCommandTestCase(TestCase):
+  def setUp(self):
+    super(BroadcastTransactionsCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).broadcastTransactions,
+      BroadcastTransactionsCommand,
     )

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota import Address, Tag, TransactionId
+from iota import Address, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -46,13 +46,13 @@ class FindTransactionsRequestFilter(RequestFilter):
 
         'approvees': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
           | f.Optional(default=[])
         ),
 
         'bundles': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
           | f.Optional(default=[])
         ),
 
@@ -93,6 +93,6 @@ class FindTransactionsResponseFilter(ResponseFilter):
       'hashes':
         f.FilterRepeater(
             f.ByteString(encoding='ascii')
-          | Trytes(result_type=TransactionId)
+          | Trytes(result_type=TransactionHash)
         ),
     })

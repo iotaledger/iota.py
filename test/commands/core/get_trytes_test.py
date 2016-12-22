@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TransactionId, TryteString
+from iota import Iota, TransactionHash, TryteString
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -35,8 +37,8 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     """The request is valid."""
     request = {
       'hashes': [
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes2),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes2),
       ],
     }
 
@@ -52,7 +54,7 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       'hashes': [
-        # Any sequence that can be converted into a TransactionId is
+        # Any sequence that can be converted into a TransactionHash is
         # valid.
         binary_type(self.trytes1),
         bytearray(self.trytes2),
@@ -65,8 +67,8 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'hashes': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes2),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes2),
         ],
       },
     )
@@ -85,7 +87,7 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     """The request contains unexpected parameters."""
     self.assertFilterErrors(
       {
-        'hashes': [TransactionId(self.trytes1)],
+        'hashes': [TransactionHash(self.trytes1)],
 
         # This is why we can't have nice things!
         'foo': 'bar',
@@ -114,7 +116,7 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         # `hashes` must be an array, even if we're only querying
         # against a single transaction.
-        'hashes': TransactionId(self.trytes1),
+        'hashes': TransactionHash(self.trytes1),
       },
 
       {
@@ -218,3 +220,19 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, response)
+
+
+class GetTrytesCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetTrytesCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getTrytes,
+      GetTrytesCommand,
+    )

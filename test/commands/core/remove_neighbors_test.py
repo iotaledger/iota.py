@@ -2,8 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import Iota
 from iota.commands.core.remove_neighbors import RemoveNeighborsCommand
 from iota.filters import NodeUri
 from test import MockAdapter
@@ -122,4 +125,20 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
         'uris.4':  [NodeUri.CODE_NOT_NODE_URI],
         'uris.6':  [f.Type.CODE_WRONG_TYPE],
       },
+    )
+
+
+class RemoveNeighborsCommandTestCase(TestCase):
+  def setUp(self):
+    super(RemoveNeighborsCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).removeNeighbors,
+      RemoveNeighborsCommand,
     )

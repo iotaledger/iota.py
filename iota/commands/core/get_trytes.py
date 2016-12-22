@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota import TransactionId
+from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -34,7 +34,7 @@ class GetTrytesRequestFilter(RequestFilter):
       'hashes': (
           f.Required
         | f.Array
-        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionId))
+        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
       ),
     })
 

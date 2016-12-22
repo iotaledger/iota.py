@@ -12,7 +12,7 @@ from iota import (
   Hash,
   Tag,
   Transaction,
-  TransactionId,
+  TransactionHash,
   TryteString,
   TrytesCodec,
   TrytesDecodeError,
@@ -838,12 +838,12 @@ class TagTestCase(TestCase):
 
 
 # noinspection SpellCheckingInspection
-class TransactionIdTestCase(TestCase):
+class TransactionHashTestCase(TestCase):
   def test_init_automatic_pad(self):
     """
-    Transaction IDs are automatically padded to 81 trytes.
+    Transaction hashes are automatically padded to 81 trytes.
     """
-    txn = TransactionId(
+    txn = TransactionHash(
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
       b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC'
     )
@@ -858,10 +858,10 @@ class TransactionIdTestCase(TestCase):
 
   def test_init_error_too_long(self):
     """
-    Attempting to create a transaction ID longer than 81 trytes.
+    Attempting to create a transaction hash longer than 81 trytes.
     """
     with self.assertRaises(ValueError):
-      TransactionId(
+      TransactionHash(
         b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
         b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC99999'
       )
@@ -999,7 +999,7 @@ class TransactionTestCase(TestCase):
     self.assertEqual(
       transaction.trunk_transaction_id,
 
-      TransactionId(
+      TransactionHash(
         b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
         b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
       ),
@@ -1008,7 +1008,7 @@ class TransactionTestCase(TestCase):
     self.assertEqual(
       transaction.branch_transaction_id,
 
-      TransactionId(
+      TransactionHash(
         b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
         b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
       ),
@@ -1108,13 +1108,13 @@ class TransactionTestCase(TestCase):
         ),
 
       trunk_transaction_id =
-        TransactionId(
+        TransactionHash(
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
         ),
 
       branch_transaction_id =
-        TransactionId(
+        TransactionHash(
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
         ),

@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TransactionId, TryteString
+from iota import Iota, TransactionHash, TryteString
 from iota.commands.core.get_inclusion_states import GetInclusionStatesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -33,16 +35,16 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     """Typical `getInclusionStates` request."""
     request = {
       'transactions': [
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes2),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes2),
       ],
 
       'tips': [
         # These values would normally be different from
         # ``transactions``, but for purposes of this unit test, we just
         # need to make sure the format is correct.
-        TransactionId(self.trytes1),
-        TransactionId(self.trytes2),
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes2),
       ],
     }
 
@@ -74,13 +76,13 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'transactions': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes2),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes2),
         ],
 
         'tips': [
-          TransactionId(self.trytes1),
-          TransactionId(self.trytes2),
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes2),
         ],
       },
     )
@@ -100,8 +102,8 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     """The incoming request contains unexpected parameters."""
     self.assertFilterErrors(
       {
-        'transactions': [TransactionId(self.trytes1)],
-        'tips':         [TransactionId(self.trytes2)],
+        'transactions': [TransactionHash(self.trytes1)],
+        'tips':         [TransactionHash(self.trytes2)],
 
         # I bring scientists, you bring a rock star.
         'foo': 'bar',
@@ -118,7 +120,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'transactions': None,
 
-        'tips': [TransactionId(self.trytes2)],
+        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -132,9 +134,9 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         # Has to be an array, even if we're only querying for one
         # transaction.
-        'transactions': TransactionId(self.trytes1),
+        'transactions': TransactionHash(self.trytes1),
 
-        'tips': [TransactionId(self.trytes2)],
+        'tips':         [TransactionHash(self.trytes2)],
       },
 
       {
@@ -148,7 +150,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'transactions': [],
 
-        'tips': [TransactionId(self.trytes2)],
+        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -175,7 +177,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
           b'9' * 82,
         ],
 
-        'tips': [TransactionId(self.trytes2)],
+        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -195,7 +197,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'tips': None,
 
-        'transactions': [TransactionId(self.trytes1)],
+        'transactions': [TransactionHash(self.trytes1)],
       },
 
       {
@@ -207,9 +209,9 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     """`tips` is not an array."""
     self.assertFilterErrors(
       {
-        'tips': TransactionId(self.trytes2),
+        'tips':         TransactionHash(self.trytes2),
 
-        'transactions': [TransactionId(self.trytes1)],
+        'transactions': [TransactionHash(self.trytes1)],
       },
 
       {
@@ -223,7 +225,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'tips': [],
 
-        'transactions': [TransactionId(self.trytes1)],
+        'transactions': [TransactionHash(self.trytes1)],
       },
 
       {
@@ -250,7 +252,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
           b'9' * 82,
         ],
 
-        'transactions': [TransactionId(self.trytes1)],
+        'transactions': [TransactionHash(self.trytes1)],
       },
 
       {
@@ -262,4 +264,20 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
         'tips.6':  [f.Type.CODE_WRONG_TYPE],
         'tips.7':  [Trytes.CODE_WRONG_FORMAT],
       },
+    )
+
+
+class GetInclusionStatesCommandTestCase(TestCase):
+  def setUp(self):
+    super(GetInclusionStatesCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      Iota(self.adapter).getInclusionStates,
+      GetInclusionStatesCommand,
     )

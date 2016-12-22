@@ -467,17 +467,22 @@ class Iota(StrictIota):
     """
     raise NotImplementedError('Not implemented yet.')
 
-  def get_transfers(self, indexes=None, inclusion_states=False):
-    # type: (Optional[Iterable[int]], bool) -> List[Bundle]
+  def get_transfers(self, start=0, end=None, inclusion_states=False):
+    # type: (int, Optional[int], bool) -> List[Bundle]
     """
     Returns all transfers associated with the seed.
 
-    :param indexes:
-      If specified, use addresses at these indexes to perform the
-      search.
+    :param start:
+      Starting key index.
 
-      If not provided, _all_ transfers associated with the seed will be
-      returned.
+    :param end:
+      Stop before this index.
+      Note that this parameter behaves like the ``stop`` attribute in a
+      :py:class:`slice` object; the end index is _not_ included in the
+      result.
+
+      If not specified, then this method will not stop until it finds
+      an unused address.
 
     :param inclusion_states:
       Whether to also fetch the inclusion states of the transfers.
@@ -491,7 +496,12 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getTransfers(
+      seed              = self.seed,
+      start             = start,
+      end               = end,
+      inclusion_states  = inclusion_states,
+    )
 
   def replay_bundle(self, transaction):
     # type: (TransactionId) -> Bundle

@@ -346,13 +346,20 @@ class Iota(StrictIota):
       Starting key index.
 
     :param end:
-      Starting key index.
+      Stop before this index.
+      Note that this parameter behaves like the ``stop`` attribute in a
+      :py:class:`slice` object; the end index is _not_ included in the
+      result.
 
       If not specified, then this method will not stop until it finds
       an unused address.
 
     :param threshold:
-      Stop once the accumulated inputs meet or exceed this amount.
+      Determines the minimum threshold for a successful result.
+
+      - As soon as this threshold is reached, iteration will stop.
+      - If the command runs out of addresses before the threshold is
+        reached, an exception is raised.
 
     :return:
       Dict with the following keys::
@@ -369,6 +376,10 @@ class Iota(StrictIota):
 
            'totalBalance':  <aggregate balance of all inputs>,
          }
+
+    :raise:
+      - :py:class:`iota.adapter.BadApiResponse` if ``threshold`` is not
+        met.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getinputs

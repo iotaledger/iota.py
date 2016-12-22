@@ -2,8 +2,14 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Optional
+
 import filters as f
+from iota import Bundle
 from iota.commands import FilterCommand, RequestFilter
+from iota.commands.core.find_transactions import FindTransactionsCommand
+from iota.commands.core.get_trytes import GetTrytesCommand
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 
@@ -27,9 +33,41 @@ class GetTransfersCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
+    # Optional parameters.
+    end       = request.get('end') # type: Optional[int]
+    threshold = request.get('threshold') # type: Optional[int]
+
+    # Required parameters.
+    start = request['start'] # type: int
+    seed  = request['seed'] # type: Seed
+
+    generator   = AddressGenerator(seed)
+    ft_command  = FindTransactionsCommand(self.adapter)
+
+    # Determine the addresses we will be scanning, and pull their
+    # transaction hashes.
+    if end is None:
+      # This is similar to the ``getNewAddresses`` command, except it
+      # is interested in all the addresses that `getNewAddresses`
+      # skips.
+      hashes = []
+      for addy in generator.create_generator(start):
+        ft_response = ft_command(addresses=[addy])
+
+        if ft_response.get('hashes'):
+          hashes += ft_response['hashes']
+        else:
+          break
+    else:
+      ft_response =\
+        ft_command(addresses=generator.get_addresses(start, end - start))
+
+      hashes = ft_response.get('hashes') or []
+
+    # Fetch the trytes for each transaction.
+    gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
+
+    return list(map(Bundle.from_tryte_string, gt_response.get('trytes') or []))
 
 
 class GetTransfersRequestFilter(RequestFilter):

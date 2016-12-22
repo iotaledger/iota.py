@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Iterable, List, Optional, Text
 
-from iota import Address, Bundle, Tag, TransactionId, Transfer, TryteString, \
+from iota import Address, Bundle, Tag, TransactionId, Transaction, TryteString, \
   TrytesCompatible
 from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
@@ -392,13 +392,13 @@ class Iota(StrictIota):
     )
 
   def prepare_transfers(self, transfers, inputs=None, change_address=None):
-    # type: (Iterable[Transfer], Optional[Iterable[TransactionId]], Optional[Address]) -> List[TryteString]
+    # type: (Iterable[Transaction], Optional[Iterable[TransactionId]], Optional[Address]) -> List[TryteString]
     """
     Prepares transactions to be broadcast to the Tangle, by generating
     the correct bundle, as well as choosing and signing the inputs (for
     value transfers).
 
-    :param transfers: Transfer objects to prepare.
+    :param transfers: Transaction objects to prepare.
 
     :param inputs:
       List of inputs used to fund the transfer.
@@ -529,7 +529,7 @@ class Iota(StrictIota):
       change_address        = None,
       min_weight_magnitude  = 18,
   ):
-    # type: (int, Iterable[Transfer], Optional[Iterable[TransactionId]], Optional[Address], int) -> Bundle
+    # type: (int, Iterable[Transaction], Optional[Iterable[TransactionId]], Optional[Address], int) -> Bundle
     """
     Prepares a set of transfers and creates the bundle, then attaches
     the bundle to the Tangle, and broadcasts and stores the

@@ -91,8 +91,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction': TransactionHash(self.transaction1),
-          'branch_transaction': TransactionHash(self.transaction2),
+          'trunk_transaction':    TransactionHash(self.transaction1),
+          'branch_transaction':   TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [
@@ -191,8 +191,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction': TransactionHash(self.transaction1),
-          'branch_transaction': TransactionHash(self.transaction2),
+          'trunk_transaction':    TransactionHash(self.transaction1),
+          'branch_transaction':   TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [
@@ -248,8 +248,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction': TransactionHash(self.transaction1),
-          'branch_transaction': TransactionHash(self.transaction2),
+          'trunk_transaction':    TransactionHash(self.transaction1),
+          'branch_transaction':   TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [
@@ -319,8 +319,8 @@ class SendTrytesCommandTestCase(TestCase):
         {
           'command': 'attachToTangle',
 
-          'trunk_transaction': TransactionHash(self.transaction1),
-          'branch_transaction': TransactionHash(self.transaction2),
+          'trunk_transaction':    TransactionHash(self.transaction1),
+          'branch_transaction':   TransactionHash(self.transaction2),
           'min_weight_magnitude': 18,
 
           'trytes': [

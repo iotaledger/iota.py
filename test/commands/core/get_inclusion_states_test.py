@@ -136,7 +136,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
         # transaction.
         'transactions': TransactionHash(self.trytes1),
 
-        'tips':         [TransactionHash(self.trytes2)],
+        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -209,7 +209,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     """`tips` is not an array."""
     self.assertFilterErrors(
       {
-        'tips':         TransactionHash(self.trytes2),
+        'tips': TransactionHash(self.trytes2),
 
         'transactions': [TransactionHash(self.trytes1)],
       },

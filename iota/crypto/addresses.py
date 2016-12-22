@@ -8,6 +8,7 @@ from iota import Address, TryteString, TrytesCompatible
 from iota.crypto import Curl
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import SigningKey
+from iota.exceptions import with_context
 
 __all__ = [
   'AddressGenerator',
@@ -76,10 +77,26 @@ class AddressGenerator(Iterable[Address]):
       negative).
     """
     if count < 1:
-      raise ValueError('``count`` must be positive.')
+      raise with_context(
+        exc = ValueError('``count`` must be positive.'),
+
+        context = {
+          'start':  start,
+          'count':  count,
+          'step':   step,
+        },
+      )
 
     if not step:
-      raise ValueError('``step`` must not be zero.')
+      raise with_context(
+        exc = ValueError('``step`` must not be zero.'),
+
+        context = {
+          'start':  start,
+          'count':  count,
+          'step':   step,
+        },
+      )
 
     generator = self.create_generator(start, step)
 
@@ -113,7 +130,14 @@ class AddressGenerator(Iterable[Address]):
       iterations if ``step`` is a large number!
     """
     if start < 0:
-      raise ValueError('``start`` cannot be negative.')
+      raise with_context(
+        exc = ValueError('``start`` cannot be negative.'),
+
+        context = {
+          'start':  start,
+          'step':   step,
+        },
+      )
 
     digest_generator = self._create_digest_generator(start, step)
 

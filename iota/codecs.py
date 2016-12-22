@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import Codec, CodecInfo, register as lookup_function
 
+from iota.exceptions import with_context
 from six import PY3, binary_type
 
 __all__ = [
@@ -67,9 +68,15 @@ class TrytesCodec(Codec):
       input = input.tobytes()
 
     if not isinstance(input, (binary_type, bytearray)):
-      raise TypeError("Can't encode {type}; byte string expected.".format(
-        type = type(input).__name__,
-      ))
+      raise with_context(
+        exc = TypeError("Can't encode {type}; byte string expected.".format(
+          type = type(input).__name__,
+        )),
+
+        context = {
+          'input': input,
+        },
+      )
 
     # :bc: In Python 2, iterating over a byte string yields characters
     # instead of integers.
@@ -95,9 +102,15 @@ class TrytesCodec(Codec):
       input = input.tobytes()
 
     if not isinstance(input, (binary_type, bytearray)):
-      raise TypeError("Can't decode {type}; byte string expected.".format(
-        type = type(input).__name__,
-      ))
+      raise with_context(
+        exc = TypeError("Can't decode {type}; byte string expected.".format(
+          type = type(input).__name__,
+        )),
+
+        context = {
+          'input': input,
+        },
+      )
 
     # :bc: In Python 2, iterating over a byte string yields characters
     #   instead of integers.
@@ -111,11 +124,17 @@ class TrytesCodec(Codec):
         first, second = input[i:i+2]
       except ValueError:
         if errors == 'strict':
-          raise TrytesDecodeError(
-            "'{name}' codec can't decode value; "
-            "tryte sequence has odd length.".format(
-              name = self.name,
+          raise with_context(
+            exc = TrytesDecodeError(
+              "'{name}' codec can't decode value; "
+              "tryte sequence has odd length.".format(
+                name = self.name,
+              ),
             ),
+
+            context = {
+              'input': input,
+            },
           )
         elif errors == 'replace':
           bytes_ += b'?'
@@ -131,14 +150,20 @@ class TrytesCodec(Codec):
         # This combination of trytes yields a value > 255 when
         # decoded.  Naturally, we can't represent this using ASCII.
         if errors == 'strict':
-          raise TrytesDecodeError(
-            "'{name}' codec can't decode trytes {pair} at position {i}-{j}: "
-            "ordinal not in range(255)".format(
-              name  = self.name,
-              pair  = chr(first) + chr(second),
-              i     = i,
-              j     = i+1,
+          raise with_context(
+            exc = TrytesDecodeError(
+              "'{name}' codec can't decode trytes {pair} at position {i}-{j}: "
+              "ordinal not in range(255)".format(
+                name  = self.name,
+                pair  = chr(first) + chr(second),
+                i     = i,
+                j     = i+1,
+              ),
             ),
+
+            context = {
+              'input': input,
+            }
           )
         elif errors == 'replace':
           bytes_ += b'?'

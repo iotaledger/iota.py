@@ -10,6 +10,7 @@ from types import ModuleType
 from typing import Dict, Mapping, Optional, Text, Union
 
 import filters as f
+from iota.exceptions import with_context
 from six import with_metaclass, string_types
 
 from iota.adapter import BaseAdapter
@@ -85,7 +86,14 @@ class BaseCommand(with_metaclass(CommandMeta)):
     # type: (dict) -> dict
     """Sends the command to the node."""
     if self.called:
-      raise RuntimeError('Command has already been called.')
+      raise with_context(
+        exc = RuntimeError('Command has already been called.'),
+
+        context = {
+          'last_request':   self.request,
+          'last_response':  self.response,
+        },
+      )
 
     self.request = kwargs
 
@@ -176,20 +184,6 @@ class CustomCommand(BaseCommand):
 
   def _prepare_response(self, response):
     pass
-
-
-class FilterError(ValueError):
-  """
-  Indicates that the request or response passed to a FilterCommand
-    failed one or more filters.
-  """
-  def __init__(self, message, filter_runner):
-    # type: (Text, f.FilterRunner) -> None
-    super(FilterError, self).__init__(message)
-
-    self.context = {
-      'filter_errors': filter_runner.get_errors(with_context=True),
-    }
 
 
 class RequestFilter(f.FilterChain):
@@ -293,16 +287,19 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
       if runner.is_valid():
         return runner.cleaned_data
       else:
-        raise FilterError(
-          message =
+        raise with_context(
+          exc = ValueError(
             '{message} ({error_codes}) '
             '(`exc.context["filter_errors"]` '
             'contains more information).'.format(
               message     = failure_message,
               error_codes = runner.error_codes,
             ),
+          ),
 
-          filter_runner = runner,
+          context = {
+            'filter_errors': runner.get_errors(with_context=True),
+          },
         )
 
     return value

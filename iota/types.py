@@ -9,6 +9,7 @@ from typing import Generator, Iterable, List, MutableSequence, \
 
 from iota import TrytesCodec
 from iota.crypto import Curl, HASH_LENGTH
+from iota.exceptions import with_context
 from six import PY2, binary_type
 
 
@@ -166,12 +167,18 @@ class TryteString(object):
     super(TryteString, self).__init__()
 
     if isinstance(trytes, (int, float)):
-      raise TypeError(
-        'Converting {type} is not supported; '
-        '{cls} is not a numeric type.'.format(
-          type  = type(trytes).__name__,
-          cls   = type(self).__name__,
+      raise with_context(
+        exc = TypeError(
+          'Converting {type} is not supported; '
+          '{cls} is not a numeric type.'.format(
+            type  = type(trytes).__name__,
+            cls   = type(self).__name__,
+          ),
         ),
+
+        context = {
+          'trytes': trytes,
+        },
       )
 
     if isinstance(trytes, TryteString):
@@ -183,11 +190,17 @@ class TryteString(object):
         trytes = bytearray(trytes._trytes)
 
       else:
-        raise TypeError(
-          '{cls} cannot be initialized from a(n) {type}.'.format(
-            type  = type(trytes).__name__,
-            cls   = type(self).__name__,
+        raise with_context(
+          exc = TypeError(
+            '{cls} cannot be initialized from a(n) {type}.'.format(
+              type  = type(trytes).__name__,
+              cls   = type(self).__name__,
+            ),
           ),
+
+          context = {
+            'trytes': trytes,
+          },
         )
 
     else:
@@ -196,12 +209,18 @@ class TryteString(object):
 
       for i, ordinal in enumerate(trytes):
         if ordinal not in TrytesCodec.index:
-          raise ValueError(
-            'Invalid character {char!r} at position {i} '
-            '(expected A-Z or 9).'.format(
-              char  = chr(ordinal),
-              i     = i,
+          raise with_context(
+            exc = ValueError(
+              'Invalid character {char!r} at position {i} '
+              '(expected A-Z or 9).'.format(
+                char  = chr(ordinal),
+                i     = i,
+              ),
             ),
+
+            context = {
+              'trytes': trytes,
+            },
           )
 
     if pad:
@@ -243,13 +262,19 @@ class TryteString(object):
     elif isinstance(other, (binary_type, bytearray)):
       return other in self._trytes
     else:
-      raise TypeError(
-        'Invalid type for TryteString contains check '
-        '(expected Union[TryteString, {binary_type}, bytearray], '
-        'actual {type}).'.format(
-          binary_type = binary_type.__name__,
-          type        = type(other).__name__,
+      raise with_context(
+        exc = TypeError(
+          'Invalid type for TryteString contains check '
+          '(expected Union[TryteString, {binary_type}, bytearray], '
+          'actual {type}).'.format(
+            binary_type = binary_type.__name__,
+            type        = type(other).__name__,
+          ),
         ),
+
+        context = {
+          'other': other,
+        },
       )
 
   def __getitem__(self, item):
@@ -272,13 +297,19 @@ class TryteString(object):
     elif isinstance(other, (binary_type, bytearray)):
       return TryteString(self._trytes + other)
     else:
-      raise TypeError(
-        'Invalid type for TryteString concatenation '
-        '(expected Union[TryteString, {binary_type}, bytearray], '
-        'actual {type}).'.format(
-          binary_type = binary_type.__name__,
-          type        = type(other).__name__,
+      raise with_context(
+        exc = TypeError(
+          'Invalid type for TryteString concatenation '
+          '(expected Union[TryteString, {binary_type}, bytearray], '
+          'actual {type}).'.format(
+            binary_type = binary_type.__name__,
+            type        = type(other).__name__,
+          ),
         ),
+
+        context = {
+          'other': other,
+        },
       )
 
   def __eq__(self, other):
@@ -288,13 +319,19 @@ class TryteString(object):
     elif isinstance(other, (binary_type, bytearray)):
       return self._trytes == other
     else:
-      raise TypeError(
-        'Invalid type for TryteString comparison '
-        '(expected Union[TryteString, {binary_type}, bytearray], '
-        'actual {type}).'.format(
-          binary_type = binary_type.__name__,
-          type        = type(other).__name__,
+      raise with_context(
+        exc = TypeError(
+          'Invalid type for TryteString comparison '
+          '(expected Union[TryteString, {binary_type}, bytearray], '
+          'actual {type}).'.format(
+            binary_type = binary_type.__name__,
+            type        = type(other).__name__,
+          ),
         ),
+
+        context = {
+          'other': other,
+        },
       )
 
   # :bc: In Python 2 this must be defined explicitly.
@@ -390,10 +427,16 @@ class Hash(TryteString):
     super(Hash, self).__init__(trytes, pad=self.LEN)
 
     if len(self._trytes) > self.LEN:
-      raise ValueError('{cls} values must be {len} trytes long.'.format(
-        cls = type(self).__name__,
-        len = self.LEN
-      ))
+      raise with_context(
+        exc = ValueError('{cls} values must be {len} trytes long.'.format(
+          cls = type(self).__name__,
+          len = self.LEN
+        )),
+
+        context = {
+          'trytes': trytes,
+        },
+      )
 
 
 class Address(TryteString):
@@ -412,12 +455,18 @@ class Address(TryteString):
       self.checksum = AddressChecksum(self[self.LEN:]) # type: Optional[AddressChecksum]
 
     elif len(self._trytes) > self.LEN:
-      raise ValueError(
-        'Address values must be {len_no_checksum} trytes (no checksum), '
-        'or {len_with_checksum} trytes (with checksum).'.format(
-          len_no_checksum   = self.LEN,
-          len_with_checksum = self.LEN + AddressChecksum.LEN,
+      raise with_context(
+        exc = ValueError(
+          'Address values must be {len_no_checksum} trytes (no checksum), '
+          'or {len_with_checksum} trytes (with checksum).'.format(
+            len_no_checksum   = self.LEN,
+            len_with_checksum = self.LEN + AddressChecksum.LEN,
+          ),
         ),
+
+        context = {
+          'trytes': trytes,
+        },
       )
 
     # Make the address sans checksum accessible.
@@ -468,11 +517,17 @@ class AddressChecksum(TryteString):
     super(AddressChecksum, self).__init__(trytes, pad=None)
 
     if len(self._trytes) != self.LEN:
-      raise ValueError(
-        '{cls} values must be exactly {len} trytes long.'.format(
-          cls = type(self).__name__,
-          len = self.LEN,
+      raise with_context(
+        exc = ValueError(
+          '{cls} values must be exactly {len} trytes long.'.format(
+            cls = type(self).__name__,
+            len = self.LEN,
+          ),
         ),
+
+        context = {
+          'trytes': trytes,
+        },
       )
 
 
@@ -494,10 +549,16 @@ class Tag(TryteString):
     super(Tag, self).__init__(trytes, pad=self.LEN)
 
     if len(self._trytes) > self.LEN:
-      raise ValueError('{cls} values must be {len} trytes long.'.format(
-        cls = type(self).__name__,
-        len = self.LEN
-      ))
+      raise with_context(
+        exc = ValueError('{cls} values must be {len} trytes long.'.format(
+          cls = type(self).__name__,
+          len = self.LEN
+        )),
+
+        context = {
+          'trytes': trytes,
+        },
+      )
 
 
 class TransactionHash(Hash):

@@ -9,6 +9,7 @@ from socket import getdefaulttimeout as get_default_timeout
 from typing import Dict, Text, Tuple, Union
 
 import requests
+from iota.exceptions import with_context
 from six import with_metaclass
 
 from iota import DEFAULT_PORT
@@ -57,14 +58,29 @@ def resolve_adapter(uri):
   try:
     protocol, _ = uri.split('://', 1)
   except ValueError:
-    raise InvalidUri('URI must begin with "<protocol>://" (e.g., "udp://").')
+    raise with_context(
+      exc = InvalidUri(
+        'URI must begin with "<protocol>://" (e.g., "udp://").',
+      ),
+
+      context = {
+        'uri': uri,
+      },
+    )
 
   try:
     adapter_type = adapter_registry[protocol]
   except KeyError:
-    raise InvalidUri('Unrecognized protocol {protocol!r}.'.format(
-      protocol = protocol,
-    ))
+    raise with_context(
+      exc = InvalidUri('Unrecognized protocol {protocol!r}.'.format(
+        protocol = protocol,
+      )),
+
+      context = {
+        'protocol': protocol,
+        'uri':      uri,
+      },
+    )
 
   return adapter_type.configure(uri)
 
@@ -136,9 +152,15 @@ class HttpAdapter(BaseAdapter):
       raise InvalidUri('No protocol specified in URI {uri!r}.'.format(uri=uri))
     else:
       if protocol not in cls.supported_protocols:
-        raise InvalidUri('Unsupported protocol {protocol!r}.'.format(
-          protocol = protocol,
-        ))
+        raise with_context(
+          exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
+            protocol = protocol,
+          )),
+
+          context = {
+            'uri': uri,
+          },
+        )
 
     try:
       server, path = config.split('/', 1)

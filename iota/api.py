@@ -602,7 +602,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
     """
-    raise self.sendTrytes(
+    return self.sendTrytes(
       trytes                = trytes,
       depth                 = depth,
       min_weight_magnitude  = min_weight_magnitude,

@@ -419,7 +419,12 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.prepareTransfers(
+      seed            = self.seed,
+      transfers       = transfers,
+      inputs          = inputs,
+      change_address  = change_address,
+    )
 
   def get_latest_inclusion(self, hashes):
     # type: (Iterable[TransactionHash]) -> Dict[TransactionHash, bool]

@@ -51,9 +51,9 @@ class GetInputsCommand(FilterCommand):
       # skips.
       addresses = []
       for addy in generator.create_generator(start):
-        ftc_response = FindTransactionsCommand(self.adapter)(addresses=[addy])
+        ft_response = FindTransactionsCommand(self.adapter)(addresses=[addy])
 
-        if ftc_response.get('hashes'):
+        if ft_response.get('hashes'):
           addresses.append(addy)
         else:
           break

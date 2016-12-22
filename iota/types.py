@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import encode, decode
 from itertools import chain
-from typing import Dict, Generator, Iterable, List, MutableSequence, \
+from typing import Generator, Iterable, List, MutableSequence, \
   Optional, Text, Union
 
 from iota import TrytesCodec
-from iota.crypto import Curl
+from iota.crypto import Curl, HASH_LENGTH
 from six import PY2, binary_type
 
 
@@ -16,68 +16,33 @@ __all__ = [
   'Address',
   'AddressChecksum',
   'Bundle',
+  'BundleId',
+  'Hash',
   'Tag',
+  'Transaction',
   'TransactionId',
-  'Transfer',
   'TryteString',
   'TrytesCompatible',
   'int_from_trits',
   'trits_from_int',
-  'trytes_from_int',
 ]
 
 
 # Custom types for type hints and docstrings.
-Bundle            = Iterable['Transfer']
+Bundle            = Iterable['Transaction']
 TrytesCompatible  = Union[binary_type, bytearray, 'TryteString']
 
 
-def trytes_from_int(n):
-  # type: (int) -> List[List[int]]
-  """
-  Returns a tryte representation of an integer value.
-  """
-  trytes = []
-
-  while True:
-    # divmod does weird things if ``n`` is negative.
-    # :see: http://stackoverflow.com/q/10063546/
-    quotient, remainder = divmod(abs(n), 27)
-
-    sign = -1 if n < 0 else 1
-    remainder *= sign
-    quotient  *= sign
-
-    if remainder not in _trytes_dict:
-      trits = trits_from_int(remainder)
-      # Pad the tryte out to 3 trits if necessary.
-      trits += [0] * (3 - len(trits))
-
-      _trytes_dict[remainder] = trits
-
-    trytes.append(_trytes_dict[remainder])
-
-    if quotient == 0:
-      break
-
-    n = quotient
-
-  return trytes
-
-_trytes_dict = {} # type: Dict[int, List[int]]
-"""
-Caches tryte values for :py:func:`trytes_from_int`.
-
-There are only 27 possible tryte configurations, so it's a relatively
-small amount of memory; the tradeoff is usually worth it for the
-reduced CPU load.
-"""
-
-
-def trits_from_int(n):
-  # type: (int) -> List[int]
+def trits_from_int(n, pad=None):
+  # type: (int, Optional[int]) -> List[int]
   """
   Returns a trit representation of an integer value.
+
+  :param n:
+    Integer value to convert.
+
+  :param pad:
+    Ensure the result has at least this many trits.
 
   References:
     - https://dev.to/buntine/the-balanced-ternary-machines-of-soviet-russia
@@ -85,16 +50,21 @@ def trits_from_int(n):
     - https://rosettacode.org/wiki/Balanced_ternary#Python
   """
   if n == 0:
-    return []
+    trits = []
+  else:
+    quotient, remainder = divmod(n, 3)
 
-  quotient, remainder = divmod(n, 3)
+    if remainder == 2:
+      # Lend 1 to the next place so we can make this trit negative.
+      quotient  += 1
+      remainder = -1
 
-  if remainder == 2:
-    # Lend 1 to the next place so we can make this trit negative.
-    quotient  += 1
-    remainder = -1
+    trits = [remainder] + trits_from_int(quotient)
 
-  return [remainder] + trits_from_int(quotient)
+  if pad:
+    trits += [0] * max(0, pad - len(trits))
+
+  return trits
 
 
 def int_from_trits(trits):
@@ -132,8 +102,11 @@ class TryteString(object):
     """
     Creates a TryteString from a sequence of trytes.
 
+    :param trytes:
+      Iterable of tryte values.
+      In this context, a tryte is defined as a list containing 3 trits.
+
     References:
-      - :py:func:`trytes_from_int`
       - :py:meth:`as_trytes`
     """
     chars = bytearray()
@@ -150,22 +123,13 @@ class TryteString(object):
     return cls(chars)
 
   @classmethod
-  def from_trits(cls, trits, pad=False):
-    # type: (Iterable[int], bool) -> TryteString
+  def from_trits(cls, trits):
+    # type: (Iterable[int]) -> TryteString
     """
     Creates a TryteString from a sequence of trits.
 
     :param trits:
       Iterable of trit values (-1, 0, 1).
-
-    :param pad:
-      How to handle a sequence with length not divisible by 3:
-
-      - ``False`` (default): raise a :py:class:`ValueError`.
-      - ``True``: pad to a valid length, using null trits.
-
-      Note that this parameter behaves differently than in
-        :py:meth:`__init__`.
 
     References:
       - :py:func:`int_from_trits`
@@ -175,21 +139,14 @@ class TryteString(object):
     # method.
     trits = list(trits)
 
-    if pad:
-      trits += [0] * max(0, 3 - (len(trits) % 3))
-
     if len(trits) % 3:
-      raise ValueError(
-        'Cannot convert sequence with length {length} to trytes; '
-        'length must be divisible by 3.'.format(
-          length = len(trits),
-        ),
-      )
+      # Pad the trits so that it is cleanly divisible into trytes.
+      trits += [0] * (3 - (len(trits) % 3))
 
-    return cls.from_trytes([
+    return cls.from_trytes(
       # :see: http://stackoverflow.com/a/1751478/
       trits[i:i+3] for i in range(0, len(trits), 3)
-    ])
+    )
 
   def __init__(self, trytes, pad=None):
     # type: (TrytesCompatible, Optional[int]) -> None
@@ -418,7 +375,25 @@ class TryteString(object):
     if n > 13:
       n -= 27
 
-    return trytes_from_int(n)[0]
+    return trits_from_int(n, pad=3)
+
+
+class Hash(TryteString):
+  """
+  A TryteString that is exactly one hash long.
+  """
+  # Divide by 3 to convert trits to trytes.
+  LEN = HASH_LENGTH // 3
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(Hash, self).__init__(trytes, pad=self.LEN)
+
+    if len(self._trytes) > self.LEN:
+      raise ValueError('{cls} values must be {len} trytes long.'.format(
+        cls = type(self).__name__,
+        len = self.LEN
+      ))
 
 
 class Address(TryteString):
@@ -426,7 +401,7 @@ class Address(TryteString):
   A TryteString that acts as an address, with support for generating
   and validating checksums.
   """
-  LEN = 81
+  LEN = Hash.LEN
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
@@ -501,6 +476,13 @@ class AddressChecksum(TryteString):
       )
 
 
+class BundleId(Hash):
+  """
+  A TryteString that acts as a bundle ID.
+  """
+  pass
+
+
 class Tag(TryteString):
   """
   A TryteString that acts as a transaction tag.
@@ -518,30 +500,97 @@ class Tag(TryteString):
       ))
 
 
-class TransactionId(TryteString):
+class TransactionId(Hash):
   """
   A TryteString that acts as a transaction or bundle ID.
   """
-  LEN = 81
-
-  def __init__(self, trytes):
-    # type: (TrytesCompatible) -> None
-    super(TransactionId, self).__init__(trytes, pad=self.LEN)
-
-    if len(self._trytes) > self.LEN:
-      raise ValueError('{cls} values must be {len} trytes long.'.format(
-        cls = type(self).__name__,
-        len = self.LEN
-      ))
+  pass
 
 
-class Transfer(object):
+class Transaction(object):
   """
   A message [to be] published to the Tangle.
   """
-  def __init__(self, recipient, value, message=None, tag=None):
-    # type: (Address, int, Optional[TryteString], Optional[Tag]) -> None
+  @classmethod
+  def from_tryte_string(cls, trytes):
+    # type: (TrytesCompatible) -> Transaction
+    """
+    Creates a Transaction object from a sequence of trytes.
+    """
+    tryte_string = TryteString(trytes)
+
+    hash_ = [0] * HASH_LENGTH # type: MutableSequence[int]
+
+    sponge = Curl()
+    sponge.absorb(tryte_string.as_trits())
+    sponge.squeeze(hash_)
+
+    return cls(
+      hash_ = Hash.from_trits(hash_),
+      signature_message_fragment = tryte_string[0:2187],
+      recipient = Address(tryte_string[2187:2268]),
+      value = int_from_trits(tryte_string[2268:2295].as_trits()),
+      tag = Tag(tryte_string[2295:2322]),
+      timestamp = int_from_trits(tryte_string[2322:2331].as_trits()),
+      current_index = int_from_trits(tryte_string[2331:2340].as_trits()),
+      last_index = int_from_trits(tryte_string[2340:2349].as_trits()),
+      bundle_id = BundleId(tryte_string[2349:2430]),
+      trunk_transaction_id = TransactionId(tryte_string[2430:2511]),
+      branch_transaction_id = TransactionId(tryte_string[2511:2592]),
+      nonce = Hash(tryte_string[2592:2673]),
+    )
+
+  def __init__(
+      self,
+      hash_,
+      signature_message_fragment,
+      recipient,
+      value,
+      tag,
+      timestamp,
+      current_index,
+      last_index,
+      bundle_id,
+      trunk_transaction_id,
+      branch_transaction_id,
+      nonce,
+  ):
+    # type: (Hash, TryteString, Address, int, Tag, int, int, int, Hash, TransactionId, TransactionId, Hash) -> None
+    self.hash       = hash_
+    self.bundle_id  = bundle_id
+
     self.recipient  = recipient
-    self.value      = value,
-    self.message    = TryteString(message or b'')
-    self.tag        = Tag(tag or b'')
+    self.value      = value
+
+    self.tag = tag
+
+    self.nonce      = nonce
+    self.timestamp  = timestamp
+
+    self.current_index  = current_index
+    self.last_index     = last_index
+
+    self.branch_transaction_id  = branch_transaction_id
+    self.trunk_transaction_id   = trunk_transaction_id
+
+    self.signature_message_fragment =\
+      TryteString(signature_message_fragment or b'')
+
+  def as_tryte_string(self):
+    # type: () -> TryteString
+    """
+    Returns a TryteString representation of the transaction.
+    """
+    return (
+        self.signature_message_fragment
+      + self.recipient
+      + TryteString.from_trits(trits_from_int(self.value, pad=81))
+      + self.tag
+      + TryteString.from_trits(trits_from_int(self.timestamp, pad=27))
+      + TryteString.from_trits(trits_from_int(self.current_index, pad=27))
+      + TryteString.from_trits(trits_from_int(self.last_index, pad=27))
+      + self.bundle_id
+      + self.trunk_transaction_id
+      + self.branch_transaction_id
+      + self.nonce
+    )

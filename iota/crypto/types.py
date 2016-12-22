@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from os import urandom
 from typing import Callable, List, Optional
 
-from iota import TryteString, TrytesCompatible
+from iota import Hash, TryteString, TrytesCompatible
 from iota.crypto import HASH_LENGTH, Curl
 from math import ceil
 from six import binary_type
@@ -20,7 +20,7 @@ class Seed(TryteString):
   A TryteString that acts as a seed for crypto functions.
   """
   @classmethod
-  def random(cls, length=81, source=urandom):
+  def random(cls, length=Hash.LEN, source=urandom):
     # type: (int, Optional[Callable[[int], binary_type]]) -> Seed
     """
     Generates a new random seed.
@@ -38,7 +38,7 @@ class Seed(TryteString):
       Example::
 
          from Crypto import Random
-         new_seed = Seed.random(81, source=Random.new().read)
+         new_seed = Seed.random(source=Random.new().read)
     """
     # Encoding bytes -> trytes yields 2 trytes per byte.
     return cls.from_bytes(source(ceil(length / 2)))

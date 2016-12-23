@@ -5,7 +5,9 @@ from __future__ import absolute_import, division, print_function, \
 from collections import defaultdict
 from typing import Dict, List, Optional, Text
 
-from iota.adapter import BaseAdapter, BadApiResponse
+from iota import BadApiResponse
+from iota.adapter import BaseAdapter
+from iota.exceptions import with_context
 
 
 class MockAdapter(BaseAdapter):
@@ -60,19 +62,21 @@ class MockAdapter(BaseAdapter):
     try:
       response = self.responses[command].pop(0)
     except (KeyError, IndexError):
-      raise BadApiResponse(
-        message = (
+      raise with_context(
+        exc = BadApiResponse(
           'Unknown request {command!r} (expected one of: {seeds!r}).'.format(
             command = command,
             seeds   = list(sorted(self.responses.keys())),
-          )
+          ),
         ),
 
-        request = payload,
+        context = {
+          'request': payload,
+        },
       )
 
     error = response.get('exception') or response.get('error')
     if error:
-      raise BadApiResponse(error, payload)
+      raise with_context(BadApiResponse(error), context={'request': payload})
 
     return response

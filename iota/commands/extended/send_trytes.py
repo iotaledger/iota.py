@@ -32,13 +32,11 @@ class SendTrytesCommand(FilterCommand):
   def _execute(self, request):
     # Call ``getTransactionsToApprove`` to locate trunk and branch
     # transactions so that we can attach the bundle to the Tangle.
-    gta_command = GetTransactionsToApproveCommand(
-      adapter         = self.adapter,
-      prepare_request = self.prepare_request,
+    gta_response = GetTransactionsToApproveCommand(self.adapter)(
+      depth = request['depth'],
     )
-    gta_response = gta_command(depth=request['depth'])
 
-    AttachToTangleCommand(self.adapter, prepare_request=self.prepare_request)(
+    AttachToTangleCommand(self.adapter)(
       branch_transaction  = gta_response.get('branchTransaction'),
       trunk_transaction   = gta_response.get('trunkTransaction'),
 
@@ -46,11 +44,7 @@ class SendTrytesCommand(FilterCommand):
       trytes                = request['trytes'],
     )
 
-    # By this point, ``request['trytes']`` has already been validated,
-    # so we can bypass validation for `broadcastAndStore`.
-    return BroadcastAndStoreCommand(self.adapter, prepare_request=False)(
-      trytes = request['trytes'],
-    )
+    return BroadcastAndStoreCommand(self.adapter)(trytes=request['trytes'])
 
 
 class SendTrytesRequestFilter(RequestFilter):

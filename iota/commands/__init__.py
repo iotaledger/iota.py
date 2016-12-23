@@ -64,19 +64,13 @@ class BaseCommand(with_metaclass(CommandMeta)):
   """An API command ready to send to the node."""
   command = None # Text
 
-  def __init__(self, adapter, prepare_request=True):
+  def __init__(self, adapter):
     # type: (BaseAdapter, bool) -> None
     """
     :param adapter:
       Adapter that will send request payloads to the node.
-
-    :param prepare_request:
-      Whether to prepare the request before sending it.
-      Generally, this should be set to ``True``.
     """
     self.adapter  = adapter
-
-    self.prepare_request = prepare_request
 
     self.called   = False
     self.request  = None # type: dict
@@ -97,10 +91,9 @@ class BaseCommand(with_metaclass(CommandMeta)):
 
     self.request = kwargs
 
-    if self.prepare_request:
-      replacement = self._prepare_request(self.request)
-      if replacement is not None:
-        self.request = replacement
+    replacement = self._prepare_request(self.request)
+    if replacement is not None:
+      self.request = replacement
 
     self.response = self._execute(self.request)
 

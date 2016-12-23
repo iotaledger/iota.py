@@ -27,14 +27,5 @@ class BroadcastAndStoreCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    bt_command = BroadcastTransactionsCommand(
-      adapter         = self.adapter,
-      prepare_request = self.prepare_request,
-    )
-    bt_command(**request)
-
-    # `storeTransactions` accepts the exact same request object as
-    # `broadcastTransactions`, so it's safe to bypass request
-    # validation here.
-    return \
-      StoreTransactionsCommand(self.adapter, prepare_request=False)(**request)
+    BroadcastTransactionsCommand(self.adapter)(**request)
+    return StoreTransactionsCommand(self.adapter)(**request)

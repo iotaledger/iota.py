@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional
+from typing import List, Optional
 
 import filters as f
-from iota import BadApiResponse
+from iota import Address, BadApiResponse
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_balances import GetBalancesCommand
@@ -34,13 +34,10 @@ class GetInputsCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    # Optional parameters.
-    end       = request.get('end') # type: Optional[int]
-    threshold = request.get('threshold') # type: Optional[int]
-
-    # Required parameters.
-    start = request['start'] # type: int
-    seed  = request['seed'] # type: Seed
+    end       = request['end'] # type: Optional[int]
+    seed      = request['seed'] # type: Seed
+    start     = request['start'] # type: int
+    threshold = request['threshold'] # type: Optional[int]
 
     generator = AddressGenerator(seed)
 
@@ -49,7 +46,7 @@ class GetInputsCommand(FilterCommand):
       # This is similar to the ``getNewAddresses`` command, except it
       # is interested in all the addresses that `getNewAddresses`
       # skips.
-      addresses = []
+      addresses = [] # type: List[Address]
       for addy in generator.create_generator(start):
         ft_response = FindTransactionsCommand(self.adapter)(addresses=[addy])
 
@@ -71,6 +68,8 @@ class GetInputsCommand(FilterCommand):
     threshold_met = threshold is None
 
     for i, balance in enumerate(gb_response['balances']):
+      addresses[i].balance = balance
+
       if balance:
         result['inputs'].append({
           'address':  addresses[i],
@@ -92,18 +91,16 @@ class GetInputsCommand(FilterCommand):
       # troubleshooting.
       raise with_context(
         exc = BadApiResponse(
-          message =
-            'Accumulated balance {balance} is less than threshold {threshold} '
-            '(``exc.context["inputs"]`` contains more information).'.format(
-              threshold = threshold,
-              balance   = result['totalBalance'],
-            ),
-
-          request = request,
+          'Accumulated balance {balance} is less than threshold {threshold} '
+          '(``exc.context`` contains more information).'.format(
+            threshold = threshold,
+            balance   = result['totalBalance'],
+          ),
         ),
 
         context = {
           'inputs':         result['inputs'],
+          'request':        request,
           'total_balance':  result['totalBalance'],
         },
       )

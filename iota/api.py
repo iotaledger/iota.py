@@ -2,11 +2,12 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Iterable, List, Optional, Text
+from typing import Dict, Iterable, List, Optional, Text
 
-from iota import Address, Bundle, Tag, TransactionHash, Transaction, TryteString, \
+from iota import AdapterSpec, Address, Bundle, ProposedBundle, \
+  ProposedTransaction, Tag,  Transaction, TransactionHash, TryteString, \
   TrytesCompatible
-from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
+from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
 from iota.crypto.types import Seed
 
@@ -392,7 +393,7 @@ class Iota(StrictIota):
     )
 
   def prepare_transfers(self, transfers, inputs=None, change_address=None):
-    # type: (Iterable[Transaction], Optional[Iterable[TransactionHash]], Optional[Address]) -> List[TryteString]
+    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> ProposedBundle
     """
     Prepares transactions to be broadcast to the Tangle, by generating
     the correct bundle, as well as choosing and signing the inputs (for
@@ -401,8 +402,12 @@ class Iota(StrictIota):
     :param transfers: Transaction objects to prepare.
 
     :param inputs:
-      List of inputs used to fund the transfer.
+      List of addresses used to fund the transfer.
       Not needed for zero-value transfers.
+
+      If not provided, addresses will be selected automatically by
+      scanning the Tangle for unspent inputs.  Note: this could take
+      awhile to complete.
 
     :param change_address:
       If inputs are provided, any unspent amount will be sent to this
@@ -413,8 +418,7 @@ class Iota(StrictIota):
 
     :return:
       Array containing the trytes of the new bundle.
-      This value can be provided to :py:meth:`broadcastTransaction`
-      and/or :py:meth:`storeTransaction`.
+      This value can be provided to :py:meth:`broadcast_and_store`.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
@@ -470,7 +474,7 @@ class Iota(StrictIota):
     return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
   def get_bundle(self, transaction):
-    # type: (TransactionHash) -> List[Bundle]
+    # type: (TransactionHash) -> Bundle
     """
     Returns the bundle associated with the specified transaction hash.
 

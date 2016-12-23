@@ -418,7 +418,7 @@ class Iota(StrictIota):
 
     :return:
       Array containing the trytes of the new bundle.
-      This value can be provided to :py:meth:`broadcast_and_store`.
+      This value can be provided to e.g., :py:meth:`attach_to_tangle`.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers

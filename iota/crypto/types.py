@@ -13,6 +13,7 @@ from six import binary_type
 
 __all__ = [
   'PrivateKey',
+  'Seed',
 ]
 
 
@@ -84,49 +85,6 @@ class PrivateKey(TryteString):
     Returns the length of this key, expressed in blocks.
     """
     return len(self) // self.BLOCK_LEN
-
-  def create_signature(self, trytes, blocks=None):
-    # type: (TryteString, Optional[int]) -> TryteString
-    """
-    Creates a signature for the specified trytes.
-
-    :param trytes:
-      The trytes to use to build the signature.
-
-    :param blocks:
-      Max length of the resulting signature, expressed in blocks.
-
-      See :py:attr:`BLOCK_LEN` for more info.
-    """
-    signature = self.as_trits()
-    if blocks is not None:
-      signature = signature[:self.BLOCK_LEN*blocks*TRITS_PER_TRYTE]
-
-    hash_count = int(ceil(len(signature) / HASH_LENGTH))
-
-    source = trytes.as_trits()
-    source += [0] * max(0, hash_count - len(source))
-
-    sponge = Curl()
-
-    # Build signature, one hash at a time.
-    for i in range(hash_count):
-      start = i * HASH_LENGTH
-      stop  = start + HASH_LENGTH
-
-      fragment = signature[start:stop]
-
-      # Use value from the source trits to make the signature
-      # deterministic.
-      for j in range(13 - source[i]):
-        sponge.reset()
-        sponge.absorb(fragment)
-        sponge.squeeze(fragment)
-
-      # Copy the signature fragment to the final signature.
-      signature[start:stop] = fragment
-
-    return signature
 
   def get_digest_trits(self):
     # type: () -> List[int]

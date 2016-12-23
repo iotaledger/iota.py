@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import encode, decode
 from itertools import chain
-from typing import Generator, Iterable, List, MutableSequence, \
+from typing import Generator, Iterable, Iterator, List, MutableSequence, \
   Optional, Text, Union
 
 from iota import TRITS_PER_TRYTE, TrytesCodec
@@ -339,6 +339,17 @@ class TryteString(object):
     # type: (TrytesCompatible) -> bool
     return not (self == other)
 
+  def iter_chunks(self, chunk_size):
+    # type: (int) -> ChunkIterator
+    """
+    Iterates over the TryteString, in chunks of constant size.
+
+    :param chunk_size:
+      Number of trytes per chunk.
+      The final chunk will be padded if it is too short.
+    """
+    return ChunkIterator(self, chunk_size)
+
   def as_bytes(self, errors='strict'):
     # type: (Text) -> binary_type
     """
@@ -413,6 +424,54 @@ class TryteString(object):
       n -= 27
 
     return trits_from_int(n, pad=3)
+
+
+class ChunkIterator(Iterator[TryteString]):
+  """
+  Iterates over a TryteString, in chunks of constant size.
+  """
+  def __init__(self, trytes, chunk_size):
+    # type: (TryteString, int) -> None
+    """
+    :param trytes:
+      TryteString to iterate over.
+
+    :param chunk_size:
+      Number of trytes per chunk.
+      The final chunk will be padded if it is too short.
+    """
+    super(ChunkIterator, self).__init__()
+
+    self.trytes     = trytes
+    self.chunk_size = chunk_size
+
+    self._offset = 0
+
+  def __iter__(self):
+    return self
+
+  def __next__(self):
+    # type: () -> TryteString
+    """
+    Returns the next chunk in the iterator.
+
+    :raise:
+      - :py:class:`StopIteration` if there are no more chunks
+        available.
+    """
+    if self._offset >= len(self.trytes):
+      raise StopIteration
+
+    chunk = self.trytes[self._offset:self._offset+self.chunk_size]
+    chunk += b'9' * max(0, self.chunk_size - len(chunk))
+
+    self._offset += self.chunk_size
+
+    return chunk
+
+  if PY2:
+    # In Python 2, iterator methods are named a little differently.
+    next = __next__
 
 
 class Hash(TryteString):

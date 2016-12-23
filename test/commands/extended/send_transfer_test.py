@@ -184,3 +184,5 @@ class SendTransferCommandTestCase(TestCase):
       Iota(self.adapter).sendTransfer,
       SendTransferCommand,
     )
+
+  # :todo: Unit tests.

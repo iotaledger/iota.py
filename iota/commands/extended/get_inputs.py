@@ -74,7 +74,7 @@ class GetInputsCommand(FilterCommand):
         result['inputs'].append({
           'address':  addresses[i],
           'balance':  balance,
-          'keyIndex': start + i,
+          'keyIndex': addresses[i].key_index,
         })
 
         result['totalBalance'] += balance

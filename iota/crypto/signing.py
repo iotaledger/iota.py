@@ -4,9 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, List, MutableSequence
 
-from iota import TryteString, TrytesCompatible
+from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible
 from iota.crypto import Curl, HASH_LENGTH
-from iota.crypto.types import SigningKey
+from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 
 __all__ = [
@@ -30,7 +30,7 @@ class KeyGenerator(object):
     self.seed = TryteString(seed)
 
   def get_keys(self, start, count=1, step=1, iterations=1):
-    # type: (int, int, int, int) -> List[SigningKey]
+    # type: (int, int, int, int) -> List[PrivateKey]
     """
     Generates and returns one or more keys at the specified index(es).
 
@@ -106,7 +106,7 @@ class KeyGenerator(object):
     return keys
 
   def create_generator(self, start=0, step=1, iterations=1):
-    # type: (int, int) -> Generator[SigningKey]
+    # type: (int, int) -> Generator[PrivateKey]
     """
     Creates a generator that can be used to progressively generate new
     keys.
@@ -161,7 +161,7 @@ class KeyGenerator(object):
       sponge = self._create_sponge(current)
 
       # Multiply by 3 to convert trytes into trits.
-      block_length = SigningKey.BLOCK_LEN * 3
+      block_length = PrivateKey.BLOCK_LEN * TRITS_PER_TRYTE
 
       key     = [0] * (block_length * iterations)
       buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
@@ -177,7 +177,9 @@ class KeyGenerator(object):
 
           key[key_start:key_stop] = buffer
 
-      yield SigningKey.from_trits(key)
+      private_key = PrivateKey.from_trits(key)
+      private_key.key_index = current
+      yield private_key
 
       current += step
 

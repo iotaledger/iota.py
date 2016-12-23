@@ -2,18 +2,17 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from math import ceil
 from os import urandom
 from typing import Callable, List, Optional
 
-from iota import Hash, TryteString, TrytesCompatible
+from iota import Hash, TRITS_PER_TRYTE, TryteString, TrytesCompatible
 from iota.crypto import HASH_LENGTH, Curl
-from math import ceil
-
 from iota.exceptions import with_context
 from six import binary_type
 
 __all__ = [
-  'SigningKey',
+  'PrivateKey',
 ]
 
 
@@ -47,9 +46,9 @@ class Seed(TryteString):
     return cls.from_bytes(source(int(ceil(length / 2))))
 
 
-class SigningKey(TryteString):
+class PrivateKey(TryteString):
   """
-  A TryteString that acts as a signing key, e.g., for generating
+  A TryteString that acts as a private key, e.g., for generating
   message signatures, new addresses, etc.
   """
   BLOCK_LEN = 2187
@@ -58,9 +57,9 @@ class SigningKey(TryteString):
   by a certain number of trytes.
   """
 
-  def __init__(self, trytes):
-    # type: (TrytesCompatible) -> None
-    super(SigningKey, self).__init__(trytes)
+  def __init__(self, trytes, key_index=None):
+    # type: (TrytesCompatible, Optional[int]) -> None
+    super(PrivateKey, self).__init__(trytes)
 
     if len(self._trytes) % self.BLOCK_LEN:
       raise with_context(
@@ -76,6 +75,8 @@ class SigningKey(TryteString):
         },
       )
 
+    self.key_index = key_index
+
   @property
   def block_count(self):
     # type: () -> int
@@ -83,6 +84,49 @@ class SigningKey(TryteString):
     Returns the length of this key, expressed in blocks.
     """
     return len(self) // self.BLOCK_LEN
+
+  def create_signature(self, trytes, blocks=None):
+    # type: (TryteString, Optional[int]) -> TryteString
+    """
+    Creates a signature for the specified trytes.
+
+    :param trytes:
+      The trytes to use to build the signature.
+
+    :param blocks:
+      Max length of the resulting signature, expressed in blocks.
+
+      See :py:attr:`BLOCK_LEN` for more info.
+    """
+    signature = self.as_trits()
+    if blocks is not None:
+      signature = signature[:self.BLOCK_LEN*blocks*TRITS_PER_TRYTE]
+
+    hash_count = int(ceil(len(signature) / HASH_LENGTH))
+
+    source = trytes.as_trits()
+    source += [0] * max(0, hash_count - len(source))
+
+    sponge = Curl()
+
+    # Build signature, one hash at a time.
+    for i in range(hash_count):
+      start = i * HASH_LENGTH
+      stop  = start + HASH_LENGTH
+
+      fragment = signature[start:stop]
+
+      # Use value from the source trits to make the signature
+      # deterministic.
+      for j in range(13 - source[i]):
+        sponge.reset()
+        sponge.absorb(fragment)
+        sponge.squeeze(fragment)
+
+      # Copy the signature fragment to the final signature.
+      signature[start:stop] = fragment
+
+    return signature
 
   def get_digest_trits(self):
     # type: () -> List[int]
@@ -96,8 +140,7 @@ class SigningKey(TryteString):
     through a PBKDF, yielding a constant-length hash that can be used
     for crypto.
     """
-    # Multiply by 3 to convert trytes into trits.
-    block_size  = self.BLOCK_LEN * 3
+    block_size  = self.BLOCK_LEN * TRITS_PER_TRYTE
     raw_trits   = self.as_trits()
 
     # Initialize list with the correct length to improve performance.

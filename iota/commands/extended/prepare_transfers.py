@@ -5,11 +5,13 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
-from iota import Address, BadApiResponse, ProposedBundle, ProposedTransaction
+from iota import Address, BadApiResponse, ProposedBundle, \
+  ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_balances import GetBalancesCommand
 from iota.commands.extended.get_inputs import GetInputsCommand
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
+from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
 from iota.filters import Trytes
@@ -49,16 +51,22 @@ class PrepareTransfersCommand(FilterCommand):
         # Inputs provided.  Check to make sure we have sufficient
         # balance.
         available_to_spend  = 0
-        confirmed_inputs    = []
+        confirmed_inputs    = [] # type: List[Address]
 
         gb_response = GetBalancesCommand(self.adapter)(
           addresses = [i.address for i in proposed_inputs],
         )
 
         for i, balance in enumerate(gb_response.get('balances') or []):
+          input_ = proposed_inputs[i]
+
           if balance > 0:
             available_to_spend += balance
-            confirmed_inputs.append(proposed_inputs[i])
+
+            # Update the address balance from the API response, just in
+            # case somebody tried to cheat.
+            input_.balance = balance
+            confirmed_inputs.append(input_)
 
         if available_to_spend < want_to_spend:
           raise with_context(
@@ -99,9 +107,10 @@ class PrepareTransfersCommand(FilterCommand):
 
       bundle.finalize()
 
-      # :todo: Sign inputs.
+      if confirmed_inputs:
+        bundle.sign_inputs(KeyGenerator(seed))
 
-      return bundle
+    return bundle
 
 
 class PrepareTransfersRequestFilter(RequestFilter):

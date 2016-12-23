@@ -9,11 +9,10 @@ from socket import getdefaulttimeout as get_default_timeout
 from typing import Dict, Text, Tuple, Union
 
 import requests
-from iota.exceptions import with_context
-from six import with_metaclass
-
 from iota import DEFAULT_PORT
+from iota.exceptions import with_context
 from iota.json import JsonEncoder
+from six import with_metaclass
 
 __all__ = [
   'AdapterSpec',
@@ -30,13 +29,8 @@ class BadApiResponse(ValueError):
   """
   Indicates that a non-success response was received from the node.
   """
-  def __init__(self, message, request):
-    # Type: (Text, dict) -> None
-    super(BadApiResponse, self).__init__(message)
+  pass
 
-    self.context = {
-      'request': request,
-    }
 
 class InvalidUri(ValueError):
   """
@@ -220,18 +214,28 @@ class HttpAdapter(BaseAdapter):
 
     raw_content = response.text
     if not raw_content:
-      raise BadApiResponse('Empty response from node.', payload)
+      raise with_context(
+        exc = BadApiResponse('Empty response from node.'),
+
+        context = {
+          'request': payload,
+        },
+      )
 
     try:
       decoded = json.loads(raw_content) # type: dict
     # :bc: py2k doesn't have JSONDecodeError
     except ValueError:
-      raise BadApiResponse(
-        message = 'Non-JSON response from node: {raw_content}'.format(
-          raw_content = raw_content,
+      raise with_context(
+        exc = BadApiResponse(
+          'Non-JSON response from node: {raw_content}'.format(
+            raw_content = raw_content,
+          )
         ),
 
-        request = payload,
+        context = {
+          'request': payload,
+        },
       )
 
     try:
@@ -241,16 +245,20 @@ class HttpAdapter(BaseAdapter):
       # :see:`https://github.com/iotaledger/iri/issues/12`
       error = decoded.get('exception') or decoded.get('error')
     except AttributeError:
-      raise BadApiResponse(
-        message = 'Invalid response from node: {raw_content}'.format(
-          raw_content = raw_content,
+      raise with_context(
+        exc = BadApiResponse(
+          'Invalid response from node: {raw_content}'.format(
+            raw_content = raw_content,
+          ),
         ),
 
-        request = payload,
+        context = {
+          'request': payload,
+        },
       )
 
     if error:
-      raise BadApiResponse(error, payload)
+      raise with_context(BadApiResponse(error), context={'request': payload})
 
     return decoded
 

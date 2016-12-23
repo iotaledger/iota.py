@@ -8,7 +8,7 @@ from unittest import TestCase
 from iota import (
   Address,
   AddressChecksum,
-  BundleId,
+  BundleHash,
   Hash,
   Tag,
   Transaction,
@@ -81,6 +81,21 @@ class TryteStringTestCase(TestCase):
     # Identity comparison still works though.
     self.assertFalse(trytes is 'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertTrue(trytes is not 'RBTC9D9DCDQAEASBYBCCKBFA')
+
+  def test_bool_cast(self):
+    """
+    Casting a TryteString as a boolean.
+    """
+    # Empty TryteString evaluates to False.
+    self.assertIs(bool(TryteString(b'')), False)
+
+    # TryteString that is nothing but padding also evaluates to False.
+    self.assertIs(bool(TryteString(b'9')), False)
+    self.assertIs(bool(TryteString(b'', pad=1024)), False)
+
+    # A single non-padding tryte evaluates to True.
+    self.assertIs(bool(TryteString(b'A')), True)
+    self.assertIs(bool(TryteString(b'9'*1024 + b'Z')), True)
 
   def test_container(self):
     """
@@ -818,6 +833,96 @@ class AddressChecksumTestCase(TestCase):
       AddressChecksum(b'FOXM9MUBX9')
 
 
+class ProposedBundleTestCase(TestCase):
+  def test_add_transaction_short_message(self):
+    """
+    Adding a transaction to a bundle, with a message short enough to
+    fit inside a single transaction.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_add_transaction_long_message(self):
+    """
+    Adding a transaction to a bundle, with a message so long that it
+    has to be split into multiple transactions.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_add_transaction_error_already_finalized(self):
+    """
+    Attempting to add a transaction to a bundle that is already
+    finalized.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_add_inputs_balanced(self):
+    """
+    Adding inputs to cover the exact amount of the bundle spend.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_add_inputs_with_change(self):
+    """
+    Adding inputs to a bundle results in unspent inputs.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_add_inputs_error_already_finalized(self):
+    """
+    Attempting to add inputs to a bundle that is already finalized.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_send_unspent_inputs_to_unbalanced(self):
+    """
+    Invoking ``send_unspent_inputs_to`` on an unbalanced bundle.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_send_unspent_inputs_to_balanced(self):
+    """
+    Invoking ``send_unspent_inputs_to`` on a balanced bundle.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_send_unspent_inputs_to_error_already_finalized(self):
+    """
+    Invoking ``send_unspent_inputs_to`` on a bundle that is already
+    finalized.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_finalize_happy_path(self):
+    """
+    Finalizing a bundle.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_finalize_error_already_finalized(self):
+    """
+    Attempting to finalize a bundle that is already finalized.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_finalize_error_unbalanced(self):
+    """
+    Attempting to finalize an unbalanced bundle.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+
 # noinspection SpellCheckingInspection
 class TagTestCase(TestCase):
   def test_init_automatic_pad(self):
@@ -973,7 +1078,7 @@ class TransactionTestCase(TestCase):
     )
 
     self.assertEqual(
-      transaction.recipient,
+      transaction.address,
 
       Address(
         b'9999999999999999999999999999999999999999'
@@ -990,7 +1095,7 @@ class TransactionTestCase(TestCase):
     self.assertEqual(
       transaction.bundle_id,
 
-      BundleId(
+      BundleHash(
         b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
         b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PG'
       ),
@@ -1089,7 +1194,7 @@ class TransactionTestCase(TestCase):
           b'999999999'
         ),
 
-      recipient =
+      address =
         Address(
           b'9999999999999999999999999999999999999999'
           b'99999999999999999999999999999999999999999'
@@ -1102,7 +1207,7 @@ class TransactionTestCase(TestCase):
       last_index    = 1,
 
       bundle_id =
-        BundleId(
+        BundleHash(
           b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
           b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PG'
         ),

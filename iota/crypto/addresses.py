@@ -4,10 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, Iterable, List, MutableSequence
 
-from iota import Address, TryteString, TrytesCompatible
+from iota import Address, TRITS_PER_TRYTE, TryteString, TrytesCompatible
 from iota.crypto import Curl
 from iota.crypto.signing import KeyGenerator
-from iota.crypto.types import SigningKey
+from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 
 __all__ = [
@@ -144,23 +144,29 @@ class AddressGenerator(Iterable[Address]):
     current = start
 
     while current >= 0:
-      digest = next(digest_generator) # type: List[int]
-
-      # Multiply by 3 to convert from trits to trytes.
-      address_trits = [0] * (Address.LEN * 3) # type: MutableSequence[int]
-
-      sponge = Curl()
-      sponge.absorb(digest)
-      sponge.squeeze(address_trits)
-
-      yield Address.from_trits(address_trits)
-
+      yield self.address_from_digest(next(digest_generator), current)
       current += step
+
+  @staticmethod
+  def address_from_digest(digest_trits, key_index):
+    # type: (Iterable[int], int) -> Address
+    """
+    Generates an address from a private key digest.
+    """
+    address_trits = [0] * (Address.LEN * TRITS_PER_TRYTE) # type: MutableSequence[int]
+
+    sponge = Curl()
+    sponge.absorb(digest_trits)
+    sponge.squeeze(address_trits)
+
+    address = Address.from_trits(address_trits)
+    address.key_index = key_index
+    return address
 
   def _create_digest_generator(self, start, step):
     # type: (int, int) -> Generator[List[int]]
     """
-    Initializes a generator to create SigningKey digests.
+    Initializes a generator to create PrivateKey digests.
 
     Implemented as a separate method so that it can be mocked during
     unit tests.
@@ -171,5 +177,5 @@ class AddressGenerator(Iterable[Address]):
     )
 
     while True:
-      signing_key = next(key_generator) # type: SigningKey
+      signing_key = next(key_generator) # type: PrivateKey
       yield signing_key.get_digest_trits()

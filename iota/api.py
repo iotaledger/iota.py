@@ -472,10 +472,11 @@ class Iota(StrictIota):
     """
     return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
-  def get_bundle(self, transaction):
-    # type: (TransactionHash) -> Bundle
+  def get_bundles(self, transaction):
+    # type: (TransactionHash) -> List[Bundle]
     """
-    Returns the bundle associated with the specified transaction hash.
+    Returns the bundle(s) associated with the specified transaction
+    hash.
 
     :param transaction:
       Transaction hash.  Can be any type of transaction (tail or non-
@@ -486,10 +487,17 @@ class Iota(StrictIota):
       If there are multiple bundles (e.g., because of a replay), all
       valid matching bundles will be returned.
 
+      Note that this method always returns a list, even if only one
+      bundle was found.
+
+    :raise:
+      - :py:class:`iota.adapter.BadApiResponse` if any of the
+        bundles fails validation.
+
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.getBundles(transaction=transaction)
 
   def get_transfers(self, start=0, end=None, inclusion_states=False):
     # type: (int, Optional[int], bool) -> List[Bundle]

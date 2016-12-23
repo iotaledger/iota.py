@@ -2,9 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import List, Optional
+
 import filters as f
-from iota import Address, ProposedTransaction
+from iota import Address, Bundle, ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
+from iota.commands.extended.prepare_transfers import PrepareTransfersCommand
+from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 
@@ -28,9 +32,27 @@ class SendTransferCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    change_address        = request['change_address'] # type: Optional[Address]
+    depth                 = request['depth'] # type: int
+    inputs                = request['inputs'] or [] # type: List[Address]
+    min_weight_magnitude  = request['min_weight_magnitude'] # type: int
+    seed                  = request['seed'] # type: Seed
+    transfers             = request['transfers'] # type: List[ProposedTransaction]
+
+    prepared_trytes = PrepareTransfersCommand(self.adapter)(
+      change_address  = change_address,
+      inputs          = inputs,
+      seed            = seed,
+      transfers       = transfers,
     )
+
+    sent_trytes = SendTrytesCommand(self.adapter)(
+      depth                 = depth,
+      min_weight_magnitude  = min_weight_magnitude,
+      trytes                = prepared_trytes,
+    )
+
+    return Bundle.from_tryte_strings(sent_trytes)
 
 
 class SendTransferRequestFilter(RequestFilter):

@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from calendar import timegm as unix_timestamp
 from datetime import datetime
-from typing import Generator, Iterable, List, MutableSequence, \
-  Optional, Tuple
+from typing import Iterable, Iterator, List, MutableSequence, Optional, \
+  Sequence, Tuple
 
 from iota import Address, Hash, Tag, TrytesCompatible, TryteString, \
   int_from_trits, trits_from_int
@@ -22,10 +22,6 @@ __all__ = [
   'Transaction',
   'TransactionHash',
 ]
-
-
-# Custom types for type hints and docstrings.
-Bundle = Iterable['Transaction']
 
 
 class BundleHash(Hash):
@@ -275,12 +271,48 @@ class ProposedTransaction(Transaction):
     return trits_from_int(self.last_index, pad=27)
 
 
-class ProposedBundle(object):
+class Bundle(Sequence[Transaction]):
+  """
+  A collection of transactions, treated as an atomic unit on the
+  Tangle.
+
+  Conceptually, a bundle is similar to a block in a blockchain.
+  """
+  @classmethod
+  def from_tryte_strings(cls, trytes):
+    # type: (Iterable[TryteString]) -> Bundle
+    """
+    Creates a Bundle object from a list of tryte values.
+    """
+    return cls(map(Transaction.from_tryte_string, trytes))
+
+  def __init__(self, transactions=None):
+    # type: (Optional[Iterable[Transaction]]) -> None
+    super(Bundle, self).__init__()
+
+    self.transactions = transactions or [] # type: List[Transaction]
+
+  def __contains__(self, transaction):
+    # type: (Transaction) -> bool
+    return transaction in self.transactions
+
+  def __getitem__(self, index):
+    # type: (int) -> Transaction
+    return self.transactions[index]
+
+  def __iter__(self):
+    # type: () -> Iterator[Transaction]
+    return iter(self.transactions)
+
+  def __len__(self):
+    # type: () -> int
+    return len(self.transactions)
+
+
+class ProposedBundle(Sequence[ProposedTransaction]):
   """
   A collection of proposed transactions, to be treated as an atomic
   unit when attached to the Tangle.
-
-  Conceptually, a bundle is similar to a block in a blockchain.
   """
   def __init__(self, transactions=None):
     # type: (Optional[Iterable[ProposedTransaction]]) -> None
@@ -295,19 +327,9 @@ class ProposedBundle(object):
       for t in transactions:
         self.add_transaction(t)
 
-  def __len__(self):
-    # type: () -> int
-    """
-    Returns te number of transactions in the bundle.
-    """
-    return len(self._transactions)
-
-  def __iter__(self):
-    # type: () -> Generator[ProposedTransaction]
-    """
-    Iterates over transactions in the bundle.
-    """
-    return iter(self._transactions)
+  def __contains__(self, transaction):
+    # type: (ProposedTransaction) -> bool
+    return transaction in self._transactions
 
   def __getitem__(self, index):
     # type: (int) -> ProposedTransaction
@@ -315,6 +337,20 @@ class ProposedBundle(object):
     Returns the transaction at the specified index.
     """
     return self._transactions[index]
+
+  def __iter__(self):
+    # type: () -> Iterator[ProposedTransaction]
+    """
+    Iterates over transactions in the bundle.
+    """
+    return iter(self._transactions)
+
+  def __len__(self):
+    # type: () -> int
+    """
+    Returns te number of transactions in the bundle.
+    """
+    return len(self._transactions)
 
   @property
   def balance(self):

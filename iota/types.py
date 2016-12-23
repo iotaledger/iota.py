@@ -246,13 +246,14 @@ class TryteString(object):
     """
     return binary_type(self._trytes)
 
-  # :bc: Magic method has a different name in Python 2.
-  if PY2:
-    __str__ = __bytes__
-
   def __bool__(self):
     # type: () -> bool
     return bool(self._trytes) and any(t != b'9' for t in self)
+
+  # :bc: Magic methods have different names in Python 2.
+  if PY2:
+    __nonzero__ = __bool__
+    __str__     = __bytes__
 
   def __len__(self):
     # type: () -> int

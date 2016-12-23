@@ -5,8 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Dict, Iterable, List, Optional, Text
 
 from iota import AdapterSpec, Address, Bundle, ProposedBundle, \
-  ProposedTransaction, Tag,  Transaction, TransactionHash, TryteString, \
-  TrytesCompatible
+  ProposedTransaction, Tag, TransactionHash, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, command_registry
 from iota.crypto.types import Seed
@@ -554,7 +553,7 @@ class Iota(StrictIota):
       change_address        = None,
       min_weight_magnitude  = 18,
   ):
-    # type: (int, Iterable[Transaction], Optional[Iterable[TransactionHash]], Optional[Address], int) -> Bundle
+    # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], int) -> Bundle
     """
     Prepares a set of transfers and creates the bundle, then attaches
     the bundle to the Tangle, and broadcasts and stores the
@@ -587,7 +586,14 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtransfer
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.sendTransfer(
+      seed                  = self.seed,
+      depth                 = depth,
+      transfers             = transfers,
+      inputs                = inputs,
+      change_address        = change_address,
+      min_weight_magnitude  = min_weight_magnitude,
+    )
 
   def send_trytes(self, trytes, depth, min_weight_magnitude=18):
     # type: (Iterable[TryteString], int, int) -> List[TryteString]

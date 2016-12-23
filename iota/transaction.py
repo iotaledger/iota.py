@@ -4,14 +4,14 @@ from __future__ import absolute_import, division, print_function, \
 
 from calendar import timegm as unix_timestamp
 from datetime import datetime
-
-from typing import Generator, Iterable, List, MutableSequence, Optional, Tuple
+from typing import Generator, Iterable, List, MutableSequence, \
+  Optional, Tuple
 
 from iota import Address, Hash, Tag, TrytesCompatible, TryteString, \
   int_from_trits, trits_from_int
 from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.addresses import AddressGenerator
-from iota.crypto.signing import KeyGenerator
+from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator
 from iota.exceptions import with_context
 
 __all__ = [
@@ -230,49 +230,50 @@ class ProposedBundle(object):
     if self.hash:
       raise RuntimeError('Bundle is already finalized.')
 
-    for i in inputs:
-      if i.balance is None:
+    for addy in inputs:
+      if addy.balance is None:
         raise with_context(
           exc = ValueError(
             'Address {address} has null ``balance`` '
             '(``exc.context`` has more info).'.format(
-              address = i,
+              address = addy,
             ),
           ),
 
           context = {
-            'address': i,
+            'address': addy,
           },
         )
 
-      if i.key_index is None:
+      if addy.key_index is None:
         raise with_context(
           exc = ValueError(
             'Address {address} has null ``key_index`` '
             '(``exc.context`` has more info).'.format(
-              address = i,
+              address = addy,
             ),
           ),
 
           context = {
-            'address': i,
+            'address': addy,
           },
         )
 
       # Add the input as a transaction.
       self.add_transaction(ProposedTransaction(
-        address = i,
-        value   = -i.balance,
+        address = addy,
+        value   = -addy.balance,
         tag     = self.tag,
       ))
 
-      # Signatures require two transactions to store, due to
+      # Signatures require multiple transactions to store, due to
       # transaction length limit.
-      self.add_transaction(ProposedTransaction(
-        address = i,
-        value   = 0,
-        tag     = self.tag,
-      ))
+      for _ in range(AddressGenerator.DIGEST_ITERATIONS):
+        self.add_transaction(ProposedTransaction(
+          address = addy,
+          value   = 0,
+          tag     = self.tag,
+        ))
 
   def send_unspent_inputs_to(self, address):
     # type: (Address) -> None
@@ -327,7 +328,7 @@ class ProposedBundle(object):
       t.last_index    = last_index
 
       sponge.absorb(
-          # Ensure checksum is not included.
+          # Ensure address checksum is not included in the result.
           t.address.address.as_trits()
         + t.value_trits
         + t.tag.as_trits()
@@ -362,7 +363,7 @@ class ProposedBundle(object):
         if txn.address.key_index is None:
           raise with_context(
             exc = ValueError(
-              'Unable to sign input {input}; key index is None '
+              'Unable to sign input {input}; ``key_index`` is None '
               '(``exc.context`` has more info).'.format(
                 input = txn.address,
               ),
@@ -373,21 +374,24 @@ class ProposedBundle(object):
             },
           )
 
-        private_key =\
+        signature_fragment_generator = SignatureFragmentGenerator(
           key_generator.get_keys(
             start       = txn.address.key_index,
             iterations  = AddressGenerator.DIGEST_ITERATIONS
-          )[0]
-
-        # Signatures are too long to fit inside a single transaction,
-        # so we must split it into two parts (this is why we created
-        # two transactions per input in :py:meth:`add_inputs`).
-        txn.signature_message_fragment = private_key.create_signature(
-          trytes = self.hash[:9],
-          blocks = 1,
+          )[0],
         )
 
-        # :todo: Second signature fragment.
+        hash_fragment_iterator = self.hash.iter_chunks(9)
+
+        # We can only fit one signature fragment into each transaction,
+        # so we have to split the entire signature among the extra
+        # transactions we created for this input in
+        # :py:meth:`add_inputs`.
+        for j in range(AddressGenerator.DIGEST_ITERATIONS):
+          self[i+j].signature_message_fragment =\
+            signature_fragment_generator.send(next(hash_fragment_iterator))
+
+        i += AddressGenerator.DIGEST_ITERATIONS - 1
 
       i += 1
 
@@ -503,6 +507,13 @@ class Transaction(object):
 
     self.signature_message_fragment =\
       TryteString(signature_message_fragment or b'')
+    """
+    Cryptographic signature used to verify the transaction.
+
+    Signatures are usually too long to fit into a single transaction,
+    so they are split out into multiple transactions in the same bundle
+    (hence it's called a fragment).
+    """
 
     self.is_confirmed = None # type: Optional[bool]
     """

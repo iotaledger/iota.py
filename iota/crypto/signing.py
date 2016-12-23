@@ -4,13 +4,14 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, List, MutableSequence
 
-from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible
+from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
 from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 
 __all__ = [
   'KeyGenerator',
+  'SignatureFragmentGenerator',
 ]
 
 
@@ -211,3 +212,59 @@ class KeyGenerator(object):
     sponge.absorb(seed)
 
     return sponge
+
+
+class SignatureFragmentGenerator(object):
+  """
+  Used to generate signature fragments progressively.
+
+  Each instance can generate 1 signature per block (2187 trytes) in the
+  private key.
+  """
+  def __init__(self, private_key):
+    # type: (PrivateKey) -> None
+    super(SignatureFragmentGenerator, self).__init__()
+
+    self._key_chunks  = private_key.iter_chunks(PrivateKey.BLOCK_LEN)
+    self._sponge      = Curl()
+
+  def send(self, source_trytes):
+    # type: (TryteString) -> TryteString
+    """
+    Sends a source string to the generator to create the next fragment.
+
+    :param source_trytes:
+      Trytes to use to generate the signature.
+
+      Note: should be 27 trytes long.
+      If too short, will be padded.
+      If too long, extra trytes will be ignored.
+    """
+    key_trytes = next(self._key_chunks) # type: TryteString
+
+    hashes_per_block = PrivateKey.BLOCK_LEN // Hash.LEN
+
+    # Ensure ``source_trits`` is long enough.
+    # It must have at least 1 trit per hash.
+    source_trits = source_trytes.as_trits()
+    source_trits += [0] * max(0, hashes_per_block - len(source_trytes))
+
+    signature = key_trytes.as_trits()
+
+    # Build the signature, one hash at a time.
+    for i in range(hashes_per_block):
+      hash_start  = i * HASH_LENGTH
+      hash_end    = hash_start + HASH_LENGTH
+
+      fragment = signature[hash_start:hash_end]
+
+      # Use value from the source trits to make the signature
+      # deterministic.
+      for _ in range(13 - source_trits[i]):
+        self._sponge.reset()
+        self._sponge.absorb(fragment)
+        self._sponge.squeeze(fragment)
+
+      signature[hash_start:hash_end] = fragment
+
+    return TryteString.from_trits(signature)

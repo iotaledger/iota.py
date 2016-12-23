@@ -204,6 +204,23 @@ class TryteStringTestCase(TestCase):
     self.assertEqual(ts[-4:], TryteString(b'KBFA'))
     self.assertEqual(ts[4:-4:4], TryteString(b'9CEY'))
 
+  def test_iter_chunks(self):
+    """
+    Iterating over a TryteString in constant-size chunks.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    self.assertListEqual(
+      list(trytes.iter_chunks(9)),
+
+      [
+        TryteString(b'RBTC9D9DC'),
+        TryteString(b'DQAEASBYB'),
+        # The final chunk is padded as necessary.
+        TryteString(b'CCKBFA999'),
+      ],
+    )
+
   def test_init_from_tryte_string(self):
     """
     Initializing a TryteString from another TryteString.

@@ -331,6 +331,43 @@ class Iota(StrictIota):
 
     self.seed = Seed(seed) if seed else Seed.random()
 
+  def broadcast_and_store(self, trytes):
+    # type: (Iterable[TryteString]) -> List[TryteString]
+    """
+    Broadcasts and stores a set of transaction trytes.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
+    """
+    return self.broadcastAndStore(trytes=trytes)
+
+  def get_bundles(self, transaction):
+    # type: (TransactionHash) -> List[Bundle]
+    """
+    Returns the bundle(s) associated with the specified transaction
+    hash.
+
+    :param transaction:
+      Transaction hash.  Can be any type of transaction (tail or non-
+      tail).
+
+    :return:
+      List of bundles associated with the transaction.
+      If there are multiple bundles (e.g., because of a replay), all
+      valid matching bundles will be returned.
+
+      Note that this method always returns a list, even if only one
+      bundle was found.
+
+    :raise:
+      - :py:class:`iota.adapter.BadApiResponse` if any of the
+        bundles fails validation.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
+    """
+    return self.getBundles(transaction=transaction)
+
   def get_inputs(self, start=None, end=None, threshold=None):
     # type: (Optional[int], Optional[int], Optional[int]) -> dict
     """
@@ -391,44 +428,6 @@ class Iota(StrictIota):
       threshold = threshold,
     )
 
-  def prepare_transfers(self, transfers, inputs=None, change_address=None):
-    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> ProposedBundle
-    """
-    Prepares transactions to be broadcast to the Tangle, by generating
-    the correct bundle, as well as choosing and signing the inputs (for
-    value transfers).
-
-    :param transfers: Transaction objects to prepare.
-
-    :param inputs:
-      List of addresses used to fund the transfer.
-      Not needed for zero-value transfers.
-
-      If not provided, addresses will be selected automatically by
-      scanning the Tangle for unspent inputs.  Note: this could take
-      awhile to complete.
-
-    :param change_address:
-      If inputs are provided, any unspent amount will be sent to this
-      address.
-
-      If not specified, a change address will be generated
-      automatically.
-
-    :return:
-      Array containing the trytes of the new bundle.
-      This value can be provided to e.g., :py:meth:`attach_to_tangle`.
-
-    References:
-      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
-    """
-    return self.prepareTransfers(
-      seed            = self.seed,
-      transfers       = transfers,
-      inputs          = inputs,
-      change_address  = change_address,
-    )
-
   def get_latest_inclusion(self, hashes):
     # type: (Iterable[TransactionHash]) -> Dict[TransactionHash, bool]
     """
@@ -472,33 +471,6 @@ class Iota(StrictIota):
     """
     return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
-  def get_bundles(self, transaction):
-    # type: (TransactionHash) -> List[Bundle]
-    """
-    Returns the bundle(s) associated with the specified transaction
-    hash.
-
-    :param transaction:
-      Transaction hash.  Can be any type of transaction (tail or non-
-      tail).
-
-    :return:
-      List of bundles associated with the transaction.
-      If there are multiple bundles (e.g., because of a replay), all
-      valid matching bundles will be returned.
-
-      Note that this method always returns a list, even if only one
-      bundle was found.
-
-    :raise:
-      - :py:class:`iota.adapter.BadApiResponse` if any of the
-        bundles fails validation.
-
-    References:
-      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
-    """
-    return self.getBundles(transaction=transaction)
-
   def get_transfers(self, start=0, end=None, inclusion_states=False):
     # type: (int, Optional[int], bool) -> List[Bundle]
     """
@@ -533,6 +505,44 @@ class Iota(StrictIota):
       start             = start,
       end               = end,
       inclusion_states  = inclusion_states,
+    )
+
+  def prepare_transfers(self, transfers, inputs=None, change_address=None):
+    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> ProposedBundle
+    """
+    Prepares transactions to be broadcast to the Tangle, by generating
+    the correct bundle, as well as choosing and signing the inputs (for
+    value transfers).
+
+    :param transfers: Transaction objects to prepare.
+
+    :param inputs:
+      List of addresses used to fund the transfer.
+      Not needed for zero-value transfers.
+
+      If not provided, addresses will be selected automatically by
+      scanning the Tangle for unspent inputs.  Note: this could take
+      awhile to complete.
+
+    :param change_address:
+      If inputs are provided, any unspent amount will be sent to this
+      address.
+
+      If not specified, a change address will be generated
+      automatically.
+
+    :return:
+      Array containing the trytes of the new bundle.
+      This value can be provided to e.g., :py:meth:`attach_to_tangle`.
+
+    References:
+      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
+    """
+    return self.prepareTransfers(
+      seed            = self.seed,
+      transfers       = transfers,
+      inputs          = inputs,
+      change_address  = change_address,
     )
 
   def replay_bundle(self, transaction):
@@ -630,13 +640,3 @@ class Iota(StrictIota):
       depth                 = depth,
       min_weight_magnitude  = min_weight_magnitude,
     )
-
-  def broadcast_and_store(self, trytes):
-    # type: (Iterable[TryteString]) -> List[TryteString]
-    """
-    Broadcasts and stores a set of transaction trytes.
-
-    References:
-      - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
-    """
-    return self.broadcastAndStore(trytes=trytes)

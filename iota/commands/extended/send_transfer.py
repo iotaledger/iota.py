@@ -2,7 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import filters as f
+from iota import Address, ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
+from iota.crypto.types import Seed
+from iota.filters import Trytes
 
 __all__ = [
   'SendTransferCommand',
@@ -33,10 +37,26 @@ class SendTransferRequestFilter(RequestFilter):
   def __init__(self):
     super(SendTransferRequestFilter, self).__init__(
       {
+        # Required parameters.
+        'seed': f.Required | Trytes(result_type=Seed),
+
+        'transfers':
+          f.Required | f.Array | f.FilterRepeater(f.Type(ProposedTransaction)),
+
+        # Optional parameters.
+        'change_address': Trytes(result_type=Address),
+        'depth': f.Type(int) | f.Min(1),
+        'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
+
+        'inputs':
+          f.Array | f.FilterRepeater(Trytes(result_type=Address)),
 
       },
 
       allow_missing_keys = {
-
+        'change_address',
+        'depth',
+        'inputs',
+        'min_weight_magnitude',
       },
     )

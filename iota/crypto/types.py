@@ -98,8 +98,10 @@ class PrivateKey(TryteString):
     through a PBKDF, yielding a constant-length hash that can be used
     for crypto.
     """
-    block_size  = self.BLOCK_LEN * TRITS_PER_TRYTE
-    raw_trits   = self.as_trits()
+    block_size        = self.BLOCK_LEN * TRITS_PER_TRYTE
+    hashes_per_block  = block_size // HASH_LENGTH
+
+    raw_trits = self.as_trits()
 
     # Initialize list with the correct length to improve performance.
     digest = [0] * HASH_LENGTH  # type: List[int]
@@ -116,7 +118,7 @@ class PrivateKey(TryteString):
 
       buffer = [] # type: List[int]
 
-      for j in range(27):
+      for j in range(hashes_per_block):
         hash_start = j * HASH_LENGTH
         hash_end   = hash_start + HASH_LENGTH
 

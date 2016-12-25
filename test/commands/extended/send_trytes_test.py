@@ -4,10 +4,18 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
+from filters.test import BaseFilterTestCase
 from iota import BadApiResponse, Iota, TransactionHash, TryteString
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from six import text_type
 from test import MockAdapter
+
+
+class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = SendTrytesCommand(MockAdapter()).get_request_filter
+  skip_value_check = True
+
+  # :todo: Unit tests.
 
 
 class SendTrytesCommandTestCase(TestCase):
@@ -44,7 +52,7 @@ class SendTrytesCommandTestCase(TestCase):
 
   def test_happy_path(self):
     """
-    Successful invocation of `sendTrytes`.
+    Successful invocation of ``sendTrytes``.
     """
     self.adapter.seed_response('getTransactionsToApprove', {
       'trunkTransaction':   text_type(self.transaction1, 'ascii'),
@@ -123,7 +131,7 @@ class SendTrytesCommandTestCase(TestCase):
 
   def test_get_transactions_to_approve_fails(self):
     """
-    The `getTransactionsToApprove` call fails.
+    The ``getTransactionsToApprove`` call fails.
     """
     self.adapter.seed_response('getTransactionsToApprove', {
       'error': "I'm a teapot.",
@@ -155,7 +163,7 @@ class SendTrytesCommandTestCase(TestCase):
 
   def test_attach_to_tangle_fails(self):
     """
-    The `attachToTangle` call fails.
+    The ``attachToTangle`` call fails.
     """
     self.adapter.seed_response('getTransactionsToApprove', {
       'trunkTransaction':   text_type(self.transaction1, 'ascii'),
@@ -205,7 +213,7 @@ class SendTrytesCommandTestCase(TestCase):
 
   def test_broadcast_transactions_fails(self):
     """
-    The `broadcastTransactions` call fails.
+    The ``broadcastTransactions`` call fails.
     """
     self.adapter.seed_response('getTransactionsToApprove', {
       'trunkTransaction':   text_type(self.transaction1, 'ascii'),
@@ -271,7 +279,7 @@ class SendTrytesCommandTestCase(TestCase):
 
   def test_store_transactions_fails(self):
     """
-    The `storeTransactions` call fails.
+    The ``storeTransactions`` call fails.
     """
     self.adapter.seed_response('getTransactionsToApprove', {
       'trunkTransaction':   text_type(self.transaction1, 'ascii'),

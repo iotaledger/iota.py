@@ -18,7 +18,9 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
   skip_value_check = True
 
   def test_pass_happy_path(self):
-    """Typical `getTransactionsToApprove` request."""
+    """
+    Request is valid.
+    """
     request = {
       'depth': 100,
     }
@@ -29,7 +31,9 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_fail_empty(self):
-    """Request is empty."""
+    """
+    Request is empty.
+    """
     self.assertFilterErrors(
       {},
 
@@ -39,7 +43,9 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """Request contains unexpected parameters."""
+    """
+    Request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'depth': 100,
@@ -53,8 +59,17 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_depth_null(self):
+    """
+    ``depth`` is null.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
   def test_fail_depth_float(self):
-    """`depth` is a float."""
+    """
+    ``depth`` is a float.
+    """
     self.assertFilterErrors(
       {
         'depth': 100.0,
@@ -66,7 +81,9 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_depth_string(self):
-    """`depth` is a string."""
+    """
+    ``depth`` is a string.
+    """
     self.assertFilterErrors(
       {
         'depth': '100',
@@ -78,7 +95,9 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_depth_too_small(self):
-    """`depth` is less than 1."""
+    """
+    ``depth`` is less than 1.
+    """
     self.assertFilterErrors(
       {
         'depth': 0,
@@ -97,7 +116,9 @@ class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
 
   # noinspection SpellCheckingInspection
   def test_pass_happy_path(self):
-    """Typical `getTransactionsToApprove` response."""
+    """
+    Typical ``getTransactionsToApprove`` response.
+    """
     response = {
       'trunkTransaction':
         'TKGDZ9GEI9CPNQGHEATIISAKYPPPSXVCXBSR9EIW'

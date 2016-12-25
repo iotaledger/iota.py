@@ -2,7 +2,16 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from iota.commands import FilterCommand, RequestFilter
+from typing import List
+
+import filters as f
+from iota import Bundle
+from iota import TransactionHash
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
+  RequestFilter
+from iota.commands.extended.get_bundles import GetBundlesCommand
+from iota.commands.extended.send_trytes import SendTrytesCommand
+from iota.filters import Trytes
 
 __all__ = [
   'ReplayBundleCommand',
@@ -24,17 +33,36 @@ class ReplayBundleCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    depth                 = request['depth'] # type: int
+    min_weight_magnitude  = request['min_weight_magnitude'] # type: int
+    transaction           = request['transaction'] # type: TransactionHash
+
+    bundles = GetBundlesCommand(self.adapter)(transaction=transaction) # type: List[Bundle]
+
+    return SendTrytesCommand(self.adapter)(
+      depth                 = depth,
+      min_weight_magnitude  = min_weight_magnitude,
+
+      trytes = list(reversed(b.as_tryte_string() for b in bundles)),
     )
+
 
 
 class ReplayBundleRequestFilter(RequestFilter):
   def __init__(self):
     super(ReplayBundleRequestFilter, self).__init__(
       {
+        'depth':        f.Required | f.Type(int) | f.Min(1),
+        'transaction':  f.Required | Trytes(result_type=TransactionHash),
+
+        'min_weight_magnitude': (
+            f.Type(int)
+          | f.Min(18)
+          | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
+        ),
       },
 
       allow_missing_keys = {
+        'min_weight_magnitude',
       },
     )

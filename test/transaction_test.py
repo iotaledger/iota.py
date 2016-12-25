@@ -274,7 +274,7 @@ class TransactionTestCase(TestCase):
     self.assertEqual(transaction.last_index, 1)
 
     self.assertEqual(
-      transaction.bundle_id,
+      transaction.bundle_hash,
 
       BundleHash(
         b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
@@ -283,7 +283,7 @@ class TransactionTestCase(TestCase):
     )
 
     self.assertEqual(
-      transaction.trunk_transaction_id,
+      transaction.trunk_transaction_hash,
 
       TransactionHash(
         b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
@@ -292,7 +292,7 @@ class TransactionTestCase(TestCase):
     )
 
     self.assertEqual(
-      transaction.branch_transaction_id,
+      transaction.branch_transaction_hash,
 
       TransactionHash(
         b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
@@ -332,7 +332,7 @@ class TransactionTestCase(TestCase):
     """
     transaction = Transaction(
       hash_ =
-        Hash(
+        TransactionHash(
           b'QODOAEJHCFUYFTTPRONYSMMSFDNFWFX9UCMESVWA'
           b'FCVUQYOIJGJMBMGQSFIAFQFMVECYIFXHRGHHEOTMK'
         ),
@@ -387,19 +387,19 @@ class TransactionTestCase(TestCase):
       current_index = 1,
       last_index    = 1,
 
-      bundle_id =
+      bundle_hash=
         BundleHash(
           b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
           b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PG'
         ),
 
-      trunk_transaction_id =
+      trunk_transaction_hash=
         TransactionHash(
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
         ),
 
-      branch_transaction_id =
+      branch_transaction_hash=
         TransactionHash(
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'

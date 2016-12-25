@@ -79,7 +79,7 @@ class GetTransfersCommand(FilterCommand):
         # Capture the bundle ID instead of the transaction hash so that
         # we can query the node to find the tail transaction for that
         # bundle.
-        non_tails.add(t.bundle_id)
+        non_tails.add(t.bundle_hash)
 
     if non_tails:
       for t in self._find_transactions(bundles=non_tails):

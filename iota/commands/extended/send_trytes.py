@@ -51,7 +51,7 @@ class SendTrytesRequestFilter(RequestFilter):
   def __init__(self):
     super(SendTrytesRequestFilter, self).__init__(
       {
-        'depth': f.Type(int) | f.Min(1),
+        'depth': f.Required | f.Type(int) | f.Min(1),
 
         'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
 

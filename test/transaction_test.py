@@ -122,6 +122,8 @@ class ProposedBundleTestCase(TestCase):
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
 
+  # :todo: Validation tests.
+
 
 # noinspection SpellCheckingInspection
 class TransactionHashTestCase(TestCase):

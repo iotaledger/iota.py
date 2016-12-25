@@ -7,6 +7,7 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash, TryteString
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -60,16 +61,24 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         TryteString(self.trytes1)
       ],
 
-      # If not provided, this value is set to the minimum (18).
+      # If not provided, this value is set to the default (18).
       # 'min_weight_magnitude': 20,
     }
 
     filter_ = self._filter(request)
-    self.assertFilterPasses(filter_)
 
-    expected_value = request.copy()
-    expected_value['min_weight_magnitude'] = 18
-    self.assertDictEqual(filter_.cleaned_data, expected_value)
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'trunk_transaction':  TransactionHash(self.txn_id),
+        'branch_transaction': TransactionHash(self.txn_id),
+        'trytes':             [TryteString(self.trytes1)],
+
+        'min_weight_magnitude': DEFAULT_MIN_WEIGHT_MAGNITUDE,
+      },
+    )
 
   # noinspection SpellCheckingInspection
   def test_pass_compatible_types(self):

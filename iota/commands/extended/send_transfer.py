@@ -6,7 +6,8 @@ from typing import List, Optional
 
 import filters as f
 from iota import Address, Bundle, ProposedTransaction
-from iota.commands import FilterCommand, RequestFilter
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
+  RequestFilter
 from iota.commands.extended.prepare_transfers import PrepareTransfersCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
@@ -68,7 +69,12 @@ class SendTransferRequestFilter(RequestFilter):
         # Optional parameters.
         'change_address': Trytes(result_type=Address),
         'depth': f.Type(int) | f.Min(1),
-        'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
+
+        'min_weight_magnitude': (
+            f.Type(int)
+          | f.Min(18)
+          | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
+        ),
 
         'inputs':
           f.Array | f.FilterRepeater(Trytes(result_type=Address)),

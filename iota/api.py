@@ -7,7 +7,8 @@ from typing import Dict, Iterable, List, Optional, Text
 from iota import AdapterSpec, Address, Bundle, ProposedBundle, \
   ProposedTransaction, Tag, TransactionHash, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.commands import CustomCommand, command_registry
+from iota.commands import CustomCommand, DEFAULT_MIN_WEIGHT_MAGNITUDE, \
+  command_registry
 from iota.crypto.types import Seed
 
 __all__ = [
@@ -78,7 +79,7 @@ class StrictIota(object):
       trunk_transaction,
       branch_transaction,
       trytes,
-      min_weight_magnitude = 18,
+      min_weight_magnitude = DEFAULT_MIN_WEIGHT_MAGNITUDE,
   ):
     # type: (TransactionHash, TransactionHash, Iterable[TryteString], int) -> dict
     """
@@ -545,8 +546,13 @@ class Iota(StrictIota):
       change_address  = change_address,
     )
 
-  def replay_bundle(self, transaction):
-    # type: (TransactionHash) -> Bundle
+  def replay_bundle(
+      self,
+      transaction,
+      depth,
+      min_weight_magnitude = DEFAULT_MIN_WEIGHT_MAGNITUDE,
+  ):
+    # type: (TransactionHash, int, int) -> Bundle
     """
     Takes a tail transaction hash as input, gets the bundle associated
     with the transaction and then replays the bundle by attaching it to
@@ -555,13 +561,24 @@ class Iota(StrictIota):
     :param transaction:
       Transaction hash.  Must be a tail.
 
+    :param depth:
+      Depth at which to attach the bundle.
+
+    :param min_weight_magnitude:
+      Min weight magnitude, used by the node to calibrate Proof of
+      Work.
+
     :return:
       The bundle containing the replayed transfer.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#replaytransfer
     """
-    raise NotImplementedError('Not implemented yet.')
+    return self.replayBundle(
+      transaction           = transaction,
+      depth                 = depth,
+      min_weight_magnitude  = min_weight_magnitude,
+    )
 
   def send_transfer(
       self,
@@ -569,7 +586,7 @@ class Iota(StrictIota):
       transfers,
       inputs                = None,
       change_address        = None,
-      min_weight_magnitude  = 18,
+      min_weight_magnitude  = DEFAULT_MIN_WEIGHT_MAGNITUDE,
   ):
     # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], int) -> Bundle
     """

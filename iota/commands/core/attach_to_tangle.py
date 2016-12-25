@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-
 from iota import TransactionHash
-from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
+  RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
 __all__ = [
@@ -35,7 +35,11 @@ class AttachToTangleRequestFilter(RequestFilter):
         'trunk_transaction':  f.Required | Trytes(result_type=TransactionHash),
         'branch_transaction': f.Required | Trytes(result_type=TransactionHash),
 
-        'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
+        'min_weight_magnitude': (
+            f.Type(int)
+          | f.Min(18)
+          | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
+        ),
 
         'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
       },

@@ -340,6 +340,15 @@ class Bundle(Sequence[Transaction]):
 
     self.transactions = transactions or [] # type: List[Transaction]
 
+    self._is_confirmed = None # type: Optional[bool]
+    """
+    Whether this bundle has been confirmed by neighbor nodes.
+    Must be set manually.
+
+    References:
+      - :py:class:`iota.commands.extended.get_transfers.GetTransfersCommand`
+    """
+
   def __contains__(self, transaction):
     # type: (Transaction) -> bool
     return transaction in self.transactions
@@ -355,6 +364,38 @@ class Bundle(Sequence[Transaction]):
   def __len__(self):
     # type: () -> int
     return len(self.transactions)
+
+  @property
+  def is_confirmed(self):
+    # type: () -> Optional[bool]
+    """
+    Returns whether this bundle has been confirmed by neighbor nodes.
+
+    This attribute must be set manually.
+
+    References:
+      - :py:class:`iota.commands.extended.get_transfers.GetTransfersCommand`
+    """
+    return self._is_confirmed
+
+  @is_confirmed.setter
+  def is_confirmed(self, new_is_confirmed):
+    # type: (bool) -> None
+    """
+    Sets the ``is_confirmed`` for the bundle.
+    """
+    self._is_confirmed = new_is_confirmed
+
+    for txn in self:
+      txn.is_confirmed = new_is_confirmed
+
+  @property
+  def tail_transaction(self):
+    # type: () -> Transaction
+    """
+    Returns the tail transaction of the bundle.
+    """
+    return self[0]
 
   def validate(self):
     # type: () -> None

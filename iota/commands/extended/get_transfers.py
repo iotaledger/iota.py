@@ -5,10 +5,11 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
-from iota import Transaction
+from iota import Bundle, Transaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_trytes import GetTrytesCommand
+from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.commands.extended.get_latest_inclusion import \
   GetLatestInclusionCommand
 from iota.crypto.addresses import AddressGenerator
@@ -72,19 +73,19 @@ class GetTransfersCommand(FilterCommand):
 
     transactions = self._find_transactions(hashes=hashes)
 
-    for t in transactions:
-      if t.is_tail:
-        tails.add(t.hash)
+    for txn in transactions:
+      if txn.is_tail:
+        tails.add(txn.hash)
       else:
         # Capture the bundle ID instead of the transaction hash so that
         # we can query the node to find the tail transaction for that
         # bundle.
-        non_tails.add(t.bundle_hash)
+        non_tails.add(txn.bundle_hash)
 
     if non_tails:
-      for t in self._find_transactions(bundles=non_tails):
-        if t.is_tail:
-          tails.add(t.hash)
+      for txn in self._find_transactions(bundles=non_tails):
+        if txn.is_tail:
+          tails.add(txn.hash)
 
     # Attach inclusion states, if requested.
     if inclusion_states:
@@ -92,11 +93,26 @@ class GetTransfersCommand(FilterCommand):
         hashes = tails,
       )
 
-      for t in transactions:
-        t.is_confirmed = gli_response['states'].get(t.hash)
+      for txn in transactions:
+        txn.is_confirmed = gli_response['states'].get(txn.hash)
 
-    # :todo: Invoke getBundle.
-    # :todo: Sort bundles by timestamp and return.
+    all_bundles = [] # type: List[Bundle]
+
+    # Find the bundles for each transaction.
+    for txn in transactions:
+      txn_bundles = GetBundlesCommand(self.adapter)(transactions=txn.hash) # type: List[Bundle]
+
+      if inclusion_states:
+        for bundle in txn_bundles:
+          bundle.is_confirmed = txn.is_confirmed
+
+      all_bundles.extend(txn_bundles)
+
+    # Sort bundles by tail transaction timestamp.
+    return list(sorted(
+      all_bundles,
+      key = lambda bundle_: bundle_.tail_transaction.timestamp,
+    ))
 
 
   def _find_transactions(self, **kwargs):

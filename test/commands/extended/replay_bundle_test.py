@@ -4,9 +4,13 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
+import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota
+from iota import Iota, TransactionHash
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
+from iota.filters import Trytes
+from six import binary_type, text_type
 from test import MockAdapter
 
 
@@ -14,111 +18,272 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
   filter_type = ReplayBundleCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(ReplayBundleRequestFilterTestCase, self).setUp()
+
+    self.trytes1 = (
+      b'TESTVALUEONE9DONTUSEINPRODUCTION99999DAU'
+      b'9WFSFWBSFT9QATCXFIIKDVFLHIIJGGFCDYENBEDCF'
+    )
+
   def test_pass_happy_path(self):
     """
     Request is valid.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'depth':                100,
+      'min_weight_magnitude': 18,
+      'transaction':          TransactionHash(self.trytes1),
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_pass_compatible_types(self):
     """
     Request contains values that can be converted to the expected
     types.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    filter_ = self._filter({
+      # This can be any TrytesCompatible value.
+      'transaction': binary_type(self.trytes1),
+
+      # These values must still be ints, however.
+      'depth':                100,
+      'min_weight_magnitude': 18,
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'transaction':          TransactionHash(self.trytes1),
+      },
+    )
 
   def test_pass_optional_parameters_excluded(self):
     """
     Request omits optional parameters.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    filter_ = self._filter({
+      'depth':      100,
+      'transaction': TransactionHash(self.trytes1),
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'depth':                100,
+        'min_weight_magnitude': DEFAULT_MIN_WEIGHT_MAGNITUDE,
+        'transaction':          TransactionHash(self.trytes1),
+      },
+    )
 
   def test_fail_empty(self):
     """
     Request is empty.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {},
+
+      {
+        'depth':        [f.FilterMapper.CODE_MISSING_KEY],
+        'transaction':  [f.FilterMapper.CODE_MISSING_KEY],
+      },
+    )
 
   def test_fail_unexpected_parameters(self):
     """
     Request contains unexpected parameters.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth':      100,
+        'transaction': TransactionHash(self.trytes1),
+
+        # That's a real nasty habit you got there.
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
 
   def test_fail_transaction_null(self):
     """
     ``transaction`` is null.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'transaction': None,
+
+        'depth': 100,
+      },
+
+      {
+        'transaction': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_transaction_wrong_type(self):
     """
     ``transaction`` is not a TrytesCompatible value.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'transaction': text_type(self.trytes1, 'ascii'),
+
+        'depth': 100,
+      },
+
+      {
+        'transaction': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_transaction_not_trytes(self):
     """
     ``transaction`` contains invalid characters.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'transaction': b'not valid; must contain only uppercase and "9"',
+
+        'depth': 100,
+      },
+
+      {
+        'transaction': [Trytes.CODE_NOT_TRYTES],
+      },
+    )
 
   def test_fail_depth_null(self):
     """
     ``depth`` is null.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': None,
+
+        'transaction': TransactionHash(self.trytes1),
+      },
+
+      {
+        'depth': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_depth_string(self):
     """
     ``depth`` is a string.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        # Too ambiguous; it's gotta be an int.
+        'depth': '4',
+
+        'transaction': TransactionHash(self.trytes1),
+      },
+
+      {
+        'depth': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_depth_float(self):
     """
     ``depth`` is a float.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        # Even with an empty fpart, float value is not valid.
+        'depth': 8.0,
+
+        'transaction': TransactionHash(self.trytes1),
+      },
+
+      {
+        'depth': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_depth_too_small(self):
     """
     ``depth`` is < 1.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': 0,
+
+        'transaction': TransactionHash(self.trytes1),
+      },
+
+      {
+        'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
 
   def test_fail_min_weight_magnitude_string(self):
     """
     ``min_weight_magnitude`` is a string.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        # It's gotta be an int!
+        'min_weight_magnitude': '18',
+
+        'depth':        100,
+        'transaction':  TransactionHash(self.trytes1),
+      },
+
+      {
+        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_min_weight_magnitude_float(self):
     """
     ``min_weight_magnitude`` is a float.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        # Even with an empty fpart, float values are not valid.
+        'min_weight_magnitude': 18.0,
+
+        'depth':        100,
+        'transaction':  TransactionHash(self.trytes1),
+      },
+
+      {
+        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_min_weight_magnitude_too_small(self):
     """
     ``min_weight_magnitude`` is < 18.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'min_weight_magnitude': 17,
+
+        'depth':        100,
+        'transaction':  TransactionHash(self.trytes1),
+      },
+
+      {
+        'min_weight_magnitude': [f.Min.CODE_TOO_SMALL],
+      },
+    )
 
 
 class ReplayBundleCommandTestCase(TestCase):

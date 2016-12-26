@@ -61,14 +61,17 @@ class SendTransferRequestFilter(RequestFilter):
     super(SendTransferRequestFilter, self).__init__(
       {
         # Required parameters.
-        'seed': f.Required | Trytes(result_type=Seed),
+        'depth':  f.Required | f.Type(int) | f.Min(1),
+        'seed':   f.Required | Trytes(result_type=Seed),
 
-        'transfers':
-          f.Required | f.Array | f.FilterRepeater(f.Type(ProposedTransaction)),
+        'transfers': (
+            f.Required
+          | f.Array
+          | f.FilterRepeater(f.Required | f.Type(ProposedTransaction))
+        ),
 
         # Optional parameters.
         'change_address': Trytes(result_type=Address),
-        'depth': f.Type(int) | f.Min(1),
 
         'min_weight_magnitude': (
             f.Type(int)
@@ -76,14 +79,13 @@ class SendTransferRequestFilter(RequestFilter):
           | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
         ),
 
+        # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
-          f.Array | f.FilterRepeater(Trytes(result_type=Address)),
-
+          f.Array | f.FilterRepeater(f.Required | Trytes(result_type=Address)),
       },
 
       allow_missing_keys = {
         'change_address',
-        'depth',
         'inputs',
         'min_weight_magnitude',
       },

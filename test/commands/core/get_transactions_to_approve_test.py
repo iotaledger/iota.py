@@ -63,8 +63,15 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     """
     ``depth`` is null.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'depth': None,
+      },
+
+      {
+        'depth': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_depth_float(self):
     """

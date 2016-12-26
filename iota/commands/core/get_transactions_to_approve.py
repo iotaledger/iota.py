@@ -31,7 +31,7 @@ class GetTransactionsToApproveCommand(FilterCommand):
 class GetTransactionsToApproveRequestFilter(RequestFilter):
   def __init__(self):
     super(GetTransactionsToApproveRequestFilter, self).__init__({
-      'depth': f.Type(int) | f.Min(1),
+      'depth': f.Required | f.Type(int) | f.Min(1),
     })
 
 

@@ -1,7 +1,7 @@
 # coding=utf-8
 """
 Simple "Hello, world!" example that sends a `getNodeInfo` command to
-  your friendly neighborhood node.
+your friendly neighborhood node.
 """
 
 from __future__ import absolute_import, division, print_function, \
@@ -19,7 +19,7 @@ from iota import BadApiResponse, StrictIota, __version__
 
 
 def main(uri):
-  # type: (Text, int) -> None
+  # type: (Text) -> None
   api = StrictIota(uri)
 
   try:

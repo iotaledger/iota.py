@@ -42,12 +42,23 @@ class PrepareTransfersCommand(FilterCommand):
 
     # Optional parameters.
     change_address  = request.get('change_address') # type: Optional[Address]
-    proposed_inputs = request.get('inputs') or [] # type: List[Address]
+    proposed_inputs = request.get('inputs') # type: Optional[List[Address]]
 
     want_to_spend = bundle.balance
     if want_to_spend > 0:
       # We are spending inputs, so we need to gather and sign them.
-      if proposed_inputs:
+      if proposed_inputs is None:
+        # No inputs provided.  Scan addresses for unspent inputs.
+        gi_response = GetInputsCommand(self.adapter)(
+          seed      = seed,
+          threshold = want_to_spend,
+        )
+
+        confirmed_inputs = [
+          input_['address']
+            for input_ in gi_response['inputs']
+        ]
+      else:
         # Inputs provided.  Check to make sure we have sufficient
         # balance.
         available_to_spend  = 0
@@ -85,17 +96,6 @@ class PrepareTransfersCommand(FilterCommand):
               'want_to_spend':      want_to_spend,
             },
           )
-      else:
-        # No inputs provided.  Scan addresses for unspent inputs.
-        gi_response = GetInputsCommand(self.adapter)(
-          seed      = seed,
-          threshold = want_to_spend,
-        )
-
-        confirmed_inputs = [
-          input_['address']
-            for input_ in gi_response['inputs']
-        ]
 
       bundle.add_inputs(confirmed_inputs)
 
@@ -120,14 +120,18 @@ class PrepareTransfersRequestFilter(RequestFilter):
         # Required parameters.
         'seed': f.Required | Trytes(result_type=Seed),
 
-        'transfers':
-          f.Required | f.Array | f.FilterRepeater(f.Type(ProposedTransaction)),
+        'transfers': (
+            f.Required
+          | f.Array
+          | f.FilterRepeater(f.Required | f.Type(ProposedTransaction))
+        ),
 
         # Optional parameters.
         'change_address': Trytes(result_type=Address),
 
+        # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
-          f.Array | f.FilterRepeater(Trytes(result_type=Address)),
+          f.Array | f.FilterRepeater(f.Required | Trytes(result_type=Address)),
       },
 
       allow_missing_keys = {

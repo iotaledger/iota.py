@@ -2,8 +2,12 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import List
+
 import filters as f
-from iota.commands import FilterCommand, RequestFilter
+from iota import TryteString
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
+  RequestFilter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.commands.core.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
@@ -30,18 +34,20 @@ class SendTrytesCommand(FilterCommand):
     pass
 
   def _execute(self, request):
+    depth                 = request['depth'] # type: int
+    min_weight_magnitude  = request['min_weight_magnitude'] # type: int
+    trytes                = request['trytes'] # type: List[TryteString]
+
     # Call ``getTransactionsToApprove`` to locate trunk and branch
     # transactions so that we can attach the bundle to the Tangle.
-    gta_response = GetTransactionsToApproveCommand(self.adapter)(
-      depth = request['depth'],
-    )
+    gta_response = GetTransactionsToApproveCommand(self.adapter)(depth=depth)
 
     AttachToTangleCommand(self.adapter)(
       branch_transaction  = gta_response.get('branchTransaction'),
       trunk_transaction   = gta_response.get('trunkTransaction'),
 
-      min_weight_magnitude  = request['min_weight_magnitude'],
-      trytes                = request['trytes'],
+      min_weight_magnitude  = min_weight_magnitude,
+      trytes                = trytes,
     )
 
     return BroadcastAndStoreCommand(self.adapter)(trytes=request['trytes'])
@@ -51,11 +57,13 @@ class SendTrytesRequestFilter(RequestFilter):
   def __init__(self):
     super(SendTrytesRequestFilter, self).__init__(
       {
+        # Required parameters.
         'depth': f.Required | f.Type(int) | f.Min(1),
-
-        'min_weight_magnitude': f.Type(int) | f.Min(18) | f.Optional(18),
-
         'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+
+        # Optional parameters.
+        'min_weight_magnitude':
+          f.Type(int) | f.Min(18) | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE),
       },
 
       allow_missing_keys = {

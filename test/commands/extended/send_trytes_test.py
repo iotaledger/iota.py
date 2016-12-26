@@ -4,10 +4,13 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
+import filters as f
 from filters.test import BaseFilterTestCase
 from iota import BadApiResponse, Iota, TransactionHash, TryteString
+from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE
 from iota.commands.extended.send_trytes import SendTrytesCommand
-from six import text_type
+from iota.filters import Trytes
+from six import text_type, binary_type
 from test import MockAdapter
 
 
@@ -15,7 +18,315 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
   filter_type = SendTrytesCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # :todo: Unit tests.
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(SendTrytesRequestFilterTestCase, self).setUp()
+
+    # These values would normally be a lot longer (2187 trytes, to be
+    # exact), but for purposes of this test, we just need a non-empty
+    # value.
+    self.trytes1 = b'TRYTEVALUEHERE'
+    self.trytes2 = b'HELLOIOTA'
+
+  def test_pass_happy_path(self):
+    """
+    Request is valid.
+    """
+    request = {
+      'depth':                100,
+      'min_weight_magnitude': 18,
+
+      'trytes':
+        [TryteString(self.trytes1), TryteString(self.trytes2)],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
+
+  def test_pass_compatible_types(self):
+    """
+    Request contains values that can be converted to the expected
+    types.
+    """
+    filter_ = self._filter({
+      # This can accept any TrytesCompatible values.
+      'trytes': [
+        binary_type(self.trytes1),
+        bytearray(self.trytes2),
+      ],
+
+      # These still have to be ints, however.
+      'depth':                100,
+      'min_weight_magnitude': 18,
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'depth':                100,
+        'min_weight_magnitude': 18,
+
+        'trytes':
+          [TryteString(self.trytes1), TryteString(self.trytes2)],
+      },
+    )
+
+  def test_pass_optional_parameters_omitted(self):
+    """
+    Request omits optional parameters.
+    """
+    filter_ = self._filter({
+      'depth':  100,
+      'trytes': [TryteString(self.trytes1)],
+    })
+
+    self.assertFilterPasses(filter_ )
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'depth':                100,
+        'min_weight_magnitude': DEFAULT_MIN_WEIGHT_MAGNITUDE,
+        'trytes':               [TryteString(self.trytes1)],
+      },
+    )
+
+  def test_fail_request_empty(self):
+    """
+    Request is empty.
+    """
+    self.assertFilterErrors(
+      {},
+
+      {
+        'depth':  [f.FilterMapper.CODE_MISSING_KEY],
+        'trytes': [f.FilterMapper.CODE_MISSING_KEY],
+      },
+    )
+
+  def test_fail_request_unexpected_parameters(self):
+    """
+    Request contains unexpected parameters.
+    """
+    self.assertFilterErrors(
+      {
+        'depth':  100,
+        'trytes': [TryteString(self.trytes1)],
+
+        # Oh, bother.
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
+
+  def test_fail_depth_null(self):
+    """
+    ``depth`` is null.
+    """
+    self.assertFilterErrors(
+      {
+        'depth': None,
+
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'depth': [f.Required.CODE_EMPTY],
+      },
+    )
+
+  def test_fail_depth_string(self):
+    """
+    ``depth`` is a string.
+    """
+    self.assertFilterErrors(
+      {
+        # Too ambiguous; it's gotta be an int.
+        'depth': '4',
+
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'depth': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_depth_float(self):
+    """
+    ``depth`` is a float.
+    """
+    self.assertFilterErrors(
+      {
+        # Even with an empty fpart, float value is not valid.
+        'depth': 8.0,
+
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'depth': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_depth_too_small(self):
+    """
+    ``depth`` is < 1.
+    """
+    self.assertFilterErrors(
+      {
+        'depth': 0,
+
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_min_weight_magnitude_string(self):
+    """
+    ``min_weight_magnitude`` is a string.
+    """
+    self.assertFilterErrors(
+      {
+        # It's gotta be an int!
+        'min_weight_magnitude': '18',
+
+        'depth':  100,
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_min_weight_magnitude_float(self):
+    """
+    ``min_weight_magnitude`` is a float.
+    """
+    self.assertFilterErrors(
+      {
+        # Even with an empty fpart, float values are not valid.
+        'min_weight_magnitude': 18.0,
+
+        'depth':  100,
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_min_weight_magnitude_too_small(self):
+    """
+    ``min_weight_magnitude`` is < 18.
+    """
+    self.assertFilterErrors(
+      {
+        'min_weight_magnitude': 17,
+
+        'depth':  100,
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'min_weight_magnitude': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_trytes_null(self):
+    """
+    ``trytes`` is null.
+    """
+    self.assertFilterErrors(
+      {
+        'trytes': None,
+
+        'depth': 100,
+      },
+
+      {
+        'trytes': [f.Required.CODE_EMPTY],
+      },
+    )
+
+  def test_fail_trytes_wrong_type(self):
+    """
+    ``trytes`` is not an array.
+    """
+    self.assertFilterErrors(
+      {
+        # Must be an array, even if there's only one TryteString to
+        # send.
+        'trytes': TryteString(self.trytes1),
+
+        'depth': 100,
+      },
+
+      {
+        'trytes': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_trytes_empty(self):
+    """
+    ``trytes`` is an array, but it is empty.
+    """
+    self.assertFilterErrors(
+      {
+        'trytes': [],
+
+        'depth': 100,
+      },
+
+      {
+        'trytes': [f.Required.CODE_EMPTY],
+      },
+    )
+
+  def test_fail_trytes_contents_invalid(self):
+    """
+    ``trytes`` is a non-empty array, but it contains invalid values.
+    """
+    self.assertFilterErrors(
+      {
+        'trytes': [
+          b'',
+          text_type(self.trytes1, 'ascii'),
+          True,
+          None,
+          b'not valid trytes',
+
+          # This is actually valid; I just added it to make sure the
+          #   filter isn't cheating!
+          TryteString(self.trytes1),
+
+          2130706433,
+        ],
+
+        'depth': 100,
+      },
+
+      {
+        'trytes.0':  [f.Required.CODE_EMPTY],
+        'trytes.1':  [f.Type.CODE_WRONG_TYPE],
+        'trytes.2':  [f.Type.CODE_WRONG_TYPE],
+        'trytes.3':  [f.Required.CODE_EMPTY],
+        'trytes.4':  [Trytes.CODE_NOT_TRYTES],
+        'trytes.6':  [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
 
 class SendTrytesCommandTestCase(TestCase):

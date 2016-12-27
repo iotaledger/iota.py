@@ -407,4 +407,44 @@ class PrepareTransfersCommandTestCase(TestCase):
       PrepareTransfersCommand,
     )
 
-  # :todo: Unit tests.
+  def test_pass_inputs_not_needed(self):
+    """
+    Preparing a bundle that does not transfer any IOTAs.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_pass_inputs_explicit(self):
+    """
+    Preparing a bundle with specified inputs.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_fail_inputs_explicit_insufficient(self):
+    """
+    Specified inputs are not sufficient to cover spend amount.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_pass_inputs_implicit(self):
+    """
+    Preparing a bundle that finds inputs to use automatically.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_fail_inputs_implicit_insufficient(self):
+    """
+    Account's total balance is not enough to cover spend amount.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_pass_change_address_auto_generated(self):
+    """
+    Preparing a bundle with an auto-generated change address.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')

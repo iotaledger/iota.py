@@ -519,7 +519,7 @@ class Iota(StrictIota):
 
     :param inputs:
       List of addresses used to fund the transfer.
-      Not needed for zero-value transfers.
+      Ignored for zero-value transfers.
 
       If not provided, addresses will be selected automatically by
       scanning the Tangle for unspent inputs.  Note: this could take

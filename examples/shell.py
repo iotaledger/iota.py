@@ -10,7 +10,9 @@ from typing import Text
 
 from six import text_type as text
 
-from iota import Iota, __version__
+# Import all common IOTA symbols into module scope, so that the user
+# doesn't have to import anything themselves.
+from iota import *
 
 
 def main(uri):
@@ -24,6 +26,7 @@ def main(uri):
     )
   )
 
+
   try:
       # noinspection PyUnresolvedReferences
       import IPython
@@ -35,6 +38,8 @@ def main(uri):
 
 
 if __name__ == '__main__':
+  from iota import __version__
+
   parser = ArgumentParser(
     description = __doc__,
     epilog      = 'PyOTA v{version}'.format(version=__version__),

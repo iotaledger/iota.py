@@ -54,13 +54,16 @@ class GetBundlesCommand(FilterCommand):
 
     return bundle
 
-  def _traverse_bundle(self, trunk_txn_hash, target_bundle_hash=None):
+  def _traverse_bundle(self, txn_hash, target_bundle_hash=None):
     # type: (TransactionHash, Optional[BundleHash]) -> List[Transaction]
     """
     Recursively traverse the Tangle, collecting transactions until we
     hit a new bundle.
+
+    This method is (usually) faster than ``findTransactions``, and it
+    ensures we don't collect transactions from replayed bundles.
     """
-    trytes = GetTrytesCommand(self.adapter)(hashes=[trunk_txn_hash])['trytes'] # type: List[TryteString]
+    trytes = GetTrytesCommand(self.adapter)(hashes=[txn_hash])['trytes'] # type: List[TryteString]
 
     if not trytes:
       raise with_context(
@@ -69,8 +72,8 @@ class GetBundlesCommand(FilterCommand):
         ),
 
         context = {
-          'trunk_transaction': trunk_txn_hash,
-          'target_bundle':     target_bundle_hash,
+          'transaction_hash':   txn_hash,
+          'target_bundle_hash': target_bundle_hash,
         },
       )
 
@@ -84,22 +87,26 @@ class GetBundlesCommand(FilterCommand):
         ),
 
         context = {
-          'trunk_transaction':  transaction,
-          'target_bundle':      target_bundle_hash,
+          'transaction_object': transaction,
+          'target_bundle_hash': target_bundle_hash,
         },
       )
 
     if target_bundle_hash:
       if target_bundle_hash != transaction.bundle_hash:
+        # We've hit a different bundle; we can stop now.
         return []
     else:
       target_bundle_hash = transaction.bundle_hash
 
     if transaction.current_index == transaction.last_index == 0:
+      # Bundle only has one transaction.
       return [transaction]
 
+    # Recursively follow the trunk transaction, to fetch the next
+    # transaction in the bundle.
     return [transaction] + self._traverse_bundle(
-      trunk_txn_hash      = transaction.trunk_transaction_hash,
+      txn_hash            = transaction.trunk_transaction_hash,
       target_bundle_hash  = target_bundle_hash
     )
 

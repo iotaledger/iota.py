@@ -7,12 +7,37 @@ from typing import Text, Union
 import filters as f
 from six import binary_type, text_type
 
-from iota import TryteString
+from iota import Address, TryteString, TrytesCompatible
 from iota.adapter import resolve_adapter, InvalidUri
 
 
+class GeneratedAddress(f.BaseFilter):
+  """
+  Validates an incoming value as a generated :py:class:`Address` (must
+  have ``key_index`` set).
+  """
+  CODE_NO_KEY_INDEX = 'no_key_index'
+
+  templates = {
+    CODE_NO_KEY_INDEX: 'Address must have ``key_index`` attribute set.',
+  }
+
+  def _apply(self, value):
+    value = self._filter(value, f.Type(Address)) # type: Address
+
+    if self._has_errors:
+      return None
+
+    if value.key_index is None:
+      return self._invalid_value(value, self.CODE_NO_KEY_INDEX)
+
+    return value
+
+
 class NodeUri(f.BaseFilter):
-  """Validates a string as a node URI."""
+  """
+  Validates a string as a node URI.
+  """
   CODE_NOT_NODE_URI = 'not_node_uri'
 
   templates = {
@@ -34,7 +59,9 @@ class NodeUri(f.BaseFilter):
 
 
 class Trytes(f.BaseFilter):
-  """Validates a sequence as a sequence of trytes."""
+  """
+  Validates a sequence as a sequence of trytes.
+  """
   CODE_NOT_TRYTES   = 'not_trytes'
   CODE_WRONG_FORMAT = 'wrong_format'
 
@@ -69,11 +96,19 @@ class Trytes(f.BaseFilter):
     self.result_type = result_type
 
   def _apply(self, value):
-    value = self._filter(value, f.Type((binary_type, bytearray, TryteString))) # type: Union[binary_type, bytearray, TryteString]
+    # noinspection PyTypeChecker
+    value = self._filter(value, f.Type((binary_type, bytearray, TryteString))) # type: TrytesCompatible
 
     if self._has_errors:
       return None
 
+    # If the incoming value already has the correct type, then we're
+    # done.
+    if isinstance(value, self.result_type):
+      return value
+
+    # First convert to a generic TryteString, to make sure that the
+    # sequence doesn't contain any invalid characters.
     try:
       value = TryteString(value)
     except ValueError:
@@ -82,6 +117,8 @@ class Trytes(f.BaseFilter):
     if self.result_type is TryteString:
       return value
 
+    # Now coerce to the expected type and verify that there are no
+    # type-specific errors.
     try:
       return self.result_type(value)
     except ValueError:

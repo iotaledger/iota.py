@@ -7,7 +7,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import patch
+from mock import Mock, patch
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString
@@ -714,13 +714,9 @@ class PrepareTransfersCommandTestCase(TestCase):
       ),
     ])
 
-    # noinspection PyUnusedLocal
-    def _create_signature_fragment_generator(bundle, key_generator, txn):
-      return mock_signature_fragment_generator
-
     with patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        _create_signature_fragment_generator,
+        Mock(return_value=mock_signature_fragment_generator),
     ):
       response = self.command(
         seed = Seed(
@@ -1092,13 +1088,9 @@ class PrepareTransfersCommandTestCase(TestCase):
       ),
     ])
 
-    # noinspection PyUnusedLocal
-    def _create_signature_fragment_generator(bundle, key_generator, txn):
-      return mock_signature_fragment_generator
-
     with patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        _create_signature_fragment_generator,
+        Mock(return_value=mock_signature_fragment_generator),
     ):
       response = self.command(
         seed = Seed(
@@ -1371,51 +1363,47 @@ class PrepareTransfersCommandTestCase(TestCase):
     Preparing a bundle that finds inputs to use automatically, no
     change address needed.
     """
-    # noinspection PyUnusedLocal
-    def mock_get_inputs(command, request):
-      """
-      To keep the unit test focused, we will mock the ``getInputs``
-      command that ``prepareTransfers`` calls internally.
+    # To keep the unit test focused, we will mock the ``getInputs``
+    #   command that ``prepareTransfers`` calls internally.
+    #
+    #   References:
+    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
+    mock_get_inputs = Mock(return_value={
+      'inputs': [
+        {
+          'address':
+            Address(
+              trytes =
+                b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
+                b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-      References:
-        - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
-        - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-      """
-      return {
-        'inputs': [
-          {
-            'address':
-              Address(
-                trytes =
-                  b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
-                  b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
+              balance   = 13,
+              key_index = 4,
+            ),
 
-                balance   = 13,
-                key_index = 4,
-              ),
+          'balance':  13,
+          'keyIndex': 4,
+        },
 
-            'balance':  13,
-            'keyIndex': 4,
-          },
+        {
+          'address':
+            Address(
+              trytes =
+                b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
+                b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
 
-          {
-            'address':
-              Address(
-                trytes =
-                  b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
-                  b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
+              balance   = 29,
+              key_index = 5,
+            ),
 
-                balance   = 29,
-                key_index = 5,
-              ),
+          'balance': 29,
+          'keyIndex': 5,
+        },
+      ],
 
-            'balance': 29,
-            'keyIndex': 5,
-          },
-        ],
-
-        'totalBalance': 42,
-      }
+      'totalBalance': 42,
+    })
 
     mock_signature_fragment_generator = MockSignatureFragmentGenerator([
       TryteString(
@@ -1567,13 +1555,9 @@ class PrepareTransfersCommandTestCase(TestCase):
       ),
     ])
 
-    # noinspection PyUnusedLocal
-    def _create_signature_fragment_generator(bundle, key_generator, txn):
-      return mock_signature_fragment_generator
-
     with patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        _create_signature_fragment_generator,
+        Mock(return_value=mock_signature_fragment_generator),
     ):
       with patch(
           'iota.commands.extended.get_inputs.GetInputsCommand._execute',
@@ -1839,36 +1823,32 @@ class PrepareTransfersCommandTestCase(TestCase):
     Preparing a bundle that finds inputs to use automatically, change
     address needed.
     """
-    # noinspection PyUnusedLocal
-    def mock_get_inputs(command, request):
-      """
-      To keep the unit test focused, we will mock the ``getInputs``
-      command that ``prepareTransfers`` calls internally.
+    # To keep the unit test focused, we will mock the ``getInputs``
+    #   command that ``prepareTransfers`` calls internally.
+    #
+    #   References:
+    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
+    mock_get_inputs = Mock(return_value={
+      'inputs': [
+        {
+          'address':
+            Address(
+              trytes =
+                b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
+                b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-      References:
-        - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
-        - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-      """
-      return {
-        'inputs': [
-          {
-            'address':
-              Address(
-                trytes =
-                  b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
-                  b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
+              balance   = 86,
+              key_index = 4,
+            ),
 
-                balance   = 86,
-                key_index = 4,
-              ),
+          'balance':  86,
+          'keyIndex': 4,
+        },
+      ],
 
-            'balance':  86,
-            'keyIndex': 4,
-          },
-        ],
-
-        'totalBalance': 86,
-      }
+      'totalBalance': 86,
+    })
 
     mock_signature_fragment_generator = MockSignatureFragmentGenerator([
       TryteString(
@@ -1946,13 +1926,9 @@ class PrepareTransfersCommandTestCase(TestCase):
       ),
     ])
 
-    # noinspection PyUnusedLocal
-    def _create_signature_fragment_generator(bundle, key_generator, txn):
-      return mock_signature_fragment_generator
-
     with patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        _create_signature_fragment_generator,
+        Mock(return_value=mock_signature_fragment_generator),
     ):
       with patch(
           'iota.commands.extended.get_inputs.GetInputsCommand._execute',

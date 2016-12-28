@@ -9,7 +9,8 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from mock import patch
 
-from iota import Address, Iota, ProposedTransaction, Tag, TryteString
+from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
+  TryteString
 from iota.commands.extended.prepare_transfers import PrepareTransfersCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
@@ -1328,8 +1329,42 @@ class PrepareTransfersCommandTestCase(TestCase):
     """
     Specified inputs are not sufficient to cover spend amount.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response('getBalances', {
+      'balances': [30],
+      'duration': '1',
+
+      'milestone':
+        'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
+        'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
+    })
+
+    with self.assertRaises(BadApiResponse):
+      self.command(
+        seed = Seed(
+          b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+          b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
+        ),
+
+        transfers = [
+          ProposedTransaction(
+            value = 42,
+            address = Address(
+              b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+              b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+            ),
+          ),
+        ],
+
+        inputs = [
+          Address(
+            trytes =
+              b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
+              b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
+
+            key_index = 4,
+          ),
+        ],
+      )
 
   def test_pass_inputs_implicit_no_change(self):
     """

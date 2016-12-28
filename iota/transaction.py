@@ -13,6 +13,7 @@ from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator
 from iota.exceptions import with_context
+from iota.json import JsonSerializable
 
 __all__ = [
   'Bundle',
@@ -22,6 +23,21 @@ __all__ = [
   'Transaction',
   'TransactionHash',
 ]
+
+def get_current_timestamp():
+  # type: () -> int
+  """
+  Returns the current timestamp, used to set ``timestamp`` for new
+  :py:class:`ProposedTransaction` objects.
+
+  Split out into a separate function so that it can be mocked during
+  unit tests.
+  """
+  # Python 3.3 introduced a :py:meth:`datetime.timestamp` method, but
+  # for compatibility with Python 2, we have to do it the old-fashioned
+  # way.
+  # :see: http://stackoverflow.com/q/2775864/
+  return unix_timestamp(datetime.utcnow().timetuple())
 
 
 class BundleHash(Hash):
@@ -38,7 +54,7 @@ class TransactionHash(Hash):
   pass
 
 
-class Transaction(object):
+class Transaction(JsonSerializable):
   """
   A transaction that has been attached to the Tangle.
   """
@@ -180,6 +196,7 @@ class Transaction(object):
     """
     Returns a TryteString representation of the transaction's value.
     """
+    # Note that we are padding to 81 _trits_.
     return TryteString.from_trits(trits_from_int(self.value, pad=81))
 
   @property
@@ -189,6 +206,7 @@ class Transaction(object):
     Returns a TryteString representation of the transaction's
     timestamp.
     """
+    # Note that we are padding to 27 _trits_.
     return TryteString.from_trits(trits_from_int(self.timestamp, pad=27))
 
   @property
@@ -198,6 +216,7 @@ class Transaction(object):
     Returns a TryteString representation of the transaction's
     ``current_index`` value.
     """
+    # Note that we are padding to 27 _trits_.
     return TryteString.from_trits(trits_from_int(self.current_index, pad=27))
 
   @property
@@ -207,7 +226,31 @@ class Transaction(object):
     Returns a TryteString representation of the transaction's
     ``last_index`` value.
     """
+    # Note that we are padding to 27 _trits_.
     return TryteString.from_trits(trits_from_int(self.last_index, pad=27))
+
+  def as_json_compatible(self):
+    # type: () -> dict
+    """
+    Returns a JSON-compatible representation of the object.
+
+    References:
+      - :py:class:`iota.json.JsonEncoder`.
+    """
+    return {
+      'hash':                       self.hash,
+      'signature_message_fragment': self.signature_message_fragment,
+      'address':                    self.address,
+      'value':                      self.value,
+      'tag':                        self.tag,
+      'timestamp':                  self.timestamp,
+      'current_index':              self.current_index,
+      'last_index':                 self.last_index,
+      'bundle_hash':                self.bundle_hash,
+      'trunk_transaction_hash':     self.trunk_transaction_hash,
+      'branch_transaction_hash':    self.branch_transaction_hash,
+      'nonce':                      self.nonce,
+    }
 
   def as_tryte_string(self):
     # type: () -> TryteString
@@ -239,6 +282,8 @@ class Transaction(object):
       + self.value_as_trytes
       + self.tag
       + self.timestamp_as_trytes
+      + self.current_index_as_trytes
+      + self.last_index_as_trytes
     )
 
 
@@ -262,11 +307,7 @@ class ProposedTransaction(Transaction):
   def __init__(self, address, value, tag=None, message=None, timestamp=None):
     # type: (Address, int, Optional[Tag], Optional[TrytesCompatible], Optional[int]) -> None
     if not timestamp:
-      # Python 3.3 introduced a :py:meth:`datetime.timestamp` method,
-      # but for compatibility with Python 2, we have to do this the
-      # old-fashioned way.
-      # :see: http://stackoverflow.com/q/2775864/
-      timestamp = unix_timestamp(datetime.utcnow().timetuple())
+      timestamp = get_current_timestamp()
 
     super(ProposedTransaction, self).__init__(
       address                     = address,
@@ -279,7 +320,7 @@ class ProposedTransaction(Transaction):
       current_index               = None,
       hash_                       = None,
       last_index                  = None,
-      signature_message_fragment  = TryteString(b'', pad=2187),
+      signature_message_fragment  = TryteString(b'', pad=self.MESSAGE_LEN),
 
       # These values start out empty; they will be populated when the
       # node does PoW.
@@ -289,38 +330,6 @@ class ProposedTransaction(Transaction):
     )
 
     self.message = TryteString(message or b'', pad=self.MESSAGE_LEN)
-
-  @property
-  def timestamp_trits(self):
-    # type: () -> List[int]
-    """
-    Returns the ``timestamp`` attribute expressed as trits.
-    """
-    return trits_from_int(self.timestamp, pad=27)
-
-  @property
-  def value_trits(self):
-    # type: () -> List[int]
-    """
-    Returns the ``value`` attribute expressed as trits.
-    """
-    return trits_from_int(self.value, pad=81)
-
-  @property
-  def current_index_trits(self):
-    # type: () -> List[int]
-    """
-    Returns the ``current_index`` attribute expressed as trits.
-    """
-    return trits_from_int(self.current_index, pad=27)
-
-  @property
-  def last_index_trits(self):
-    # type: () -> List[int]
-    """
-    Returns the ``last_index`` attribute expressed as trits.
-    """
-    return trits_from_int(self.last_index, pad=27)
 
   def as_tryte_string(self):
     # type: () -> TryteString
@@ -345,12 +354,19 @@ class ProposedTransaction(Transaction):
     return super(ProposedTransaction, self).as_tryte_string()
 
 
-class Bundle(Sequence[Transaction]):
+class Bundle(JsonSerializable, Sequence[Transaction]):
   """
-  A collection of transactions, treated as an atomic unit on the
-  Tangle.
+  A collection of transactions, treated as an atomic unit when
+  attached to the Tangle.
 
-  Conceptually, a bundle is similar to a block in a blockchain.
+  Note: unlike a block in a blockchain, bundles are not first-class
+  citizens in IOTA; only transactions get stored in the Tangle.
+
+  Instead, Bundles must be inferred by following linked transactions
+  with the same bundle hash.
+
+  References:
+    - :py:class:`iota.commands.extended.get_bundles.GetBundlesCommand`
   """
   @classmethod
   def from_tryte_strings(cls, trytes):
@@ -423,6 +439,16 @@ class Bundle(Sequence[Transaction]):
     """
     return self[0]
 
+  def as_json_compatible(self):
+    # type: () -> List[dict]
+    """
+    Returns a JSON-compatible representation of the object.
+
+    References:
+      - :py:class:`iota.json.JsonEncoder`.
+    """
+    return [txn.as_json_compatible() for txn in self]
+
   def validate(self):
     # type: () -> None
     """
@@ -463,7 +489,7 @@ class Bundle(Sequence[Transaction]):
     pass
 
 
-class ProposedBundle(Sequence[ProposedTransaction]):
+class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
   """
   A collection of proposed transactions, to be treated as an atomic
   unit when attached to the Tangle.
@@ -522,6 +548,16 @@ class ProposedBundle(Sequence[ProposedTransaction]):
     """
     return sum(t.value for t in self._transactions)
 
+  def as_json_compatible(self):
+    # type: () -> List[dict]
+    """
+    Returns a JSON-compatible representation of the object.
+
+    References:
+      - :py:class:`iota.json.JsonEncoder`.
+    """
+    return [txn.as_json_compatible() for txn in self]
+
   def as_tryte_strings(self):
     # type: () -> List[TryteString]
     """
@@ -543,9 +579,6 @@ class ProposedBundle(Sequence[ProposedTransaction]):
     """
     if self.hash:
       raise RuntimeError('Bundle is already finalized.')
-
-    if transaction.value < 0:
-      raise ValueError('Use ``add_inputs`` to add inputs to the bundle.')
 
     self._transactions.append(ProposedTransaction(
       address   = transaction.address,
@@ -622,17 +655,23 @@ class ProposedBundle(Sequence[ProposedTransaction]):
       # Add the input as a transaction.
       self.add_transaction(ProposedTransaction(
         address = addy,
-        value   = -addy.balance,
         tag     = self.tag,
+
+        # Spend the entire address balance; if necessary, we will add a
+        # change transaction to the bundle.
+        value = -addy.balance,
       ))
 
-      # Signatures require multiple transactions to store, due to
+      # Signatures require additional transactions to store, due to
       # transaction length limit.
-      for _ in range(AddressGenerator.DIGEST_ITERATIONS):
+      # Subtract 1 to account for the transaction we just added.
+      for _ in range(AddressGenerator.DIGEST_ITERATIONS - 1):
         self.add_transaction(ProposedTransaction(
           address = addy,
-          value   = 0,
           tag     = self.tag,
+
+          # Note zero value; this is a meta transaction.
+          value = 0,
         ))
 
   def send_unspent_inputs_to(self, address):
@@ -665,6 +704,7 @@ class ProposedBundle(Sequence[ProposedTransaction]):
     if self.hash:
       raise RuntimeError('Bundle is already finalized.')
 
+    # Quick validation.
     balance = self.balance
     if balance > 0:
       raise ValueError(
@@ -680,29 +720,23 @@ class ProposedBundle(Sequence[ProposedTransaction]):
         ),
       )
 
+    # Generate bundle hash.
     sponge      = Curl()
     last_index  = len(self) - 1
 
-    for (i, t) in enumerate(self): # type: Tuple[int, ProposedTransaction]
-      t.current_index = i
-      t.last_index    = last_index
+    for (i, txn) in enumerate(self): # type: Tuple[int, ProposedTransaction]
+      txn.current_index = i
+      txn.last_index    = last_index
 
-      sponge.absorb(
-          # Ensure address checksum is not included in the result.
-          t.address.address.as_trits()
-        + t.value_trits
-        + t.tag.as_trits()
-        + t.timestamp_trits
-        + t.current_index_trits
-        + t.last_index_trits
-      )
+      sponge.absorb(txn.get_signature_validation_trytes().as_trits())
 
     bundle_hash = [0] * HASH_LENGTH # type: MutableSequence[int]
     sponge.squeeze(bundle_hash)
     self.hash = Hash.from_trits(bundle_hash)
 
-    for t in self:
-      t.bundle_hash = self.hash
+    # Copy bundle hash to individual transactions.
+    for txn in self:
+      txn.bundle_hash = self.hash
 
   def sign_inputs(self, key_generator):
     # type: (KeyGenerator) -> None
@@ -734,12 +768,8 @@ class ProposedBundle(Sequence[ProposedTransaction]):
             },
           )
 
-        signature_fragment_generator = SignatureFragmentGenerator(
-          key_generator.get_keys(
-            start       = txn.address.key_index,
-            iterations  = AddressGenerator.DIGEST_ITERATIONS
-          )[0],
-        )
+        signature_fragment_generator =\
+          self._create_signature_fragment_generator(key_generator, txn)
 
         hash_fragment_iterator = self.hash.iter_chunks(9)
 
@@ -751,6 +781,24 @@ class ProposedBundle(Sequence[ProposedTransaction]):
           self[i+j].signature_message_fragment =\
             signature_fragment_generator.send(next(hash_fragment_iterator))
 
-        i += AddressGenerator.DIGEST_ITERATIONS - 1
+        i += AddressGenerator.DIGEST_ITERATIONS
+      else:
+        # No signature needed (nor even possible, in some cases); skip
+        # this transaction.
+        i += 1
 
-      i += 1
+  @staticmethod
+  def _create_signature_fragment_generator(key_generator, txn):
+    # type: (KeyGenerator, ProposedTransaction) -> SignatureFragmentGenerator
+    """
+    Creates the SignatureFragmentGenerator to sign inputs.
+
+    Split into a separate method so that it can be mocked for unit
+    tests.
+    """
+    return SignatureFragmentGenerator(
+      key_generator.get_keys(
+        start       = txn.address.key_index,
+        iterations  = AddressGenerator.DIGEST_ITERATIONS
+      )[0],
+    )

@@ -220,6 +220,10 @@ class SignatureFragmentGenerator(object):
 
   Each instance can generate 1 signature per block (2187 trytes) in the
   private key.
+
+  Note: This class behaves more like a coroutine than an iterator; you
+  must invoke the instance's :py:meth:`send` method to generate a new
+  value.
   """
   def __init__(self, private_key):
     # type: (PrivateKey) -> None
@@ -227,6 +231,16 @@ class SignatureFragmentGenerator(object):
 
     self._key_chunks  = private_key.iter_chunks(PrivateKey.BLOCK_LEN)
     self._sponge      = Curl()
+
+  def __len__(self):
+    # type: () -> int
+    """
+    Returns the number of fragments this generator can create.
+
+    Note: This method always returns the same result, no matter how
+    many iterations have been completed.
+    """
+    return len(self._key_chunks)
 
   def send(self, source_trytes):
     # type: (TryteString) -> TryteString

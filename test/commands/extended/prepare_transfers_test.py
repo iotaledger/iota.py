@@ -2153,8 +2153,35 @@ class PrepareTransfersCommandTestCase(TestCase):
     """
     Account's total balance is not enough to cover spend amount.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # To keep the unit test focused, we will mock the ``getInputs``
+    #   command that ``prepareTransfers`` calls internally.
+    #
+    #   References:
+    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
+    mock_get_inputs = Mock(side_effect=BadApiResponse)
+
+    with patch(
+        'iota.commands.extended.get_inputs.GetInputsCommand._execute',
+        mock_get_inputs,
+    ):
+      with self.assertRaises(BadApiResponse):
+        self.command(
+          seed = Seed(
+            b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+            b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
+          ),
+
+          transfers = [
+            ProposedTransaction(
+              value = 42,
+              address = Address(
+                b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+              ),
+            ),
+          ],
+        )
 
   def test_pass_change_address_auto_generated(self):
     """

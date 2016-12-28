@@ -147,8 +147,7 @@ class Transaction(object):
     self.branch_transaction_hash  = branch_transaction_hash
     self.trunk_transaction_hash   = trunk_transaction_hash
 
-    self.signature_message_fragment =\
-      TryteString(signature_message_fragment or b'')
+    self.signature_message_fragment = signature_message_fragment
     """
     Cryptographic signature used to verify the transaction.
 
@@ -270,18 +269,23 @@ class ProposedTransaction(Transaction):
       timestamp = unix_timestamp(datetime.utcnow().timetuple())
 
     super(ProposedTransaction, self).__init__(
-      hash_                       = None,
-      signature_message_fragment  = None,
       address                     = address,
-      value                       = value,
       tag                         = Tag(tag or b''),
       timestamp                   = timestamp,
-      current_index               = None,
-      last_index                  = None,
+      value                       = value,
+
+      # These values will be populated when the bundle is finalized.
       bundle_hash                 = None,
-      trunk_transaction_hash      = None,
-      branch_transaction_hash     = None,
-      nonce                       = None,
+      current_index               = None,
+      hash_                       = None,
+      last_index                  = None,
+      signature_message_fragment  = TryteString(b'', pad=2187),
+
+      # These values start out empty; they will be populated when the
+      # node does PoW.
+      branch_transaction_hash     = TransactionHash(b''),
+      nonce                       = Hash(b''),
+      trunk_transaction_hash      = TransactionHash(b''),
     )
 
     self.message = TryteString(message or b'', pad=self.MESSAGE_LEN)
@@ -317,6 +321,28 @@ class ProposedTransaction(Transaction):
     Returns the ``last_index`` attribute expressed as trits.
     """
     return trits_from_int(self.last_index, pad=27)
+
+  def as_tryte_string(self):
+    # type: () -> TryteString
+    """
+    Returns a TryteString representation of the transaction.
+    """
+    if not self.bundle_hash:
+      raise with_context(
+        exc = RuntimeError(
+          'Cannot get TryteString representation of {cls} instance '
+          'without a bundle hash; call ``bundle.finalize()`` first '
+          '(``exc.context`` has more info).'.format(
+            cls = type(self).__name__,
+          ),
+        ),
+
+        context = {
+          'transaction': self,
+        },
+      )
+
+    return super(ProposedTransaction, self).as_tryte_string()
 
 
 class Bundle(Sequence[Transaction]):
@@ -500,9 +526,12 @@ class ProposedBundle(Sequence[ProposedTransaction]):
     # type: () -> List[TryteString]
     """
     Returns the bundle as a list of TryteStrings, suitable as inputs
-    for ``attachToTangle``.
+    for :py:meth:`iota.api.Iota.send_trytes`.
     """
-    return [t.as_tryte_string() for t in self]
+    # Return the transaction trytes in reverse order, so that the tail
+    # transaction is last.  This will allow the node to link the
+    # transactions properly when it performs PoW.
+    return [t.as_tryte_string() for t in reversed(self)]
 
   def add_transaction(self, transaction):
     # type: (ProposedTransaction) -> None

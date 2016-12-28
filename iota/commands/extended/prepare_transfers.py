@@ -14,7 +14,7 @@ from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
-from iota.filters import Trytes
+from iota.filters import GeneratedAddress, Trytes
 
 __all__ = [
   'PrepareTransfersCommand',
@@ -99,7 +99,7 @@ class PrepareTransfersCommand(FilterCommand):
 
       bundle.add_inputs(confirmed_inputs)
 
-      if bundle.balance:
+      if bundle.balance < 0:
         if not change_address:
           change_address = GetNewAddressesCommand(self.adapter)(seed=seed)[0]
 
@@ -135,7 +135,7 @@ class PrepareTransfersRequestFilter(RequestFilter):
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
-          f.Array | f.FilterRepeater(f.Required | Trytes(result_type=Address)),
+          f.Array | f.FilterRepeater(f.Required | GeneratedAddress),
       },
 
       allow_missing_keys = {

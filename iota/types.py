@@ -4,14 +4,16 @@ from __future__ import absolute_import, division, print_function, \
 
 from codecs import encode, decode
 from itertools import chain
+from math import ceil
 from typing import Generator, Iterable, Iterator, List, MutableSequence, \
   Optional, Text, Union
+
+from six import PY2, binary_type
 
 from iota import TRITS_PER_TRYTE, TrytesCodec
 from iota.crypto import Curl, HASH_LENGTH
 from iota.exceptions import with_context
-from six import PY2, binary_type
-
+from iota.json import JsonSerializable
 
 __all__ = [
   'Address',
@@ -73,7 +75,7 @@ def int_from_trits(trits):
   return sum(base * (3 ** power) for power, base in enumerate(trits))
 
 
-class TryteString(object):
+class TryteString(JsonSerializable):
   """
   A string representation of a sequence of trytes.
 
@@ -367,9 +369,10 @@ class TryteString(object):
   def as_json_compatible(self):
     # type: () -> Text
     """
-    Converts the TryteString into a JSON-compatible value.
+    Returns a JSON-compatible representation of the object.
 
-    See :py:class:`iota.json.JsonEncoder`.
+    References:
+      - :py:class:`iota.json.JsonEncoder`.
     """
     return self._trytes.decode('ascii')
 
@@ -448,7 +451,18 @@ class ChunkIterator(Iterator[TryteString]):
     self._offset = 0
 
   def __iter__(self):
+    # type: () -> ChunkIterator
     return self
+
+  def __len__(self):
+    # type: () -> int
+    """
+    Returns how many chunks this iterator will return.
+
+    Note: This method always returns the same result, no matter how
+    many iterations have been completed.
+    """
+    return int(ceil(len(self.trytes) / self.chunk_size))
 
   def __next__(self):
     # type: () -> TryteString
@@ -505,8 +519,8 @@ class Address(TryteString):
   """
   LEN = Hash.LEN
 
-  def __init__(self, trytes, key_index=None):
-    # type: (TrytesCompatible, Optional[int]) -> None
+  def __init__(self, trytes, balance=None, key_index=None):
+    # type: (TrytesCompatible, Optional[int], Optional[int]) -> None
     super(Address, self).__init__(trytes, pad=self.LEN)
 
     self.checksum = None
@@ -531,7 +545,7 @@ class Address(TryteString):
     # Make the address sans checksum accessible.
     self.address = self[:self.LEN] # type: TryteString
 
-    self.balance = None # type: Optional[int]
+    self.balance = balance
     """
     Balance owned by this address.
     Must be set manually via the ``getInputs`` command.
@@ -544,6 +558,10 @@ class Address(TryteString):
     self.key_index = key_index
     """
     Index of the key used to generate this address.
+    Must be set manually via ``AddressGenerator``.
+
+    References:
+      - :py:class:`iota.crypto.addresses.AddressGenerator`
     """
 
   def is_checksum_valid(self):

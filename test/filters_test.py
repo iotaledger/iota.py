@@ -5,8 +5,49 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import TryteString, TransactionHash
-from iota.filters import NodeUri, Trytes
+from iota import Address, TryteString, TransactionHash
+from iota.filters import GeneratedAddress, NodeUri, Trytes
+
+
+class GeneratedAddressTestCase(BaseFilterTestCase):
+  filter_type = GeneratedAddress
+
+  def test_pass_none(self):
+    """
+    ``None`` always passes this filter.
+
+    Use ``Required | GeneratedAddress`` to reject null values.
+    """
+    self.assertFilterPasses(None)
+
+  def test_pass_key_index_set(self):
+    """
+    Incoming value has correct type, and ``key_index`` is set.
+    """
+    self.assertFilterPasses(Address(b'', key_index=42))
+
+  def test_fail_key_index_null(self):
+    """
+    Incoming value does not have ``key_index`` set.
+    """
+    self.assertFilterErrors(
+      Address(b''),
+      [GeneratedAddress.CODE_NO_KEY_INDEX],
+    )
+
+  def test_fail_wrong_type(self):
+    """
+    Incoming value is not an :py:class:`Address` instance.
+    """
+    # noinspection SpellCheckingInspection
+    self.assertFilterErrors(
+      # The only way to ensure ``key_index`` is set is to require that
+      # the incoming value is an :py:class:`Address` instance.
+      b'TESTVALUE9DONTUSEINPRODUCTION99999WJ9PCA'
+      b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
+
+      [f.Type.CODE_WRONG_TYPE],
+    )
 
 
 class NodeUriTestCase(BaseFilterTestCase):

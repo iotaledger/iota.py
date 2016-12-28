@@ -17,20 +17,20 @@ from iota.exceptions import with_context
 from iota.filters import GeneratedAddress, Trytes
 
 __all__ = [
-  'PrepareTransfersCommand',
+  'PrepareTransferCommand',
 ]
 
 
-class PrepareTransfersCommand(FilterCommand):
+class PrepareTransferCommand(FilterCommand):
   """
-  Executes ``prepareTransfers`` extended API command.
+  Executes ``prepareTransfer`` extended API command.
 
-  See :py:meth:`iota.api.Iota.prepare_transfers` for more info.
+  See :py:meth:`iota.api.Iota.prepare_transfer` for more info.
   """
-  command = 'prepareTransfers'
+  command = 'prepareTransfer'
 
   def get_request_filter(self):
-    return PrepareTransfersRequestFilter()
+    return PrepareTransferRequestFilter()
 
   def get_response_filter(self):
     pass
@@ -117,9 +117,9 @@ class PrepareTransfersCommand(FilterCommand):
     }
 
 
-class PrepareTransfersRequestFilter(RequestFilter):
+class PrepareTransferRequestFilter(RequestFilter):
   def __init__(self):
-    super(PrepareTransfersRequestFilter, self).__init__(
+    super(PrepareTransferRequestFilter, self).__init__(
       {
         # Required parameters.
         'seed': f.Required | Trytes(result_type=Seed),

@@ -291,7 +291,7 @@ class ProposedTransaction(Transaction):
   """
   A transaction that has not yet been attached to the Tangle.
 
-  Provide to :py:meth:`iota.api.Iota.prepare_transfers` to attach to
+  Provide to :py:meth:`iota.api.Iota.send_transfer` to attach to
   tangle and publish/store.
   """
   MESSAGE_LEN = 2187

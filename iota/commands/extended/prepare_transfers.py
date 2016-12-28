@@ -109,8 +109,12 @@ class PrepareTransfersCommand(FilterCommand):
 
       if confirmed_inputs:
         bundle.sign_inputs(KeyGenerator(seed))
+    else:
+      bundle.finalize()
 
-    return bundle.as_tryte_strings()
+    return {
+      'trytes': bundle.as_tryte_strings(),
+    }
 
 
 class PrepareTransfersRequestFilter(RequestFilter):

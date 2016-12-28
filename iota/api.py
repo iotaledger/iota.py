@@ -509,7 +509,7 @@ class Iota(StrictIota):
     )
 
   def prepare_transfers(self, transfers, inputs=None, change_address=None):
-    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> ProposedBundle
+    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> dict
     """
     Prepares transactions to be broadcast to the Tangle, by generating
     the correct bundle, as well as choosing and signing the inputs (for
@@ -533,8 +533,13 @@ class Iota(StrictIota):
       automatically.
 
     :return:
-      Array containing the trytes of the new bundle.
-      This value can be provided to e.g., :py:meth:`attach_to_tangle`.
+      Dict containing the following values::
+
+         {
+           'trytes': List[TryteString]
+             Raw trytes for the transactions in the bundle, ready to
+             be provided to :py:meth:`send_trytes`.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers

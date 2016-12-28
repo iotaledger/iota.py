@@ -8,7 +8,7 @@ import filters as f
 from iota import Address, Bundle, ProposedTransaction
 from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
   RequestFilter
-from iota.commands.extended.prepare_transfers import PrepareTransfersCommand
+from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
@@ -40,7 +40,7 @@ class SendTransferCommand(FilterCommand):
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]
 
-    prepared_trytes = PrepareTransfersCommand(self.adapter)(
+    prepared_trytes = PrepareTransferCommand(self.adapter)(
       change_address  = change_address,
       inputs          = inputs,
       seed            = seed,

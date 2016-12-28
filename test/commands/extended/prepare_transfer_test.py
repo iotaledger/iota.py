@@ -11,7 +11,7 @@ from mock import Mock, patch
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString
-from iota.commands.extended.prepare_transfers import PrepareTransfersCommand
+from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
@@ -19,13 +19,13 @@ from six import binary_type, text_type
 from test import MockAdapter
 
 
-class PrepareTransfersRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = PrepareTransfersCommand(MockAdapter()).get_request_filter
+class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = PrepareTransferCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
   # noinspection SpellCheckingInspection
   def setUp(self):
-    super(PrepareTransfersRequestFilterTestCase, self).setUp()
+    super(PrepareTransferRequestFilterTestCase, self).setUp()
 
     # Define some tryte sequences that we can reuse between tests.
     self.trytes1 = (
@@ -394,12 +394,12 @@ class PrepareTransfersRequestFilterTestCase(BaseFilterTestCase):
 
 
 # noinspection SpellCheckingInspection
-class PrepareTransfersCommandTestCase(TestCase):
+class PrepareTransferCommandTestCase(TestCase):
   def setUp(self):
-    super(PrepareTransfersCommandTestCase, self).setUp()
+    super(PrepareTransferCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
-    self.command = PrepareTransfersCommand(self.adapter)
+    self.command = PrepareTransferCommand(self.adapter)
 
   def run(self, result=None):
     # Ensure that all tranactions use a predictable timestamp.
@@ -412,15 +412,15 @@ class PrepareTransfersCommandTestCase(TestCase):
         target  = 'iota.transaction.get_current_timestamp',
         new     = get_current_timestamp,
     ):
-      return super(PrepareTransfersCommandTestCase, self).run(result)
+      return super(PrepareTransferCommandTestCase, self).run(result)
 
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
     """
     self.assertIsInstance(
-      Iota(self.adapter).prepareTransfers,
-      PrepareTransfersCommand,
+      Iota(self.adapter).prepareTransfer,
+      PrepareTransferCommand,
     )
 
   def test_pass_inputs_not_needed(self):
@@ -1364,10 +1364,10 @@ class PrepareTransfersCommandTestCase(TestCase):
     change address needed.
     """
     # To keep the unit test focused, we will mock the ``getInputs``
-    #   command that ``prepareTransfers`` calls internally.
+    #   command that ``prepareTransfer`` calls internally.
     #
     #   References:
-    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
     mock_get_inputs = Mock(return_value={
       'inputs': [
@@ -1824,10 +1824,10 @@ class PrepareTransfersCommandTestCase(TestCase):
     address needed.
     """
     # To keep the unit test focused, we will mock the ``getInputs``
-    #   command that ``prepareTransfers`` calls internally.
+    #   command that ``prepareTransfer`` calls internally.
     #
     #   References:
-    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
     mock_get_inputs = Mock(return_value={
       'inputs': [
@@ -2154,10 +2154,10 @@ class PrepareTransfersCommandTestCase(TestCase):
     Account's total balance is not enough to cover spend amount.
     """
     # To keep the unit test focused, we will mock the ``getInputs``
-    #   command that ``prepareTransfers`` calls internally.
+    #   command that ``prepareTransfer`` calls internally.
     #
     #   References:
-    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
     mock_get_inputs = Mock(side_effect=BadApiResponse)
 
@@ -2188,10 +2188,10 @@ class PrepareTransfersCommandTestCase(TestCase):
     Preparing a bundle with an auto-generated change address.
     """
     # To keep the unit test focused, we will mock the ``getNewAddresses``
-    #   command that ``prepareTransfers`` calls internally.
+    #   command that ``prepareTransfer`` calls internally.
     #
     #   References:
-    #     - :py:class:`iota.commands.extended.prepare_transfers.PrepareTransfersCommand`
+    #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_new_addresses.GetNewAddressesCommand`
     mock_get_new_addresses_command = Mock(return_value=[
       Address(

@@ -508,7 +508,7 @@ class Iota(StrictIota):
       inclusion_states  = inclusion_states,
     )
 
-  def prepare_transfers(self, transfers, inputs=None, change_address=None):
+  def prepare_transfer(self, transfers, inputs=None, change_address=None):
     # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> dict
     """
     Prepares transactions to be broadcast to the Tangle, by generating
@@ -544,7 +544,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
     """
-    return self.prepareTransfers(
+    return self.prepareTransfer(
       seed            = self.seed,
       transfers       = transfers,
       inputs          = inputs,

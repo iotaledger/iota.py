@@ -6,8 +6,7 @@ from typing import List
 
 import filters as f
 from iota import TryteString
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
-  RequestFilter
+from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.commands.core.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
@@ -55,18 +54,12 @@ class SendTrytesCommand(FilterCommand):
 
 class SendTrytesRequestFilter(RequestFilter):
   def __init__(self):
-    super(SendTrytesRequestFilter, self).__init__(
-      {
-        # Required parameters.
-        'depth': f.Required | f.Type(int) | f.Min(1),
-        'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+    super(SendTrytesRequestFilter, self).__init__({
+      'depth': f.Required | f.Type(int) | f.Min(1),
 
-        # Optional parameters.
-        'min_weight_magnitude':
-          f.Type(int) | f.Min(18) | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE),
-      },
+      'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
 
-      allow_missing_keys = {
-        'min_weight_magnitude',
-      },
-    )
+      # Loosely-validated; testnet nodes require a different value than
+      # mainnet.
+      'min_weight_magnitude': f.Required | f.Type(int) | f.Min(1),
+    })

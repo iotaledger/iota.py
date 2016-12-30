@@ -7,8 +7,7 @@ from typing import List
 import filters as f
 from iota import Bundle
 from iota import TransactionHash
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
-  RequestFilter
+from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
@@ -50,19 +49,11 @@ class ReplayBundleCommand(FilterCommand):
 
 class ReplayBundleRequestFilter(RequestFilter):
   def __init__(self):
-    super(ReplayBundleRequestFilter, self).__init__(
-      {
-        'depth':        f.Required | f.Type(int) | f.Min(1),
-        'transaction':  f.Required | Trytes(result_type=TransactionHash),
+    super(ReplayBundleRequestFilter, self).__init__({
+      'depth':        f.Required | f.Type(int) | f.Min(1),
+      'transaction':  f.Required | Trytes(result_type=TransactionHash),
 
-        'min_weight_magnitude': (
-            f.Type(int)
-          | f.Min(18)
-          | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
-        ),
-      },
-
-      allow_missing_keys = {
-        'min_weight_magnitude',
-      },
-    )
+      # Loosely-validated; testnet nodes require a different value than
+      # mainnet.
+      'min_weight_magnitude': f.Required | f.Type(int) | f.Min(1),
+    })

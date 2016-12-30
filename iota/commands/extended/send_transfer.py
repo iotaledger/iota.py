@@ -6,8 +6,7 @@ from typing import List, Optional
 
 import filters as f
 from iota import Address, Bundle, ProposedTransaction
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
-  RequestFilter
+from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
@@ -64,6 +63,10 @@ class SendTransferRequestFilter(RequestFilter):
         'depth':  f.Required | f.Type(int) | f.Min(1),
         'seed':   f.Required | Trytes(result_type=Seed),
 
+        # Loosely-validated; testnet nodes require a different value
+        # than mainnet.
+        'min_weight_magnitude': f.Required | f.Type(int) | f.Min(1),
+
         'transfers': (
             f.Required
           | f.Array
@@ -73,11 +76,6 @@ class SendTransferRequestFilter(RequestFilter):
         # Optional parameters.
         'change_address': Trytes(result_type=Address),
 
-        'min_weight_magnitude': (
-            f.Type(int)
-          | f.Min(18)
-          | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
-        ),
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
@@ -87,6 +85,5 @@ class SendTransferRequestFilter(RequestFilter):
       allow_missing_keys = {
         'change_address',
         'inputs',
-        'min_weight_magnitude',
       },
     )

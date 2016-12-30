@@ -7,7 +7,6 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
@@ -67,26 +66,6 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_pass_optional_parameters_excluded(self):
-    """
-    Request omits optional parameters.
-    """
-    filter_ = self._filter({
-      'depth':      100,
-      'transaction': TransactionHash(self.trytes1),
-    })
-
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
-
-      {
-        'depth':                100,
-        'min_weight_magnitude': DEFAULT_MIN_WEIGHT_MAGNITUDE,
-        'transaction':          TransactionHash(self.trytes1),
-      },
-    )
-
   def test_fail_empty(self):
     """
     Request is empty.
@@ -95,8 +74,9 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {},
 
       {
-        'depth':        [f.FilterMapper.CODE_MISSING_KEY],
-        'transaction':  [f.FilterMapper.CODE_MISSING_KEY],
+        'depth':                [f.FilterMapper.CODE_MISSING_KEY],
+        'min_weight_magnitude': [f.FilterMapper.CODE_MISSING_KEY],
+        'transaction':          [f.FilterMapper.CODE_MISSING_KEY],
       },
     )
 
@@ -106,8 +86,9 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':      100,
-        'transaction': TransactionHash(self.trytes1),
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'transaction':          TransactionHash(self.trytes1),
 
         # That's a real nasty habit you got there.
         'foo': 'bar',
@@ -126,7 +107,8 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': None,
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {
@@ -142,7 +124,8 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': text_type(self.trytes1, 'ascii'),
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {
@@ -158,7 +141,8 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': b'not valid; must contain only uppercase and "9"',
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {
@@ -174,7 +158,8 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': None,
 
-        'transaction': TransactionHash(self.trytes1),
+        'min_weight_magnitude': 18,
+        'transaction':          TransactionHash(self.trytes1),
       },
 
       {
@@ -191,7 +176,8 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
         # Too ambiguous; it's gotta be an int.
         'depth': '4',
 
-        'transaction': TransactionHash(self.trytes1),
+        'min_weight_magnitude': 18,
+        'transaction':          TransactionHash(self.trytes1),
       },
 
       {
@@ -208,7 +194,8 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, float value is not valid.
         'depth': 8.0,
 
-        'transaction': TransactionHash(self.trytes1),
+        'min_weight_magnitude': 18,
+        'transaction':          TransactionHash(self.trytes1),
       },
 
       {
@@ -224,11 +211,29 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': 0,
 
-        'transaction': TransactionHash(self.trytes1),
+        'min_weight_magnitude': 18,
+        'transaction':          TransactionHash(self.trytes1),
       },
 
       {
         'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_min_weight_magnitude_null(self):
+    """
+    ``min_weight_magnitude`` is null.
+    """
+    self.assertFilterErrors(
+      {
+        'min_weight_magnitude': None,
+
+        'depth':        100,
+        'transaction':  TransactionHash(self.trytes1),
+      },
+
+      {
+        'min_weight_magnitude': [f.Required.CODE_EMPTY],
       },
     )
 
@@ -270,11 +275,11 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_min_weight_magnitude_too_small(self):
     """
-    ``min_weight_magnitude`` is < 18.
+    ``min_weight_magnitude`` is < 1.
     """
     self.assertFilterErrors(
       {
-        'min_weight_magnitude': 17,
+        'min_weight_magnitude': 0,
 
         'depth':        100,
         'transaction':  TransactionHash(self.trytes1),

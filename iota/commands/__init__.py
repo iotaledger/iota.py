@@ -21,8 +21,6 @@ __all__ = [
   'command_registry',
 ]
 
-DEFAULT_MIN_WEIGHT_MAGNITUDE = 18
-
 command_registry = {} # type: Dict[Text, CommandMeta]
 """Registry of commands, indexed by command name."""
 

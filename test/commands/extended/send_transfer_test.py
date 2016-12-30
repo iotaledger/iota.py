@@ -7,7 +7,6 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, Iota, ProposedTransaction, TryteString
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
@@ -144,8 +143,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
     Request omits optional parameters.
     """
     filter_ = self._filter({
-      'depth':  100,
-      'seed':   Seed(self.trytes2),
+      'depth':                100,
+      'min_weight_magnitude': 13,
+      'seed':                 Seed(self.trytes2),
 
       'transfers': [
         self.transfer1,
@@ -159,9 +159,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'change_address':       None,
-        'depth':                100,
         'inputs':               None,
-        'min_weight_magnitude': DEFAULT_MIN_WEIGHT_MAGNITUDE,
+
+        'depth':                100,
+        'min_weight_magnitude': 13,
         'seed':                 Seed(self.trytes2),
 
         'transfers': [
@@ -179,9 +180,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {},
 
       {
-        'depth':      [f.FilterMapper.CODE_MISSING_KEY],
-        'seed':       [f.FilterMapper.CODE_MISSING_KEY],
-        'transfers':  [f.FilterMapper.CODE_MISSING_KEY],
+        'depth':                [f.FilterMapper.CODE_MISSING_KEY],
+        'min_weight_magnitude': [f.FilterMapper.CODE_MISSING_KEY],
+        'seed':                 [f.FilterMapper.CODE_MISSING_KEY],
+        'transfers':            [f.FilterMapper.CODE_MISSING_KEY],
       },
     )
 
@@ -191,13 +193,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':  100,
-        'seed':   Seed(self.trytes2),
-
-        'transfers': [
-          self.transfer1,
-          self.transfer2
-        ],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
 
         # Maybe he's not that smart; maybe he's like a worker bee who
         # only knows how to push buttons or something.
@@ -217,8 +216,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed': None,
 
-        'depth':      100,
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -234,8 +234,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed': text_type(self.trytes1, 'ascii'),
 
-        'depth':      100,
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -251,8 +252,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed': b'not valid; must contain only uppercase and "9"',
 
-        'depth':      100,
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -268,8 +270,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'transfers': self.transfer1,
 
-        'depth':  100,
-        'seed':   Seed(self.trytes1),
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
       },
 
       {
@@ -285,8 +288,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'transfers': [],
 
-        'depth':  100,
-        'seed':   Seed(self.trytes1),
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
       },
 
       {
@@ -310,8 +314,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
           {'address': Address(self.trytes2), 'value': 42},
         ],
 
-        'depth':  100,
-        'seed':   Seed(self.trytes1),
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
       },
 
       {
@@ -328,9 +333,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'change_address': text_type(self.trytes3, 'ascii'),
 
-        'depth':      100,
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -346,9 +352,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'change_address': b'not valid; must contain only uppercase and "9"',
 
-        'depth':      100,
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -365,9 +372,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
         # Must be an array, even if there's only one input.
         'inputs': Address(self.trytes4),
 
-        'depth':      100,
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -396,9 +404,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
           b'9' * 82,
         ],
 
-        'depth':      100,
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -412,6 +421,24 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_depth_null(self):
+    """
+    ``depth`` is null.
+    """
+    self.assertFilterErrors(
+      {
+        'depth': None,
+
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
+      },
+
+      {
+        'depth': [f.Required.CODE_EMPTY],
+      },
+    )
+
   def test_fail_depth_string(self):
     """
     ``depth`` is a string.
@@ -421,8 +448,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
         # Too ambiguous; it must be an int.
         'depth': '2',
 
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -439,8 +467,9 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, floats are invalid.
         'depth': 100.0,
 
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
       },
 
       {
@@ -456,12 +485,31 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': 0,
 
+        'min_weight_magnitude': 18,
+        'seed':                 Seed(self.trytes1),
+        'transfers':            [self.transfer1],
+      },
+
+      {
+        'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_min_weight_magnitude_null(self):
+    """
+    ``min_weight_magnitude`` is null.
+    """
+    self.assertFilterErrors(
+      {
+        'min_weight_magnitude': None,
+
+        'depth':      100,
         'seed':       Seed(self.trytes1),
         'transfers':  [self.transfer1],
       },
 
       {
-        'depth': [f.Min.CODE_TOO_SMALL],
+        'min_weight_magnitude': [f.Required.CODE_EMPTY],
       },
     )
 
@@ -505,11 +553,11 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_min_weight_magnitude_too_small(self):
     """
-    ``min_weight_magnitude`` is < 18.
+    ``min_weight_magnitude`` is < 1.
     """
     self.assertFilterErrors(
       {
-        'min_weight_magnitude': 17,
+        'min_weight_magnitude': 0,
 
         'depth':      100,
         'seed':       Seed(self.trytes1),

@@ -7,7 +7,6 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import BadApiResponse, Iota, TransactionHash, TryteString
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
 from six import text_type, binary_type
@@ -75,26 +74,6 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_pass_optional_parameters_omitted(self):
-    """
-    Request omits optional parameters.
-    """
-    filter_ = self._filter({
-      'depth':  100,
-      'trytes': [TryteString(self.trytes1)],
-    })
-
-    self.assertFilterPasses(filter_ )
-    self.assertDictEqual(
-      filter_.cleaned_data,
-
-      {
-        'depth':                100,
-        'min_weight_magnitude': DEFAULT_MIN_WEIGHT_MAGNITUDE,
-        'trytes':               [TryteString(self.trytes1)],
-      },
-    )
-
   def test_fail_request_empty(self):
     """
     Request is empty.
@@ -103,8 +82,9 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {},
 
       {
-        'depth':  [f.FilterMapper.CODE_MISSING_KEY],
-        'trytes': [f.FilterMapper.CODE_MISSING_KEY],
+        'depth':                [f.FilterMapper.CODE_MISSING_KEY],
+        'min_weight_magnitude': [f.FilterMapper.CODE_MISSING_KEY],
+        'trytes':               [f.FilterMapper.CODE_MISSING_KEY],
       },
     )
 
@@ -114,8 +94,9 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':  100,
-        'trytes': [TryteString(self.trytes1)],
+        'depth':                100,
+        'min_weight_magnitude': 18,
+        'trytes':               [TryteString(self.trytes1)],
 
         # Oh, bother.
         'foo': 'bar',
@@ -134,7 +115,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': None,
 
-        'trytes': [TryteString(self.trytes1)],
+        'min_weight_magnitude': 18,
+        'trytes':               [TryteString(self.trytes1)],
       },
 
       {
@@ -151,7 +133,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # Too ambiguous; it's gotta be an int.
         'depth': '4',
 
-        'trytes': [TryteString(self.trytes1)],
+        'min_weight_magnitude': 18,
+        'trytes':               [TryteString(self.trytes1)],
       },
 
       {
@@ -168,7 +151,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, float value is not valid.
         'depth': 8.0,
 
-        'trytes': [TryteString(self.trytes1)],
+        'min_weight_magnitude': 18,
+        'trytes':               [TryteString(self.trytes1)],
       },
 
       {
@@ -184,11 +168,29 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': 0,
 
-        'trytes': [TryteString(self.trytes1)],
+        'min_weight_magnitude': 18,
+        'trytes':               [TryteString(self.trytes1)],
       },
 
       {
         'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_min_weight_magnitude_null(self):
+    """
+    ``min_weight_magnitude`` is null.
+    """
+    self.assertFilterErrors(
+      {
+        'min_weight_magnitude': None,
+
+        'depth':  100,
+        'trytes': [TryteString(self.trytes1)],
+      },
+
+      {
+        'min_weight_magnitude': [f.Required.CODE_EMPTY],
       },
     )
 
@@ -230,11 +232,11 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_min_weight_magnitude_too_small(self):
     """
-    ``min_weight_magnitude`` is < 18.
+    ``min_weight_magnitude`` is < 1.
     """
     self.assertFilterErrors(
       {
-        'min_weight_magnitude': 17,
+        'min_weight_magnitude': 0,
 
         'depth':  100,
         'trytes': [TryteString(self.trytes1)],
@@ -253,7 +255,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': None,
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {
@@ -271,7 +274,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # send.
         'trytes': TryteString(self.trytes1),
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {
@@ -287,7 +291,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [],
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {
@@ -315,7 +320,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
           2130706433,
         ],
 
-        'depth': 100,
+        'depth':                100,
+        'min_weight_magnitude': 18,
       },
 
       {

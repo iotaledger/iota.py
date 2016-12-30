@@ -237,7 +237,10 @@ class TryteString(JsonSerializable):
 
   def __repr__(self):
     # type: () -> Text
-    return 'TryteString({trytes!r})'.format(trytes=binary_type(self._trytes))
+    return '{cls}({trytes!r})'.format(
+      cls     = type(self).__name__,
+      trytes  = binary_type(self._trytes),
+    )
 
   def __bytes__(self):
     # type: () -> binary_type

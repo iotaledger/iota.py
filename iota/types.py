@@ -95,6 +95,16 @@ class TryteString(JsonSerializable):
     return cls(encode(bytes_, 'trytes'))
 
   @classmethod
+  def from_string(cls, string):
+    # type: (Text) -> TryteString
+    """
+    Creates a TryteString from a Unicode string.
+
+    Note: The string will be encoded using UTF-8.
+    """
+    return cls.from_bytes(string.encode('utf-8'))
+
+  @classmethod
   def from_trytes(cls, trytes):
     # type: (Iterable[Iterable[int]]) -> TryteString
     """
@@ -359,12 +369,37 @@ class TryteString(JsonSerializable):
 
     :param errors:
       How to handle trytes that can't be converted:
-        - 'strict':   raise a TrytesDecodeError.
+        - 'strict':   raise an exception.
         - 'replace':  replace with '?'.
         - 'ignore':   omit the tryte from the byte string.
+
+    :raise:
+      - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
+        be decoded into bytes.
     """
     # :bc: In Python 2, `decode` does not accept keyword arguments.
     return decode(self._trytes, 'trytes', errors)
+
+  def as_string(self, errors='strict'):
+    # type: (Text) -> Text
+    """
+    Attempts to interpret the TryteString as a UTF-8 encoded Unicode
+    string.
+
+    :param errors:
+      How to handle trytes that can't be converted, or bytes that can't
+      be decoded using UTF-8:
+        - 'strict':   raise an exception.
+        - 'replace':  replace with a placeholder character.
+        - 'ignore':   omit the invalid tryte/byte sequence.
+
+    :raise:
+      - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
+        be decoded into bytes.
+      - :py:class:`UnicodeDecodeError` if the resulting bytes cannot be
+        decoded using UTF-8.
+    """
+    return self.as_bytes(errors).decode('utf-8', errors)
 
   def as_json_compatible(self):
     # type: () -> Text

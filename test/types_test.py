@@ -411,6 +411,57 @@ class TryteStringTestCase(TestCase):
       b'??\xd2\x80??\xc3??',
     )
 
+  def test_as_string(self):
+    """
+    Converting a sequence of trytes into a Unicode string.
+    """
+    trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD')
+
+    self.assertEqual(trytes.as_string(), '你好，世界！')
+
+  def test_as_string_not_utf8_errors_strict(self):
+    """
+    The tryte sequence does not represent a valid UTF-8 sequence, and
+    errors='strict'.
+    """
+    # Chop off a couple of trytes to break up a multi-byte sequence.
+    trytes = TryteString.from_string('你好，世界！')[:-2]
+
+    # Note the exception type.  The trytes were decoded to bytes
+    # successfully; the exception occurred while trying to decode the
+    # bytes into Unicode code points.
+    with self.assertRaises(UnicodeDecodeError):
+      trytes.as_string('strict')
+
+  def test_as_string_not_utf8_errors_ignore(self):
+    """
+    The tryte sequence does not represent a valid UTF-8 sequence, and
+    errors='ignore'.
+    """
+    # Chop off a couple of trytes to break up a multi-byte sequence.
+    trytes = TryteString.from_string('你好，世界！')[:-2]
+
+    self.assertEqual(
+      trytes.as_string('ignore'),
+      '你好，世界',
+    )
+
+  def test_as_string_not_utf8_errors_replace(self):
+    """
+    The tryte sequence does not represent a valid UTF-8 sequence, and
+    errors='replace'.
+    """
+    # Chop off a couple of trytes to break up a multi-byte sequence.
+    trytes = TryteString.from_string('你好，世界！')[:-2]
+
+    self.assertEqual(
+      trytes.as_string('replace'),
+
+      # Note that the replacement character is the Unicode replacement
+      # character, not '?'.
+      '你好，世界�',
+    )
+
   def test_as_trytes_single_tryte(self):
     """
     Converting a single-tryte TryteString into a sequence of tryte
@@ -578,6 +629,15 @@ class TryteStringTestCase(TestCase):
     # least verify that the bytes were correctly interpreted, and no
     # errors were generated.
     self.assertEqual(trytes.as_bytes(), bytes_)
+
+  def test_from_string(self):
+    """
+    Converting a Unicode string into a TryteString.
+    """
+    self.assertEqual(
+      binary_type(TryteString.from_string('你好，世界！')),
+      b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD',
+    )
 
   def test_from_trytes(self):
     """

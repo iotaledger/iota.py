@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Dict, Iterable, List, Optional, Text
 
-from iota import AdapterSpec, Address, Bundle, ProposedBundle, \
-  ProposedTransaction, Tag, TransactionHash, TryteString, TrytesCompatible
+from iota import AdapterSpec, Address, Bundle, ProposedTransaction, Tag, \
+  TransactionHash, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import CustomCommand, DEFAULT_MIN_WEIGHT_MAGNITUDE, \
   command_registry
@@ -343,7 +343,7 @@ class Iota(StrictIota):
     return self.broadcastAndStore(trytes=trytes)
 
   def get_bundles(self, transaction):
-    # type: (TransactionHash) -> List[Bundle]
+    # type: (TransactionHash) -> dict
     """
     Returns the bundle(s) associated with the specified transaction
     hash.
@@ -353,12 +353,13 @@ class Iota(StrictIota):
       tail).
 
     :return:
-      List of bundles associated with the transaction.
-      If there are multiple bundles (e.g., because of a replay), all
-      valid matching bundles will be returned.
+      Dict with the following structure::
 
-      Note that this method always returns a list, even if only one
-      bundle was found.
+         {
+           'bundles': List[Bundle]
+             List of matching bundles.  Note that this value is always
+             a list, even if only one bundle was found.
+         }
 
     :raise:
       - :py:class:`iota.adapter.BadApiResponse` if any of the
@@ -400,7 +401,7 @@ class Iota(StrictIota):
         reached, an exception is raised.
 
     :return:
-      Dict with the following keys::
+      Dict with the following structure::
 
          {
            'inputs': [

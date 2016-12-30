@@ -52,7 +52,11 @@ class GetBundlesCommand(FilterCommand):
         },
       )
 
-    return bundle
+    return {
+      # Always return a list, so that we have the necessary structure
+      # to return multiple bundles in a future iteration.
+      'bundles': [bundle],
+    }
 
   def _traverse_bundle(self, txn_hash, target_bundle_hash=None):
     # type: (TransactionHash, Optional[BundleHash]) -> List[Transaction]

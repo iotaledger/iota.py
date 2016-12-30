@@ -550,6 +550,7 @@ class BundleValidator(object):
     Creates a generator that does all the work.
     """
     bundle_hash = self.bundle.hash
+    last_index  = len(self.bundle) - 1
 
     balance = 0
     for (i, txn) in enumerate(self.bundle): # type: Tuple[int, Transaction]
@@ -563,16 +564,26 @@ class BundleValidator(object):
       if txn.current_index != i:
         yield (
           'Transaction {i} has invalid current index value '
-          '(expected {i}, actual {current_index}).'.format(
-            current_index = txn.current_index,
-            i             = i,
+          '(expected {i}, actual {actual}).'.format(
+            actual  = txn.current_index,
+            i       = i,
+          )
+        )
+
+      if txn.last_index != last_index:
+        yield (
+          'Transaction {i} has invalid last index value '
+          '(expected {expected}, actual {actual}).'.format(
+            actual    = txn.last_index,
+            expected  = last_index,
+            i         = i,
           )
         )
 
     if balance != 0:
       yield (
-        'Bundle has invalid balance (expected 0, actual {balance}).'.format(
-          balance = balance,
+        'Bundle has invalid balance (expected 0, actual {actual}).'.format(
+          actual = balance,
         )
       )
 

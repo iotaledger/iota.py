@@ -381,8 +381,20 @@ class BundleValidatorTestCase(TestCase):
     """
     One of the transactions has an invalid ``last_index`` value.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.transactions[0].last_index = 2
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Transaction 0 has invalid last index value '
+        '(expected 3, actual 2).'
+      ],
+    )
 
   def test_fail_signature_invalid(self):
     """

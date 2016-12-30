@@ -362,8 +362,20 @@ class BundleValidatorTestCase(TestCase):
     """
     One of the transactions has an invalid ``current_index`` value.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.transactions[3].current_index = 4
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Transaction 3 has invalid current index value '
+        '(expected 3, actual 4).',
+      ],
+    )
 
   def test_fail_last_index_invalid(self):
     """

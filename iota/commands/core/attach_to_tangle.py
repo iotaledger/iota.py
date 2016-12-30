@@ -4,8 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from iota import TransactionHash
-from iota.commands import DEFAULT_MIN_WEIGHT_MAGNITUDE, FilterCommand, \
-  RequestFilter, ResponseFilter
+from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
 __all__ = [
@@ -15,9 +14,9 @@ __all__ = [
 
 class AttachToTangleCommand(FilterCommand):
   """
-  Executes `attachToTangle` command.
+  Executes ``attachToTangle`` command.
 
-  See :py:meth:`iota.api.StrictIota.attach_to_tangle`.
+  See :py:meth:`iota.api.StrictIota.attach_to_tangle` for more info.
   """
   command = 'attachToTangle'
 
@@ -30,24 +29,16 @@ class AttachToTangleCommand(FilterCommand):
 
 class AttachToTangleRequestFilter(RequestFilter):
   def __init__(self):
-    super(AttachToTangleRequestFilter, self).__init__(
-      {
-        'trunk_transaction':  f.Required | Trytes(result_type=TransactionHash),
-        'branch_transaction': f.Required | Trytes(result_type=TransactionHash),
+    super(AttachToTangleRequestFilter, self).__init__({
+      'branch_transaction': f.Required | Trytes(result_type=TransactionHash),
+      'trunk_transaction':  f.Required | Trytes(result_type=TransactionHash),
 
-        'min_weight_magnitude': (
-            f.Type(int)
-          | f.Min(18)
-          | f.Optional(DEFAULT_MIN_WEIGHT_MAGNITUDE)
-        ),
+      'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
 
-        'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
-      },
-
-      allow_missing_keys = {
-        'min_weight_magnitude',
-      },
-    )
+      # Loosely-validated; testnet nodes require a different value than
+      # mainnet.
+      'min_weight_magnitude': f.Required| f.Type(int) | f.Min(1),
+    })
 
 
 class AttachToTangleResponseFilter(ResponseFilter):

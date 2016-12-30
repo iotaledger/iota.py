@@ -7,8 +7,7 @@ from typing import Dict, Iterable, List, Optional, Text
 from iota import AdapterSpec, Address, Bundle, ProposedTransaction, Tag, \
   TransactionHash, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.commands import CustomCommand, DEFAULT_MIN_WEIGHT_MAGNITUDE, \
-  command_registry
+from iota.commands import CustomCommand, command_registry
 from iota.crypto.types import Seed
 
 __all__ = [
@@ -27,18 +26,22 @@ class StrictIota(object):
   References:
     - https://iota.readme.io/docs/getting-started
   """
-  def __init__(self, adapter):
-    # type: (AdapterSpec) -> None
+  def __init__(self, adapter, testnet=False):
+    # type: (AdapterSpec, bool) -> None
     """
     :param adapter:
       URI string or BaseAdapter instance.
+
+    :param testnet:
+      Whether to use testnet settings for this instance.
     """
     super(StrictIota, self).__init__()
 
     if not isinstance(adapter, BaseAdapter):
       adapter = resolve_adapter(adapter)
 
-    self.adapter = adapter # type: BaseAdapter
+    self.adapter  = adapter # type: BaseAdapter
+    self.testnet = testnet
 
   def __getattr__(self, command):
     # type: (Text, dict) -> CustomCommand
@@ -58,6 +61,15 @@ class StrictIota(object):
       return command_registry[command](self.adapter)
     except KeyError:
       return CustomCommand(self.adapter, command)
+
+  @property
+  def default_min_weight_magnitude(self):
+    # type: () -> int
+    """
+    Returns the default ``min_weight_magnitude`` value to use for API
+    requests.
+    """
+    return 13 if self.testnet else 18
 
   def add_neighbors(self, uris):
     # type: (Iterable[Text]) -> dict
@@ -79,7 +91,7 @@ class StrictIota(object):
       trunk_transaction,
       branch_transaction,
       trytes,
-      min_weight_magnitude = DEFAULT_MIN_WEIGHT_MAGNITUDE,
+      min_weight_magnitude = None,
   ):
     # type: (TransactionHash, TransactionHash, Iterable[TryteString], int) -> dict
     """
@@ -96,6 +108,9 @@ class StrictIota(object):
     References:
       - https://iota.readme.io/docs/attachtotangle
     """
+    if min_weight_magnitude is None:
+      min_weight_magnitude = self.default_min_weight_magnitude
+
     return self.attachToTangle(
       trunk_transaction     = trunk_transaction,
       branch_transaction    = branch_transaction,
@@ -319,8 +334,8 @@ class Iota(StrictIota):
     - https://iota.readme.io/docs/getting-started
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
   """
-  def __init__(self, adapter, seed=None):
-    # type: (AdapterSpec, Optional[TrytesCompatible]) -> None
+  def __init__(self, adapter, seed=None, testnet=False):
+    # type: (AdapterSpec, Optional[TrytesCompatible], bool) -> None
     """
     :param seed:
       Seed used to generate new addresses.
@@ -328,7 +343,7 @@ class Iota(StrictIota):
 
       Note: This value is never transferred to the node/network.
     """
-    super(Iota, self).__init__(adapter)
+    super(Iota, self).__init__(adapter, testnet)
 
     self.seed = Seed(seed) if seed else Seed.random()
 
@@ -556,9 +571,9 @@ class Iota(StrictIota):
       self,
       transaction,
       depth,
-      min_weight_magnitude = DEFAULT_MIN_WEIGHT_MAGNITUDE,
+      min_weight_magnitude = None,
   ):
-    # type: (TransactionHash, int, int) -> Bundle
+    # type: (TransactionHash, int, Optional[int]) -> Bundle
     """
     Takes a tail transaction hash as input, gets the bundle associated
     with the transaction and then replays the bundle by attaching it to
@@ -574,12 +589,17 @@ class Iota(StrictIota):
       Min weight magnitude, used by the node to calibrate Proof of
       Work.
 
+      If not provided, a default value will be used.
+
     :return:
       The bundle containing the replayed transfer.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#replaytransfer
     """
+    if min_weight_magnitude is None:
+      min_weight_magnitude = self.default_min_weight_magnitude
+
     return self.replayBundle(
       transaction           = transaction,
       depth                 = depth,
@@ -592,9 +612,9 @@ class Iota(StrictIota):
       transfers,
       inputs                = None,
       change_address        = None,
-      min_weight_magnitude  = DEFAULT_MIN_WEIGHT_MAGNITUDE,
+      min_weight_magnitude  = None,
   ):
-    # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], int) -> Bundle
+    # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> Bundle
     """
     Prepares a set of transfers and creates the bundle, then attaches
     the bundle to the Tangle, and broadcasts and stores the
@@ -621,12 +641,17 @@ class Iota(StrictIota):
       Min weight magnitude, used by the node to calibrate Proof of
       Work.
 
+      If not provided, a default value will be used.
+
     :return:
       The newly-attached bundle.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtransfer
     """
+    if min_weight_magnitude is None:
+      min_weight_magnitude = self.default_min_weight_magnitude
+
     return self.sendTransfer(
       seed                  = self.seed,
       depth                 = depth,

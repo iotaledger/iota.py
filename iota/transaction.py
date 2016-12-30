@@ -533,8 +533,15 @@ class BundleValidator(object):
     """
     Creates a generator that does all the work.
     """
-    if False:
-      yield ''
+    balance = 0
+    for txn in self.bundle:
+      balance += txn.value
+
+    if balance != 0:
+      yield \
+        'Bundle has invalid balance (expected 0, actual {balance}).'.format(
+          balance = balance,
+        )
 
 
 class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):

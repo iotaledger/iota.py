@@ -290,6 +290,15 @@ class BundleValidatorTestCase(TestCase):
     self.assertTrue(validator.is_valid())
     self.assertListEqual(validator.errors, [])
 
+  def test_pass_empty(self):
+    """
+    Bundle has no transactions.
+    """
+    validator = BundleValidator(Bundle())
+
+    self.assertTrue(validator.is_valid())
+    self.assertListEqual(validator.errors, [])
+
   def test_fail_balance_positive(self):
     """
     The bundle balance is > 0.
@@ -330,8 +339,24 @@ class BundleValidatorTestCase(TestCase):
     """
     One of the transactions has an invalid ``bundle_hash`` value.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # noinspection SpellCheckingInspection
+    self.bundle.transactions[3].bundle_hash =\
+      BundleHash(
+        b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
+        b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PG'
+      )
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Transaction 3 has invalid bundle hash.',
+      ],
+    )
 
   def test_fail_current_index_invalid(self):
     """

@@ -469,6 +469,22 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
       txn.is_confirmed = new_is_confirmed
 
   @property
+  def hash(self):
+    # type: () -> Optional[BundleHash]
+    """
+    Returns the hash of the bundle.
+
+    This value is determined by inspecting the bundle's tail
+    transaction, so in a few edge cases, it may be incorrect.
+
+    If the bundle has no transactions, this method returns `None`.
+    """
+    try:
+      return self.tail_transaction.bundle_hash
+    except IndexError:
+      return None
+
+  @property
   def tail_transaction(self):
     # type: () -> Transaction
     """
@@ -533,9 +549,16 @@ class BundleValidator(object):
     """
     Creates a generator that does all the work.
     """
+    bundle_hash = self.bundle.hash
+
     balance = 0
-    for txn in self.bundle:
+    for (i, txn) in enumerate(self.bundle): # type: Tuple[int, Transaction]
       balance += txn.value
+
+      if txn.bundle_hash != bundle_hash:
+        yield 'Transaction {i} has invalid bundle hash.'.format(
+          i = i,
+        )
 
     if balance != 0:
       yield \

@@ -11,6 +11,7 @@ from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.exceptions import with_context
 from iota.filters import Trytes
+from iota.transaction import BundleValidator
 
 __all__ = [
   'GetBundlesCommand',
@@ -34,21 +35,18 @@ class GetBundlesCommand(FilterCommand):
   def _execute(self, request):
     transaction_hash = request['transaction'] # type: TransactionHash
 
-    bundle = Bundle(self._traverse_bundle(transaction_hash))
+    bundle    = Bundle(self._traverse_bundle(transaction_hash))
+    validator = BundleValidator(bundle)
 
-    try:
-      bundle.validate()
-    except ValueError as e:
+    if not validator.is_valid():
       raise with_context(
         exc = BadApiResponse(
-          'Bundle failed validation: {error} '
-          '(``exc.context`` has more info).'.format(
-            error = e,
-          ),
+          'Bundle failed validation (``exc.context`` has more info).',
         ),
 
         context = {
           'bundle': bundle,
+          'errors': validator.errors,
         },
       )
 

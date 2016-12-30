@@ -294,15 +294,37 @@ class BundleValidatorTestCase(TestCase):
     """
     The bundle balance is > 0.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.transactions[0].value += 1
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Bundle has invalid balance (expected 0, actual 1).',
+      ],
+    )
 
   def test_fail_balance_negative(self):
     """
     The bundle balance is < 0.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.transactions[3].value -= 1
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Bundle has invalid balance (expected 0, actual -1).',
+      ],
+    )
 
   def test_fail_bundle_hash_invalid(self):
     """

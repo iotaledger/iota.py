@@ -165,11 +165,18 @@ class Transaction(JsonSerializable):
 
     self.signature_message_fragment = signature_message_fragment
     """
-    Cryptographic signature used to verify the transaction.
+    "Signature/Message Fragment" (note the slash):
 
-    Signatures are usually too long to fit into a single transaction,
-    so they are split out into multiple transactions in the same bundle
-    (hence it's called a fragment).
+    - For inputs, this contains a fragment of the cryptographic
+      signature, used to verify the transaction (the entire signature
+      is too large to fit into a single transaction, so it is split
+      across multiple transactions instead).
+
+    - For other transactions, this contains a fragment of the message
+      attached to the transaction (if any).  This can be pretty much
+      any value.  Like signatures, the message may be split across
+      multiple transactions if it is too large to fit inside a single
+      transaction.
     """
 
     self.is_confirmed = None # type: Optional[bool]

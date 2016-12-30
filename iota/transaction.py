@@ -305,13 +305,13 @@ class ProposedTransaction(Transaction):
   """
 
   def __init__(self, address, value, tag=None, message=None, timestamp=None):
-    # type: (Address, int, Optional[Tag], Optional[TrytesCompatible], Optional[int]) -> None
+    # type: (Address, int, Optional[Tag], Optional[TryteString], Optional[int]) -> None
     if not timestamp:
       timestamp = get_current_timestamp()
 
     super(ProposedTransaction, self).__init__(
       address                     = address,
-      tag                         = Tag(tag or b''),
+      tag                         = Tag(b'') if tag is None else tag,
       timestamp                   = timestamp,
       value                       = value,
 
@@ -320,7 +320,7 @@ class ProposedTransaction(Transaction):
       current_index               = None,
       hash_                       = None,
       last_index                  = None,
-      signature_message_fragment  = TryteString(b'', pad=self.MESSAGE_LEN),
+      signature_message_fragment  = None,
 
       # These values start out empty; they will be populated when the
       # node does PoW.
@@ -329,7 +329,7 @@ class ProposedTransaction(Transaction):
       trunk_transaction_hash      = TransactionHash(b''),
     )
 
-    self.message = TryteString(message or b'', pad=self.MESSAGE_LEN)
+    self.message = TryteString(b'') if message is None else message
 
   def as_tryte_string(self):
     # type: () -> TryteString
@@ -737,6 +737,11 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     # Copy bundle hash to individual transactions.
     for txn in self:
       txn.bundle_hash = self.hash
+
+      # Initialize signature/message fragment.
+      txn.signature_message_fragment = (
+        TryteString(txn.message or b'', pad=ProposedTransaction.MESSAGE_LEN)
+      )
 
   def sign_inputs(self, key_generator):
     # type: (KeyGenerator) -> None

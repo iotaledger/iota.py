@@ -560,11 +560,21 @@ class BundleValidator(object):
           i = i,
         )
 
+      if txn.current_index != i:
+        yield (
+          'Transaction {i} has invalid current index value '
+          '(expected {i}, actual {current_index}).'.format(
+            current_index = txn.current_index,
+            i             = i,
+          )
+        )
+
     if balance != 0:
-      yield \
+      yield (
         'Bundle has invalid balance (expected 0, actual {balance}).'.format(
           balance = balance,
         )
+      )
 
 
 class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):

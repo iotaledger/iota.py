@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from calendar import timegm as unix_timestamp
 from datetime import datetime
-from typing import Iterable, Iterator, List, MutableSequence, Optional, \
-  Sequence, Tuple
+from typing import Generator, Iterable, Iterator, List, MutableSequence, \
+  Optional, Sequence, Text, Tuple
 
 from iota import Address, Hash, Tag, TrytesCompatible, TryteString, \
   int_from_trits, trits_from_int
@@ -18,6 +18,7 @@ from iota.json import JsonSerializable
 __all__ = [
   'Bundle',
   'BundleHash',
+  'Fragment',
   'ProposedBundle',
   'ProposedTransaction',
   'Transaction',
@@ -52,6 +53,29 @@ class TransactionHash(Hash):
   A TryteString that acts as a transaction hash.
   """
   pass
+
+
+class Fragment(TryteString):
+  """
+  A signature/message fragment in a transaction.
+  """
+  LEN = 2187
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(Fragment, self).__init__(trytes, pad=self.LEN)
+
+    if len(self._trytes) > self.LEN:
+      raise with_context(
+        exc = ValueError('{cls} values must be {len} trytes long.'.format(
+          cls = type(self).__name__,
+          len = self.LEN
+        )),
+
+        context = {
+          'trytes': trytes,
+        },
+      )
 
 
 class Transaction(JsonSerializable):
@@ -160,8 +184,24 @@ class Transaction(JsonSerializable):
     The position of the final transaction inside the bundle.
     """
 
-    self.branch_transaction_hash  = branch_transaction_hash
-    self.trunk_transaction_hash   = trunk_transaction_hash
+    self.trunk_transaction_hash = trunk_transaction_hash
+    """
+    In order to add a transaction to the Tangle, you must perform PoW
+    to "approve" two existing transactions, called the "trunk" and
+    "branch" transactions.
+
+    The trunk transaction is generally used to link transactions within
+    a bundle.
+    """
+
+    self.branch_transaction_hash = branch_transaction_hash
+    """
+    In order to add a transaction to the Tangle, you must perform PoW
+    to "approve" two existing transactions, called the "trunk" and
+    "branch" transactions.
+
+    The branch transaction generally has no significance.
+    """
 
     self.signature_message_fragment = signature_message_fragment
     """
@@ -301,16 +341,6 @@ class ProposedTransaction(Transaction):
   Provide to :py:meth:`iota.api.Iota.send_transfer` to attach to
   tangle and publish/store.
   """
-  MESSAGE_LEN = 2187
-  """
-  Max number of trytes allowed in a transaction message.
-
-  If a transaction's message is longer than this, it will be split into
-  multiple transactions automatically when it is added to a bundle.
-
-  See :py:meth:`ProposedBundle.add_transaction` for more info.
-  """
-
   def __init__(self, address, value, tag=None, message=None, timestamp=None):
     # type: (Address, int, Optional[Tag], Optional[TryteString], Optional[int]) -> None
     if not timestamp:
@@ -456,44 +486,55 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     """
     return [txn.as_json_compatible() for txn in self]
 
-  def validate(self):
-    # type: () -> None
-    """
-    Checks that the bundle is valid.  If any issues are found, an
-    exception is raised.
 
-    :raise:
-      - :py:class:`ValueError` if any issues are found.
+class BundleValidator(object):
+  """
+  Checks a bundle and its transactions for problems.
+  """
+  def __init__(self, bundle):
+    # type: (Bundle) -> None
+    super(BundleValidator, self).__init__()
+
+    self.bundle = bundle
+
+    self._errors    = [] # type: Optional[List[Text]]
+    self._validator = self._create_validator()
+
+  @property
+  def errors(self):
+    # type: () -> List[Text]
     """
-    # balance = 0
-    # sponge  = Curl()
-    #
-    # # Use a counter for the loop so that we can skip ahead as we go.
-    # i = 0
-    # while i < len(self):
-    #   txn = self[i]
-    #
-    #   if txn.current_index != i:
-    #     raise ValueError(
-    #       'Transaction #{i} has invalid ``currentIndex`` '
-    #       '({txn.current_index}).'.format(
-    #         i   = i,
-    #         txn = txn,
-    #       ),
-    #     )
-    #
-    #   balance += txn.value
-    #
-    #   sponge.absorb(txn.get_signature_validation_trytes())
-    #
-    #
-    # if balance:
-    #   raise ValueError(
-    #     'Bundle has non-zero balance ({balance}).'.format(
-    #       balance = balance,
-    #     ),
-    #   )
-    pass
+    Returns all errors found with the bundle.
+    """
+    try:
+      self._errors.extend(self._validator) # type: List[Text]
+    except StopIteration:
+      pass
+
+    return self._errors
+
+  def is_valid(self):
+    # type: () -> bool
+    """
+    Returns whether the bundle is valid.
+    """
+    if not self._errors:
+      try:
+        # We only have to check for a single error to determine if the
+        # bundle is valid or not.
+        self._errors.append(next(self._validator))
+      except StopIteration:
+        pass
+
+    return not self._errors
+
+  def _create_validator(self):
+    # type: () -> Generator[Text]
+    """
+    Creates a generator that does all the work.
+    """
+    if False:
+      yield ''
 
 
 class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
@@ -591,7 +632,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
       address   = transaction.address,
       value     = transaction.value,
       tag       = transaction.tag,
-      message   = transaction.message[:ProposedTransaction.MESSAGE_LEN],
+      message   = transaction.message[:Fragment.LEN],
       timestamp = transaction.timestamp,
     ))
 
@@ -601,17 +642,17 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     # If the message is too long to fit in a single transactions,
     # it must be split up into multiple transactions so that it will
     # fit.
-    fragment = transaction.message[ProposedTransaction.MESSAGE_LEN:]
+    fragment = transaction.message[Fragment.LEN:]
     while fragment:
       self._transactions.append(ProposedTransaction(
         address   = transaction.address,
         value     = 0,
         tag       = transaction.tag,
-        message   = fragment[:ProposedTransaction.MESSAGE_LEN],
+        message   = fragment[:Fragment.LEN],
         timestamp = transaction.timestamp,
       ))
 
-      fragment = fragment[ProposedTransaction.MESSAGE_LEN:]
+      fragment = fragment[Fragment.LEN:]
 
   def add_inputs(self, inputs):
     # type: (Iterable[Address]) -> None
@@ -746,9 +787,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
       txn.bundle_hash = self.hash
 
       # Initialize signature/message fragment.
-      txn.signature_message_fragment = (
-        TryteString(txn.message or b'', pad=ProposedTransaction.MESSAGE_LEN)
-      )
+      txn.signature_message_fragment = Fragment(txn.message or b'')
 
   def sign_inputs(self, key_generator):
     # type: (KeyGenerator) -> None

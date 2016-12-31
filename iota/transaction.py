@@ -956,19 +956,13 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         signature_fragment_generator =\
           self._create_signature_fragment_generator(key_generator, txn)
 
-        bundle_hash_chunks = list(self.hash.iter_chunks(9))
-
         # We can only fit one signature fragment into each transaction,
         # so we have to split the entire signature among the extra
         # transactions we created for this input in
         # :py:meth:`add_inputs`.
         for j in range(AddressGenerator.DIGEST_ITERATIONS):
           self[i+j].signature_message_fragment =\
-            signature_fragment_generator.send(
-              # If there are more than 3 iterations, we loop back
-              # around to the start of the bundle hash.
-              bundle_hash_chunks[j % len(bundle_hash_chunks)]
-            )
+            next(signature_fragment_generator)
 
         i += AddressGenerator.DIGEST_ITERATIONS
       else:
@@ -986,8 +980,10 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     tests.
     """
     return SignatureFragmentGenerator(
-      key_generator.get_keys(
+      private_key = key_generator.get_keys(
         start       = txn.address.key_index,
         iterations  = AddressGenerator.DIGEST_ITERATIONS
       )[0],
+
+      source_trytes = txn.bundle_hash,
     )

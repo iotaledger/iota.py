@@ -15,7 +15,7 @@ from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
-from six import binary_type, text_type
+from six import PY2, binary_type, text_type
 from test import MockAdapter
 
 
@@ -2814,6 +2814,9 @@ class MockSignatureFragmentGenerator(object):
     self.fragments  = list(fragments or []) # type: List[TryteString]
     self.length     = length
 
+  def __iter__(self):
+    return self
+
   def __len__(self):
     return self.length
 
@@ -2822,6 +2825,9 @@ class MockSignatureFragmentGenerator(object):
     self.fragments.append(fragment)
 
   # noinspection PyUnusedLocal
-  def send(self, source_trytes):
+  def __next__(self):
     # type: (TryteString) -> TryteString
     return self.fragments.pop(0)
+
+  if PY2:
+    next = __next__

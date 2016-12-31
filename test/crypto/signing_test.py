@@ -855,7 +855,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
         b'HAXQWELNH'
       ),
 
-      source_trytes = Hash(
+      hash_ = Hash(
         b'ZHAGCBCERH9FBGEFUDXGNGCAKCCCFEBHUCYGRFNB'
         b'ZFFHEHSEEDDBGBDIMFEHYCGDBFPGVAIEH9A9VBNEJ'
       ),
@@ -983,7 +983,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
         b'RLMWQ9RSJB9TPLSDEP'
       ),
 
-      source_trytes = Hash(
+      hash_ = Hash(
         b'DDSHZCQGA9XFGHPFY9NEG9AGO9HEJEZHPEZDK9FA'
         b'BBUEI9PBJIBELHTBTCBAWGIAYCQ9ACLDTHFCVFWGI'
       ),

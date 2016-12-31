@@ -472,21 +472,19 @@ class BundleValidatorTestCase(TestCase):
     """
     One of the input signatures fails validation.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
-    # self.bundle[2].signature_message_fragment[:-1] = b'9'
-    #
-    # validator = BundleValidator(self.bundle)
-    #
-    # self.assertFalse(validator.is_valid())
-    #
-    # self.assertListEqual(
-    #   validator.errors,
-    #
-    #   [
-    #     'Transaction 1 has invalid signature (using 2 fragments).',
-    #   ],
-    # )
+    self.bundle[2].signature_message_fragment[:-1] = b'9'
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Transaction 1 has invalid signature (using 2 fragments).',
+      ],
+    )
 
   def test_fail_multiple_errors(self):
     """

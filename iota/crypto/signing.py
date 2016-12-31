@@ -2,18 +2,62 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterator, List, MutableSequence
+from typing import Generator, Iterator, List, MutableSequence, Sequence, Tuple
+
+from six import PY2
 
 from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
-from six import PY2
 
 __all__ = [
   'KeyGenerator',
   'SignatureFragmentGenerator',
+  'normalize',
+  'validate_signature_fragments',
 ]
+
+
+def normalize(hash_):
+  # type: (Hash) -> List[List[int]]
+  """
+  "Normalizes" a hash, converting it into a sequence of integers
+  (not trits!) suitable for use in signature generation/validation.
+
+  The hash is divided up into 3 parts, each of which is "balanced" (sum
+  of all the values is equal to zero).
+  """
+  normalized  = []
+  source      = hash_.as_integers()
+
+  chunk_size = 27
+
+  for i in range(Hash.LEN // chunk_size):
+    start = i * chunk_size
+    stop  = start + chunk_size
+
+    chunk     = source[start:stop]
+    chunk_sum = sum(chunk)
+
+    while chunk_sum > 0:
+      chunk_sum -= 1
+      for j in range(chunk_size):
+        if chunk[j] > -13:
+          chunk[j] -= 1
+          break
+
+
+    while chunk_sum < 0:
+      chunk_sum += 1
+      for j in range(chunk_size):
+        if chunk[j] < 13:
+          chunk[j] += 1
+          break
+
+    normalized.append(chunk)
+
+  return normalized
 
 
 class KeyGenerator(object):
@@ -190,7 +234,9 @@ class KeyGenerator(object):
     seed = self.seed.as_trits() # type: MutableSequence[int]
 
     for i in range(index):
-      # Increment each tryte unless/until we overflow.
+      # Treat ``seed`` like a really big number and add ``index``.
+      # Note that addition works a little bit differently in balanced
+      # ternary.
       for j in range(len(seed)):
         seed[j] += 1
 
@@ -225,7 +271,7 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
 
     self._key_chunks    = private_key.iter_chunks(FRAGMENT_LENGTH)
     self._iteration     = -1
-    self._source_chunks = list(source_trytes.iter_chunks(9)) # type: List[TryteString]
+    self._source_chunks = normalize(source_trytes)
     self._sponge        = Curl()
 
   def __iter__(self):
@@ -250,34 +296,83 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
     key_trytes = next(self._key_chunks) # type: TryteString
     self._iteration += 1
 
-    # If the key is long enough, loop back around to the start of the
-    # source chunks.
-    source_trits = (
+    source_ints = (
+      # If the key is long enough, loop back around to the start of the
+      # source chunks.
       self._source_chunks[self._iteration % len(self._source_chunks)]
-        .as_trits()
     )
 
-    hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
-
-    signature = key_trytes.as_trits()
+    buffer = key_trytes.as_trits()
 
     # Build the signature, one hash at a time.
-    for i in range(hashes_per_fragment):
+    for i in range(key_trytes.count_chunks(Hash.LEN)):
       hash_start  = i * HASH_LENGTH
       hash_end    = hash_start + HASH_LENGTH
 
-      fragment = signature[hash_start:hash_end]
+      fragment = buffer[hash_start:hash_end] # type: MutableSequence[int]
 
       # Use value from the source trits to make the signature
       # deterministic.
-      for _ in range(13 - source_trits[i]):
+      for _ in range(13 - source_ints[i]):
         self._sponge.reset()
         self._sponge.absorb(fragment)
         self._sponge.squeeze(fragment)
 
-      signature[hash_start:hash_end] = fragment
+      buffer[hash_start:hash_end] = fragment
 
-    return TryteString.from_trits(signature)
+    return TryteString.from_trits(buffer)
 
   if PY2:
     next = __next__
+
+
+def validate_signature_fragments(fragments, source_trytes, public_key):
+  # type: (Sequence[TryteString], Hash, TryteString) -> bool
+  """
+  Returns whether a sequence of signature fragments is valid.
+
+  :param fragments:
+    Sequence of signature fragments (usually
+    :py:class:`iota.transaction.Fragment` instances).
+
+  :param source_trytes:
+    Plaintext value used to generate the signature fragments (usually a
+    :py:class:`iota.transaction.BundleHash` instance).
+
+  :param public_key:
+    The public key value used to verify the signature digest (usually a
+    :py:class:`iota.types.Address` instance).
+  """
+  checksum      = [0] * (HASH_LENGTH * len(fragments))
+  source_chunks = normalize(source_trytes)
+
+  for (i, fragment) in enumerate(fragments): # type: Tuple[int, TryteString]
+    outer_sponge = Curl()
+
+    # If there are more than 3 iterations, we loop back
+    # around to the start of the source trytes.
+    source_ints = source_chunks[i % len(source_chunks)]
+
+    buffer = []
+    for (j, hash_trytes) in enumerate(fragment.iter_chunks(Hash.LEN)): # type: Tuple[int, TryteString]
+      buffer        = hash_trytes.as_trits() # type: MutableSequence[int]
+      inner_sponge  = Curl()
+
+      # Note the sign flip compared to ``SignatureFragmentGenerator``.
+      for _ in range(13 + source_ints[j]):
+        inner_sponge.reset()
+        inner_sponge.absorb(buffer)
+        inner_sponge.squeeze(buffer)
+
+      outer_sponge.absorb(buffer)
+
+    outer_sponge.squeeze(buffer)
+    checksum[i*HASH_LENGTH:(i+1)*HASH_LENGTH] = buffer
+
+  address = [0] * HASH_LENGTH # type: MutableSequence[int]
+  addy_sponge = Curl()
+  addy_sponge.absorb(checksum)
+  addy_sponge.squeeze(address)
+
+  return address == public_key.as_trits()
+

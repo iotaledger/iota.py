@@ -376,6 +376,17 @@ class TryteString(JsonSerializable):
     # type: (TrytesCompatible) -> bool
     return not (self == other)
 
+  def count_chunks(self, chunk_size):
+    # type: (int) -> int
+    """
+    Returns the number of constant-size chunks the TryteString can be
+    divided into (rounded up).
+
+    :param chunk_size:
+      Number of trytes per chunk.
+    """
+    return len(self.iter_chunks(chunk_size))
+
   def iter_chunks(self, chunk_size):
     # type: (int) -> ChunkIterator
     """
@@ -436,7 +447,20 @@ class TryteString(JsonSerializable):
     """
     return self._trytes.decode('ascii')
 
+  def as_integers(self):
+    # type: () -> List[int]
+    """
+    Converts the TryteString into a sequence of integers.
+
+    Each integer is a value between -13 and 13.
+    """
+    return [
+      self._normalize(TrytesCodec.index[c])
+        for c in self._trytes
+    ]
+
   def as_trytes(self):
+    # type: () -> List[List[int]]
     """
     Converts the TryteString into a sequence of trytes.
 
@@ -448,11 +472,12 @@ class TryteString(JsonSerializable):
     method should not be interpreted as an integer!
     """
     return [
-      self._tryte_from_int(TrytesCodec.index[c])
-        for c in self._trytes
+      trits_from_int(n, pad=3)
+        for n in self.as_integers()
     ]
 
   def as_trits(self):
+    # type: () -> List[int]
     """
     Converts the TryteString into a sequence of trit values.
 
@@ -468,14 +493,8 @@ class TryteString(JsonSerializable):
     return list(chain.from_iterable(self.as_trytes()))
 
   @staticmethod
-  def _tryte_from_int(n):
-    """
-    Converts an integer into a single tryte.
-
-    This method is specialized for TryteStrings:
-      - The value must fit inside a single tryte.
-      - If the value is greater than 13, it will trigger an overflow.
-    """
+  def _normalize(n):
+    # type: (int) -> int
     if n > 26:
       raise ValueError('{n} cannot be represented by a single tryte.'.format(
         n = n,
@@ -483,10 +502,7 @@ class TryteString(JsonSerializable):
 
     # For values greater than 13, trigger an overflow.
     # E.g., 14 => -13, 15 => -12, etc.
-    if n > 13:
-      n -= 27
-
-    return trits_from_int(n, pad=3)
+    return (n - 27) if n > 13 else n
 
 
 class ChunkIterator(Iterator[TryteString]):

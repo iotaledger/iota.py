@@ -11,11 +11,36 @@ __all__ = [
   'HASH_LENGTH',
 ]
 
-HASH_LENGTH   = 243
-STATE_LENGTH  = 3 * HASH_LENGTH
 
-NUMBER_OF_ROUNDS  = 27
-TRUTH_TABLE       = [1, 0, -1, 1, -1, 0, -1, 1, 0]
+HASH_LENGTH = 243
+"""
+Number of trits in a hash.
+
+Note: These constants are usually expressed in _trytes_ in PyOTA, but
+for compatibility with other libraries, this value must be _trits_.
+"""
+
+STATE_LENGTH = 3 * HASH_LENGTH
+"""
+Number of trits that a Curl sponge stores internally.
+"""
+
+NUMBER_OF_ROUNDS = 27
+"""
+Number of iterations to perform per transform operation.
+
+References:
+  - :py:meth:`Curl._transform`.
+"""
+
+TRUTH_TABLE = [1, 0, -1, 1, -1, 0, -1, 1, 0]
+"""
+Lookup table, used to ensure that the result of a Curl operation is
+deterministic but not reversible.
+
+References:
+  - :py:meth:`Curl._transform`.
+"""
 
 
 class Curl(object):

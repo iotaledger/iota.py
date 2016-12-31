@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, List, MutableSequence
+from typing import Generator, Iterable, List, MutableSequence, Tuple
 
 from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
-from iota.crypto import Curl, HASH_LENGTH
+from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 
@@ -19,11 +19,6 @@ class KeyGenerator(object):
   """
   Generates signing keys for messages.
   """
-  HASHES_PER_BLOCK = 27
-  """
-  Number of hashes that make up one block in a signing key.
-  """
-
   def __init__(self, seed):
     # type: (TrytesCompatible) -> None
     super(KeyGenerator, self).__init__()
@@ -158,23 +153,25 @@ class KeyGenerator(object):
 
     current = start
 
+    fragment_length     = FRAGMENT_LENGTH * TRITS_PER_TRYTE
+    hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
+
     while current >= 0:
       sponge = self._create_sponge(current)
 
-      # Multiply by 3 to convert trytes into trits.
-      block_length = PrivateKey.BLOCK_LEN * TRITS_PER_TRYTE
-
-      key     = [0] * (block_length * iterations)
+      key     = [0] * (fragment_length * iterations)
       buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
 
-      for block_seq in range(iterations):
+      for fragment_seq in range(iterations):
         # Squeeze trits from the buffer and append them to the key, one
         # hash at a time.
-        for hash_seq in range(self.HASHES_PER_BLOCK):
+        for hash_seq in range(hashes_per_fragment):
           sponge.squeeze(buffer)
 
-          key_start = (block_seq * block_length) + (hash_seq * HASH_LENGTH)
-          key_stop  = key_start + HASH_LENGTH
+          key_start =\
+            (fragment_seq * fragment_length) + (hash_seq * HASH_LENGTH)
+
+          key_stop = key_start + HASH_LENGTH
 
           key[key_start:key_stop] = buffer
 
@@ -218,8 +215,8 @@ class SignatureFragmentGenerator(object):
   """
   Used to generate signature fragments progressively.
 
-  Each instance can generate 1 signature per block (2187 trytes) in the
-  private key.
+  Each instance can generate 1 signature per fragment in the private
+  key.
 
   Note: This class behaves more like a coroutine than an iterator; you
   must invoke the instance's :py:meth:`send` method to generate a new
@@ -229,7 +226,7 @@ class SignatureFragmentGenerator(object):
     # type: (PrivateKey) -> None
     super(SignatureFragmentGenerator, self).__init__()
 
-    self._key_chunks  = private_key.iter_chunks(PrivateKey.BLOCK_LEN)
+    self._key_chunks  = private_key.iter_chunks(FRAGMENT_LENGTH)
     self._sponge      = Curl()
 
   def __len__(self):
@@ -256,17 +253,16 @@ class SignatureFragmentGenerator(object):
     """
     key_trytes = next(self._key_chunks) # type: TryteString
 
-    hashes_per_block = PrivateKey.BLOCK_LEN // Hash.LEN
+    hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
     # Ensure ``source_trits`` is long enough.
-    # It must have at least 1 trit per hash.
     source_trits = source_trytes.as_trits()
-    source_trits += [0] * max(0, hashes_per_block - len(source_trytes))
+    source_trits += [0] * max(0, hashes_per_fragment - len(source_trytes))
 
     signature = key_trytes.as_trits()
 
     # Build the signature, one hash at a time.
-    for i in range(hashes_per_block):
+    for i in range(hashes_per_fragment):
       hash_start  = i * HASH_LENGTH
       hash_end    = hash_start + HASH_LENGTH
 

@@ -9,7 +9,7 @@ from typing import Generator, Iterable, Iterator, List, MutableSequence, \
 
 from iota import Address, Hash, Tag, TrytesCompatible, TryteString, \
   int_from_trits, trits_from_int
-from iota.crypto import Curl, HASH_LENGTH
+from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator
 from iota.exceptions import with_context
@@ -59,7 +59,7 @@ class Fragment(TryteString):
   """
   A signature/message fragment in a transaction.
   """
-  LEN = 2187
+  LEN = FRAGMENT_LENGTH
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
@@ -597,41 +597,75 @@ class BundleValidator(object):
         if txn.value < 0:
           signature_fragments = [txn.signature_message_fragment]
 
-          # The next transaction should contain the second fragment.
-          i += 1
-          try:
-            next_txn = self.bundle[i]
-          except IndexError:
-            yield (
-              'Reached end of bundle while looking for '
-              'second signature fragment for transaction {i}.'.format(
-                i = txn.current_index,
-              )
-            )
-            continue
-
-          if next_txn.address != txn.address:
-            yield (
-              'Unable to find second signature fragment '
-              'for transaction {i}.'.format(
-                i = txn.current_index,
-              )
-            )
-            continue
-
-          if next_txn.value != 0:
-            yield (
-              'Transaction {i} has invalid amount '
-              '(expected 0, actual {actual}).'.format(
-                actual  = next_txn.value,
-                i       = next_txn.current_index,
-              )
-            )
-            # Skip ``next_txn`` in the next iteration.
+          # The following transaction(s) should contain additional
+          # fragments.
+          fragments_valid = True
+          j = 0
+          for j in range(1, AddressGenerator.DIGEST_ITERATIONS):
             i += 1
-            continue
+            try:
+              next_txn = self.bundle[i]
+            except IndexError:
+              yield (
+                'Reached end of bundle while looking for '
+                'signature fragment {j} for transaction {i}.'.format(
+                  i = txn.current_index,
+                  j = j+1,
+                )
+              )
+              fragments_valid = False
+              break
 
-          signature_fragments.append(next_txn.signature_message_fragment)
+            if next_txn.address != txn.address:
+              yield (
+                'Unable to find signature fragment {j} '
+                'for transaction {i}.'.format(
+                  i = txn.current_index,
+                  j = j+1,
+                )
+              )
+              fragments_valid = False
+              break
+
+            if next_txn.value != 0:
+              yield (
+                'Transaction {i} has invalid amount '
+                '(expected 0, actual {actual}).'.format(
+                  actual  = next_txn.value,
+                  i       = next_txn.current_index,
+                )
+              )
+              fragments_valid = False
+              # Keep going, just in case there's another signature
+              # fragment next (so that we skip it in the next iteration
+              # of the outer loop).
+              continue
+
+            signature_fragments.append(next_txn.signature_message_fragment)
+
+          if fragments_valid:
+            signature_valid = True
+            # signature_valid = validate_signature_fragments(
+            #   fragments     = signature_fragments,
+            #   source_trytes = txn.bundle_hash,
+            #   public_key    = txn.address,
+            # )
+
+            if not signature_valid:
+              yield (
+                'Transaction {i} has invalid signature '
+                '(using {fragments} fragments).'.format(
+                  fragments = len(signature_fragments),
+                  i         = txn.current_index,
+                )
+              )
+
+          # Skip signature fragments in the next iteration.
+          # Note that it's possible to have
+          # ``j < AddressGenerator.DIGEST_ITERATIONS`` if the bundle is
+          # badly malformed.
+          i += j
+
         else:
           # No signature to validate; skip this transaction.
           i += 1
@@ -922,7 +956,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         signature_fragment_generator =\
           self._create_signature_fragment_generator(key_generator, txn)
 
-        hash_fragment_iterator = self.hash.iter_chunks(9)
+        bundle_hash_chunks = list(self.hash.iter_chunks(9))
 
         # We can only fit one signature fragment into each transaction,
         # so we have to split the entire signature among the extra
@@ -930,7 +964,11 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         # :py:meth:`add_inputs`.
         for j in range(AddressGenerator.DIGEST_ITERATIONS):
           self[i+j].signature_message_fragment =\
-            signature_fragment_generator.send(next(hash_fragment_iterator))
+            signature_fragment_generator.send(
+              # If there are more than 3 iterations, we loop back
+              # around to the start of the bundle hash.
+              bundle_hash_chunks[j % len(bundle_hash_chunks)]
+            )
 
         i += AddressGenerator.DIGEST_ITERATIONS
       else:

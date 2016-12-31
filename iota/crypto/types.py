@@ -4,12 +4,13 @@ from __future__ import absolute_import, division, print_function, \
 
 from math import ceil
 from os import urandom
-from typing import Callable, List, Optional
+from typing import Callable, List, MutableSequence, Optional, Tuple
 
-from iota import Hash, TRITS_PER_TRYTE, TryteString, TrytesCompatible
-from iota.crypto import HASH_LENGTH, Curl
-from iota.exceptions import with_context
 from six import binary_type
+
+from iota import Hash, TryteString, TrytesCompatible
+from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
+from iota.exceptions import with_context
 
 __all__ = [
   'PrivateKey',
@@ -52,22 +53,16 @@ class PrivateKey(TryteString):
   A TryteString that acts as a private key, e.g., for generating
   message signatures, new addresses, etc.
   """
-  BLOCK_LEN = 2187
-  """
-  Similar to RSA keys, SigningKeys must have a length that is divisible
-  by a certain number of trytes.
-  """
-
   def __init__(self, trytes, key_index=None):
     # type: (TrytesCompatible, Optional[int]) -> None
     super(PrivateKey, self).__init__(trytes)
 
-    if len(self._trytes) % self.BLOCK_LEN:
+    if len(self._trytes) % FRAGMENT_LENGTH:
       raise with_context(
         exc = ValueError(
           'Length of {cls} values must be a multiple of {len} trytes.'.format(
             cls = type(self).__name__,
-            len = self.BLOCK_LEN
+            len = FRAGMENT_LENGTH
           ),
         ),
 
@@ -77,14 +72,6 @@ class PrivateKey(TryteString):
       )
 
     self.key_index = key_index
-
-  @property
-  def block_count(self):
-    # type: () -> int
-    """
-    Returns the length of this key, expressed in blocks.
-    """
-    return len(self) // self.BLOCK_LEN
 
   def get_digest_trits(self):
     # type: () -> List[int]
@@ -98,43 +85,34 @@ class PrivateKey(TryteString):
     through a PBKDF, yielding a constant-length hash that can be used
     for crypto.
     """
-    block_size        = self.BLOCK_LEN * TRITS_PER_TRYTE
-    hashes_per_block  = block_size // HASH_LENGTH
+    hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
-    raw_trits = self.as_trits()
+    digest = [0] * HASH_LENGTH
 
-    # Initialize list with the correct length to improve performance.
-    digest = [0] * HASH_LENGTH  # type: List[int]
+    for (i, fragment) in enumerate(self.iter_chunks(FRAGMENT_LENGTH)): # type: Tuple[int, TryteString]
+      fragment_start  = i * FRAGMENT_LENGTH
+      fragment_end    = fragment_start + FRAGMENT_LENGTH
+      fragment_trits  = fragment[fragment_start:fragment_end].as_trits()
 
-    for i in range(self.block_count):
-      block_start = i * block_size
-      block_end   = block_start + block_size
+      key_fragment  = [0] * len(fragment_trits)
+      hash_trits    = []
 
-      block_trits = raw_trits[block_start:block_end]
-
-      # Initialize ``key_fragment`` with the correct length to
-      # improve performance.
-      key_fragment = [0] * block_size # type: List[int]
-
-      buffer = [] # type: List[int]
-
-      for j in range(hashes_per_block):
-        hash_start = j * HASH_LENGTH
-        hash_end   = hash_start + HASH_LENGTH
-
-        buffer = block_trits[hash_start:hash_end]
+      for j in range(hashes_per_fragment):
+        hash_start  = j * HASH_LENGTH
+        hash_end    = hash_start + HASH_LENGTH
+        hash_trits  = fragment_trits[hash_start:hash_end] # type: MutableSequence[int]
 
         for k in range(26):
           sponge = Curl()
-          sponge.absorb(buffer)
-          sponge.squeeze(buffer)
+          sponge.absorb(hash_trits)
+          sponge.squeeze(hash_trits)
 
-        key_fragment[hash_start:hash_end] = buffer
+        key_fragment[hash_start:hash_end] = hash_trits
 
       sponge = Curl()
       sponge.absorb(key_fragment)
-      sponge.squeeze(buffer)
+      sponge.squeeze(hash_trits)
 
-      digest[block_start:block_end] = buffer
+      digest[fragment_start:fragment_end] = hash_trits
 
     return digest

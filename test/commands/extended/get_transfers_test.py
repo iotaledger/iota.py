@@ -6,12 +6,13 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Iota
+from six import binary_type, text_type
+
+from iota import Iota
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from six import binary_type, text_type
 from test import MockAdapter
 
 

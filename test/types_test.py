@@ -191,7 +191,7 @@ class TryteStringTestCase(TestCase):
       # What is this I don't even..
       trytes += None
 
-  def test_slice(self):
+  def test_slice_accessor(self):
     """
     Taking slices of a TryteString.
     """
@@ -203,6 +203,35 @@ class TryteStringTestCase(TestCase):
     self.assertEqual(ts[4:], TryteString(b'9D9DCDQAEASBYBCCKBFA'))
     self.assertEqual(ts[-4:], TryteString(b'KBFA'))
     self.assertEqual(ts[4:-4:4], TryteString(b'9CEY'))
+
+  def test_slice_mutator(self):
+    """
+    Modifying slices of a TryteString.
+    """
+    ts = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    ts[4] = TryteString(b'A')
+    self.assertEqual(ts, TryteString(b'RBTCAD9DCDQAEASBYBCCKBFA'))
+
+    ts[:4] = TryteString(b'BCDE')
+    self.assertEqual(ts, TryteString(b'BCDEAD9DCDQAEASBYBCCKBFA'))
+
+    # The lengths do not have to be the same...
+    ts[:-4] = TryteString(b'EFGHIJ')
+    self.assertEqual(ts, TryteString(b'EFGHIJKBFA'))
+
+    # ... unless you are trying to set a single tryte.
+    with self.assertRaises(ValueError):
+      ts[4] = TryteString(b'99')
+
+    # Any TrytesCompatible value will work.
+    ts[3:-3] = b'FOOBAR'
+    self.assertEqual(ts, TryteString(b'EFGFOOBARBFA'))
+
+    # I have no idea why you would ever need to do this, but I'm not
+    # going to judge, either.
+    ts[2:-2:2] = b'IOTA'
+    self.assertEqual(ts, TryteString(b'EFIFOOTAABFA'))
 
   def test_iter_chunks(self):
     """

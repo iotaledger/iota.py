@@ -479,8 +479,29 @@ class BundleValidatorTestCase(TestCase):
     """
     The bundle has multiple problems.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    del self.bundle.transactions[2]
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Transaction 0 has invalid last index value '
+        '(expected 2, actual 3).',
+
+        'Transaction 1 has invalid last index value '
+        '(expected 2, actual 3).',
+
+        'Transaction 2 has invalid current index value '
+        '(expected 2, actual 3).',
+
+        'Transaction 2 has invalid last index value '
+        '(expected 2, actual 3).',
+      ],
+    )
 
 
 class ProposedBundleTestCase(TestCase):

@@ -587,6 +587,42 @@ class BundleValidator(object):
         )
       )
 
+    # Signature validation is only meaningful if the transactions are
+    # otherwise valid.
+    if not self._errors:
+      i = 0
+      while i <= last_index:
+        txn = self.bundle[i]
+
+        if txn.value < 0:
+          # The next transaction should contain the second fragment.
+          try:
+            next_txn = self.bundle[i+1]
+          except IndexError:
+            yield (
+              'Reached end of bundle while looking for '
+              'second signature fragment for transaction {i}.'.format(
+                i = i,
+              )
+            )
+            i += 1
+            continue
+
+          if next_txn.address != txn.address:
+            yield (
+              'Unable to find second signature fragment '
+              'for transaction {i}.'.format(
+                i = i,
+              )
+            )
+            i += 1
+            continue
+
+          i += 1
+        else:
+          # No signature to validate; skip this transaction.
+          i += 1
+
 
 class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
   """

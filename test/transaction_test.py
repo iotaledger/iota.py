@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Tuple
 from unittest import TestCase
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, Tag, \
@@ -393,6 +394,55 @@ class BundleValidatorTestCase(TestCase):
       [
         'Transaction 0 has invalid last index value '
         '(expected 3, actual 2).'
+      ],
+    )
+
+  def test_fail_missing_signature_fragment(self):
+    """
+    One of the inputs is missing its second signature fragment.
+    """
+    del self.bundle.transactions[2]
+    for (i, txn) in enumerate(self.bundle): # type: Tuple[int, Transaction]
+      txn.current_index = i
+      txn.last_index    = 2
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Unable to find second signature fragment for transaction 1.'
+      ],
+    )
+
+  def test_fail_missing_signature_fragment_overflow(self):
+    """
+    The last transaction in the bundle is an input, and its second
+    signature fragment is missing.
+    """
+    # Remove the last input's second signature fragment, and the change
+    # transaction.
+    del self.bundle.transactions[-2:]
+    for (i, txn) in enumerate(self.bundle): # type: Tuple[int, Transaction]
+      txn.current_index = i
+      txn.last_index    = 1
+
+    # Fix bundle balance, since we removed the change transaction.
+    self.bundle[1].value = -self.bundle[0].value
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Reached end of bundle while looking for '
+        'second signature fragment for transaction 1.'
       ],
     )
 

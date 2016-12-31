@@ -305,6 +305,28 @@ class TryteString(JsonSerializable):
 
     return TryteString(new_trytes)
 
+  def __setitem__(self, item, trytes):
+    # type: (Union[int, slice], TrytesCompatible) -> None
+    new_trytes = TryteString(trytes)
+
+    if isinstance(item, slice):
+      self._trytes[item] = new_trytes._trytes
+    elif len(new_trytes) > 1:
+      raise with_context(
+        exc = ValueError(
+          'Cannot assign multiple trytes to the same index '
+          '(``exc.context`` has more info).'
+        ),
+
+        context = {
+          'self':       self,
+          'index':      item,
+          'new_trytes': new_trytes,
+        },
+      )
+    else:
+      self._trytes[item] = new_trytes._trytes[0]
+
   def __add__(self, other):
     # type: (TrytesCompatible) -> TryteString
     if isinstance(other, TryteString):

@@ -397,28 +397,7 @@ class BundleValidatorTestCase(TestCase):
       ],
     )
 
-  def test_fail_missing_signature_fragment(self):
-    """
-    One of the inputs is missing its second signature fragment.
-    """
-    del self.bundle.transactions[2]
-    for (i, txn) in enumerate(self.bundle): # type: Tuple[int, Transaction]
-      txn.current_index = i
-      txn.last_index    = 2
-
-    validator = BundleValidator(self.bundle)
-
-    self.assertFalse(validator.is_valid())
-
-    self.assertListEqual(
-      validator.errors,
-
-      [
-        'Unable to find second signature fragment for transaction 1.'
-      ],
-    )
-
-  def test_fail_missing_signature_fragment_overflow(self):
+  def test_fail_missing_signature_fragment_underflow(self):
     """
     The last transaction in the bundle is an input, and its second
     signature fragment is missing.
@@ -443,6 +422,49 @@ class BundleValidatorTestCase(TestCase):
       [
         'Reached end of bundle while looking for '
         'second signature fragment for transaction 1.'
+      ],
+    )
+
+  def test_fail_signature_fragment_address_wrong(self):
+    """
+    The second signature fragment for an input is associated with the
+    wrong address.
+    """
+    # noinspection SpellCheckingInspection
+    self.bundle[2].address =\
+      Address(
+        b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9P'
+        b'GNFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
+      )
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Unable to find second signature fragment for transaction 1.'
+      ],
+    )
+
+  def test_fail_signature_fragment_value_wrong(self):
+    """
+    The second signature fragment for an input has a nonzero balance.
+    """
+    self.bundle[2].value = -1
+    self.bundle[-1].value += 1
+
+    validator = BundleValidator(self.bundle)
+
+    self.assertFalse(validator.is_valid())
+
+    self.assertListEqual(
+      validator.errors,
+
+      [
+        'Transaction 2 has invalid amount (expected 0, actual -1).',
       ],
     )
 
@@ -841,19 +863,19 @@ class TransactionTestCase(TestCase):
       current_index = 1,
       last_index    = 1,
 
-      bundle_hash=
+      bundle_hash =
         BundleHash(
           b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
           b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PG'
         ),
 
-      trunk_transaction_hash=
+      trunk_transaction_hash =
         TransactionHash(
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
         ),
 
-      branch_transaction_hash=
+      branch_transaction_hash =
         TransactionHash(
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'

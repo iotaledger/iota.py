@@ -595,30 +595,43 @@ class BundleValidator(object):
         txn = self.bundle[i]
 
         if txn.value < 0:
+          signature_fragments = [txn.signature_message_fragment]
+
           # The next transaction should contain the second fragment.
+          i += 1
           try:
-            next_txn = self.bundle[i+1]
+            next_txn = self.bundle[i]
           except IndexError:
             yield (
               'Reached end of bundle while looking for '
               'second signature fragment for transaction {i}.'.format(
-                i = i,
+                i = txn.current_index,
               )
             )
-            i += 1
             continue
 
           if next_txn.address != txn.address:
             yield (
               'Unable to find second signature fragment '
               'for transaction {i}.'.format(
-                i = i,
+                i = txn.current_index,
               )
             )
+            continue
+
+          if next_txn.value != 0:
+            yield (
+              'Transaction {i} has invalid amount '
+              '(expected 0, actual {actual}).'.format(
+                actual  = next_txn.value,
+                i       = next_txn.current_index,
+              )
+            )
+            # Skip ``next_txn`` in the next iteration.
             i += 1
             continue
 
-          i += 1
+          signature_fragments.append(next_txn.signature_message_fragment)
         else:
           # No signature to validate; skip this transaction.
           i += 1

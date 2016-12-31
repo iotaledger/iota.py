@@ -553,7 +553,7 @@ class Hash(TryteString):
   A TryteString that is exactly one hash long.
   """
   # Divide by 3 to convert trits to trytes.
-  LEN = HASH_LENGTH // 3
+  LEN = HASH_LENGTH // TRITS_PER_TRYTE
 
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None

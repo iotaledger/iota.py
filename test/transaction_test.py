@@ -421,7 +421,7 @@ class BundleValidatorTestCase(TestCase):
 
       [
         'Reached end of bundle while looking for '
-        'second signature fragment for transaction 1.'
+        'signature fragment 2 for transaction 1.'
       ],
     )
 
@@ -445,7 +445,7 @@ class BundleValidatorTestCase(TestCase):
       validator.errors,
 
       [
-        'Unable to find second signature fragment for transaction 1.'
+        'Unable to find signature fragment 2 for transaction 1.'
       ],
     )
 
@@ -474,6 +474,19 @@ class BundleValidatorTestCase(TestCase):
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
+    # self.bundle[2].signature_message_fragment[:-1] = b'9'
+    #
+    # validator = BundleValidator(self.bundle)
+    #
+    # self.assertFalse(validator.is_valid())
+    #
+    # self.assertListEqual(
+    #   validator.errors,
+    #
+    #   [
+    #     'Transaction 1 has invalid signature (using 2 fragments).',
+    #   ],
+    # )
 
   def test_fail_multiple_errors(self):
     """
@@ -488,6 +501,10 @@ class BundleValidatorTestCase(TestCase):
     self.assertListEqual(
       validator.errors,
 
+      # Note that there is no error about the missing signature
+      # fragment for transaction 1.  The bundle fails some basic
+      # consistency checks, so we don't even bother to validate
+      # signatures.
       [
         'Transaction 0 has invalid last index value '
         '(expected 2, actual 3).',

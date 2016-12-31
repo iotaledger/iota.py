@@ -28,6 +28,17 @@ class AddressGenerator(Iterable[Address]):
   when you use the API (:
   """
   DIGEST_ITERATIONS = 2
+  """
+  Number of iterations to use when creating digests, used to create
+  addresses.
+
+  Note: this also impacts a few other things like length of transaction
+  signatures.
+
+  References:
+    - :py:meth:`iota.transaction.ProposedBundle.sign_inputs`
+    - :py:class:`iota.transaction.BundleValidator`
+  """
 
   def __init__(self, seed):
     # type: (TrytesCompatible) -> None

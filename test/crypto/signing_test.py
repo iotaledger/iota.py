@@ -812,9 +812,9 @@ class KeyGeneratorTestCase(TestCase):
 
 # noinspection SpellCheckingInspection
 class SignatureFragmentGeneratorTestCase(TestCase):
-  def test_single_block(self):
+  def test_single_fragment(self):
     """
-    Creating signature fragments from a PrivateKey exactly 1 block
+    Creating signature fragments from a PrivateKey exactly 1 fragment
     long.
     """
     generator = SignatureFragmentGenerator(
@@ -897,14 +897,15 @@ class SignatureFragmentGeneratorTestCase(TestCase):
       ),
     )
 
-    # A generator can only generate one signature fragment per block in
-    # its private key.
+    # A generator can only generate one signature fragment per fragment
+    # in its private key.
     with self.assertRaises(StopIteration):
       generator.send(TryteString(b''))
 
-  def test_multiple_blocks(self):
+  def test_multiple_fragments(self):
     """
-    Creating signature fragments from a PrivateKey longer than 1 block.
+    Creating signature fragments from a PrivateKey longer than 1
+    fragment.
     """
     generator = SignatureFragmentGenerator(
       PrivateKey(
@@ -1024,7 +1025,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
       # second iteration.
       generator.send(TryteString(b'WGXG9AGGI')),
 
-      # The generator used the second block of the private key this
+      # The generator used the second fragment of the private key this
       # time, so we get a different result.
       TryteString(
         b'QFBNTRFTTBHNIPZQNQPXOFQWQCP9KMMMVEPLHYQMVMCWSVSWS9HEEJHNRGKELXEEKI'
@@ -1064,7 +1065,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
       ),
     )
 
-    # A generator can only generate one signature fragment per block in
-    # its private key.
+    # A generator can only generate one signature fragment per fragment
+    # in its private key.
     with self.assertRaises(StopIteration):
       generator.send(TryteString(b''))

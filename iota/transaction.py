@@ -646,9 +646,9 @@ class BundleValidator(object):
 
           if fragments_valid:
             signature_valid = validate_signature_fragments(
-              fragments     = signature_fragments,
-              source_trytes = txn.bundle_hash,
-              public_key    = txn.address,
+              fragments   = signature_fragments,
+              hash_       = txn.bundle_hash,
+              public_key  = txn.address,
             )
 
             if not signature_valid:
@@ -985,5 +985,5 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         iterations  = AddressGenerator.DIGEST_ITERATIONS
       )[0],
 
-      source_trytes = txn.bundle_hash,
+      hash_= txn.bundle_hash,
     )

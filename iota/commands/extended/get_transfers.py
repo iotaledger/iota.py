@@ -36,13 +36,10 @@ class GetTransfersCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    # Optional parameters.
-    end               = request.get('end') # type: Optional[int]
-    inclusion_states  = request.get('inclusion_states', False) # type: bool
-
-    # Required parameters.
-    start = request['start'] # type: int
-    seed  = request['seed'] # type: Seed
+    end               = request['end'] # type: Optional[int]
+    inclusion_states  = request['inclusion_states'] # type: bool
+    seed              = request['seed'] # type: Seed
+    start             = request['start'] # type: int
 
     generator   = AddressGenerator(seed)
     ft_command  = FindTransactionsCommand(self.adapter)
@@ -100,7 +97,8 @@ class GetTransfersCommand(FilterCommand):
 
     # Find the bundles for each transaction.
     for txn in transactions:
-      txn_bundles = GetBundlesCommand(self.adapter)(transactions=txn.hash) # type: List[Bundle]
+      gb_response = GetBundlesCommand(self.adapter)(transactions=txn.hash)
+      txn_bundles = gb_response['bundles'] # type: List[Bundle]
 
       if inclusion_states:
         for bundle in txn_bundles:
@@ -150,14 +148,14 @@ class GetTransfersRequestFilter(RequestFilter):
   def __init__(self):
     super(GetTransfersRequestFilter, self).__init__(
       {
-        # These arguments are optional.
+        # Required parameters.
+        'seed': f.Required | Trytes(result_type=Seed),
+
+        # Optional parameters.
         'end':    f.Type(int) | f.Min(0),
         'start':  f.Type(int) | f.Min(0) | f.Optional(0),
 
         'inclusion_states': f.Type(bool) | f.Optional(False),
-
-        # These arguments are required.
-        'seed': f.Required | Trytes(result_type=Seed),
       },
 
       allow_missing_keys = {

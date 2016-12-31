@@ -58,6 +58,9 @@ class GetTransfersCommand(FilterCommand):
           hashes += ft_response['hashes']
         else:
           break
+
+        # Reset the command so that we can call it again.
+        ft_command.reset()
     else:
       ft_response =\
         ft_command(addresses=generator.get_addresses(start, end - start))

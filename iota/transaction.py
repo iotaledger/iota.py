@@ -11,7 +11,8 @@ from iota import Address, Hash, Tag, TrytesCompatible, TryteString, \
   int_from_trits, trits_from_int
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.addresses import AddressGenerator
-from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator
+from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator, \
+  validate_signature_fragments
 from iota.exceptions import with_context
 from iota.json import JsonSerializable
 
@@ -644,12 +645,11 @@ class BundleValidator(object):
             signature_fragments.append(next_txn.signature_message_fragment)
 
           if fragments_valid:
-            signature_valid = True
-            # signature_valid = validate_signature_fragments(
-            #   fragments     = signature_fragments,
-            #   source_trytes = txn.bundle_hash,
-            #   public_key    = txn.address,
-            # )
+            signature_valid = validate_signature_fragments(
+              fragments     = signature_fragments,
+              source_trytes = txn.bundle_hash,
+              public_key    = txn.address,
+            )
 
             if not signature_valid:
               yield (

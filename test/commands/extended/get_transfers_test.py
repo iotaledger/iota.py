@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota
+from iota import Address, Iota
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
@@ -314,6 +314,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
+# noinspection SpellCheckingInspection
 class GetTransfersCommandTestCase(TestCase):
   def setUp(self):
     super(GetTransfersCommandTestCase, self).setUp()
@@ -330,4 +331,37 @@ class GetTransfersCommandTestCase(TestCase):
       GetTransfersCommand,
     )
 
-  # :todo: Unit tests.
+  def test_full_scan(self):
+    """
+    Scanning the Tangle for all transfers.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_start(self):
+    """
+    Scanning the Tangle for all transfers, with start index.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_end(self):
+    """
+    Scanning the Tangle for all transfers, with end index.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_start_and_end(self):
+    """
+    Scanning the Tangle for all transfers, with start and end indices.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_get_inclusion_states(self):
+    """
+    Fetching inclusion states with transactions.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')

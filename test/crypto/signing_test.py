@@ -818,7 +818,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
     long.
     """
     generator = SignatureFragmentGenerator(
-      PrivateKey(
+      private_key = PrivateKey(
         b'QFBNTRFTTBHNIPZQNQPXOFQWQCP9KMMMVEPLHYQMVMCWSVSWS9HEEJHNRGKELXEEKI'
         b'DBREGBJTIKHBMODRBXEOKYOXTPPYGVSROOMLBHQKFALHNUYEVUAMEYPNRLFFNCDGBF'
         b'YZQRLGLVQEPCYGP9HRUWRVIRZYFTFJNEJKCLUMFDXULSOWKVSEMVFXHAHLXBZITIHR'
@@ -854,10 +854,12 @@ class SignatureFragmentGeneratorTestCase(TestCase):
         b'EHIPLPZSFDJCALFZNPAKSLPD9QEBZIZNCAMKBZQFWRCFSVIEBDDSVMQIYDCWLQQGPC'
         b'HAXQWELNH'
       ),
+
+      source_trytes = TryteString(b'UDUX9OKZP')
     )
 
     self.assertEqual(
-      generator.send(TryteString(b'UDUX9OKZP')),
+      next(generator),
 
       TryteString(
         b'CGWXNMRWQRICZ9QULUMMHLTGIC9ILGBPBLX9OXQOAFDUPFOEQMQBZPVIVDWCBOFCN9'
@@ -900,7 +902,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
     # A generator can only generate one signature fragment per fragment
     # in its private key.
     with self.assertRaises(StopIteration):
-      generator.send(TryteString(b''))
+      next(generator)
 
   def test_multiple_fragments(self):
     """
@@ -908,7 +910,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
     fragment.
     """
     generator = SignatureFragmentGenerator(
-      PrivateKey(
+      private_key = PrivateKey(
         b'MPRSBNPSAZRHZSBXSJASXSEHLYVLBXHCUNNQUNYB9CYEVWNBJKZUODPCZGOBRJ9V9C'
         b'CARPTZEQRXGYDBEZISGMMXGHHHATAUDRTWUHEKJAMKUUKCK9NUUEWEFHPTVAARNLJB'
         b'XRTFHQDXAVAOWYGJJNLCRVWQFHXPTMLFPGDKEBZCSSOQZEPNRTUKUJ9TRHLWQKOCBZ'
@@ -976,11 +978,16 @@ class SignatureFragmentGeneratorTestCase(TestCase):
         b'BCQNMVIQ9EXTSCQAJJROGKIHJJTKLOABYQDHMXJFEKFN9L9FSYAMVOFTXIOSEOBBUA'
         b'UYSHWINHCJRQTIXWWPZBGKIGJC9TDKFAKZTIFBSDFSXVJCCICIBEAIGNUARDZGGBBH'
         b'RLMWQ9RSJB9TPLSDEP'
-      )
+      ),
+
+      # Just to be tricky, we will use the same source trytes for each
+      # iteration, just to make sure the generator isn't cheating.
+      # We should get a different result for each iteration.
+      source_trytes = TryteString(b'WGXG9AGGIWGXG9AGGI')
     )
 
     self.assertEqual(
-      generator.send(TryteString(b'WGXG9AGGI')),
+      next(generator),
 
       TryteString(
         b'GNCUHGZVIYRQQBXXBUONVL9COKOYDERJAWWI9YRWBVUJLDQQCBMFOORHRTVPKUDFWK'
@@ -1021,9 +1028,7 @@ class SignatureFragmentGeneratorTestCase(TestCase):
     )
 
     self.assertEqual(
-      # Just to be tricky, try sending the same source trytes for the
-      # second iteration.
-      generator.send(TryteString(b'WGXG9AGGI')),
+      next(generator),
 
       # The generator used the second fragment of the private key this
       # time, so we get a different result.
@@ -1068,4 +1073,4 @@ class SignatureFragmentGeneratorTestCase(TestCase):
     # A generator can only generate one signature fragment per fragment
     # in its private key.
     with self.assertRaises(StopIteration):
-      generator.send(TryteString(b''))
+      next(generator)

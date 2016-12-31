@@ -2,12 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterable, List, MutableSequence, Tuple
+from typing import Generator, Iterator, List, MutableSequence
 
 from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
+from six import PY2
 
 __all__ = [
   'KeyGenerator',
@@ -211,23 +212,25 @@ class KeyGenerator(object):
     return sponge
 
 
-class SignatureFragmentGenerator(object):
+class SignatureFragmentGenerator(Iterator[TryteString]):
   """
   Used to generate signature fragments progressively.
 
   Each instance can generate 1 signature per fragment in the private
   key.
-
-  Note: This class behaves more like a coroutine than an iterator; you
-  must invoke the instance's :py:meth:`send` method to generate a new
-  value.
   """
-  def __init__(self, private_key):
-    # type: (PrivateKey) -> None
+  def __init__(self, private_key, source_trytes):
+    # type: (PrivateKey, TryteString) -> None
     super(SignatureFragmentGenerator, self).__init__()
 
-    self._key_chunks  = private_key.iter_chunks(FRAGMENT_LENGTH)
-    self._sponge      = Curl()
+    self._key_chunks    = private_key.iter_chunks(FRAGMENT_LENGTH)
+    self._iteration     = -1
+    self._source_chunks = list(source_trytes.iter_chunks(9)) # type: List[TryteString]
+    self._sponge        = Curl()
+
+  def __iter__(self):
+    # type: () -> SignatureFragmentGenerator
+    return self
 
   def __len__(self):
     # type: () -> int
@@ -239,25 +242,22 @@ class SignatureFragmentGenerator(object):
     """
     return len(self._key_chunks)
 
-  def send(self, source_trytes):
-    # type: (TryteString) -> TryteString
+  def __next__(self):
+    # type: () -> TryteString
     """
-    Sends a source string to the generator to create the next fragment.
-
-    :param source_trytes:
-      Trytes to use to generate the signature.
-
-      Note: should be 27 trytes long.
-      If too short, will be padded.
-      If too long, extra trytes will be ignored.
+    Returns the next signature fragment.
     """
     key_trytes = next(self._key_chunks) # type: TryteString
+    self._iteration += 1
+
+    # If the key is long enough, loop back around to the start of the
+    # source chunks.
+    source_trits = (
+      self._source_chunks[self._iteration % len(self._source_chunks)]
+        .as_trits()
+    )
 
     hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
-
-    # Ensure ``source_trits`` is long enough.
-    source_trits = source_trytes.as_trits()
-    source_trits += [0] * max(0, hashes_per_fragment - len(source_trytes))
 
     signature = key_trytes.as_trits()
 
@@ -278,3 +278,6 @@ class SignatureFragmentGenerator(object):
       signature[hash_start:hash_end] = fragment
 
     return TryteString.from_trits(signature)
+
+  if PY2:
+    next = __next__

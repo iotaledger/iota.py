@@ -489,7 +489,7 @@ class Iota(StrictIota):
     return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
   def get_transfers(self, start=0, end=None, inclusion_states=False):
-    # type: (int, Optional[int], bool) -> List[Bundle]
+    # type: (int, Optional[int], bool) -> dict
     """
     Returns all transfers associated with the seed.
 
@@ -512,7 +512,12 @@ class Iota(StrictIota):
       disabled by default.
 
     :return:
-      List of bundles.
+      Dict containing the following values::
+
+         {
+           'bundles': List[Bundle]
+             Matching bundles, sorted by tail transaction timestamp.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers

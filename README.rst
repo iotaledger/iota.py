@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/iotaledger/pyota.svg?branch=develop
-   :target: https://travis-ci.org/iotaledger/pyota
+.. image:: https://travis-ci.org/iotaledger/iota.lib.py.svg?branch=develop
+   :target: https://travis-ci.org/iotaledger/iota.lib.py
 
 =====
 PyOTA
@@ -31,9 +31,14 @@ PyOTA is compatible with Python 3.6, 3.5 and 2.7.
 ============
 Installation
 ============
-To install the latest stable version::
+To install the latest version::
 
-  pip install pyota
+  pip install --pre pyota
+
+**Important:** PyOTA is currently pre-release software.
+There may be performance and stability issues.
+
+Please report any issues using the `PyOTA Bug Tracker`_.
 
 Installing from Source
 ======================

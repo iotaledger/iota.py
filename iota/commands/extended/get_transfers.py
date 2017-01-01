@@ -71,7 +71,11 @@ class GetTransfersCommand(FilterCommand):
     tails     = set()
     non_tails = set()
 
-    transactions = self._find_transactions(hashes=hashes)
+    gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
+    transactions = list(map(
+      Transaction.from_tryte_string,
+      gt_response['trytes'],
+    ))
 
     for txn in transactions:
       if txn.is_tail:
@@ -100,7 +104,7 @@ class GetTransfersCommand(FilterCommand):
 
     # Find the bundles for each transaction.
     for txn in transactions:
-      gb_response = GetBundlesCommand(self.adapter)(transactions=txn.hash)
+      gb_response = GetBundlesCommand(self.adapter)(transaction=txn.hash)
       txn_bundles = gb_response['bundles'] # type: List[Bundle]
 
       if inclusion_states:
@@ -109,11 +113,13 @@ class GetTransfersCommand(FilterCommand):
 
       all_bundles.extend(txn_bundles)
 
-    # Sort bundles by tail transaction timestamp.
-    return list(sorted(
-      all_bundles,
-      key = lambda bundle_: bundle_.tail_transaction.timestamp,
-    ))
+    return {
+      # Sort bundles by tail transaction timestamp.
+      'bundles': list(sorted(
+        all_bundles,
+        key = lambda bundle_: bundle_.tail_transaction.timestamp,
+      )),
+    }
 
 
   def _find_transactions(self, **kwargs):

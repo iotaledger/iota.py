@@ -61,12 +61,25 @@ class MockAdapter(BaseAdapter):
 
     try:
       response = self.responses[command].pop(0)
-    except (KeyError, IndexError):
+    except KeyError:
       raise with_context(
         exc = BadApiResponse(
-          'Unknown request {command!r} (expected one of: {seeds!r}).'.format(
+          'No seeded response for {command!r} '
+          '(expected one of: {seeds!r}).'.format(
             command = command,
             seeds   = list(sorted(self.responses.keys())),
+          ),
+        ),
+
+        context = {
+          'request': payload,
+        },
+      )
+    except IndexError:
+      raise with_context(
+        exc = BadApiResponse(
+          '{command} called too many times; no seeded responses left.'.format(
+            command = command,
           ),
         ),
 

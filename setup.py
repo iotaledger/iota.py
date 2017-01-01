@@ -38,8 +38,8 @@ with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
 setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
-  url         = 'https://github.com/iotaledger/pyota',
-  version     = '1.0.0-beta1',
+  url         = 'https://github.com/iotaledger/iota.lib.py',
+  version     = '1.0.0b2',
 
   packages    = ['iota'],
 

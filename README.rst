@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/iotaledger/pyota.svg?branch=develop
-   :target: https://travis-ci.org/iotaledger/pyota
+.. image:: https://travis-ci.org/iotaledger/iota.lib.py.svg?branch=develop
+   :target: https://travis-ci.org/iotaledger/iota.lib.py
 
 =====
 PyOTA

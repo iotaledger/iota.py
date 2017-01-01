@@ -9,6 +9,12 @@ This is the official Python library for the IOTA Core.
 It implements both the `official API`_, as well as newly-proposed functionality
 (such as signing, bundles, utilities and conversion).
 
+.. warning::
+   This is pre-release software!
+   There may be performance and stability issues.
+
+   Please report any issues using the `PyOTA Bug Tracker`_.
+
 Join the Discussion
 ===================
 If you want to get involved in the community, need help with getting setup,
@@ -59,4 +65,5 @@ For the full documentation of this library, please refer to the
 .. _Slack: http://slack.iotatoken.com/
 .. _dedicated forum: http://forum.iotatoken.com/
 .. _official API: https://iota.readme.io/
+.. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _tox: https://tox.readthedocs.io/

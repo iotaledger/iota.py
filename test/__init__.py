@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from collections import defaultdict
 from typing import Dict, List, Optional, Text
 
 from iota import BadApiResponse
@@ -25,7 +24,7 @@ class MockAdapter(BaseAdapter):
     # type: (Optional[dict]) -> None
     super(MockAdapter, self).__init__()
 
-    self.responses  = defaultdict(list) # type: Dict[Text, List[dict]]
+    self.responses  = {} # type: Dict[Text, List[dict]]
     self.requests   = [] # type: List[dict]
 
   def seed_response(self, command, response):
@@ -49,6 +48,9 @@ class MockAdapter(BaseAdapter):
        adapter.send_request({'command': 'sayHello'})
        # {'message': 'Hello!'}
     """
+    if command not in self.responses:
+      self.responses[command] = []
+
     self.responses[command].append(response)
     return self
 

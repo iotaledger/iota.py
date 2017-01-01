@@ -204,6 +204,15 @@ class TryteStringTestCase(TestCase):
     self.assertEqual(ts[-4:], TryteString(b'KBFA'))
     self.assertEqual(ts[4:-4:4], TryteString(b'9CEY'))
 
+    with self.assertRaises(IndexError):
+      # noinspection PyStatementEffect
+      ts[42]
+
+    # To match the behavior of built-in types, TryteString will allow
+    # you to access a slice that occurs after the end of the sequence.
+    # There's nothing in it, of course, but you can access it.
+    self.assertEqual(ts[42:43], TryteString(b''))
+
   def test_slice_mutator(self):
     """
     Modifying slices of a TryteString.
@@ -232,6 +241,14 @@ class TryteStringTestCase(TestCase):
     # going to judge, either.
     ts[2:-2:2] = b'IOTA'
     self.assertEqual(ts, TryteString(b'EFIFOOTAABFA'))
+
+    with self.assertRaises(IndexError):
+      ts[42] = b'9'
+
+    # To match the behavior of built-in types, TryteString will allow
+    # you to modify a slice that occurs after the end of the sequence.
+    ts[42:43] = TryteString(b'9')
+    self.assertEqual(ts, TryteString(b'EFIFOOTAABFA9'))
 
   def test_iter_chunks(self):
     """

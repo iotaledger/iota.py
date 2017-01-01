@@ -1,0 +1,22 @@
+# Python metadata
+*.py[co]
+
+# Generated distribution files.
+# :see: https://packaging.python.org/distributing/
+build/*
+dist/*
+PyOTA.egg-info/*
+*.so
+
+# Virtualenvs for unit tests.
+# :see: https://tox.readthedocs.io/en/latest/
+.tox/*
+
+# Generated documentation files.
+docs/_build
+
+#
+# Note:  For environment- or IDE-specific metadata (e.g., .DS_Store, .idea, etc.
+#   you can add these to your own "global" .gitignore file.
+# :see: https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
+#

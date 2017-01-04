@@ -68,7 +68,7 @@ For the full documentation of this library, please refer to the
 .. _Create virtualenv: https://virtualenvwrapper.readthedocs.io/
 .. _SWIG: http://www.swig.org/download.html
 .. _Slack: http://slack.iotatoken.com/
-.. _dedicated forum: http://forum.iotatoken.com/
+.. _dedicated forum: https://forum.iotatoken.com/
 .. _official API: https://iota.readme.io/
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _tox: https://tox.readthedocs.io/

@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 from codecs import StreamReader, open
 from sys import version_info
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 ##
 # Check Python version.
@@ -39,9 +39,10 @@ setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '1.0.0b2',
+  version     = '1.0.0b3',
 
-  packages    = ['iota'],
+  packages      = ['iota'] + ['iota.'+pkg for pkg in find_packages('iota')],
+  package_data  = {'': ['LICENSE']},
 
   long_description = long_description,
 
@@ -52,10 +53,6 @@ setup(
   tests_require = [
     'mock',
     'nose',
-  ],
-
-  data_files = [
-    ('', ['LICENSE']),
   ],
 
   license = 'MIT',

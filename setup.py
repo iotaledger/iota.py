@@ -41,8 +41,8 @@ setup(
   url         = 'https://github.com/iotaledger/iota.lib.py',
   version     = '1.0.0b3',
 
-  packages      = ['iota'] + ['iota.'+pkg for pkg in find_packages('iota')],
-  package_data  = {'': ['LICENSE']},
+  packages              = find_packages('src'),
+  include_package_data  = True,
 
   long_description = long_description,
 

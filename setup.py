@@ -18,17 +18,6 @@ if (version_info[0] == 3) and (version_info[1] < 5):
   raise EnvironmentError('PyOTA requires Python 3.5 or greater.')
 
 ##
-# Determine dependencies, depending on Python version.
-dependencies = [
-    'filters',
-    'requests',
-    'six',
-  ]
-
-if version_info[0:2] < (3, 5):
-  dependencies.append('typing')
-
-##
 # Load long description for PyPi.
 with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
   long_description = f.read()
@@ -39,14 +28,25 @@ setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '1.0.0b3',
+  version     = '1.0.0b4',
 
   packages              = find_packages('src'),
   include_package_data  = True,
 
   long_description = long_description,
 
-  install_requires = dependencies,
+  install_requires = [
+    'filters',
+    'requests',
+    'six',
+  ],
+
+  # http://stackoverflow.com/a/33451105/
+  extras_require = {
+    ':python_version < "3.5"': [
+      'typing',
+    ],
+  },
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',

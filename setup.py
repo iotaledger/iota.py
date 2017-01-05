@@ -39,14 +39,8 @@ setup(
     'filters',
     'requests',
     'six',
+    'typing',
   ],
-
-  # http://stackoverflow.com/a/33451105/
-  extras_require = {
-    ':python_version < "3.5"': [
-      'typing',
-    ],
-  },
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',

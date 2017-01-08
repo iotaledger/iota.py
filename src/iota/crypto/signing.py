@@ -8,7 +8,7 @@ from six import PY2
 
 from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
-from iota.crypto.types import PrivateKey
+from iota.crypto.types import PrivateKey, Seed
 from iota.exceptions import with_context
 
 __all__ = [
@@ -68,7 +68,7 @@ class KeyGenerator(object):
     # type: (TrytesCompatible) -> None
     super(KeyGenerator, self).__init__()
 
-    self.seed = TryteString(seed)
+    self.seed = Seed(seed)
 
   def get_keys(self, start, count=1, step=1, iterations=1):
     # type: (int, int, int, int) -> List[PrivateKey]

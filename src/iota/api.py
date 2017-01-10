@@ -461,7 +461,7 @@ class Iota(StrictIota):
     """
     return self.getLatestInclusion(hashes=hashes)
 
-  def get_new_addresses(self, index=None, count=1):
+  def get_new_addresses(self, index=0, count=1):
     # type: (Optional[int], Optional[int]) -> List[Address]
     """
     Generates one or more new addresses from the seed.

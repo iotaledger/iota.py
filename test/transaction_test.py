@@ -5,8 +5,13 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Tuple
 from unittest import TestCase
 
-from iota import Address, Bundle, BundleHash, Fragment, Hash, Tag, \
-  Transaction, TransactionHash
+from mock import patch
+
+from iota import Address, Bundle, BundleHash, Fragment, Hash, ProposedBundle, \
+  ProposedTransaction, Tag, Transaction, TransactionHash, TryteString, \
+  trits_from_int
+from iota.crypto.addresses import AddressGenerator
+from iota.crypto.signing import KeyGenerator
 from iota.transaction import BundleValidator
 from six import binary_type
 
@@ -519,30 +524,127 @@ class BundleValidatorTestCase(TestCase):
     )
 
 
+# noinspection SpellCheckingInspection
 class ProposedBundleTestCase(TestCase):
+  def setUp(self):
+    super(ProposedBundleTestCase, self).setUp()
+
+    self.bundle = ProposedBundle()
+
   def test_add_transaction_short_message(self):
     """
     Adding a transaction to a bundle, with a message short enough to
     fit inside a single transaction.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999AETEXB'
+          b'D9YBTH9EMFKF9CAHJIAIKDBEPAMH99DEN9DAJETGN'
+        ),
+
+      message = TryteString.from_string('Hello, IOTA!'),
+      value   = 42,
+    ))
+
+    # We can fit the message inside a single fragment, so only one
+    # transaction is necessary.
+    self.assertEqual(len(self.bundle), 1)
 
   def test_add_transaction_long_message(self):
     """
     Adding a transaction to a bundle, with a message so long that it
     has to be split into multiple transactions.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    address = Address(
+      b'TESTVALUE9DONTUSEINPRODUCTION99999N9GIUF'
+      b'HCFIUGLBSCKELC9IYENFPHCEWHIDCHCGGEH9OFZBN'
+    )
+
+    tag = Tag.from_string('H2G2')
+
+    self.bundle.add_transaction(ProposedTransaction(
+      address = address,
+      tag     = tag,
+
+      message = TryteString.from_string(
+        '''
+"Good morning," said Deep Thought at last.
+"Er... Good morning, O Deep Thought," said Loonquawl nervously.
+  "Do you have... er, that is..."
+"... an answer for you?" interrupted Deep Thought majestically. "Yes. I have."
+The two men shivered with expectancy. Their waiting had not been in vain.
+"There really is one?" breathed Phouchg.
+"There really is one," confirmed Deep Thought.
+"To Everything? To the great Question of Life, the Universe and Everything?"
+"Yes."
+Both of the men had been trained for this moment; their lives had been a
+  preparation for it; they had been selected at birth as those who would
+  witness the answer; but even so they found themselves gasping and squirming
+  like excited children.
+"And you're ready to give it to us?" urged Loonquawl.
+"I am."
+"Now?"
+"Now," said Deep Thought.
+They both licked their dry lips.
+"Though I don't think," added Deep Thought, "that you're going to like it."
+"Doesn't matter," said Phouchg. "We must know it! Now!"
+"Now?" enquired Deep Thought.
+"Yes! Now!"
+"All right," said the computer and settled into silence again.
+  The two men fidgeted. The tension was unbearable.
+"You're really not going to like it," observed Deep Thought.
+"Tell us!"
+"All right," said Deep Thought. "The Answer to the Great Question..."
+"Yes?"
+"Of Life, the Universe and Everything..." said Deep Thought.
+"Yes??"
+"Is..."
+"Yes?!"
+"Forty-two," said Deep Thought, with infinite majesty and calm.
+        '''
+      ),
+
+      # Now you know...
+      value = 42,
+    ))
+
+    # Because the message is too long to fit into a single fragment,
+    # the transaction is split into two parts.
+    self.assertEqual(len(self.bundle), 2)
+
+    txn1 = self.bundle[0]
+    self.assertEqual(txn1.address, address)
+    self.assertEqual(txn1.tag, tag)
+    self.assertEqual(txn1.value, 42)
+
+    txn2 = self.bundle[1]
+    self.assertEqual(txn2.address, address)
+    self.assertEqual(txn2.tag, tag)
+    # Supplementary transactions are assigned zero IOTA value.
+    self.assertEqual(txn2.value, 0)
 
   def test_add_transaction_error_already_finalized(self):
     """
     Attempting to add a transaction to a bundle that is already
     finalized.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION999999DCBIE'
+          b'U9AIE9H9BCKGMCVCUGYDKDLCAEOHOHZGW9KGS9VGH'
+        ),
+
+        value = 0,
+    ))
+    self.bundle.finalize()
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.add_transaction(ProposedTransaction(
+        address = Address(b''),
+        value   = 0,
+      ))
 
   def test_add_transaction_error_negative_value(self):
     """
@@ -550,89 +652,364 @@ class ProposedBundleTestCase(TestCase):
 
     Use :py:meth:`ProposedBundle.add_inputs` to add inputs to a bundle.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    with self.assertRaises(ValueError):
+      self.bundle.add_transaction(ProposedTransaction(
+        address = Address(b''),
+        value   = -1,
+      ))
 
-  def test_add_inputs_balanced(self):
+  def test_add_inputs_no_change(self):
     """
     Adding inputs to cover the exact amount of the bundle spend.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999VELDTF'
+          b'QHDFTHIHFE9II9WFFDFHEATEI99GEDC9BAUH9EBGZ'
+        ),
+
+        value = 29,
+    ))
+
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999OGVEEF'
+          b'BCYAM9ZEAADBGBHH9BPBOHFEGCFAM9DESCCHODZ9Y'
+        ),
+
+      value = 13,
+    ))
+
+    self.bundle.add_inputs([
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999VAFFMC'
+          b'X9AABIH9AEEGJHKFSHTGYHSFR9DEH9MEDAGGIGK9E',
+
+        balance   = 40,
+        key_index = 0,
+      ),
+
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999VDR9AD'
+          b'OEH9YGGHGDVBCAREVBDHOFAGNDZCPBBAAIUCDGQ9Z',
+
+        balance   = 2,
+        key_index = 1,
+      ),
+    ])
+
+    # Because transaction signatures are so large, each input
+    # transaction must be split into multiple parts.
+    expected_length = 2 + (2 * AddressGenerator.DIGEST_ITERATIONS)
+
+    self.assertEqual(len(self.bundle), expected_length)
+
+    self.bundle.send_unspent_inputs_to(
+      Address(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999FDCDFD'
+        b'VAF9NFLCSCSFFCLCW9KFL9TCAAO9IIHATCREAHGEA'
+      ),
+    )
+    self.bundle.finalize()
+
+    # Because the transaction is already balanced, no change
+    # transaction is necessary.
+    self.assertEqual(len(self.bundle), expected_length)
+
 
   def test_add_inputs_with_change(self):
     """
     Adding inputs to a bundle results in unspent inputs.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    tag = Tag(b'CHANGE9TXN')
+
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999VELDTF'
+          b'QHDFTHIHFE9II9WFFDFHEATEI99GEDC9BAUH9EBGZ'
+        ),
+
+        value = 29,
+    ))
+
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999OGVEEF'
+          b'BCYAM9ZEAADBGBHH9BPBOHFEGCFAM9DESCCHODZ9Y'
+        ),
+
+      tag   = tag,
+      value = 13,
+    ))
+
+    self.bundle.add_inputs([
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999VAFFMC'
+          b'X9AABIH9AEEGJHKFSHTGYHSFR9DEH9MEDAGGIGK9E',
+
+        balance   = 40,
+        key_index = 0,
+      ),
+
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999VDR9AD'
+          b'OEH9YGGHGDVBCAREVBDHOFAGNDZCPBBAAIUCDGQ9Z',
+
+        balance   = 20,
+        key_index = 1,
+      ),
+    ])
+
+    change_address =\
+      Address(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999KAFGVC'
+        b'IBLHS9JBZCEFDELEGFDCZGIEGCPFEIQEYGA9UFPAE'
+      )
+
+    self.bundle.send_unspent_inputs_to(change_address)
+
+    # The change transaction is not created until the bundle is
+    # finalized.
+    expected_length = 2 + (2 * AddressGenerator.DIGEST_ITERATIONS)
+
+    self.assertEqual(len(self.bundle), expected_length)
+
+    self.bundle.finalize()
+
+    self.assertEqual(len(self.bundle), expected_length + 1)
+
+    change_txn = self.bundle[-1]
+    self.assertEqual(change_txn.address, change_address)
+    self.assertEqual(change_txn.value, 18)
+    self.assertEqual(change_txn.tag, tag)
 
   def test_add_inputs_error_already_finalized(self):
     """
     Attempting to add inputs to a bundle that is already finalized.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+          b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+        ),
 
-  def test_send_unspent_inputs_to_unbalanced(self):
-    """
-    Invoking ``send_unspent_inputs_to`` on an unbalanced bundle.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+      value = 0,
+    ))
 
-  def test_send_unspent_inputs_to_balanced(self):
-    """
-    Invoking ``send_unspent_inputs_to`` on a balanced bundle.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.finalize()
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.add_inputs([])
 
   def test_send_unspent_inputs_to_error_already_finalized(self):
     """
     Invoking ``send_unspent_inputs_to`` on a bundle that is already
     finalized.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+          b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+        ),
 
-  def test_finalize_happy_path(self):
-    """
-    Finalizing a bundle.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+      value = 0,
+    ))
+
+    self.bundle.finalize()
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.send_unspent_inputs_to(Address(b''))
 
   def test_finalize_error_already_finalized(self):
     """
     Attempting to finalize a bundle that is already finalized.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+          b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+        ),
 
-  def test_finalize_error_unbalanced(self):
+      value = 0,
+    ))
+
+    self.bundle.finalize()
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.finalize()
+
+  def test_finalize_error_no_transactions(self):
     """
-    Attempting to finalize an unbalanced bundle.
+    Attempting to finalize a bundle with no transactions.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    with self.assertRaises(ValueError):
+      self.bundle.finalize()
+
+  def test_finalize_error_negative_balance(self):
+    """
+    Attempting to finalize a bundle with unspent inputs.
+    """
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999IGEFUG'
+          b'LIHIJGJGZ9CGRENCRHF9XFEAWD9ILFWEJFKDLITCC'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999LAHFJ9'
+          b'Z9QEHGIHTAQFWFAHYEKFDBXHSBM9K9T9S9SBTF99W',
+
+        balance   = 43,
+        key_index = 0,
+      ),
+    ])
+
+    # Bundle spends 42 IOTAs, but inputs total 43 IOTAs.
+    self.assertEqual(self.bundle.balance, -1)
+
+    # In order to finalize this bundle, we would need to specify a
+    # change address.
+    with self.assertRaises(ValueError):
+      self.bundle.finalize()
+
+  def test_finalize_error_positive_balance(self):
+    """
+    Attempting to finalize a bundle with insufficient inputs.
+    """
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999IGEFUG'
+          b'LIHIJGJGZ9CGRENCRHF9XFEAWD9ILFWEJFKDLITCC'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999LAHFJ9'
+          b'Z9QEHGIHTAQFWFAHYEKFDBXHSBM9K9T9S9SBTF99W',
+
+        balance   = 41,
+        key_index = 0,
+      ),
+    ])
+
+    # Bundle spends 42 IOTAs, but inputs total only 41 IOTAs.
+    self.assertEqual(self.bundle.balance, 1)
+
+    # In order to finalize this bundle, we would need to specify
+    # additional inputs.
+    with self.assertRaises(ValueError):
+      self.bundle.finalize()
 
   def test_sign_inputs(self):
     """
     Signing inputs in a finalized bundle.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999UGYFU9'
+          b'TGMHNEN9S9CAIDUBGETHJHFHRAHGRGVF9GTDYHXCE',
+
+        balance   = 42,
+        key_index = 0,
+      )
+    ])
+
+    self.bundle.finalize()
+
+    # Mock the signature generator to improve test performance.
+    # We already have unit tests for signature generation; all we need
+    # to do here is verify that the method is invoked correctly.
+    # noinspection PyUnusedLocal
+    def mock_signature_generator(bundle, key_generator, txn):
+      for i in range(AddressGenerator.DIGEST_ITERATIONS):
+        yield Fragment.from_trits(trits_from_int(i))
+
+    with patch(
+        'iota.transaction.ProposedBundle._create_signature_fragment_generator',
+        mock_signature_generator,
+    ):
+      self.bundle.sign_inputs(KeyGenerator(b''))
+
+    self.assertEqual(
+      len(self.bundle),
+
+      # Spend txn + input fragments
+      1 + AddressGenerator.DIGEST_ITERATIONS,
+    )
+
+    # The spending transaction does not have a signature.
+    self.assertEqual(
+      self.bundle[0].signature_message_fragment,
+      Fragment(b''),
+    )
+
+    for j in range(AddressGenerator.DIGEST_ITERATIONS):
+      self.assertEqual(
+        self.bundle[j+1].signature_message_fragment,
+        Fragment.from_trits(trits_from_int(j)),
+      )
 
   def test_sign_inputs_error_not_finalized(self):
     """
     Attempting to sign inputs in a bundle that hasn't been finalized
     yet.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
 
-  # :todo: Validation tests.
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999UGYFU9'
+          b'TGMHNEN9S9CAIDUBGETHJHFHRAHGRGVF9GTDYHXCE',
+
+        balance   = 42,
+        key_index = 0,
+      )
+    ])
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.sign_inputs(KeyGenerator(b''))
 
 
 # noinspection SpellCheckingInspection

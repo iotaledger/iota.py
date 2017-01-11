@@ -35,7 +35,7 @@ class GetNewAddressesCommand(FilterCommand):
     index = request.get('index')
 
     # Required parameters.
-    seed  = request['seed']
+    seed = request['seed']
 
     generator = AddressGenerator(seed)
 

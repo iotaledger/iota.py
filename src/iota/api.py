@@ -461,21 +461,22 @@ class Iota(StrictIota):
     """
     return self.getLatestInclusion(hashes=hashes)
 
-  def get_new_addresses(self, index=None, count=1):
-    # type: (Optional[int], Optional[int]) -> List[Address]
+  def get_new_addresses(self, index=0, count=1):
+    # type: (int, Optional[int]) -> List[Address]
     """
     Generates one or more new addresses from the seed.
 
     :param index:
       Specify the index of the new address (must be >= 1).
 
-      If not provided, the address will be generated deterministically.
-
     :param count:
       Number of addresses to generate (must be >= 1).
 
       Note: This is more efficient than calling ``get_new_address``
       inside a loop.
+
+      If ``None``, this method will scan the Tangle to find the next
+      available unused address and return that.
 
     :return:
       List of generated addresses.

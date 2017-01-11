@@ -87,14 +87,15 @@ class PrivateKey(TryteString):
     """
     hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
-    digest = [0] * HASH_LENGTH
+    key_chunks = self.iter_chunks(FRAGMENT_LENGTH)
 
-    for (i, fragment) in enumerate(self.iter_chunks(FRAGMENT_LENGTH)): # type: Tuple[int, TryteString]
-      fragment_start  = i * FRAGMENT_LENGTH
-      fragment_end    = fragment_start + FRAGMENT_LENGTH
-      fragment_trits  = fragment[fragment_start:fragment_end].as_trits()
+    # The digest will contain one hash per key fragment.
+    digest = [0] * HASH_LENGTH * len(key_chunks)
 
-      key_fragment  = [0] * len(fragment_trits)
+    for (i, fragment) in enumerate(key_chunks): # type: Tuple[int, TryteString]
+      fragment_trits = fragment.as_trits()
+
+      key_fragment  = [0] * FRAGMENT_LENGTH
       hash_trits    = []
 
       for j in range(hashes_per_fragment):
@@ -112,6 +113,9 @@ class PrivateKey(TryteString):
       sponge = Curl()
       sponge.absorb(key_fragment)
       sponge.squeeze(hash_trits)
+
+      fragment_start  = i * FRAGMENT_LENGTH
+      fragment_end    = fragment_start + FRAGMENT_LENGTH
 
       digest[fragment_start:fragment_end] = hash_trits
 

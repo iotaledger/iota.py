@@ -7,9 +7,9 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash
+from iota.adapter import MockAdapter
 from iota.commands.core.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
-from test import MockAdapter
 
 
 class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):

@@ -7,10 +7,10 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, Iota, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.core.get_balances import GetBalancesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
@@ -33,7 +33,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_happy_path(self):
-    """Typical invocation of `getBalances`."""
+    """
+    Typical invocation of ``getBalances``.
+    """
     request = {
       'addresses': [
         Address(self.trytes1),
@@ -80,7 +82,7 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_threshold_optional(self):
     """
-    The incoming request does not contain a `threshold` value, so the
+    The incoming request does not contain a ``threshold`` value, so the
     default value is assumed.
     """
     request = {
@@ -100,7 +102,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_empty(self):
-    """The incoming request is empty."""
+    """
+    The incoming request is empty.
+    """
     self.assertFilterErrors(
       {},
 
@@ -110,7 +114,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """The incoming request contains unexpected parameters."""
+    """
+    The incoming request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'addresses': [Address(self.trytes1)],
@@ -126,7 +132,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_addresses_wrong_type(self):
-    """`addresses` is not an array."""
+    """
+    ``addresses`` is not an array.
+    """
     self.assertFilterErrors(
       {
         'addresses': Address(self.trytes1),
@@ -138,7 +146,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_addresses_empty(self):
-    """`addresses` is an array, but it's empty."""
+    """
+    ``addresses`` is an array, but it's empty.
+    """
     self.assertFilterErrors(
       {
         'addresses': [],
@@ -150,7 +160,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_addresses_contents_invalid(self):
-    """`addresses` is an array, but it contains invalid values."""
+    """
+    ``addresses`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'addresses': [
@@ -161,7 +173,7 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes2),
 
           2130706433,
@@ -181,7 +193,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_threshold_float(self):
-    """`threshold` is a float."""
+    """
+    `threshold` is a float.
+    """
     self.assertFilterErrors(
       {
         # Even with an empty fpart, floats are not accepted.
@@ -196,7 +210,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_threshold_string(self):
-    """`threshold` is a string."""
+    """
+    ``threshold`` is a string.
+    """
     self.assertFilterErrors(
       {
         'threshold': '86',
@@ -210,7 +226,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_threshold_too_small(self):
-    """`threshold` is less than 0."""
+    """
+    ``threshold`` is less than 0.
+    """
     self.assertFilterErrors(
       {
         'threshold': -1,
@@ -224,7 +242,9 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_threshold_too_big(self):
-    """`threshold` is greater than 100."""
+    """
+    ``threshold`` is greater than 100.
+    """
     self.assertFilterErrors(
       {
         'threshold': 101,

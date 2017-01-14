@@ -5,9 +5,9 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import StrictIota
+from iota.adapter import MockAdapter
 from iota.commands import CustomCommand
 from iota.commands.core.get_node_info import GetNodeInfoCommand
-from test import MockAdapter
 
 
 class CustomCommandTestCase(TestCase):
@@ -19,7 +19,9 @@ class CustomCommandTestCase(TestCase):
     self.command  = CustomCommand(self.adapter, self.name)
 
   def test_call(self):
-    """Sending a custom command."""
+    """
+    Sending a custom command.
+    """
     expected_response = {'message': 'Hello, IOTA!'}
 
     self.adapter.seed_response('helloWorld', expected_response)
@@ -35,7 +37,9 @@ class CustomCommandTestCase(TestCase):
     )
 
   def test_call_with_parameters(self):
-    """Sending a custom command with parameters."""
+    """
+    Sending a custom command with parameters.
+    """
     expected_response = {'message': 'Hello, IOTA!'}
 
     self.adapter.seed_response('helloWorld', expected_response)
@@ -51,7 +55,9 @@ class CustomCommandTestCase(TestCase):
     )
 
   def test_call_error_already_called(self):
-    """A command can only be called once."""
+    """
+    A command can only be called once.
+    """
     self.adapter.seed_response('helloWorld', {})
     self.command()
 
@@ -61,7 +67,9 @@ class CustomCommandTestCase(TestCase):
     self.assertDictEqual(self.command.request, {'command': 'helloWorld'})
 
   def test_call_reset(self):
-    """Resetting a command allows it to be called more than once."""
+    """
+    Resetting a command allows it to be called more than once.
+    """
     self.adapter.seed_response('helloWorld', {'message': 'Hello, IOTA!'})
     self.command()
 
@@ -97,19 +105,23 @@ class IotaApiTestCase(TestCase):
     self.assertIsInstance(api.adapter, MockAdapter)
 
   def test_registered_command(self):
-    """Preparing a documented command."""
+    """
+    Preparing a documented command.
+    """
     api = StrictIota(MockAdapter())
 
     # We just need to make sure the correct command type is
-    #   instantiated; individual commands have their own unit tests.
+    # instantiated; individual commands have their own unit tests.
     command = api.getNodeInfo
     self.assertIsInstance(command, GetNodeInfoCommand)
 
   def test_custom_command(self):
-    """Preparing an experimental/undocumented command."""
+    """
+    Preparing an experimental/undocumented command.
+    """
     api = StrictIota(MockAdapter())
 
     # We just need to make sure the correct command type is
-    #   instantiated; custom commands have their own unit tests.
+    # instantiated; custom commands have their own unit tests.
     command = api.helloWorld
     self.assertIsInstance(command, CustomCommand)

@@ -7,11 +7,11 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -28,7 +28,9 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_happy_path(self):
-    """The incoming request is valid."""
+    """
+    The incoming request is valid.
+    """
     request = {
       'trytes': [
         TryteString(self.trytes1),
@@ -44,7 +46,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
   def test_pass_compatible_types(self):
     """
     The incoming request contains values that can be converted into the
-      expected types.
+    expected types.
     """
     # Any values that can be converted into TryteStrings are accepted.
     filter_ = self._filter({
@@ -59,7 +61,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       # The values are converted into TryteStrings so that they can be
-      #   sent to the node.
+      # sent to the node.
       {
         'trytes': [
           TryteString(self.trytes1),
@@ -69,7 +71,9 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_empty(self):
-    """The incoming request is empty."""
+    """
+    The incoming request is empty.
+    """
     self.assertFilterErrors(
       {},
 
@@ -79,7 +83,9 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """The incoming value contains unexpected parameters."""
+    """
+    The incoming value contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'trytes': [TryteString(self.trytes1)],
@@ -94,7 +100,9 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_trytes_null(self):
-    """`trytes` is null."""
+    """
+    ``trytes`` is null.
+    """
     self.assertFilterErrors(
       {
         'trytes': None,
@@ -106,11 +114,13 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_trytes_wrong_type(self):
-    """`trytes` is not an array."""
+    """
+    ``trytes`` is not an array.
+    """
     self.assertFilterErrors(
       {
-        # `trytes` has to be an array, even if there's only one
-        #   TryteString.
+        # ``trytes`` has to be an array, even if there's only one
+        # TryteString.
         'trytes': TryteString(self.trytes1),
       },
 
@@ -120,7 +130,9 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_trytes_empty(self):
-    """`trytes` is an array, but it's empty."""
+    """
+    ``trytes`` is an array, but it's empty.
+    """
     self.assertFilterErrors(
       {
         'trytes': [],
@@ -132,7 +144,9 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_trytes_contents_invalid(self):
-    """`trytes` is an array, but it contains invalid values."""
+    """
+    ``trytes`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'trytes': [
@@ -143,7 +157,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes2),
 
           2130706433,
@@ -170,13 +184,15 @@ class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
     super(BroadcastTransactionsResponseFilterTestCase, self).setUp()
 
     # Define a few valid values here that we can reuse across multiple
-    #   tests.
+    # tests.
     self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
       b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_happy_path(self):
-    """The incoming response contains valid values."""
+    """
+    The incoming response contains valid values.
+    """
     # Responses from the node arrive as strings.
     filter_ = self._filter({
       'trytes': [

@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List
 
 import filters as f
-from iota import TryteString
+from iota import TransactionTrytes, TryteString
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.commands.core.get_transactions_to_approve import \
@@ -57,7 +57,10 @@ class SendTrytesRequestFilter(RequestFilter):
     super(SendTrytesRequestFilter, self).__init__({
       'depth': f.Required | f.Type(int) | f.Min(1),
 
-      'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+      'trytes':
+          f.Required
+        | f.Array
+        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionTrytes)),
 
       # Loosely-validated; testnet nodes require a different value than
       # mainnet.

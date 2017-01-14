@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash, TryteString
+from iota import Iota, TransactionHash, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
@@ -42,8 +42,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       'min_weight_magnitude': 20,
 
       'trytes':               [
-        TryteString(self.trytes1),
-        TryteString(self.trytes2),
+        TransactionTrytes(self.trytes1),
+        TransactionTrytes(self.trytes2),
       ],
     }
 
@@ -90,9 +90,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         'min_weight_magnitude': 30,
 
         'trytes':               [
-          TryteString(self.trytes1),
+          TransactionTrytes(self.trytes1),
 
-          TryteString(
+          TransactionTrytes(
             b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHD'
             b'WCTCEAKDCDFD9DSCSA99999999999999999999999',
           ),
@@ -359,6 +359,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
           TryteString(self.trytes2),
 
           2130706433,
+
+          b'9' * (TransactionTrytes.LEN + 1),
         ],
 
         'branch_transaction':   TransactionHash(self.txn_id),
@@ -373,6 +375,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         'trytes.3': [f.Required.CODE_EMPTY],
         'trytes.4': [Trytes.CODE_NOT_TRYTES],
         'trytes.6': [f.Type.CODE_WRONG_TYPE],
+        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -409,7 +412,6 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        # The filter converts them into TryteStrings.
         'trytes': [
           TryteString(self.trytes1),
           TryteString(self.trytes2),

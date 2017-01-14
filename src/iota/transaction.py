@@ -25,6 +25,7 @@ __all__ = [
   'ProposedTransaction',
   'Transaction',
   'TransactionHash',
+  'TransactionTrytes',
 ]
 
 def get_current_timestamp():
@@ -80,6 +81,29 @@ class Fragment(TryteString):
       )
 
 
+class TransactionTrytes(TryteString):
+  """
+  A TryteString representation of a Transaction.
+  """
+  LEN = 2673
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(TransactionTrytes, self).__init__(trytes, pad=self.LEN)
+
+    if len(self._trytes) > self.LEN:
+      raise with_context(
+        exc = ValueError('{cls} values must be {len} trytes long.'.format(
+          cls = type(self).__name__,
+          len = self.LEN
+        )),
+
+        context = {
+          'trytes': trytes,
+        },
+      )
+
+
 class Transaction(JsonSerializable):
   """
   A transaction that has been attached to the Tangle.
@@ -90,7 +114,7 @@ class Transaction(JsonSerializable):
     """
     Creates a Transaction object from a sequence of trytes.
     """
-    tryte_string = TryteString(trytes)
+    tryte_string = TransactionTrytes(trytes)
 
     hash_ = [0] * HASH_LENGTH # type: MutableSequence[int]
 
@@ -302,11 +326,11 @@ class Transaction(JsonSerializable):
     }
 
   def as_tryte_string(self):
-    # type: () -> TryteString
+    # type: () -> TransactionTrytes
     """
     Returns a TryteString representation of the transaction.
     """
-    return (
+    return TransactionTrytes(
         self.signature_message_fragment
       + self.address.address
       + self.value_as_trytes

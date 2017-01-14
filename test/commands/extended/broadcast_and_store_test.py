@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import BadApiResponse, Iota, TryteString
+from iota import BadApiResponse, Iota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 from six import text_type
@@ -44,8 +44,8 @@ class BroadcastAndStoreCommandTestCase(TestCase):
     self.adapter.seed_response('storeTransactions', {})
 
     trytes = [
-      TryteString(self.trytes1),
-      TryteString(self.trytes2),
+      TransactionTrytes(self.trytes1),
+      TransactionTrytes(self.trytes2),
     ]
 
     response = self.command(trytes=trytes)
@@ -77,7 +77,7 @@ class BroadcastAndStoreCommandTestCase(TestCase):
     })
 
     with self.assertRaises(BadApiResponse):
-      self.command(trytes=[TryteString(self.trytes1)])
+      self.command(trytes=[TransactionTrytes(self.trytes1)])
 
     # The command stopped after the first request failed.
     self.assertListEqual(
@@ -85,7 +85,7 @@ class BroadcastAndStoreCommandTestCase(TestCase):
 
       [{
         'command':  'broadcastTransactions',
-        'trytes':   [TryteString(self.trytes1)],
+        'trytes':   [TransactionTrytes(self.trytes1)],
       }],
     )
 
@@ -105,7 +105,7 @@ class BroadcastAndStoreCommandTestCase(TestCase):
     })
 
     with self.assertRaises(BadApiResponse):
-      self.command(trytes=[TryteString(self.trytes1)])
+      self.command(trytes=[TransactionTrytes(self.trytes1)])
 
     # The `broadcastTransactions` command was still executed; there is
     # no way to execute these commands atomically.
@@ -115,12 +115,12 @@ class BroadcastAndStoreCommandTestCase(TestCase):
       [
         {
           'command':  'broadcastTransactions',
-          'trytes':   [TryteString(self.trytes1)],
+          'trytes':   [TransactionTrytes(self.trytes1)],
         },
 
         {
           'command':  'storeTransactions',
-          'trytes':   [TryteString(self.trytes1)],
+          'trytes':   [TransactionTrytes(self.trytes1)],
         },
       ],
     )

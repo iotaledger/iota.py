@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TryteString
+from iota import Iota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
@@ -33,8 +33,8 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """
     request = {
       'trytes': [
-        TryteString(self.trytes1),
-        TryteString(self.trytes2),
+        TransactionTrytes(self.trytes1),
+        TransactionTrytes(self.trytes2),
       ],
     }
 
@@ -64,8 +64,8 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       # sent to the node.
       {
         'trytes': [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
+          TransactionTrytes(self.trytes1),
+          TransactionTrytes(self.trytes2),
         ],
       },
     )
@@ -161,6 +161,8 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
           TryteString(self.trytes2),
 
           2130706433,
+
+          b'9' * (TransactionTrytes.LEN + 1),
         ],
       },
 
@@ -171,6 +173,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
         'trytes.3': [f.Required.CODE_EMPTY],
         'trytes.4': [Trytes.CODE_NOT_TRYTES],
         'trytes.6': [f.Type.CODE_WRONG_TYPE],
+        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -203,7 +206,6 @@ class BroadcastTransactionsResponseFilterTestCase(BaseFilterTestCase):
 
     self.assertFilterPasses(filter_)
 
-    # The filter converts them into TryteStrings.
     self.assertDictEqual(
       filter_.cleaned_data,
 

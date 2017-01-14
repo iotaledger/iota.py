@@ -7,10 +7,10 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash
+from iota.adapter import MockAdapter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class GetBundlesRequestFilterTestCase(BaseFilterTestCase):

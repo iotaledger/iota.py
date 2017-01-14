@@ -7,11 +7,11 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, Iota, ProposedTransaction, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class SendTransferRequestFilterTestCase(BaseFilterTestCase):

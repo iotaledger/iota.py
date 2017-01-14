@@ -11,12 +11,12 @@ from mock import Mock, patch
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString
+from iota.adapter import MockAdapter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
 from six import PY2, binary_type, text_type
-from test import MockAdapter
 
 
 class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):

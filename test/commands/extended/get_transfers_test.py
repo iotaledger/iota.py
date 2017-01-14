@@ -10,11 +10,11 @@ from mock import Mock, patch
 from six import binary_type, text_type
 
 from iota import Address, Iota, Bundle, Tag, Transaction
+from iota.adapter import MockAdapter
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from test import MockAdapter
 
 
 class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
@@ -35,7 +35,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     request = {
       'seed':             Seed(self.seed),
       'start':            0,
-      'end':              10,
+      'stop':             10,
       'inclusion_states': True,
     }
 
@@ -56,7 +56,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
 
       # These values must still be integers/bools, however.
       'start':            42,
-      'end':              86,
+      'stop':             86,
       'inclusion_states': True,
     })
 
@@ -67,7 +67,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':             Seed(self.seed),
         'start':            42,
-        'end':              86,
+        'stop':             86,
         'inclusion_states': True,
       },
     )
@@ -87,7 +87,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':             Seed(self.seed),
         'start':            0,
-        'end':              None,
+        'stop':             None,
         'inclusion_states': False,
       }
     )
@@ -214,65 +214,65 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_end_string(self):
+  def test_fail_stop_string(self):
     """
-    ``end`` is a string.
+    ``stop`` is a string.
     """
     self.assertFilterErrors(
       {
         # Not valid; it must be an int.
-        'end': '0',
+        'stop': '0',
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Type.CODE_WRONG_TYPE],
+        'stop': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
-  def test_fail_end_float(self):
+  def test_fail_stop_float(self):
     """
-    ``end`` is a float.
+    ``stop`` is a float.
     """
     self.assertFilterErrors(
       {
         # Even with an empty fpart, floats are not valid.
         # It's gotta be an int.
-        'end': 8.0,
+        'stop': 8.0,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Type.CODE_WRONG_TYPE],
+        'stop': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
-  def test_fail_end_too_small(self):
+  def test_fail_stop_too_small(self):
     """
-    ``end`` is less than 0.
+    ``stop`` is less than 0.
     """
     self.assertFilterErrors(
       {
-        'end': -1,
+        'stop': -1,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Min.CODE_TOO_SMALL],
+        'stop': [f.Min.CODE_TOO_SMALL],
       },
     )
 
-  def test_fail_end_occurs_before_start(self):
+  def test_fail_stop_occurs_before_start(self):
     """
-    ``end`` is less than ``start``.
+    ``stop`` is less than ``start``.
     """
     self.assertFilterErrors(
       {
         'start':  1,
-        'end':    0,
+        'stop':   0,
 
         'seed': Seed(self.seed),
       },
@@ -284,18 +284,18 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_interval_too_large(self):
     """
-    ``end`` is way more than ``start``.
+    ``stop`` is way more than ``start``.
     """
     self.assertFilterErrors(
       {
         'start':  0,
-        'end':    GetTransfersRequestFilter.MAX_INTERVAL + 1,
+        'stop':   GetTransfersRequestFilter.MAX_INTERVAL + 1,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end':  [GetTransfersRequestFilter.CODE_INTERVAL_TOO_BIG],
+        'stop':  [GetTransfersRequestFilter.CODE_INTERVAL_TOO_BIG],
       },
     )
 
@@ -324,6 +324,19 @@ class GetTransfersCommandTestCase(TestCase):
     self.adapter = MockAdapter()
     self.command = GetTransfersCommand(self.adapter)
 
+    # Define some tryte sequences we can re-use between tests.
+    self.addy1 =\
+      Address(
+        b'TESTVALUEONE9DONTUSEINPRODUCTION99999YDZ'
+        b'E9TAFAJGJA9CECKDAEPHBICDR9LHFCOFRBQDHC9IG'
+      )
+
+    self.addy2 =\
+      Address(
+        b'TESTVALUETWO9DONTUSEINPRODUCTION99999TES'
+        b'GINEIDLEEHRAOGEBMDLENFDAFCHEIHZ9EBZDD9YHL'
+      )
+
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
@@ -337,25 +350,13 @@ class GetTransfersCommandTestCase(TestCase):
     """
     Scanning the Tangle for all transfers.
     """
-    addy1 =\
-      Address(
-        b'TESTVALUEONE9DONTUSEINPRODUCTION99999YDZ'
-        b'E9TAFAJGJA9CECKDAEPHBICDR9LHFCOFRBQDHC9IG'
-      )
-
-    addy2 =\
-      Address(
-        b'TESTVALUETWO9DONTUSEINPRODUCTION99999TES'
-        b'GINEIDLEEHRAOGEBMDLENFDAFCHEIHZ9EBZDD9YHL'
-      )
-
     # To speed up the test, we will mock the address generator.
     # :py:class:`iota.crypto.addresses.AddressGenerator` already has
     # its own test case, so this does not impact the stability of the
     # codebase.
     # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
-      for addy in [addy1, addy2][start::step]:
+      for addy in [self.addy1, self.addy2][start::step]:
         yield addy
 
     # The first address received IOTA.
@@ -397,7 +398,7 @@ class GetTransfersCommandTestCase(TestCase):
 
     bundle = Bundle([
       Transaction(
-        address = addy1,
+        address = self.addy1,
         timestamp = 1483033814,
 
         # These values are not relevant to the test.
@@ -436,26 +437,195 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
+  def test_no_transactions(self):
+    """
+    There are no transactions for the specified seed.
+    """
+    # To speed up the test, we will mock the address generator.
+    # :py:class:`iota.crypto.addresses.AddressGenerator` already has
+    # its own test case, so this does not impact the stability of the
+    # codebase.
+    # noinspection PyUnusedLocal
+    def create_generator(ag, start, step=1):
+      for addy in [self.addy1][start::step]:
+        yield addy
+
+    self.adapter.seed_response(
+      'findTransactions',
+
+      {
+        'duration': 1,
+        'hashes':   [],
+      },
+    )
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        create_generator,
+    ):
+      response = self.command(seed=Seed.random())
+
+    self.assertDictEqual(response, {'bundles': []})
+
   def test_start(self):
     """
     Scanning the Tangle for all transfers, with start index.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # noinspection PyUnusedLocal
+    def create_generator(ag, start, step=1):
+      # Inject an invalid value into the generator, to ensure it is
+      # skipped.
+      for addy in [None, self.addy1, self.addy2][start::step]:
+        yield addy
 
-  def test_end(self):
-    """
-    Scanning the Tangle for all transfers, with end index.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # The first address received IOTA.
+    self.adapter.seed_response(
+      'findTransactions',
 
-  def test_start_and_end(self):
+      {
+        'duration': 42,
+
+        'hashes': [
+          'TESTVALUEFIVE9DONTUSEINPRODUCTION99999VH'
+          'YHRHJETGYCAFZGABTEUBWCWAS9WF99UHBHRHLIOFJ',
+        ],
+      },
+    )
+
+    # The second address is unused.
+    self.adapter.seed_response(
+      'findTransactions',
+
+      {
+        'duration': 1,
+        'hashes':   [],
+      },
+    )
+
+    self.adapter.seed_response(
+      'getTrytes',
+
+      {
+        'duration': 99,
+        'trytes':   [''],
+      },
+    )
+
+    bundle = Bundle([
+      Transaction(
+        address = self.addy1,
+        timestamp = 1483033814,
+
+        # These values are not relevant to the test.
+        hash_ = None,
+        signature_message_fragment = None,
+        value = 42,
+        tag = Tag(b''),
+        current_index = 0,
+        last_index = 0,
+        bundle_hash = None,
+        trunk_transaction_hash = None,
+        branch_transaction_hash = None,
+        nonce = None,
+      )
+    ])
+
+    mock_get_bundles = Mock(return_value={
+      'bundles': [bundle],
+    })
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        create_generator,
+    ):
+      with patch(
+          'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
+          mock_get_bundles,
+      ):
+        response = self.command(seed=Seed.random(), start=1)
+
+    self.assertDictEqual(
+      response,
+
+      {
+        'bundles': [bundle],
+      },
+    )
+
+  def test_stop(self):
     """
-    Scanning the Tangle for all transfers, with start and end indices.
+    Scanning the Tangle for all transfers, with stop index.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # noinspection PyUnusedLocal
+    def create_generator(ag, start, step=1):
+      # Inject an invalid value into the generator, to ensure it is
+      # skipped.
+      for addy in [self.addy1, None][start::step]:
+        yield addy
+
+    # The first address received IOTA.
+    self.adapter.seed_response(
+      'findTransactions',
+
+      {
+        'duration': 42,
+
+        'hashes': [
+          'TESTVALUEFIVE9DONTUSEINPRODUCTION99999VH'
+          'YHRHJETGYCAFZGABTEUBWCWAS9WF99UHBHRHLIOFJ',
+        ],
+      },
+    )
+
+    self.adapter.seed_response(
+      'getTrytes',
+
+      {
+        'duration': 99,
+        'trytes':   [''],
+      },
+    )
+
+    bundle = Bundle([
+      Transaction(
+        address = self.addy1,
+        timestamp = 1483033814,
+
+        # These values are not relevant to the test.
+        hash_ = None,
+        signature_message_fragment = None,
+        value = 42,
+        tag = Tag(b''),
+        current_index = 0,
+        last_index = 0,
+        bundle_hash = None,
+        trunk_transaction_hash = None,
+        branch_transaction_hash = None,
+        nonce = None,
+      )
+    ])
+
+    mock_get_bundles = Mock(return_value={
+      'bundles': [bundle],
+    })
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        create_generator,
+    ):
+      with patch(
+          'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
+          mock_get_bundles,
+      ):
+        response = self.command(seed=Seed.random(), stop=1)
+
+    self.assertDictEqual(
+      response,
+
+      {
+        'bundles': [bundle],
+      },
+    )
 
   def test_get_inclusion_states(self):
     """

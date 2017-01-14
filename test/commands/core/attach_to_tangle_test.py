@@ -7,10 +7,10 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
@@ -22,7 +22,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     super(AttachToTangleRequestFilterTestCase, self).setUp()
 
     # Define a few valid values here that we can reuse across multiple
-    #   tests.
+    # tests.
     self.txn_id = (
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
       b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
@@ -64,8 +64,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       'branch_transaction':   bytearray(self.txn_id),
 
       'trytes': [
-        # `trytes` can contain any value that can be converted into a
-        #   TryteString.
+        # ``trytes`` can contain any value that can be converted into a
+        # TryteString.
         binary_type(self.trytes1),
 
         # This is probably wrong, but technically it's valid.
@@ -83,7 +83,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       # After running through the filter, all of the values have been
-      #   converted to the correct types.
+      # converted to the correct types.
       {
         'trunk_transaction':    TransactionHash(self.txn_id),
         'branch_transaction':   TransactionHash(self.txn_id),
@@ -116,7 +116,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """The incoming request contains unexpected parameters."""
+    """
+    The incoming request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'branch_transaction':   TransactionHash(self.txn_id),

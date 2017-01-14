@@ -7,12 +7,12 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, Iota
+from iota.adapter import MockAdapter
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from mock import patch
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):

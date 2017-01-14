@@ -7,11 +7,11 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, Iota, Tag, TransactionHash, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.core.find_transactions import FindTransactionsCommand, \
   FindTransactionsRequestFilter
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -29,7 +29,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     self.trytes3 = b'999999999999999999999999999'
 
   def test_pass_all_parameters(self):
-    """The request contains valid values for all parameters."""
+    """
+    The request contains valid values for all parameters.
+    """
     request = {
       'bundles': [
         TransactionHash(self.trytes1),
@@ -112,7 +114,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_bundles_only(self):
-    """The request only includes bundles."""
+    """
+    The request only includes bundles.
+    """
     request = {
       'bundles': [
         TransactionHash(self.trytes1),
@@ -139,7 +143,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_addresses_only(self):
-    """The request only includes addresses."""
+    """
+    The request only includes addresses.
+    """
     request = {
       'addresses': [
         Address(self.trytes1),
@@ -166,7 +172,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_tags_only(self):
-    """The request only includes tags."""
+    """
+    The request only includes tags.
+    """
     request = {
       'tags': [
         Tag(self.trytes1),
@@ -193,7 +201,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_approvees_only(self):
-    """The request only includes approvees."""
+    """
+    The request only includes approvees.
+    """
     request = {
       'approvees': [
         TransactionHash(self.trytes1),
@@ -220,7 +230,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_empty(self):
-    """The request does not contain any parameters."""
+    """
+    The request does not contain any parameters.
+    """
     self.assertFilterErrors(
       {},
 
@@ -230,7 +242,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_all_parameters_empty(self):
-    """The request contains all parameters, but every one is empty."""
+    """
+    The request contains all parameters, but every one is empty.
+    """
     self.assertFilterErrors(
       {
         'addresses':  [],
@@ -245,7 +259,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """The request contains unexpected parameters."""
+    """
+    The request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'addresses':  [Address(self.trytes1)],
@@ -263,7 +279,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_bundles_wrong_type(self):
-    """`bundles` is not an array."""
+    """
+    ``bundles`` is not an array.
+    """
     self.assertFilterErrors(
       {
         'bundles': TransactionHash(self.trytes1),
@@ -275,7 +293,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_bundles_contents_invalid(self):
-    """`bundles` is an array, but it contains invalid values."""
+    """
+    ``bundles`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'bundles': [
@@ -286,7 +306,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes2),
 
           2130706433,
@@ -306,7 +326,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_addresses_wrong_type(self):
-    """`addresses` is not an array."""
+    """
+    ``addresses`` is not an array.
+    """
     self.assertFilterErrors(
       {
         'addresses':  Address(self.trytes1),
@@ -318,7 +340,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_addresses_contents_invalid(self):
-    """`addresses` is an array, but it contains invalid values."""
+    """
+    ``addresses`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'addresses': [
@@ -329,7 +353,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes2),
 
           2130706433,
@@ -349,7 +373,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_tags_wrong_type(self):
-    """`tags` is not an array."""
+    """
+    ``tags`` is not an array.
+    """
     self.assertFilterErrors(
       {
         'tags':  Tag(self.trytes1),
@@ -361,7 +387,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_tags_contents_invalid(self):
-    """`tags` is an array, but it contains invalid values."""
+    """
+    ``tags`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'tags': [
@@ -372,7 +400,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes1),
 
           2130706433,
@@ -392,7 +420,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_approvees_wrong_type(self):
-    """`approvees` is not an array."""
+    """
+    ``approvees`` is not an array.
+    """
     self.assertFilterErrors(
       {
         'approvees': TransactionHash(self.trytes1),
@@ -404,7 +434,9 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_approvees_contents_invalid(self):
-    """`approvees` is an array, but it contains invalid values."""
+    """
+    ``approvees`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'approvees': [
@@ -415,7 +447,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes2),
 
           2130706433,
@@ -444,13 +476,15 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
     super(FindTransactionsResponseFilterTestCase, self).setUp()
 
     # Define a few valid values here that we can reuse across multiple
-    #   tests.
+    # tests.
     self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
       b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_no_results(self):
-    """The incoming response contains no hashes."""
+    """
+    The incoming response contains no hashes.
+    """
     response = {
       'hashes':   [],
       'duration': 42,
@@ -463,7 +497,9 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
 
   # noinspection SpellCheckingInspection
   def test_search_results(self):
-    """The incoming response contains lots of hashes."""
+    """
+    The incoming response contains lots of hashes.
+    """
     filter_ = self._filter({
       'hashes': [
         'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFW'

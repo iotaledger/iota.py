@@ -7,10 +7,10 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import BadApiResponse, Iota, TransactionHash, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
 from six import text_type, binary_type
-from test import MockAdapter
 
 
 class SendTrytesRequestFilterTestCase(BaseFilterTestCase):

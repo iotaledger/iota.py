@@ -489,7 +489,7 @@ class Iota(StrictIota):
     """
     return self.getNewAddresses(seed=self.seed, index=index, count=count)
 
-  def get_transfers(self, start=0, end=None, inclusion_states=False):
+  def get_transfers(self, start=0, stop=None, inclusion_states=False):
     # type: (int, Optional[int], bool) -> dict
     """
     Returns all transfers associated with the seed.
@@ -497,14 +497,14 @@ class Iota(StrictIota):
     :param start:
       Starting key index.
 
-    :param end:
+    :param stop:
       Stop before this index.
       Note that this parameter behaves like the ``stop`` attribute in a
-      :py:class:`slice` object; the end index is _not_ included in the
+      :py:class:`slice` object; the stop index is _not_ included in the
       result.
 
-      If not specified, then this method will not stop until it finds
-      an unused address.
+      If ``None`` (default), then this method will check every address
+      until it finds one without any transfers.
 
     :param inclusion_states:
       Whether to also fetch the inclusion states of the transfers.
@@ -526,7 +526,7 @@ class Iota(StrictIota):
     return self.getTransfers(
       seed              = self.seed,
       start             = start,
-      end               = end,
+      stop              = stop,
       inclusion_states  = inclusion_states,
     )
 

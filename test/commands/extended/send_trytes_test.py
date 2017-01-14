@@ -6,7 +6,8 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import BadApiResponse, Iota, TransactionHash, TryteString
+from iota import BadApiResponse, Iota, TransactionHash, TransactionTrytes, \
+  TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
@@ -35,8 +36,10 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       'depth':                100,
       'min_weight_magnitude': 18,
 
-      'trytes':
-        [TryteString(self.trytes1), TryteString(self.trytes2)],
+      'trytes': [
+        TransactionTrytes(self.trytes1),
+        TransactionTrytes(self.trytes2),
+      ],
     }
 
     filter_ = self._filter(request)
@@ -69,8 +72,10 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         'depth':                100,
         'min_weight_magnitude': 18,
 
-        'trytes':
-          [TryteString(self.trytes1), TryteString(self.trytes2)],
+        'trytes': [
+          TransactionTrytes(self.trytes1),
+          TransactionTrytes(self.trytes2),
+        ],
       },
     )
 
@@ -318,6 +323,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
           TryteString(self.trytes1),
 
           2130706433,
+
+          b'9' * (TransactionTrytes.LEN + 1),
         ],
 
         'depth':                100,
@@ -325,12 +332,13 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       },
 
       {
-        'trytes.0':  [f.Required.CODE_EMPTY],
-        'trytes.1':  [f.Type.CODE_WRONG_TYPE],
-        'trytes.2':  [f.Type.CODE_WRONG_TYPE],
-        'trytes.3':  [f.Required.CODE_EMPTY],
-        'trytes.4':  [Trytes.CODE_NOT_TRYTES],
-        'trytes.6':  [f.Type.CODE_WRONG_TYPE],
+        'trytes.0': [f.Required.CODE_EMPTY],
+        'trytes.1': [f.Type.CODE_WRONG_TYPE],
+        'trytes.2': [f.Type.CODE_WRONG_TYPE],
+        'trytes.3': [f.Required.CODE_EMPTY],
+        'trytes.4': [Trytes.CODE_NOT_TRYTES],
+        'trytes.6': [f.Type.CODE_WRONG_TYPE],
+        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -394,8 +402,8 @@ class SendTrytesCommandTestCase(TestCase):
 
     response = self.command(
       trytes = [
-        TryteString(self.trytes1),
-        TryteString(self.trytes2),
+        TransactionTrytes(self.trytes1),
+        TransactionTrytes(self.trytes2),
       ],
 
       depth = 100,
@@ -421,8 +429,8 @@ class SendTrytesCommandTestCase(TestCase):
           'min_weight_magnitude': 18,
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
 
@@ -430,8 +438,8 @@ class SendTrytesCommandTestCase(TestCase):
           'command': 'broadcastTransactions',
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
 
@@ -439,8 +447,8 @@ class SendTrytesCommandTestCase(TestCase):
           'command': 'storeTransactions',
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
       ],
@@ -494,8 +502,8 @@ class SendTrytesCommandTestCase(TestCase):
     with self.assertRaises(BadApiResponse):
       self.command(
         trytes = [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
+          TransactionTrytes(self.trytes1),
+          TransactionTrytes(self.trytes2),
         ],
 
         depth = 100,
@@ -521,8 +529,8 @@ class SendTrytesCommandTestCase(TestCase):
           'min_weight_magnitude': 18,
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
       ],
@@ -551,8 +559,8 @@ class SendTrytesCommandTestCase(TestCase):
     with self.assertRaises(BadApiResponse):
       self.command(
         trytes = [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
+          TransactionTrytes(self.trytes1),
+          TransactionTrytes(self.trytes2),
         ],
 
         depth = 100,
@@ -578,8 +586,8 @@ class SendTrytesCommandTestCase(TestCase):
           'min_weight_magnitude': 18,
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
 
@@ -587,8 +595,8 @@ class SendTrytesCommandTestCase(TestCase):
           'command': 'broadcastTransactions',
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
       ],
@@ -624,8 +632,8 @@ class SendTrytesCommandTestCase(TestCase):
     with self.assertRaises(BadApiResponse):
       self.command(
         trytes = [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
+          TransactionTrytes(self.trytes1),
+          TransactionTrytes(self.trytes2),
         ],
 
         depth = 100,
@@ -649,8 +657,8 @@ class SendTrytesCommandTestCase(TestCase):
           'min_weight_magnitude': 18,
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
 
@@ -658,8 +666,8 @@ class SendTrytesCommandTestCase(TestCase):
           'command': 'broadcastTransactions',
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
 
@@ -667,8 +675,8 @@ class SendTrytesCommandTestCase(TestCase):
           'command': 'storeTransactions',
 
           'trytes': [
-            TryteString(self.trytes1),
-            TryteString(self.trytes2),
+            TransactionTrytes(self.trytes1),
+            TransactionTrytes(self.trytes2),
           ],
         },
       ],

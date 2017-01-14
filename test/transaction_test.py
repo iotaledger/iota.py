@@ -1198,22 +1198,6 @@ class TransactionTestCase(TestCase):
       ),
     )
 
-  def test_from_tryte_string_error_too_short(self):
-    """
-    Attempting to create a Transaction from a TryteString that is too
-    short.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
-
-  def test_from_tryte_string_error_too_long(self):
-    """
-    Attempting to create a Transaction from a TryteString that is too
-    long.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
-
   # noinspection SpellCheckingInspection
   def test_as_tryte_string(self):
     """

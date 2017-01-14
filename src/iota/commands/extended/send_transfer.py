@@ -39,7 +39,7 @@ class SendTransferCommand(FilterCommand):
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]
 
-    prepared_trytes = PrepareTransferCommand(self.adapter)(
+    pt_response = PrepareTransferCommand(self.adapter)(
       change_address  = change_address,
       inputs          = inputs,
       seed            = seed,
@@ -49,7 +49,7 @@ class SendTransferCommand(FilterCommand):
     sent_trytes = SendTrytesCommand(self.adapter)(
       depth                 = depth,
       min_weight_magnitude  = min_weight_magnitude,
-      trytes                = prepared_trytes,
+      trytes                = pt_response['trytes'],
     )
 
     return Bundle.from_tryte_strings(sent_trytes)

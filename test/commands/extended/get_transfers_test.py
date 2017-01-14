@@ -6,15 +6,14 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock, patch
-from six import binary_type, text_type
-
-from iota import Address, Iota, Bundle, Tag, Transaction
+from iota import Address, Iota, Bundle, Tag, Transaction, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from mock import Mock, patch
+from six import binary_type, text_type
 
 
 class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
@@ -631,5 +630,114 @@ class GetTransfersCommandTestCase(TestCase):
     """
     Fetching inclusion states with transactions.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # noinspection PyUnusedLocal
+    def create_generator(ag, start, step=1):
+      for addy in [self.addy1][start::step]:
+        yield addy
+
+    # The first address received IOTA.
+    self.adapter.seed_response(
+      'findTransactions',
+
+      {
+        'duration': 42,
+
+        'hashes': [
+          'TESTVALUEFIVE9DONTUSEINPRODUCTION99999VH'
+          'YHRHJETGYCAFZGABTEUBWCWAS9WF99UHBHRHLIOFJ',
+        ],
+      },
+    )
+
+    # For this test, we have to generate a real TryteString.
+    transaction_trytes =\
+      TryteString(
+        b'KMYUMNEUAYODAQSNGWTAERRRHNZBZCOLMVVOBTVWLOFYCJKYMGRAMH9RQ9MTZOSZMH'
+        b'QNZFHFEJEDFQ99HSUNVOTULDJGXEDULS9ZHABVDZODJUMCNWVCPNSCUVKVYWCEXBHW'
+        b'RBZBSWFPQLWZWMUPGQIGAEGOVE9DDXBVCIPKQYCFZFBELTSMVFSIXLPTACTKAFMCTK'
+        b'CPYD9BWDJMLKWAOBDSJNQYAHS9GFIQKZCROLFZJVUEIVXVNBRRLEIWTYVHURUXHSCG'
+        b'DKEIEGPOCXKCYWIBUG9ABYCALYJVFLBNGMS9ARHGTQXBZFLENXCJVKHPVKD9KSAEOL'
+        b'FFVAJCNKLDVHOCDARWUNKARDYMVKFKRSMUTYOUXSBFFYTKRREBDJZTLVUROQFCBXQN'
+        b'SXDDYTZTEBRSXOBMLXHJKSJAVOOVCXATOWNQDWHT9CCUAAJUJKDOQLMAEZACSNFKXZ'
+        b'IGWDQEUEFRZYAOSDNVMSXWYLVDAUXZSHNHAIBEMNPFUGORYUETNJK9UCEMSUJYBBDK'
+        b'BHIPKEINQCGOVYCPKUPJMUCUVZOJSIWYRFMFXYUVSMOUALAQBWIMXBUBXSAETGKJRP'
+        b'AHVAXHQJDMEVSRFYEXUSIEBKMGYCUKFD9JPGUV9AIYUVCRUURKMYUHMVE9OJCYYWTQ'
+        b'WUWFMTBZYFXASHHVCMSWXKBRQFHHQVEQMEULJRWZKLWFFSGGKEHUZZFNDNITSRAUH9'
+        b'PQK9OGLYMVBSHXQLLZHOBBIM9KVUWDLHZRDKQQVLQXGWYXEEVQPDZUO9PVXMALOMRQ'
+        b'VCTHGIZLILSCFKTBRESYZGBZKHXEODNDJZ9GK9ROWYXNGFHZCCBHHZEYEOGWXRGSUD'
+        b'SUZFUAUBXVXZHCUVJSYBWTCYCEDYKZNGWFZYKSQLW9FUYMWDVXKZEWT9SCVMQCODZK'
+        b'DRNKTINTPNOJOLGQJDAJMFWRFSWZJLYZGSTSIDSXLUJBZRZNLEDNBKAUNGTCYUPDRW'
+        b'JOCEBQ9YG9IZLLRMJITISJOTLQMOGXVQIZXHMTJVMMWM9FOIOT9KFZMANEPOEOV9HX'
+        b'JNEGURUKRWDGYNPVGAWMWQVABIJNL9MDXKONEPMYACOZ9BE9UZMAFTKYWPFWIQWAPK'
+        b'GUXQTOQVWYYVZYGQDLBIQDVOZIWGOMGOBAUARICQZVNXD9UVEFBBAJKQBHRHXTBUOW'
+        b'VBFKYQWZWTMMXVKZRIZUBVPQ9XHLJHFHWFZUIZVSNAKBDHDFGJCYQETOMEDTOXIUT9'
+        b'OAJVIHWAGTCNPEZTERMMN9EZEWSJHKQAUMXPBZTNQOEQCVXIMAAYO9NIUFLTCFIMK9'
+        b'9AFAGWJFA9VOFPUDJLRAMORGSUDBLWWKXEDZ9XPQUZSGANGESHKKGGQSGSYDCRLHZD'
+        b'PKA9HKYBKLKKCXYRQQIPXCFETJJDZYPCLUNHGBKEJDRCIHEXKCQQNOV9QFHLGFXOCR'
+        b'HPAFCUTPMY9NOZVQHROYJSCMGRSVMOBWADAZNFIAHWGIQUUZBOVODSFAUNRTXSDU9W'
+        b'EIRBXQNRSJXFRAQGHA9DYOQJGLVZUJKAQ9CTUOTT9ZKQOQNNLJDUPDXZJYPRCVLRZT'
+        b'UCZPNBREYCCKHK9FUWGITAJATFPUOFLZDHPNJYUTXFGNYJOBRD9BVHKZENFXIUYDTL'
+        b'CE9JYIIYMXMCXMWTHOLTQFKFHDLVPGMQNITEUXSYLAQULCZOJVBIPYP9M9X9QCNKBX'
+        b'W9DVJEQFFY9KQVMKNVTAHQVRXUKEM9FZOJLHAGEECZBUHOQFZOSPRXKZOCCKAOHMSV'
+        b'QCFG9CWAHKVWNA9QTLYQI9NKOSHWJCNGPJBLEQPUIWJBIOAWKLBXUCERTSL9FVCLYN'
+        b'ADPYTPKJOIEMAQGWBVGSRCZINXEJODUDCT9FHOUMQM9ZHRMBJYSOMPNMEAJGEHICJI'
+        b'PVXRKCYX9RZVT9TDZIMXGZJAIYJRGIVMSOICSUINRBQILMJOUQYXCYNJ9WGGJFHYTU'
+        b'LWOIPUXXFNTIFNOJRZFSQQNAWBQZOLHHLVGHEPWTKKQEVIPVWZUN9ZBICZ9DZZBVII'
+        b'BF9EPHARZJUFJGBQXQFQIBUECAWRSEKYJNYKNSVBCOWTFBZ9NAHFSAMRBPEYGPRGKW'
+        b'WTWACZOAPEOECUO9OTMGABJVAIICIPXGSXACVINSYEQFTRCQPCEJXZCY9XZWVWVJRZ'
+        b'CYEYNFUUBKPWCHICGJZXKE9GSUDXZYUAPLHAKAHYHDXNPHENTERYMMBQOPSQIDENXK'
+        b'LKCEYCPVTZQLEEJVYJZV9BWU999999999999999999999999999FFL999999999999'
+        b'9999999999999RJQGVD99999999999A99999999USGBXHGJUEWAUAKNPPRHJXDDMQV'
+        b'YDSYZJSDWFYLOQVFGBOSLE9KHFDLDYHUYTXVSFAFCOCLQUHJXTEIQRNBTLHEGJFGVF'
+        b'DJCE9IKAOCSYHLCLWPVVNWNESKLYAJG9FGGZOFXCEYOTWLVIJUHGY9QCU9FMZJY999'
+        b'9999HYBUYQKKRNAVDPVGYBTVDZ9SVQBLCCVLJTPEQWWOIG9CQZIFQKCROH9YHUCNJT'
+        b'SYPBVZVBNESX999999D9TARGPQTNIYRZURQGVHCAWEDRBJIIEJIUZYENVE9LLJQMXH'
+        b'GSUUYUCPSOWBCXVFDCHHAZUDC9LUODYWO'
+      )
+
+    self.adapter.seed_response(
+      'getTrytes',
+
+      {
+        'duration': 99,
+        'trytes':   [binary_type(transaction_trytes)],
+      },
+    )
+
+    transaction = Transaction.from_tryte_string(transaction_trytes)
+
+    mock_get_bundles = Mock(return_value={
+      'bundles': [Bundle([transaction])],
+    })
+
+    mock_get_latest_inclusion = Mock(return_value={
+      'states': {
+        transaction.hash: True,
+      },
+    })
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        create_generator,
+    ):
+      with patch(
+          'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
+          mock_get_bundles,
+      ):
+        with patch(
+          'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand._execute',
+          mock_get_latest_inclusion,
+        ):
+          response = self.command(
+            seed = Seed.random(),
+
+            inclusion_states = True,
+
+            # To keep the test focused, only retrieve a single
+            # transaction.
+            start = 0,
+            stop  = 1,
+          )
+
+    bundle = response['bundles'][0] # type: Bundle
+    self.assertTrue(bundle[0].is_confirmed)

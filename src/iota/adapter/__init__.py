@@ -12,13 +12,21 @@ import requests
 from iota import DEFAULT_PORT
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
-from six import with_metaclass
+from six import PY2, binary_type, with_metaclass
 
 __all__ = [
   'AdapterSpec',
   'BadApiResponse',
   'InvalidUri',
 ]
+
+if PY2:
+  # Fix an error when importing this package using the ``imp`` library
+  # (note: ``imp`` is deprecated since Python 3.4 in favor of
+  # ``importlib``).
+  # https://docs.python.org/3/library/imp.html
+  # https://travis-ci.org/iotaledger/iota.lib.py/jobs/191974244
+  __all__ = map(binary_type, __all__)
 
 
 # Custom types for type hints and docstrings.

@@ -14,6 +14,10 @@ __all__ = [
 
 
 class BaseWrapper(with_metaclass(ABCMeta)):
+  """
+  Base functionality for "adapter wrappers", used to extend the
+  functionality of IOTA adapters.
+  """
   def __init__(self, adapter):
     # type: (AdapterSpec) -> None
     super(BaseWrapper, self).__init__()

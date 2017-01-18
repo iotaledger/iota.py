@@ -6,6 +6,8 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from mock import Mock
+
 from iota import Iota, TransactionHash, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_latest_inclusion import \
@@ -178,11 +180,31 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetLatestInclusionCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetLatestInclusionCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
     self.command = GetLatestInclusionCommand(self.adapter)
+
+    # Define some tryte sequences that we can re-use across tests.
+    self.milestone =\
+      TransactionHash(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999W9KDIH'
+        b'BALAYAFCADIDU9HCXDKIXEYDNFRAKHN9IEIDZFWGJ'
+      )
+
+    self.hash1 =\
+      TransactionHash(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999TBPDM9'
+        b'ADFAWCKCSFUALFGETFIFG9UHIEFE9AYESEHDUBDDF'
+      )
+
+    self.hash2 =\
+      TransactionHash(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999CIGCCF'
+        b'KIUFZF9EP9YEYGQAIEXDTEAAUGAEWBBASHYCWBHDX'
+      )
 
   def test_wireup(self):
     """
@@ -197,5 +219,26 @@ class GetLatestInclusionCommandTestCase(TestCase):
     """
     Successfully requesting latest inclusion state.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response('getNodeInfo', {
+        # ``getNodeInfo`` returns lots of info, but the only value that
+        # matters for this test is ``latestSolidSubtangleMilestone``.
+        'latestSolidSubtangleMilestone': self.milestone,
+      },
+    )
+
+    self.adapter.seed_response('getInclusionStates', {
+      'states': [True, False],
+    })
+
+    response = self.command(hashes=[self.hash1, self.hash2])
+
+    self.assertDictEqual(
+      response,
+
+      {
+        'states': {
+          self.hash1: True,
+          self.hash2: False,
+        },
+      }
+    )

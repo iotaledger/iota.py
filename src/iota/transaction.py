@@ -443,7 +443,9 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     # type: (Optional[Iterable[Transaction]]) -> None
     super(Bundle, self).__init__()
 
-    self.transactions = transactions or [] # type: List[Transaction]
+    self.transactions = [] # type: List[Transaction]
+    if transactions:
+      self.transactions.extend(transactions)
 
     self._is_confirmed = None # type: Optional[bool]
     """

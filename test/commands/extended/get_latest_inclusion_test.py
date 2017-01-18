@@ -6,14 +6,13 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock
+from six import binary_type, text_type
 
 from iota import Iota, TransactionHash, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_latest_inclusion import \
   GetLatestInclusionCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):

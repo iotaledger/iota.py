@@ -46,13 +46,15 @@ class SendTransferCommand(FilterCommand):
       transfers       = transfers,
     )
 
-    sent_trytes = SendTrytesCommand(self.adapter)(
+    st_response = SendTrytesCommand(self.adapter)(
       depth                 = depth,
       min_weight_magnitude  = min_weight_magnitude,
       trytes                = pt_response['trytes'],
     )
 
-    return Bundle.from_tryte_strings(sent_trytes)
+    return {
+      'bundle': Bundle.from_tryte_strings(st_response['trytes']),
+    }
 
 
 class SendTransferRequestFilter(RequestFilter):

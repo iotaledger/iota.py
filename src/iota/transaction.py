@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from calendar import timegm as unix_timestamp
 from datetime import datetime
+from operator import attrgetter
 from typing import Generator, Iterable, Iterator, List, MutableSequence, \
   Optional, Sequence, Text, Tuple
 
@@ -445,7 +446,9 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
 
     self.transactions = [] # type: List[Transaction]
     if transactions:
-      self.transactions.extend(transactions)
+      self.transactions.extend(
+        sorted(transactions, key=attrgetter('current_index'))
+      )
 
     self._is_confirmed = None # type: Optional[bool]
     """
@@ -519,6 +522,21 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     Returns the tail transaction of the bundle.
     """
     return self[0]
+
+  def as_tryte_strings(self, head_to_tail=True):
+    # type: (bool) -> List[TransactionTrytes]
+    """
+    Returns TryteString representations of the transactions in this
+    bundle.
+
+    :param head_to_tail:
+      Determines the order of the transactions:
+
+      - ``True`` (default): head txn first, tail txn last.
+      - ``False``: tail txn first, head txn last.
+    """
+    transactions = reversed(self) if head_to_tail else self
+    return [t.as_tryte_string() for t in transactions]
 
   def as_json_compatible(self):
     # type: () -> List[dict]

@@ -36,15 +36,19 @@ class ReplayBundleCommand(FilterCommand):
     min_weight_magnitude  = request['min_weight_magnitude'] # type: int
     transaction           = request['transaction'] # type: TransactionHash
 
-    bundles = GetBundlesCommand(self.adapter)(transaction=transaction) # type: List[Bundle]
+    gb_response = GetBundlesCommand(self.adapter)(transaction=transaction)
+
+    # Note that we only replay the first bundle returned by
+    # ``getBundles``.
+    bundle = gb_response['bundles'][0] # type: Bundle
 
     return SendTrytesCommand(self.adapter)(
       depth                 = depth,
       min_weight_magnitude  = min_weight_magnitude,
 
-      trytes = list(reversed(b.as_tryte_string() for b in bundles)),
-    )
 
+      trytes = bundle.as_tryte_strings(head_to_tail=True),
+    )
 
 
 class ReplayBundleRequestFilter(RequestFilter):

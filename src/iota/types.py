@@ -409,9 +409,9 @@ class TryteString(JsonSerializable):
 
     :param errors:
       How to handle trytes that can't be converted:
-        - 'strict':   raise an exception.
+        - 'strict':   raise an exception (recommended).
         - 'replace':  replace with '?'.
-        - 'ignore':   omit the tryte from the byte string.
+        - 'ignore':   omit the tryte from the result.
 
     :raise:
       - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
@@ -420,8 +420,8 @@ class TryteString(JsonSerializable):
     # :bc: In Python 2, `decode` does not accept keyword arguments.
     return decode(self._trytes, 'trytes', errors)
 
-  def as_string(self, errors='strict'):
-    # type: (Text) -> Text
+  def as_string(self, errors='strict', strip_padding=True):
+    # type: (Text, bool) -> Text
     """
     Attempts to interpret the TryteString as a UTF-8 encoded Unicode
     string.
@@ -429,9 +429,12 @@ class TryteString(JsonSerializable):
     :param errors:
       How to handle trytes that can't be converted, or bytes that can't
       be decoded using UTF-8:
-        - 'strict':   raise an exception.
+        - 'strict':   raise an exception (recommended).
         - 'replace':  replace with a placeholder character.
         - 'ignore':   omit the invalid tryte/byte sequence.
+
+    :param strip_padding:
+      Whether to strip trailing null trytes before converting.
 
     :raise:
       - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
@@ -439,7 +442,14 @@ class TryteString(JsonSerializable):
       - :py:class:`UnicodeDecodeError` if the resulting bytes cannot be
         decoded using UTF-8.
     """
-    return self.as_bytes(errors).decode('utf-8', errors)
+    trytes = self._trytes
+    if strip_padding and (trytes[-1] == ord(b'9')):
+      trytes = trytes.rstrip(b'9')
+
+      # Put one back to preserve even length.
+      trytes += b'9' * (len(trytes) % 2)
+
+    return decode(trytes, 'trytes', errors).decode('utf-8', errors)
 
   def as_json_compatible(self):
     # type: () -> Text

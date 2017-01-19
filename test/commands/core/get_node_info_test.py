@@ -7,8 +7,8 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash
+from iota.adapter import MockAdapter
 from iota.commands.core.get_node_info import GetNodeInfoCommand
-from test import MockAdapter
 
 
 class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
@@ -16,7 +16,9 @@ class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
   skip_value_check = True
 
   def test_pass_empty(self):
-    """The incoming response is (correctly) empty."""
+    """
+    The incoming response is (correctly) empty.
+    """
     request = {}
 
     filter_ = self._filter(request)
@@ -25,7 +27,9 @@ class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_fail_unexpected_parameters(self):
-    """The incoming response contains unexpected parameters."""
+    """
+    The incoming response contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         # All you had to do was nothing!  How did you screw that up?!
@@ -44,7 +48,9 @@ class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
 
   # noinspection SpellCheckingInspection
   def test_pass_happy_path(self):
-    """The incoming response contains valid values."""
+    """
+    The incoming response contains valid values.
+    """
     response = {
       'appName': 'IRI',
       'appVersion': '1.0.8.nu',

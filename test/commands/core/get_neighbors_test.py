@@ -7,8 +7,8 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota
+from iota.adapter import MockAdapter
 from iota.commands.core.get_neighbors import GetNeighborsCommand
-from test import MockAdapter
 
 
 class GetNeighborsRequestFilterTestCase(BaseFilterTestCase):
@@ -16,14 +16,18 @@ class GetNeighborsRequestFilterTestCase(BaseFilterTestCase):
   skip_value_check = True
 
   def test_pass_empty(self):
-    """The request is (correctly) empty."""
+    """
+    The request is (correctly) empty.
+    """
     filter_ = self._filter({})
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, {})
 
   def test_fail_unexpected_parameters(self):
-    """The request contains unexpected parameters."""
+    """
+    The request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         # Fool of a Took!

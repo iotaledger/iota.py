@@ -11,13 +11,12 @@ from mock import Mock, patch
 from six import BytesIO, text_type as text
 
 from iota import BadApiResponse, DEFAULT_PORT, InvalidUri, TryteString
-from iota.adapter import HttpAdapter, resolve_adapter
-from test import MockAdapter
+from iota.adapter import HttpAdapter, MockAdapter, resolve_adapter
 
 
 class ResolveAdapterTestCase(TestCase):
   """
-  Unit tests for the `resolve_adapter` function.
+  Unit tests for :py:func:`resolve_adapter`.
   """
   def test_adapter_instance(self):
     """
@@ -342,11 +341,11 @@ class HttpAdapterTestCase(TestCase):
     """
     Creates a Response object for a test.
     """
-    # :see: requests.adapters.HTTPAdapter.build_response
+    # :py:meth:`requests.adapters.HTTPAdapter.build_response`
     response = requests.Response()
 
     # Response status is always 200, even for an error.
-    # :see: https://github.com/iotaledger/iri/issues/9
+    # https://github.com/iotaledger/iri/issues/9
     response.status_code = 200
 
     response.encoding = 'utf-8'

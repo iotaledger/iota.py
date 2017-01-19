@@ -2,13 +2,12 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Text, Union
+from typing import Text
 
 import filters as f
-from six import binary_type, text_type
-
 from iota import Address, TryteString, TrytesCompatible
 from iota.adapter import resolve_adapter, InvalidUri
+from six import binary_type, text_type
 
 
 class GeneratedAddress(f.BaseFilter):
@@ -129,5 +128,5 @@ class Trytes(f.BaseFilter):
 
         template_vars = {
           'result_type': self.result_type.__name__,
-        }
+        },
       )

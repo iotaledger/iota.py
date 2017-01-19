@@ -7,9 +7,9 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota
+from iota.adapter import MockAdapter
 from iota.commands.core.interrupt_attaching_to_tangle import \
   InterruptAttachingToTangleCommand
-from test import MockAdapter
 
 
 class InterruptAttachingToTangleRequestFilterTestCase(BaseFilterTestCase):
@@ -24,7 +24,9 @@ class InterruptAttachingToTangleRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(filter_.cleaned_data, {})
 
   def test_fail_unexpected_parameters(self):
-    """The request contains unexpected parameters."""
+    """
+    The request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         # You're tearing me apart Lisa!

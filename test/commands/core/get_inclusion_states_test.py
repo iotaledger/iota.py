@@ -7,10 +7,10 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.core.get_inclusion_states import GetInclusionStatesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
@@ -32,7 +32,9 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_happy_path(self):
-    """Typical `getInclusionStates` request."""
+    """
+    Typical ``getInclusionStates`` request.
+    """
     request = {
       'transactions': [
         TransactionHash(self.trytes1),
@@ -53,10 +55,35 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, request)
 
+  def test_pass_optional_parameters_omitted(self):
+    """
+    The request omits optional parameters.
+    """
+    filter_ = self._filter({
+      'transactions': [
+        TransactionHash(self.trytes1),
+        TransactionHash(self.trytes2),
+      ],
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'tips': [],
+
+        'transactions': [
+          TransactionHash(self.trytes1),
+          TransactionHash(self.trytes2),
+        ],
+      },
+    )
+
   def test_pass_compatible_types(self):
     """
     The request contains values that can be converted to expected
-      types.
+    types.
     """
     filter_ = self._filter({
       'transactions': [
@@ -88,22 +115,24 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_empty(self):
-    """The incoming request is empty."""
+    """
+    The incoming request is empty.
+    """
     self.assertFilterErrors(
       {},
 
       {
         'transactions': [f.FilterMapper.CODE_MISSING_KEY],
-        'tips':         [f.FilterMapper.CODE_MISSING_KEY],
       },
     )
 
   def test_fail_unexpected_parameters(self):
-    """The incoming request contains unexpected parameters."""
+    """
+    The incoming request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'transactions': [TransactionHash(self.trytes1)],
-        'tips':         [TransactionHash(self.trytes2)],
 
         # I bring scientists, you bring a rock star.
         'foo': 'bar',
@@ -115,12 +144,12 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_transactions_null(self):
-    """`transactions` is null."""
+    """
+    ``transactions`` is null.
+    """
     self.assertFilterErrors(
       {
         'transactions': None,
-
-        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -129,14 +158,14 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_transactions_wrong_type(self):
-    """`transactions` is not an array."""
+    """
+    ``transactions`` is not an array.
+    """
     self.assertFilterErrors(
       {
         # Has to be an array, even if we're only querying for one
         # transaction.
         'transactions': TransactionHash(self.trytes1),
-
-        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -145,12 +174,12 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_transactions_empty(self):
-    """`transactions` is an array, but it is empty."""
+    """
+    ``transactions`` is an array, but it is empty.
+    """
     self.assertFilterErrors(
       {
         'transactions': [],
-
-        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -159,7 +188,10 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_transactions_contents_invalid(self):
-    """`transactions` is an array, but it contains invalid values."""
+    """
+    ``transactions`` is a non-empty array, but it contains invalid
+    values.
+    """
     self.assertFilterErrors(
       {
         'transactions': [
@@ -170,14 +202,12 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes1),
 
           2130706433,
           b'9' * 82,
         ],
-
-        'tips': [TransactionHash(self.trytes2)],
       },
 
       {
@@ -191,22 +221,10 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_tips_null(self):
-    """`tips` is null"""
-    self.assertFilterErrors(
-      {
-        'tips': None,
-
-        'transactions': [TransactionHash(self.trytes1)],
-      },
-
-      {
-        'tips': [f.Required.CODE_EMPTY],
-      },
-    )
-
   def test_fail_tips_wrong_type(self):
-    """`tips` is not an array."""
+    """
+    ``tips`` is not an array.
+    """
     self.assertFilterErrors(
       {
         'tips': TransactionHash(self.trytes2),
@@ -219,22 +237,10 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_tips_empty(self):
-    """`tips` is an array, but it is empty."""
-    self.assertFilterErrors(
-      {
-        'tips': [],
-
-        'transactions': [TransactionHash(self.trytes1)],
-      },
-
-      {
-        'tips': [f.Required.CODE_EMPTY],
-      },
-    )
-
   def test_fail_tips_contents_invalid(self):
-    """`tips` is an array, but it contains invalid values."""
+    """
+    ``tips`` contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'tips': [
@@ -245,7 +251,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes1),
 
           2130706433,

@@ -7,8 +7,8 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, Iota
+from iota.adapter import MockAdapter
 from iota.commands.core.get_tips import GetTipsCommand
-from test import MockAdapter
 
 
 class GetTipsRequestFilterTestCase(BaseFilterTestCase):
@@ -16,7 +16,9 @@ class GetTipsRequestFilterTestCase(BaseFilterTestCase):
   skip_value_check = True
 
   def test_pass_empty(self):
-    """The incoming response is (correctly) empty."""
+    """
+    The incoming response is (correctly) empty.
+    """
     request = {}
 
     filter_ = self._filter(request)
@@ -25,7 +27,9 @@ class GetTipsRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_fail_unexpected_parameters(self):
-    """The incoming response contains unexpected parameters."""
+    """
+    The incoming response contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         # All you had to do was nothing!  How did you screw that up?!
@@ -44,7 +48,9 @@ class GetTipsResponseFilterTestCase(BaseFilterTestCase):
 
   # noinspection SpellCheckingInspection
   def test_pass_lots_of_hashes(self):
-    """The response contains lots of hashes."""
+    """
+    The response contains lots of hashes.
+    """
     response = {
       'hashes':  [
         'YVXJOEOP9JEPRQUVBPJMB9MGIB9OMTIJJLIUYPM9'
@@ -89,7 +95,9 @@ class GetTipsResponseFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_no_hashes(self):
-    """The response doesn't contain any hashes."""
+    """
+    The response doesn't contain any hashes.
+    """
     response = {
       'hashes':   [],
       'duration': 4,

@@ -30,16 +30,24 @@ class GetInclusionStatesCommand(FilterCommand):
 
 class GetInclusionStatesRequestFilter(RequestFilter):
   def __init__(self):
-    super(GetInclusionStatesRequestFilter, self).__init__({
-      'transactions': (
-          f.Required
-        | f.Array
-        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
-      ),
+    super(GetInclusionStatesRequestFilter, self).__init__(
+      {
+        # Required parameters.
+        'transactions': (
+            f.Required
+          | f.Array
+          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+        ),
 
-      'tips': (
-          f.Required
-        | f.Array
-        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
-      ),
-    })
+        # Optional parameters.
+        'tips': (
+            f.Array
+          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+          | f.Optional(default=[])
+        ),
+      },
+
+      allow_missing_keys = {
+        'tips',
+      },
+    )

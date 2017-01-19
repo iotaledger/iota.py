@@ -7,9 +7,9 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota
+from iota.adapter import MockAdapter
 from iota.commands.core.remove_neighbors import RemoveNeighborsCommand
 from iota.filters import NodeUri
-from test import MockAdapter
 
 
 class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
@@ -17,7 +17,9 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
   skip_value_check = True
 
   def test_pass_valid_request(self):
-    """The incoming request is valid."""
+    """
+    The incoming request is valid.
+    """
     request = {
       'uris': [
         'udp://node1.iotatoken.com',
@@ -31,7 +33,9 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_fail_empty(self):
-    """The incoming request is empty."""
+    """
+    The incoming request is empty.
+    """
     self.assertFilterErrors(
       {},
 
@@ -41,7 +45,9 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """The incoming request contains unexpected parameters."""
+    """
+    The incoming request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'uris': ['udp://localhost'],
@@ -56,7 +62,9 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_neighbors_null(self):
-    """`uris` is null."""
+    """
+    ``uris`` is null.
+    """
     self.assertFilterErrors(
       {
         'uris': None,
@@ -68,11 +76,13 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_uris_wrong_type(self):
-    """`uris` is not an array."""
+    """
+    ``uris`` is not an array.
+    """
     self.assertFilterErrors(
       {
         # Nope; it's gotta be an array, even if you only want to add
-        #   a single neighbor.
+        # a single neighbor.
         'uris': 'http://localhost:8080/'
       },
 
@@ -82,7 +92,9 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_uris_empty(self):
-    """`uris` is an array, but it's empty."""
+    """
+    ``uris`` is an array, but it's empty.
+    """
     self.assertFilterErrors(
       {
         # Insert "Forever Alone" meme here.
@@ -96,12 +108,12 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_uris_contents_invalid(self):
     """
-    `uris` is an array, but it contains invalid values.
+    ``uris`` is an array, but it contains invalid values.
     """
     self.assertFilterErrors(
       {
         # When I said it has to be an array before, I meant an array of
-        #   strings!
+        # strings!
         'uris': [
           '',
           False,
@@ -110,7 +122,7 @@ class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
           'not a valid uri',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           'udp://localhost',
 
           2130706433,

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-
+from iota import TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -30,7 +30,10 @@ class BroadcastTransactionsCommand(FilterCommand):
 class BroadcastTransactionsRequestFilter(RequestFilter):
   def __init__(self):
     super(BroadcastTransactionsRequestFilter, self).__init__({
-      'trytes': f.Required | f.Array | f.FilterRepeater(f.Required | Trytes),
+      'trytes':
+          f.Required
+        | f.Array
+        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionTrytes)),
     })
 
 

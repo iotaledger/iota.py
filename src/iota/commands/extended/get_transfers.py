@@ -36,7 +36,7 @@ class GetTransfersCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    end               = request['end'] # type: Optional[int]
+    stop              = request['stop'] # type: Optional[int]
     inclusion_states  = request['inclusion_states'] # type: bool
     seed              = request['seed'] # type: Seed
     start             = request['start'] # type: int
@@ -46,7 +46,7 @@ class GetTransfersCommand(FilterCommand):
 
     # Determine the addresses we will be scanning, and pull their
     # transaction hashes.
-    if end is None:
+    if stop is None:
       # This is similar to the ``getNewAddresses`` command, except it
       # is interested in all the addresses that `getNewAddresses`
       # skips.
@@ -63,55 +63,56 @@ class GetTransfersCommand(FilterCommand):
         ft_command.reset()
     else:
       ft_response =\
-        ft_command(addresses=generator.get_addresses(start, end - start))
+        ft_command(addresses=generator.get_addresses(start, stop - start))
 
       hashes = ft_response.get('hashes') or []
 
-    # Sort transactions into tail and non-tail.
-    tails     = set()
-    non_tails = set()
-
-    gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
-    transactions = list(map(
-      Transaction.from_tryte_string,
-      gt_response['trytes'],
-    ))
-
-    for txn in transactions:
-      if txn.is_tail:
-        tails.add(txn.hash)
-      else:
-        # Capture the bundle ID instead of the transaction hash so that
-        # we can query the node to find the tail transaction for that
-        # bundle.
-        non_tails.add(txn.bundle_hash)
-
-    if non_tails:
-      for txn in self._find_transactions(bundles=non_tails):
-        if txn.is_tail:
-          tails.add(txn.hash)
-
-    # Attach inclusion states, if requested.
-    if inclusion_states:
-      gli_response = GetLatestInclusionCommand(self.adapter)(
-        hashes = tails,
-      )
-
-      for txn in transactions:
-        txn.is_confirmed = gli_response['states'].get(txn.hash)
-
     all_bundles = [] # type: List[Bundle]
 
-    # Find the bundles for each transaction.
-    for txn in transactions:
-      gb_response = GetBundlesCommand(self.adapter)(transaction=txn.hash)
-      txn_bundles = gb_response['bundles'] # type: List[Bundle]
+    if hashes:
+      # Sort transactions into tail and non-tail.
+      tails     = set()
+      non_tails = set()
 
+      gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
+      transactions = list(map(
+        Transaction.from_tryte_string,
+        gt_response['trytes'],
+      ))
+
+      for txn in transactions:
+        if txn.is_tail:
+          tails.add(txn.hash)
+        else:
+          # Capture the bundle ID instead of the transaction hash so that
+          # we can query the node to find the tail transaction for that
+          # bundle.
+          non_tails.add(txn.bundle_hash)
+
+      if non_tails:
+        for txn in self._find_transactions(bundles=non_tails):
+          if txn.is_tail:
+            tails.add(txn.hash)
+
+      # Attach inclusion states, if requested.
       if inclusion_states:
-        for bundle in txn_bundles:
-          bundle.is_confirmed = txn.is_confirmed
+        gli_response = GetLatestInclusionCommand(self.adapter)(
+          hashes = list(tails),
+        )
 
-      all_bundles.extend(txn_bundles)
+        for txn in transactions:
+          txn.is_confirmed = gli_response['states'].get(txn.hash)
+
+      # Find the bundles for each transaction.
+      for txn in transactions:
+        gb_response = GetBundlesCommand(self.adapter)(transaction=txn.hash)
+        txn_bundles = gb_response['bundles'] # type: List[Bundle]
+
+        if inclusion_states:
+          for bundle in txn_bundles:
+            bundle.is_confirmed = txn.is_confirmed
+
+        all_bundles.extend(txn_bundles)
 
     return {
       # Sort bundles by tail transaction timestamp.
@@ -150,8 +151,8 @@ class GetTransfersRequestFilter(RequestFilter):
   CODE_INTERVAL_TOO_BIG = 'interval_too_big'
 
   templates = {
-    CODE_INTERVAL_INVALID: '``start`` must be <= ``end``',
-    CODE_INTERVAL_TOO_BIG: '``end`` - ``start`` must be <= {max_interval}',
+    CODE_INTERVAL_INVALID: '``start`` must be <= ``stop``',
+    CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
   }
 
   def __init__(self):
@@ -161,14 +162,14 @@ class GetTransfersRequestFilter(RequestFilter):
         'seed': f.Required | Trytes(result_type=Seed),
 
         # Optional parameters.
-        'end':    f.Type(int) | f.Min(0),
+        'stop':   f.Type(int) | f.Min(0),
         'start':  f.Type(int) | f.Min(0) | f.Optional(0),
 
         'inclusion_states': f.Type(bool) | f.Optional(False),
       },
 
       allow_missing_keys = {
-        'end',
+        'stop',
         'inclusion_states',
         'start',
       },
@@ -181,8 +182,8 @@ class GetTransfersRequestFilter(RequestFilter):
     if self._has_errors:
       return filtered
 
-    if filtered['end'] is not None:
-      if filtered['start'] > filtered['end']:
+    if filtered['stop'] is not None:
+      if filtered['start'] > filtered['stop']:
         filtered['start'] = self._invalid_value(
           value   = filtered['start'],
           reason  = self.CODE_INTERVAL_INVALID,
@@ -190,18 +191,18 @@ class GetTransfersRequestFilter(RequestFilter):
 
           context = {
             'start':  filtered['start'],
-            'end':    filtered['end'],
+            'stop':   filtered['stop'],
           },
         )
-      elif (filtered['end'] - filtered['start']) > self.MAX_INTERVAL:
-        filtered['end'] = self._invalid_value(
-          value   = filtered['end'],
+      elif (filtered['stop'] - filtered['start']) > self.MAX_INTERVAL:
+        filtered['stop'] = self._invalid_value(
+          value   = filtered['stop'],
           reason  = self.CODE_INTERVAL_TOO_BIG,
-          sub_key = 'end',
+          sub_key = 'stop',
 
           context = {
             'start':  filtered['start'],
-            'end':    filtered['end'],
+            'stop':   filtered['stop'],
           },
 
           template_vars = {

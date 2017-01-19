@@ -7,10 +7,10 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash, TryteString
+from iota.adapter import MockAdapter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
-from test import MockAdapter
 
 
 class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
@@ -34,7 +34,9 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_pass_happy_path(self):
-    """The request is valid."""
+    """
+    The request is valid.
+    """
     request = {
       'hashes': [
         TransactionHash(self.trytes1),
@@ -74,7 +76,9 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_empty(self):
-    """The request is empty."""
+    """
+    The request is empty.
+    """
     self.assertFilterErrors(
       {},
 
@@ -84,7 +88,9 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_unexpected_parameters(self):
-    """The request contains unexpected parameters."""
+    """
+    The request contains unexpected parameters.
+    """
     self.assertFilterErrors(
       {
         'hashes': [TransactionHash(self.trytes1)],
@@ -99,7 +105,9 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_hashes_null(self):
-    """`hashes` is null."""
+    """
+    ``hashes`` is null.
+    """
     self.assertFilterErrors(
       {
         'hashes': None,
@@ -111,10 +119,12 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_hashes_wrong_type(self):
-    """`hashes` is not an array."""
+    """
+    ``hashes`` is not an array.
+    """
     self.assertFilterErrors(
       {
-        # `hashes` must be an array, even if we're only querying
+        # ``hashes`` must be an array, even if we're only querying
         # against a single transaction.
         'hashes': TransactionHash(self.trytes1),
       },
@@ -125,7 +135,9 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_hashes_empty(self):
-    """`hashes` is an array, but it is empty."""
+    """
+    ``hashes`` is an array, but it is empty.
+    """
     self.assertFilterErrors(
       {
         'hashes': [],
@@ -137,7 +149,9 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     )
 
   def test_fail_hashes_contents_invalid(self):
-    """`hashes` is an array, but it contains invalid values."""
+    """
+    ``hashes`` is an array, but it contains invalid values.
+    """
     self.assertFilterErrors(
       {
         'hashes': [
@@ -148,7 +162,7 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
           b'not valid trytes',
 
           # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
+          # filter isn't cheating!
           TryteString(self.trytes1),
 
           2130706433,
@@ -183,7 +197,9 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
       b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_transactions(self):
-    """The response contains data for multiple transactions."""
+    """
+    The response contains data for multiple transactions.
+    """
     filter_ = self._filter({
       'trytes': [
         # In real life, these values would be a lot longer, but for the
@@ -210,7 +226,9 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
     )
 
   def test_pass_no_transactions(self):
-    """The response does not contain any transactions."""
+    """
+    The response does not contain any transactions.
+    """
     response = {
       'trytes': [],
       'duration': 42,

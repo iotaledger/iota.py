@@ -30,8 +30,8 @@ class AttachToTangleCommand(FilterCommand):
 class AttachToTangleRequestFilter(RequestFilter):
   def __init__(self):
     super(AttachToTangleRequestFilter, self).__init__({
-      'branch_transaction': f.Required | Trytes(result_type=TransactionHash),
-      'trunk_transaction':  f.Required | Trytes(result_type=TransactionHash),
+      'branchTransaction': f.Required | Trytes(result_type=TransactionHash),
+      'trunkTransaction':  f.Required | Trytes(result_type=TransactionHash),
 
       'trytes':
           f.Required
@@ -40,7 +40,7 @@ class AttachToTangleRequestFilter(RequestFilter):
 
       # Loosely-validated; testnet nodes require a different value than
       # mainnet.
-      'min_weight_magnitude': f.Required| f.Type(int) | f.Min(1),
+      'minWeightMagnitude': f.Required| f.Type(int) | f.Min(1),
     })
 
 

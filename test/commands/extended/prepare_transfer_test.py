@@ -75,7 +75,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'change_address': Address(self.trytes1),
+      'changeAddress':  Address(self.trytes1),
       'seed':           Seed(self.trytes2),
       'transfers':      [self.transfer1, self.transfer2],
 
@@ -98,7 +98,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # Any TrytesCompatible value works here.
-      'change_address': binary_type(self.trytes1),
+      'changeAddress':  binary_type(self.trytes1),
       'seed':           bytearray(self.trytes2),
 
       # These have to be :py:class:`Address` instances, so that we can
@@ -117,7 +117,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'change_address': Address(self.trytes1),
+        'changeAddress':  Address(self.trytes1),
         'seed':           Seed(self.trytes2),
         'transfers':      [self.transfer1, self.transfer2],
 
@@ -146,7 +146,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         'transfers':  [self.transfer1],
 
         # These parameters are set to their default values.
-        'change_address': None,
+        'changeAddress':  None,
         'inputs':         None,
       },
     )
@@ -300,11 +300,11 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_change_address_wrong_type(self):
     """
-    ``change_address`` is not a TrytesCompatible value.
+    ``changeAddress`` is not a TrytesCompatible value.
     """
     self.assertFilterErrors(
       {
-        'change_address': text_type(self.trytes3, 'ascii'),
+        'changeAddress':  text_type(self.trytes3, 'ascii'),
 
         'seed': Seed(self.trytes1),
 
@@ -314,17 +314,17 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       },
 
       {
-        'change_address': [f.Type.CODE_WRONG_TYPE],
+        'changeAddress':  [f.Type.CODE_WRONG_TYPE],
       },
     )
 
   def test_fail_change_address_not_trytes(self):
     """
-    ``change_address`` contains invalid characters.
+    ``changeAddress`` contains invalid characters.
     """
     self.assertFilterErrors(
       {
-        'change_address': b'not valid; must contain only uppercase and "9"',
+        'changeAddress':  b'not valid; must contain only uppercase and "9"',
 
         'seed': Seed(self.trytes1),
 
@@ -334,7 +334,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       },
 
       {
-        'change_address': [Trytes.CODE_NOT_TRYTES],
+        'changeAddress':  [Trytes.CODE_NOT_TRYTES],
       },
     )
 
@@ -1119,7 +1119,7 @@ class PrepareTransferCommandTestCase(TestCase):
           ),
         ],
 
-        change_address =
+        changeAddress =
           Address(
             b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
             b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
@@ -1951,7 +1951,7 @@ class PrepareTransferCommandTestCase(TestCase):
             ),
           ],
 
-          change_address =
+          changeAddress =
             Address(
               b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
               b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',

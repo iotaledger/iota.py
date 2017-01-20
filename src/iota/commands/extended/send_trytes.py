@@ -34,22 +34,29 @@ class SendTrytesCommand(FilterCommand):
 
   def _execute(self, request):
     depth                 = request['depth'] # type: int
-    min_weight_magnitude  = request['min_weight_magnitude'] # type: int
+    min_weight_magnitude  = request['minWeightMagnitude'] # type: int
     trytes                = request['trytes'] # type: List[TryteString]
 
     # Call ``getTransactionsToApprove`` to locate trunk and branch
     # transactions so that we can attach the bundle to the Tangle.
     gta_response = GetTransactionsToApproveCommand(self.adapter)(depth=depth)
 
-    AttachToTangleCommand(self.adapter)(
-      branch_transaction  = gta_response.get('branchTransaction'),
-      trunk_transaction   = gta_response.get('trunkTransaction'),
+    att_response = AttachToTangleCommand(self.adapter)(
+      branchTransaction   = gta_response.get('branchTransaction'),
+      trunkTransaction    = gta_response.get('trunkTransaction'),
 
-      min_weight_magnitude  = min_weight_magnitude,
-      trytes                = trytes,
+      minWeightMagnitude  = min_weight_magnitude,
+      trytes              = trytes,
     )
 
-    return BroadcastAndStoreCommand(self.adapter)(trytes=request['trytes'])
+    # ``trytes`` now have POW!
+    trytes = att_response['trytes']
+
+    BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
+
+    return {
+      'trytes': trytes,
+    }
 
 
 class SendTrytesRequestFilter(RequestFilter):
@@ -64,5 +71,5 @@ class SendTrytesRequestFilter(RequestFilter):
 
       # Loosely-validated; testnet nodes require a different value than
       # mainnet.
-      'min_weight_magnitude': f.Required | f.Type(int) | f.Min(1),
+      'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
     })

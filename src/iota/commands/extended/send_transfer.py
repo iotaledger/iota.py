@@ -32,24 +32,24 @@ class SendTransferCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    change_address        = request['change_address'] # type: Optional[Address]
+    change_address        = request['changeAddress'] # type: Optional[Address]
     depth                 = request['depth'] # type: int
     inputs                = request['inputs'] or [] # type: List[Address]
-    min_weight_magnitude  = request['min_weight_magnitude'] # type: int
+    min_weight_magnitude  = request['minWeightMagnitude'] # type: int
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]
 
     pt_response = PrepareTransferCommand(self.adapter)(
-      change_address  = change_address,
+      changeAddress   = change_address,
       inputs          = inputs,
       seed            = seed,
       transfers       = transfers,
     )
 
     st_response = SendTrytesCommand(self.adapter)(
-      depth                 = depth,
-      min_weight_magnitude  = min_weight_magnitude,
-      trytes                = pt_response['trytes'],
+      depth               = depth,
+      minWeightMagnitude  = min_weight_magnitude,
+      trytes              = pt_response['trytes'],
     )
 
     return {
@@ -67,7 +67,7 @@ class SendTransferRequestFilter(RequestFilter):
 
         # Loosely-validated; testnet nodes require a different value
         # than mainnet.
-        'min_weight_magnitude': f.Required | f.Type(int) | f.Min(1),
+        'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
 
         'transfers': (
             f.Required
@@ -76,7 +76,7 @@ class SendTransferRequestFilter(RequestFilter):
         ),
 
         # Optional parameters.
-        'change_address': Trytes(result_type=Address),
+        'changeAddress': Trytes(result_type=Address),
 
 
         # Note that ``inputs`` is allowed to be an empty array.
@@ -85,7 +85,7 @@ class SendTransferRequestFilter(RequestFilter):
       },
 
       allow_missing_keys = {
-        'change_address',
+        'changeAddress',
         'inputs',
       },
     )

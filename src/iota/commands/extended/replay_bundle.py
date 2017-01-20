@@ -33,7 +33,7 @@ class ReplayBundleCommand(FilterCommand):
 
   def _execute(self, request):
     depth                 = request['depth'] # type: int
-    min_weight_magnitude  = request['min_weight_magnitude'] # type: int
+    min_weight_magnitude  = request['minWeightMagnitude'] # type: int
     transaction           = request['transaction'] # type: TransactionHash
 
     gb_response = GetBundlesCommand(self.adapter)(transaction=transaction)
@@ -43,8 +43,8 @@ class ReplayBundleCommand(FilterCommand):
     bundle = gb_response['bundles'][0] # type: Bundle
 
     return SendTrytesCommand(self.adapter)(
-      depth                 = depth,
-      min_weight_magnitude  = min_weight_magnitude,
+      depth               = depth,
+      minWeightMagnitude  = min_weight_magnitude,
 
 
       trytes = bundle.as_tryte_strings(head_to_tail=True),
@@ -59,5 +59,5 @@ class ReplayBundleRequestFilter(RequestFilter):
 
       # Loosely-validated; testnet nodes require a different value than
       # mainnet.
-      'min_weight_magnitude': f.Required | f.Type(int) | f.Min(1),
+      'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
     })

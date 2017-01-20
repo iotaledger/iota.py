@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-class BaseWrapper(with_metaclass(ABCMeta)):
+class BaseWrapper(with_metaclass(ABCMeta, BaseAdapter)):
   """
   Base functionality for "adapter wrappers", used to extend the
   functionality of IOTA adapters.

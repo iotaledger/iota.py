@@ -49,7 +49,14 @@ class SendTrytesCommand(FilterCommand):
       trytes              = trytes,
     )
 
-    return BroadcastAndStoreCommand(self.adapter)(trytes=request['trytes'])
+    # ``trytes`` now have POW!
+    trytes = request['trytes']
+
+    BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
+
+    return {
+      'trytes': trytes,
+    }
 
 
 class SendTrytesRequestFilter(RequestFilter):

@@ -413,8 +413,8 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
 
       {
         'trytes': [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
+          TransactionTrytes(self.trytes1),
+          TransactionTrytes(self.trytes2),
         ],
 
         'duration': 42,

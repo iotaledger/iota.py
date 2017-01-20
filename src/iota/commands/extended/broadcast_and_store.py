@@ -28,4 +28,7 @@ class BroadcastAndStoreCommand(FilterCommand):
 
   def _execute(self, request):
     BroadcastTransactionsCommand(self.adapter)(**request)
-    return StoreTransactionsCommand(self.adapter)(**request)
+    StoreTransactionsCommand(self.adapter)(**request)
+    return {
+      'trytes': request['trytes'],
+    }

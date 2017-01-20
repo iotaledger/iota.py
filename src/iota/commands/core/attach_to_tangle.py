@@ -47,5 +47,9 @@ class AttachToTangleRequestFilter(RequestFilter):
 class AttachToTangleResponseFilter(ResponseFilter):
   def __init__(self):
     super(AttachToTangleResponseFilter, self).__init__({
-      'trytes': f.FilterRepeater(f.ByteString(encoding='ascii') | Trytes),
+      'trytes':
+        f.FilterRepeater(
+            f.ByteString(encoding='ascii')
+          | Trytes(result_type=TransactionTrytes)
+        ),
     })

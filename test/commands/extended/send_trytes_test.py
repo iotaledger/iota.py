@@ -391,23 +391,18 @@ class SendTrytesCommandTestCase(TestCase):
       ],
     })
 
-    self.adapter.seed_response('broadcastTransactions', {
-      'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
-      ],
-    })
-
+    self.adapter.seed_response('broadcastTransactions', {})
     self.adapter.seed_response('storeTransactions', {})
 
-    response = self.command(
-      trytes = [
-        TransactionTrytes(self.trytes1),
-        TransactionTrytes(self.trytes2),
-      ],
+    trytes = [
+      TransactionTrytes(self.trytes1),
+      TransactionTrytes(self.trytes2),
+    ]
 
-      depth = 100,
-      minWeightMagnitude = 18,
+    response = self.command(
+      trytes              = trytes,
+      depth               = 100,
+      minWeightMagnitude  = 18,
     )
 
-    self.assertDictEqual(response, {})
+    self.assertDictEqual(response, {'trytes': trytes})

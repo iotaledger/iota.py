@@ -41,7 +41,7 @@ class PrepareTransferCommand(FilterCommand):
     bundle    = ProposedBundle(request['transfers'])
 
     # Optional parameters.
-    change_address  = request.get('change_address') # type: Optional[Address]
+    change_address  = request.get('changeAddress') # type: Optional[Address]
     proposed_inputs = request.get('inputs') # type: Optional[List[Address]]
 
     want_to_spend = bundle.balance
@@ -131,7 +131,7 @@ class PrepareTransferRequestFilter(RequestFilter):
         ),
 
         # Optional parameters.
-        'change_address': Trytes(result_type=Address),
+        'changeAddress': Trytes(result_type=Address),
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
@@ -139,7 +139,7 @@ class PrepareTransferRequestFilter(RequestFilter):
       },
 
       allow_missing_keys = {
-        'change_address',
+        'changeAddress',
         'inputs',
       },
     )

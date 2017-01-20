@@ -6,12 +6,12 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import BadApiResponse, Iota, TransactionHash, TransactionTrytes, \
-  TryteString
+from six import text_type, binary_type
+
+from iota import Iota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
-from six import text_type, binary_type
 
 
 class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
@@ -33,8 +33,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'depth':                100,
-      'min_weight_magnitude': 18,
+      'depth':              100,
+      'minWeightMagnitude': 18,
 
       'trytes': [
         TransactionTrytes(self.trytes1),
@@ -60,8 +60,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       ],
 
       # These still have to be ints, however.
-      'depth':                100,
-      'min_weight_magnitude': 18,
+      'depth':              100,
+      'minWeightMagnitude': 18,
     })
 
     self.assertFilterPasses(filter_)
@@ -69,8 +69,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'depth':                100,
-        'min_weight_magnitude': 18,
+        'depth':              100,
+        'minWeightMagnitude': 18,
 
         'trytes': [
           TransactionTrytes(self.trytes1),
@@ -87,9 +87,9 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {},
 
       {
-        'depth':                [f.FilterMapper.CODE_MISSING_KEY],
-        'min_weight_magnitude': [f.FilterMapper.CODE_MISSING_KEY],
-        'trytes':               [f.FilterMapper.CODE_MISSING_KEY],
+        'depth':              [f.FilterMapper.CODE_MISSING_KEY],
+        'minWeightMagnitude': [f.FilterMapper.CODE_MISSING_KEY],
+        'trytes':             [f.FilterMapper.CODE_MISSING_KEY],
       },
     )
 
@@ -99,9 +99,9 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':                100,
-        'min_weight_magnitude': 18,
-        'trytes':               [TryteString(self.trytes1)],
+        'depth':              100,
+        'minWeightMagnitude': 18,
+        'trytes':             [TryteString(self.trytes1)],
 
         # Oh, bother.
         'foo': 'bar',
@@ -120,8 +120,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': None,
 
-        'min_weight_magnitude': 18,
-        'trytes':               [TryteString(self.trytes1)],
+        'minWeightMagnitude': 18,
+        'trytes':             [TryteString(self.trytes1)],
       },
 
       {
@@ -138,8 +138,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # Too ambiguous; it's gotta be an int.
         'depth': '4',
 
-        'min_weight_magnitude': 18,
-        'trytes':               [TryteString(self.trytes1)],
+        'minWeightMagnitude': 18,
+        'trytes':             [TryteString(self.trytes1)],
       },
 
       {
@@ -156,8 +156,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, float value is not valid.
         'depth': 8.0,
 
-        'min_weight_magnitude': 18,
-        'trytes':               [TryteString(self.trytes1)],
+        'minWeightMagnitude': 18,
+        'trytes':             [TryteString(self.trytes1)],
       },
 
       {
@@ -173,8 +173,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'depth': 0,
 
-        'min_weight_magnitude': 18,
-        'trytes':               [TryteString(self.trytes1)],
+        'minWeightMagnitude': 18,
+        'trytes':             [TryteString(self.trytes1)],
       },
 
       {
@@ -184,71 +184,71 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_min_weight_magnitude_null(self):
     """
-    ``min_weight_magnitude`` is null.
+    ``minWeightMagnitude`` is null.
     """
     self.assertFilterErrors(
       {
-        'min_weight_magnitude': None,
+        'minWeightMagnitude': None,
 
         'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
       {
-        'min_weight_magnitude': [f.Required.CODE_EMPTY],
+        'minWeightMagnitude': [f.Required.CODE_EMPTY],
       },
     )
 
   def test_fail_min_weight_magnitude_string(self):
     """
-    ``min_weight_magnitude`` is a string.
+    ``minWeightMagnitude`` is a string.
     """
     self.assertFilterErrors(
       {
         # It's gotta be an int!
-        'min_weight_magnitude': '18',
+        'minWeightMagnitude': '18',
 
         'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
       {
-        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+        'minWeightMagnitude': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
   def test_fail_min_weight_magnitude_float(self):
     """
-    ``min_weight_magnitude`` is a float.
+    ``minWeightMagnitude`` is a float.
     """
     self.assertFilterErrors(
       {
         # Even with an empty fpart, float values are not valid.
-        'min_weight_magnitude': 18.0,
+        'minWeightMagnitude': 18.0,
 
         'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
       {
-        'min_weight_magnitude': [f.Type.CODE_WRONG_TYPE],
+        'minWeightMagnitude': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
   def test_fail_min_weight_magnitude_too_small(self):
     """
-    ``min_weight_magnitude`` is < 1.
+    ``minWeightMagnitude`` is < 1.
     """
     self.assertFilterErrors(
       {
-        'min_weight_magnitude': 0,
+        'minWeightMagnitude': 0,
 
         'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
       {
-        'min_weight_magnitude': [f.Min.CODE_TOO_SMALL],
+        'minWeightMagnitude': [f.Min.CODE_TOO_SMALL],
       },
     )
 
@@ -260,8 +260,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': None,
 
-        'depth':                100,
-        'min_weight_magnitude': 18,
+        'depth':              100,
+        'minWeightMagnitude': 18,
       },
 
       {
@@ -279,8 +279,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # send.
         'trytes': TryteString(self.trytes1),
 
-        'depth':                100,
-        'min_weight_magnitude': 18,
+        'depth':              100,
+        'minWeightMagnitude': 18,
       },
 
       {
@@ -296,8 +296,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [],
 
-        'depth':                100,
-        'min_weight_magnitude': 18,
+        'depth':              100,
+        'minWeightMagnitude': 18,
       },
 
       {
@@ -327,8 +327,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
           b'9' * (TransactionTrytes.LEN + 1),
         ],
 
-        'depth':                100,
-        'min_weight_magnitude': 18,
+        'depth':              100,
+        'minWeightMagnitude': 18,
       },
 
       {
@@ -407,277 +407,7 @@ class SendTrytesCommandTestCase(TestCase):
       ],
 
       depth = 100,
-      min_weight_magnitude = 18,
+      minWeightMagnitude = 18,
     )
 
     self.assertDictEqual(response, {})
-
-    self.assertListEqual(
-      self.adapter.requests,
-
-      [
-        {
-          'command':  'getTransactionsToApprove',
-          'depth':    100,
-        },
-
-        {
-          'command': 'attachToTangle',
-
-          'trunk_transaction':    TransactionHash(self.transaction1),
-          'branch_transaction':   TransactionHash(self.transaction2),
-          'min_weight_magnitude': 18,
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-
-        {
-          'command': 'broadcastTransactions',
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-
-        {
-          'command': 'storeTransactions',
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-      ],
-    )
-
-  def test_get_transactions_to_approve_fails(self):
-    """
-    The ``getTransactionsToApprove`` call fails.
-    """
-    self.adapter.seed_response('getTransactionsToApprove', {
-      'error': "I'm a teapot.",
-    })
-
-    with self.assertRaises(BadApiResponse):
-      self.command(
-        trytes = [
-          TryteString(self.trytes1),
-          TryteString(self.trytes2),
-        ],
-
-        depth = 100,
-        min_weight_magnitude = 18,
-      )
-
-    # As soon as a request fails, the process halts.
-    # Note that this operation is not atomic!
-    self.assertListEqual(
-      self.adapter.requests,
-
-      [
-        {
-          'command':  'getTransactionsToApprove',
-          'depth':    100,
-        },
-      ],
-    )
-
-  def test_attach_to_tangle_fails(self):
-    """
-    The ``attachToTangle`` call fails.
-    """
-    self.adapter.seed_response('getTransactionsToApprove', {
-      'trunkTransaction':   text_type(self.transaction1, 'ascii'),
-      'branchTransaction':  text_type(self.transaction2, 'ascii'),
-    })
-
-    self.adapter.seed_response('attachToTangle', {
-      'error': "I'm a teapot.",
-    })
-
-    with self.assertRaises(BadApiResponse):
-      self.command(
-        trytes = [
-          TransactionTrytes(self.trytes1),
-          TransactionTrytes(self.trytes2),
-        ],
-
-        depth = 100,
-        min_weight_magnitude = 18,
-      )
-
-    # As soon as a request fails, the process halts.
-    # Note that this operation is not atomic!
-    self.assertListEqual(
-      self.adapter.requests,
-
-      [
-        {
-          'command':  'getTransactionsToApprove',
-          'depth':    100,
-        },
-
-        {
-          'command': 'attachToTangle',
-
-          'trunk_transaction':    TransactionHash(self.transaction1),
-          'branch_transaction':   TransactionHash(self.transaction2),
-          'min_weight_magnitude': 18,
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-      ],
-    )
-
-  def test_broadcast_transactions_fails(self):
-    """
-    The ``broadcastTransactions`` call fails.
-    """
-    self.adapter.seed_response('getTransactionsToApprove', {
-      'trunkTransaction':   text_type(self.transaction1, 'ascii'),
-      'branchTransaction':  text_type(self.transaction2, 'ascii'),
-    })
-
-    self.adapter.seed_response('attachToTangle', {
-      'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
-      ],
-    })
-
-    self.adapter.seed_response('broadcastTransactions', {
-      'error': "I'm a teapot.",
-    })
-
-    with self.assertRaises(BadApiResponse):
-      self.command(
-        trytes = [
-          TransactionTrytes(self.trytes1),
-          TransactionTrytes(self.trytes2),
-        ],
-
-        depth = 100,
-        min_weight_magnitude = 18,
-      )
-
-    # As soon as a request fails, the process halts.
-    # Note that this operation is not atomic!
-    self.assertListEqual(
-      self.adapter.requests,
-
-      [
-        {
-          'command':  'getTransactionsToApprove',
-          'depth':    100,
-        },
-
-        {
-          'command': 'attachToTangle',
-
-          'trunk_transaction':    TransactionHash(self.transaction1),
-          'branch_transaction':   TransactionHash(self.transaction2),
-          'min_weight_magnitude': 18,
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-
-        {
-          'command': 'broadcastTransactions',
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-      ],
-    )
-
-  def test_store_transactions_fails(self):
-    """
-    The ``storeTransactions`` call fails.
-    """
-    self.adapter.seed_response('getTransactionsToApprove', {
-      'trunkTransaction':   text_type(self.transaction1, 'ascii'),
-      'branchTransaction':  text_type(self.transaction2, 'ascii'),
-    })
-
-    self.adapter.seed_response('attachToTangle', {
-      'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
-      ],
-    })
-
-    self.adapter.seed_response('broadcastTransactions', {
-      'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
-      ],
-    })
-
-    self.adapter.seed_response('storeTransactions', {
-      'error': "I'm a teapot.",
-    })
-
-    with self.assertRaises(BadApiResponse):
-      self.command(
-        trytes = [
-          TransactionTrytes(self.trytes1),
-          TransactionTrytes(self.trytes2),
-        ],
-
-        depth = 100,
-        min_weight_magnitude = 18,
-      )
-
-    self.assertListEqual(
-      self.adapter.requests,
-
-      [
-        {
-          'command':  'getTransactionsToApprove',
-          'depth':    100,
-        },
-
-        {
-          'command': 'attachToTangle',
-
-          'trunk_transaction':    TransactionHash(self.transaction1),
-          'branch_transaction':   TransactionHash(self.transaction2),
-          'min_weight_magnitude': 18,
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-
-        {
-          'command': 'broadcastTransactions',
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-
-        {
-          'command': 'storeTransactions',
-
-          'trytes': [
-            TransactionTrytes(self.trytes1),
-            TransactionTrytes(self.trytes2),
-          ],
-        },
-      ],
-    )

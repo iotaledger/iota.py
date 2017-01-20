@@ -35,7 +35,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
       'seed':             Seed(self.seed),
       'start':            0,
       'stop':             10,
-      'inclusion_states': True,
+      'inclusionStates':  True,
     }
 
     filter_ = self._filter(request)
@@ -56,7 +56,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
       # These values must still be integers/bools, however.
       'start':            42,
       'stop':             86,
-      'inclusion_states': True,
+      'inclusionStates':  True,
     })
 
     self.assertFilterPasses(filter_)
@@ -67,7 +67,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
         'seed':             Seed(self.seed),
         'start':            42,
         'stop':             86,
-        'inclusion_states': True,
+        'inclusionStates':  True,
       },
     )
 
@@ -87,7 +87,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
         'seed':             Seed(self.seed),
         'start':            0,
         'stop':             None,
-        'inclusion_states': False,
+        'inclusionStates':  False,
       }
     )
 
@@ -300,17 +300,17 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_inclusion_states_wrong_type(self):
     """
-    ``inclusion_states`` is not a boolean.
+    ``inclusionStates`` is not a boolean.
     """
     self.assertFilterErrors(
       {
-        'inclusion_states': '1',
+        'inclusionStates': '1',
 
         'seed': Seed(self.seed),
       },
 
       {
-        'inclusion_states': [f.Type.CODE_WRONG_TYPE],
+        'inclusionStates': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
@@ -731,7 +731,7 @@ class GetTransfersCommandTestCase(TestCase):
           response = self.command(
             seed = Seed.random(),
 
-            inclusion_states = True,
+            inclusionStates = True,
 
             # To keep the test focused, only retrieve a single
             # transaction.

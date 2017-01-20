@@ -41,7 +41,7 @@ class SendTrytesCommand(FilterCommand):
     # transactions so that we can attach the bundle to the Tangle.
     gta_response = GetTransactionsToApproveCommand(self.adapter)(depth=depth)
 
-    AttachToTangleCommand(self.adapter)(
+    att_response = AttachToTangleCommand(self.adapter)(
       branchTransaction   = gta_response.get('branchTransaction'),
       trunkTransaction    = gta_response.get('trunkTransaction'),
 
@@ -50,7 +50,7 @@ class SendTrytesCommand(FilterCommand):
     )
 
     # ``trytes`` now have POW!
-    trytes = request['trytes']
+    trytes = att_response['trytes']
 
     BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 

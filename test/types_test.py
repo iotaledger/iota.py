@@ -465,6 +465,26 @@ class TryteStringTestCase(TestCase):
 
     self.assertEqual(trytes.as_string(), '你好，世界！')
 
+  def test_as_string_strip(self):
+    """
+    Strip trailing padding from a TryteString before converting.
+    """
+    # Note odd number of trytes!
+    trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD9999999999999')
+
+    self.assertEqual(trytes.as_string(), '你好，世界！')
+
+  def test_as_string_no_strip(self):
+    """
+    Prevent stripping trailing padding when converting to string.
+    """
+    trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD999999999999')
+
+    self.assertEqual(
+      trytes.as_string(strip_padding=False),
+      '你好，世界！\x00\x00\x00\x00\x00\x00',
+    )
+
   def test_as_string_not_utf8_errors_strict(self):
     """
     The tryte sequence does not represent a valid UTF-8 sequence, and

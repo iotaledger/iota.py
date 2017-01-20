@@ -37,7 +37,7 @@ class GetTransfersCommand(FilterCommand):
 
   def _execute(self, request):
     stop              = request['stop'] # type: Optional[int]
-    inclusion_states  = request['inclusion_states'] # type: bool
+    inclusion_states  = request['inclusionStates'] # type: bool
     seed              = request['seed'] # type: Seed
     start             = request['start'] # type: int
 
@@ -165,12 +165,12 @@ class GetTransfersRequestFilter(RequestFilter):
         'stop':   f.Type(int) | f.Min(0),
         'start':  f.Type(int) | f.Min(0) | f.Optional(0),
 
-        'inclusion_states': f.Type(bool) | f.Optional(False),
+        'inclusionStates': f.Type(bool) | f.Optional(False),
       },
 
       allow_missing_keys = {
         'stop',
-        'inclusion_states',
+        'inclusionStates',
         'start',
       },
     )

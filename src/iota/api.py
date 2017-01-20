@@ -112,10 +112,10 @@ class StrictIota(object):
       min_weight_magnitude = self.default_min_weight_magnitude
 
     return self.attachToTangle(
-      trunk_transaction     = trunk_transaction,
-      branch_transaction    = branch_transaction,
-      min_weight_magnitude  = min_weight_magnitude,
-      trytes                = trytes,
+      trunkTransaction    = trunk_transaction,
+      branchTransaction   = branch_transaction,
+      minWeightMagnitude  = min_weight_magnitude,
+      trytes              = trytes,
     )
 
   def broadcast_transactions(self, trytes):
@@ -524,10 +524,10 @@ class Iota(StrictIota):
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers
     """
     return self.getTransfers(
-      seed              = self.seed,
-      start             = start,
-      stop              = stop,
-      inclusion_states  = inclusion_states,
+      seed            = self.seed,
+      start           = start,
+      stop            = stop,
+      inclusionStates = inclusion_states,
     )
 
   def prepare_transfer(self, transfers, inputs=None, change_address=None):
@@ -567,10 +567,10 @@ class Iota(StrictIota):
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
     """
     return self.prepareTransfer(
-      seed            = self.seed,
-      transfers       = transfers,
-      inputs          = inputs,
-      change_address  = change_address,
+      seed          = self.seed,
+      transfers     = transfers,
+      inputs        = inputs,
+      changeAddress = change_address,
     )
 
   def replay_bundle(
@@ -607,9 +607,9 @@ class Iota(StrictIota):
       min_weight_magnitude = self.default_min_weight_magnitude
 
     return self.replayBundle(
-      transaction           = transaction,
-      depth                 = depth,
-      min_weight_magnitude  = min_weight_magnitude,
+      transaction         = transaction,
+      depth               = depth,
+      minWeightMagnitude  = min_weight_magnitude,
     )
 
   def send_transfer(
@@ -659,12 +659,12 @@ class Iota(StrictIota):
       min_weight_magnitude = self.default_min_weight_magnitude
 
     return self.sendTransfer(
-      seed                  = self.seed,
-      depth                 = depth,
-      transfers             = transfers,
-      inputs                = inputs,
-      change_address        = change_address,
-      min_weight_magnitude  = min_weight_magnitude,
+      seed                = self.seed,
+      depth               = depth,
+      transfers           = transfers,
+      inputs              = inputs,
+      changeAddress       = change_address,
+      minWeightMagnitude  = min_weight_magnitude,
     )
 
   def send_trytes(self, trytes, depth, min_weight_magnitude=18):
@@ -690,7 +690,7 @@ class Iota(StrictIota):
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
     """
     return self.sendTrytes(
-      trytes                = trytes,
-      depth                 = depth,
-      min_weight_magnitude  = min_weight_magnitude,
+      trytes              = trytes,
+      depth               = depth,
+      minWeightMagnitude  = min_weight_magnitude,
     )

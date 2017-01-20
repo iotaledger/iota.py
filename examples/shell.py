@@ -9,15 +9,19 @@ from argparse import ArgumentParser
 from getpass import getpass as secure_input
 from sys import argv
 
-from iota import __version__
 from six import text_type
 
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
 from iota import *
 
+from iota import __version__
+from iota.adapter import resolve_adapter
+from iota.adapter.wrappers import RoutingWrapper
 
-def main(uri, testnet):
+
+
+def main(uri, testnet, pow_uri):
   seed = secure_input(
     'Enter seed and press return (typing will not be shown).\n'
     'If no seed is specified, a random one will be used instead.\n'
@@ -26,7 +30,15 @@ def main(uri, testnet):
   if isinstance(seed, text_type):
     seed = seed.encode('ascii')
 
-  iota = Iota(uri, seed=seed, testnet=testnet)
+  # If ``pow_uri`` is specified, route POW requests to a separate node.
+  adapter_ = resolve_adapter(uri)
+  if pow_uri:
+    adapter_ =\
+      RoutingWrapper(adapter_)\
+        .add_route('attachToTangle', pow_uri)\
+        .add_route('interruptAttachingToTangle', pow_uri)
+
+  iota = Iota(adapter_, seed=seed, testnet=testnet)
 
   _banner = (
     'IOTA API client for {uri} ({testnet}) initialized as variable `iota`.\n'
@@ -69,6 +81,14 @@ if __name__ == '__main__':
       help =
         'URI of the node to connect to '
         '(defaults to udp://localhost:14265/).',
+  )
+
+  parser.add_argument(
+    '--pow-uri',
+      type    = text_type,
+      default = None,
+      dest    = 'pow_uri',
+      help    = 'URI of node to send POW requests to.'
   )
 
   parser.add_argument(

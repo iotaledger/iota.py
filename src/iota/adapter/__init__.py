@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import json
 from abc import ABCMeta, abstractmethod as abstract_method
+from collections import deque
 from inspect import isabstract as is_abstract
 from socket import getdefaulttimeout as get_default_timeout
 from typing import Dict, List, Text, Tuple, Union
@@ -312,7 +313,7 @@ class MockAdapter(BaseAdapter):
   def __init__(self):
     super(MockAdapter, self).__init__()
 
-    self.responses  = {} # type: Dict[Text, List[dict]]
+    self.responses  = {} # type: Dict[Text, deque]
     self.requests   = [] # type: List[dict]
 
   def seed_response(self, command, response):
@@ -337,7 +338,7 @@ class MockAdapter(BaseAdapter):
        # {'message': 'Hello!'}
     """
     if command not in self.responses:
-      self.responses[command] = []
+      self.responses[command] = deque()
 
     self.responses[command].append(response)
     return self
@@ -350,7 +351,7 @@ class MockAdapter(BaseAdapter):
     command = payload['command']
 
     try:
-      response = self.responses[command].pop(0)
+      response = self.responses[command].popleft()
     except KeyError:
       raise with_context(
         exc = BadApiResponse(

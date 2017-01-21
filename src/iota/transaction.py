@@ -125,7 +125,7 @@ class Transaction(JsonSerializable):
 
     return cls(
       hash_ = TransactionHash.from_trits(hash_),
-      signature_message_fragment = tryte_string[0:2187],
+      signature_message_fragment = Fragment(tryte_string[0:2187]),
       address = Address(tryte_string[2187:2268]),
       value = int_from_trits(tryte_string[2268:2295].as_trits()),
       tag = Tag(tryte_string[2295:2322]),

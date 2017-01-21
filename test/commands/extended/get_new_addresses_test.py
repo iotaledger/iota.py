@@ -55,7 +55,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'seed':   Seed(self.seed),
-        'index':  None,
+        'index':  0,
         'count':  None,
       },
     )

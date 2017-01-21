@@ -34,7 +34,7 @@ class SendTransferCommand(FilterCommand):
   def _execute(self, request):
     change_address        = request['changeAddress'] # type: Optional[Address]
     depth                 = request['depth'] # type: int
-    inputs                = request['inputs'] or [] # type: List[Address]
+    inputs                = request['inputs'] # type: Optional[List[Address]]
     min_weight_magnitude  = request['minWeightMagnitude'] # type: int
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]

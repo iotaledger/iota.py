@@ -6,13 +6,15 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota
+from mock import Mock, patch
+from six import binary_type, text_type
+
+from iota import Address, BadApiResponse, Iota, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_inputs import GetInputsCommand, \
   GetInputsRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class GetInputsRequestFilterTestCase(BaseFilterTestCase):
@@ -33,7 +35,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
     request = {
       'seed':       Seed(self.seed),
       'start':      0,
-      'end':        10,
+      'stop':       10,
       'threshold':  100,
     }
 
@@ -54,7 +56,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
       # These values must still be integers, however.
       'start':      42,
-      'end':        86,
+      'stop':       86,
       'threshold':  99,
     })
 
@@ -65,7 +67,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':       Seed(self.seed),
         'start':      42,
-        'end':        86,
+        'stop':       86,
         'threshold':  99,
       },
     )
@@ -85,7 +87,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':       Seed(self.seed),
         'start':      0,
-        'end':        None,
+        'stop':       None,
         'threshold':  None,
       }
     )
@@ -212,65 +214,65 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_end_string(self):
+  def test_fail_stop_string(self):
     """
-    ``end`` is a string.
+    ``stop`` is a string.
     """
     self.assertFilterErrors(
       {
         # Not valid; it must be an int.
-        'end': '0',
+        'stop': '0',
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Type.CODE_WRONG_TYPE],
+        'stop': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
-  def test_fail_end_float(self):
+  def test_fail_stop_float(self):
     """
-    ``end`` is a float.
+    ``stop`` is a float.
     """
     self.assertFilterErrors(
       {
         # Even with an empty fpart, floats are not valid.
         # It's gotta be an int.
-        'end': 8.0,
+        'stop': 8.0,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Type.CODE_WRONG_TYPE],
+        'stop': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
-  def test_fail_end_too_small(self):
+  def test_fail_stop_too_small(self):
     """
-    ``end`` is less than 0.
+    ``stop`` is less than 0.
     """
     self.assertFilterErrors(
       {
-        'end': -1,
+        'stop': -1,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Min.CODE_TOO_SMALL],
+        'stop': [f.Min.CODE_TOO_SMALL],
       },
     )
 
-  def test_fail_end_occurs_before_start(self):
+  def test_fail_stop_occurs_before_start(self):
     """
-    ``end`` is less than ``start``.
+    ``stop`` is less than ``start``.
     """
     self.assertFilterErrors(
       {
         'start':  1,
-        'end':    0,
+        'stop':   0,
 
         'seed': Seed(self.seed),
       },
@@ -282,18 +284,18 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_interval_too_large(self):
     """
-    ``end`` is way more than ``start``.
+    ``stop`` is way more than ``start``.
     """
     self.assertFilterErrors(
       {
         'start':  0,
-        'end':    GetInputsRequestFilter.MAX_INTERVAL + 1,
+        'stop':   GetInputsRequestFilter.MAX_INTERVAL + 1,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end':  [GetInputsRequestFilter.CODE_INTERVAL_TOO_BIG],
+        'stop':  [GetInputsRequestFilter.CODE_INTERVAL_TOO_BIG],
       },
     )
 
@@ -350,11 +352,41 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetInputsCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetInputsCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
     self.command = GetInputsCommand(self.adapter)
+
+    # Define some valid tryte sequences that we can reuse between
+    # tests.
+    self.addy0 =\
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999FIODSG'
+          b'IC9CCIFCNBTBDFIEHHE9RBAEVGK9JECCLCPBIINAX',
+
+        key_index = 0,
+      )
+
+    self.addy1 =\
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION999999EPCNH'
+          b'MBTEH9KDVFMHHESDOBTFFACCGBFGACEDCDDCGICIL',
+
+        key_index = 1,
+      )
+
+    self.addy2 =\
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YDOHWF'
+          b'U9PFOFHGKFACCCBGDALGI9ZBEBABFAMBPDSEQ9XHJ',
+
+        key_index = 2,
+      )
 
   def test_wireup(self):
     """
@@ -365,30 +397,423 @@ class GetInputsCommandTestCase(TestCase):
       GetInputsCommand,
     )
 
-  def test_start_and_end_with_threshold(self):
+  def test_stop_threshold_met(self):
     """
-    ``start`` and ``end`` values provided, with ``threshold``.
+    ``stop`` provided, balance meets ``threshold``.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
+    })
 
-  def test_start_and_end_no_threshold(self):
-    """
-    ``start`` and ``end`` values provided, no ``threshold``.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
 
-  def test_no_end_with_threshold(self):
-    """
-    No ``end`` value provided, with ``threshold``.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.get_addresses',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed      = Seed.random(),
+        stop      = 2,
+        threshold = 71,
+      )
 
-  def test_no_end_no_threshold(self):
+    self.assertEqual(response['totalBalance'], 71)
+    self.assertEqual(len(response['inputs']), 2)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy0)
+    self.assertEqual(input0.balance, 42)
+    self.assertEqual(input0.key_index, 0)
+
+    input1 = response['inputs'][1]
+    self.assertIsInstance(input1, Address)
+
+    self.assertEqual(input1, self.addy1)
+    self.assertEqual(input1.balance, 29)
+    self.assertEqual(input1.key_index, 1)
+
+  def test_stop_threshold_not_met(self):
     """
-    No ``end`` value provided, no ``threshold``.
+    ``stop`` provided, balance does not meet ``threshold``.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.get_addresses',
+        mock_address_generator,
+    ):
+      with self.assertRaises(BadApiResponse):
+        self.command(
+          seed      = Seed.random(),
+          stop      = 2,
+          threshold = 72,
+        )
+
+  def test_stop_threshold_zero(self):
+    """
+    ``stop`` provided, ``threshold`` is 0.
+    """
+    # Note that the first address has a zero balance.
+    self.adapter.seed_response('getBalances', {
+      'balances': [0, 1],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.get_addresses',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed      = Seed.random(),
+        stop      = 2,
+        threshold = 0,
+      )
+
+    self.assertEqual(response['totalBalance'], 1)
+    self.assertEqual(len(response['inputs']), 1)
+
+    # Address 0 was skipped because it has a zero balance.
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy1)
+    self.assertEqual(input0.balance, 1)
+    self.assertEqual(input0.key_index, 1)
+
+  def test_stop_no_threshold(self):
+    """
+    ``stop`` provided, no ``threshold``.
+    """
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.get_addresses',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed      = Seed.random(),
+        start     = 0,
+        stop      = 2,
+      )
+
+    self.assertEqual(response['totalBalance'], 71)
+    self.assertEqual(len(response['inputs']), 2)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy0)
+    self.assertEqual(input0.balance, 42)
+    self.assertEqual(input0.key_index, 0)
+
+    input1 = response['inputs'][1]
+    self.assertIsInstance(input1, Address)
+
+    self.assertEqual(input1, self.addy1)
+    self.assertEqual(input1.balance, 29)
+    self.assertEqual(input1.key_index, 1)
+
+  def test_no_stop_threshold_met(self):
+    """
+    No ``stop`` provided, balance meets ``threshold``.
+    """
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
+    })
+
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999WBL9KD'
+          b'EIZDMEDFPEYDIIA9LEMEUCC9MFPBY9TEVCUGSEGGN'
+        ),
+      ],
+    })
+
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+    def mock_address_generator(ag, start, step=1):
+      for addy in [self.addy0, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    # When ``stop`` is None, the command uses a generator internally.
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed      = Seed.random(),
+        threshold = 71,
+      )
+
+    self.assertEqual(response['totalBalance'], 71)
+    self.assertEqual(len(response['inputs']), 2)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy0)
+    self.assertEqual(input0.balance, 42)
+    self.assertEqual(input0.key_index, 0)
+
+    input1 = response['inputs'][1]
+    self.assertIsInstance(input1, Address)
+
+    self.assertEqual(input1, self.addy1)
+    self.assertEqual(input1.balance, 29)
+    self.assertEqual(input1.key_index, 1)
+
+  def test_no_stop_threshold_not_met(self):
+    """
+    No ``stop`` provided, balance does not meet ``threshold``.
+    """
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29, 0],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+    def mock_address_generator(ag, start, step=1):
+      for addy in [self.addy0, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    # When ``stop`` is None, the command uses a generator internally.
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        mock_address_generator,
+    ):
+      with self.assertRaises(BadApiResponse):
+        self.command(
+          seed      = Seed.random(),
+          threshold = 72,
+        )
+
+  def test_no_stop_threshold_zero(self):
+    """
+    No ``stop`` provided, ``threshold`` is 0.
+    """
+    # Note that the first address has a zero balance.
+    self.adapter.seed_response('getBalances', {
+      'balances': [0, 1],
+    })
+
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999WBL9KD'
+          b'EIZDMEDFPEYDIIA9LEMEUCC9MFPBY9TEVCUGSEGGN'
+        ),
+      ],
+    })
+
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+    def mock_address_generator(ag, start, step=1):
+      for addy in [self.addy0, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    # When ``stop`` is None, the command uses a generator internally.
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed      = Seed.random(),
+        threshold = 0,
+      )
+
+    self.assertEqual(response['totalBalance'], 1)
+    self.assertEqual(len(response['inputs']), 1)
+
+    # Because the first address had a zero balance, it was skipped.
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy1)
+    self.assertEqual(input0.balance, 1)
+    self.assertEqual(input0.key_index, 1)
+
+  def test_no_stop_no_threshold(self):
+    """
+    No ``stop`` provided, no ``threshold``.
+    """
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
+    })
+
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999WBL9KD'
+          b'EIZDMEDFPEYDIIA9LEMEUCC9MFPBY9TEVCUGSEGGN'
+        ),
+      ],
+    })
+
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+    def mock_address_generator(ag, start, step=1):
+      for addy in [self.addy0, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    # When ``stop`` is None, the command uses a generator internally.
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed = Seed.random(),
+      )
+
+    self.assertEqual(response['totalBalance'], 71)
+    self.assertEqual(len(response['inputs']), 2)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy0)
+    self.assertEqual(input0.balance, 42)
+    self.assertEqual(input0.key_index, 0)
+
+    input1 = response['inputs'][1]
+    self.assertIsInstance(input1, Address)
+
+    self.assertEqual(input1, self.addy1)
+    self.assertEqual(input1.balance, 29)
+    self.assertEqual(input1.key_index, 1)
+
+  def test_start(self):
+    """
+    Using ``start`` to offset the key range.
+    """
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
+    })
+
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+    def mock_address_generator(ag, start, step=1):
+      # If ``start`` has the wrong value, return garbage to make the
+      # test asplode.
+      for addy in [None, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    # When ``stop`` is None, the command uses a generator internally.
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.create_generator',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed  = Seed.random(),
+        start = 1,
+      )
+
+    self.assertEqual(response['totalBalance'], 86)
+    self.assertEqual(len(response['inputs']), 1)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy1)
+    self.assertEqual(input0.balance, 86)
+    self.assertEqual(input0.key_index, 1)

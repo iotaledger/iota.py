@@ -1372,35 +1372,23 @@ class PrepareTransferCommandTestCase(TestCase):
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
     mock_get_inputs = Mock(return_value={
       'inputs': [
-        {
-          'address':
-            Address(
-              trytes =
-                b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
-                b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
+        Address(
+          trytes =
+            b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
+            b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-              balance   = 13,
-              key_index = 4,
-            ),
+          balance   = 13,
+          key_index = 4,
+        ),
 
-          'balance':  13,
-          'keyIndex': 4,
-        },
+        Address(
+          trytes =
+            b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
+            b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
 
-        {
-          'address':
-            Address(
-              trytes =
-                b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
-                b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
-
-              balance   = 29,
-              key_index = 5,
-            ),
-
-          'balance': 29,
-          'keyIndex': 5,
-        },
+          balance   = 29,
+          key_index = 5,
+        ),
       ],
 
       'totalBalance': 42,
@@ -1832,20 +1820,14 @@ class PrepareTransferCommandTestCase(TestCase):
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
     mock_get_inputs = Mock(return_value={
       'inputs': [
-        {
-          'address':
-            Address(
-              trytes =
-                b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
-                b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
+        Address(
+          trytes =
+            b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
+            b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-              balance   = 86,
-              key_index = 4,
-            ),
-
-          'balance':  86,
-          'keyIndex': 4,
-        },
+          balance   = 86,
+          key_index = 4,
+        ),
       ],
 
       'totalBalance': 86,

@@ -34,7 +34,7 @@ class GetInputsCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    end       = request['end'] # type: Optional[int]
+    stop      = request['stop'] # type: Optional[int]
     seed      = request['seed'] # type: Seed
     start     = request['start'] # type: int
     threshold = request['threshold'] # type: Optional[int]
@@ -42,7 +42,7 @@ class GetInputsCommand(FilterCommand):
     generator = AddressGenerator(seed)
 
     # Determine the addresses we will be scanning.
-    if end is None:
+    if stop is None:
       # This is similar to the ``getNewAddresses`` command, except it
       # is interested in all the addresses that `getNewAddresses`
       # skips.
@@ -55,7 +55,7 @@ class GetInputsCommand(FilterCommand):
         else:
           break
     else:
-      addresses = generator.get_addresses(start, end - start)
+      addresses = generator.get_addresses(start, stop)
 
     # Load balances for the addresses that we generated.
     gb_response = GetBalancesCommand(self.adapter)(addresses=addresses)
@@ -71,12 +71,7 @@ class GetInputsCommand(FilterCommand):
       addresses[i].balance = balance
 
       if balance:
-        result['inputs'].append({
-          'address':  addresses[i],
-          'balance':  balance,
-          'keyIndex': addresses[i].key_index,
-        })
-
+        result['inputs'].append(addresses[i])
         result['totalBalance'] += balance
 
         if (threshold is not None) and (result['totalBalance'] >= threshold):
@@ -113,15 +108,15 @@ class GetInputsRequestFilter(RequestFilter):
   CODE_INTERVAL_TOO_BIG = 'interval_too_big'
 
   templates = {
-    CODE_INTERVAL_INVALID: '``start`` must be <= ``end``',
-    CODE_INTERVAL_TOO_BIG: '``end`` - ``start`` must be <= {max_interval}',
+    CODE_INTERVAL_INVALID: '``start`` must be <= ``stop``',
+    CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
   }
 
   def __init__(self):
     super(GetInputsRequestFilter, self).__init__(
       {
         # These arguments are optional.
-        'end':        f.Type(int) | f.Min(0),
+        'stop':       f.Type(int) | f.Min(0),
         'start':      f.Type(int) | f.Min(0) | f.Optional(0),
         'threshold':  f.Type(int) | f.Min(0),
 
@@ -130,7 +125,7 @@ class GetInputsRequestFilter(RequestFilter):
       },
 
       allow_missing_keys = {
-        'end',
+        'stop',
         'start',
         'threshold',
       }
@@ -143,8 +138,8 @@ class GetInputsRequestFilter(RequestFilter):
     if self._has_errors:
       return filtered
 
-    if filtered['end'] is not None:
-      if filtered['start'] > filtered['end']:
+    if filtered['stop'] is not None:
+      if filtered['start'] > filtered['stop']:
         filtered['start'] = self._invalid_value(
           value   = filtered['start'],
           reason  = self.CODE_INTERVAL_INVALID,
@@ -152,18 +147,18 @@ class GetInputsRequestFilter(RequestFilter):
 
           context = {
             'start':  filtered['start'],
-            'end':    filtered['end'],
+            'stop':   filtered['stop'],
           },
         )
-      elif (filtered['end'] - filtered['start']) > self.MAX_INTERVAL:
-        filtered['end'] = self._invalid_value(
-          value   = filtered['end'],
+      elif (filtered['stop'] - filtered['start']) > self.MAX_INTERVAL:
+        filtered['stop'] = self._invalid_value(
+          value   = filtered['stop'],
           reason  = self.CODE_INTERVAL_TOO_BIG,
-          sub_key = 'end',
+          sub_key = 'stop',
 
           context = {
             'start':  filtered['start'],
-            'end':    filtered['end'],
+            'stop':    filtered['stop'],
           },
 
           template_vars = {

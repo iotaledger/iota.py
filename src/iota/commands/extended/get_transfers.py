@@ -90,7 +90,7 @@ class GetTransfersCommand(FilterCommand):
           non_tails.add(txn.bundle_hash)
 
       if non_tails:
-        for txn in self._find_transactions(bundles=non_tails):
+        for txn in self._find_transactions(bundles=list(non_tails)):
           if txn.is_tail:
             tails.add(txn.hash)
 

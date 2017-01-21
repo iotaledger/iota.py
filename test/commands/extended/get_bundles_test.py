@@ -6,7 +6,8 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash
+from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, \
+  Tag, Transaction, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.filters import Trytes
@@ -121,6 +122,7 @@ class GetBundlesCommandTestCase(TestCase):
     super(GetBundlesCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
+    self.command = GetBundlesCommand(self.adapter)
 
   def test_wireup(self):
     """
@@ -131,4 +133,90 @@ class GetBundlesCommandTestCase(TestCase):
       GetBundlesCommand,
     )
 
-  # :todo: Unit tests.
+  # noinspection SpellCheckingInspection
+  def test_single_transaction(self):
+    """
+    Getting a bundle that contains a single transaction.
+    """
+    transaction =\
+      Transaction(
+          current_index = 0,
+          last_index    = 0,
+          tag           = Tag(b''),
+          timestamp     = 1484960990,
+          value         = 0,
+
+          # For this test, we will bypass signature/message
+          # functionality.
+          nonce                       = Hash(b''),
+          signature_message_fragment  = Fragment(b''),
+
+          # This value is computed automatically, so it has to be real.
+          hash_ =
+            TransactionHash(
+              b'TAOICZV9ZSXIZINMNRLOLCWNLL9IDKGVWTJITNGU'
+              b'HAIKLHZLBZWOQ9HJSODUDISTYGIYPWTYDCFMVRBQN'
+            ),
+
+          address =
+            Address(
+              b'TESTVALUE9DONTUSEINPRODUCTION99999OCSGVF'
+              b'IBQA99KGTCPCZ9NHR9VGLGADDDIEGGPCGBDEDDTBC'
+            ),
+
+          bundle_hash =
+            BundleHash(
+              b'TESTVALUE9DONTUSEINPRODUCTION99999DIOAZD'
+              b'M9AIUHXGVGBC9EMGI9SBVBAIXCBFJ9EELCPDRAD9U'
+            ),
+
+          branch_transaction_hash =
+            TransactionHash(
+              b'TESTVALUE9DONTUSEINPRODUCTION99999BBCEDI'
+              b'ZHUDWBYDJEXHHAKDOCKEKDFIMB9AMCLFW9NBDEOFV'
+            ),
+
+          trunk_transaction_hash =
+            TransactionHash(
+              b'TESTVALUE9DONTUSEINPRODUCTION999999ARAYA'
+              b'MHCB9DCFEIWEWDLBCDN9LCCBQBKGDDAECFIAAGDAS'
+            ),
+        )
+
+    self.adapter.seed_response('getTrytes', {
+      'trytes': [transaction.as_tryte_string()],
+    })
+
+    response = self.command(transaction=transaction.hash)
+
+    bundle = response['bundles'][0] # type: Bundle
+    self.assertEqual(len(bundle), 1)
+
+    self.maxDiff = None
+    self.assertDictEqual(
+      bundle[0].as_json_compatible(),
+      transaction.as_json_compatible(),
+    )
+
+  def test_multiple_transactions(self):
+    """
+    Getting a bundle that contains multiple transactions.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_non_tail_transaction(self):
+    """
+    Trying to get a bundle for a non-tail transaction.
+
+    This is not valid; you have to start with a tail transaction.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_missing_transaction(self):
+    """
+    Unable to find the requested transaction.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')

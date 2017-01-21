@@ -8,8 +8,8 @@ from operator import attrgetter
 from typing import Generator, Iterable, Iterator, List, MutableSequence, \
   Optional, Sequence, Text, Tuple
 
-from iota import Address, Hash, Tag, TrytesCompatible, TryteString, \
-  int_from_trits, trits_from_int
+from iota import Address, Hash, Tag, TryteString, TrytesCompatible, \
+  TrytesDecodeError, int_from_trits, trits_from_int
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator, \
@@ -125,7 +125,7 @@ class Transaction(JsonSerializable):
 
     return cls(
       hash_ = TransactionHash.from_trits(hash_),
-      signature_message_fragment = tryte_string[0:2187],
+      signature_message_fragment = Fragment(tryte_string[0:2187]),
       address = Address(tryte_string[2187:2268]),
       value = int_from_trits(tryte_string[2268:2295].as_trits()),
       tag = Tag(tryte_string[2295:2322]),
@@ -522,6 +522,58 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     Returns the tail transaction of the bundle.
     """
     return self[0]
+
+  def get_messages(self, errors='drop'):
+    # type: () -> List[Text]
+    """
+    Attempts to decipher encoded messages from the transactions in the
+    bundle.
+
+    :param errors:
+      How to handle trytes that can't be converted, or bytes that can't
+      be decoded using UTF-8:
+        - 'drop':     drop the trytes from the result.
+        - 'strict':   raise an exception.
+        - 'replace':  replace with a placeholder character.
+        - 'ignore':   omit the invalid tryte/byte sequence.
+    """
+    decode_errors = 'strict' if errors == 'drop' else errors
+
+    messages = []
+
+    i = 0
+    while i < len(self):
+      txn = self[i]
+
+      # Ignore inputs.  Note that inputs are split into multiple
+      # transactions due to how big the signatures are.
+      if txn.value < 0:
+        i += AddressGenerator.DIGEST_ITERATIONS
+        continue
+
+      message_trytes = TryteString(txn.signature_message_fragment)
+
+      # If the message is long enough, it has to be split across
+      # multiple transactions.
+      for j in range(i+1, len(self)):
+        aux_txn = self[j]
+        if (aux_txn.address == txn.address) and (aux_txn.value == 0):
+          message_trytes += aux_txn.signature_message_fragment
+          i += 1
+        else:
+          break
+
+      # Ignore empty messages.
+      if message_trytes:
+        try:
+          messages.append(message_trytes.as_string(decode_errors))
+        except (TrytesDecodeError, UnicodeDecodeError):
+          if errors != 'drop':
+            raise
+
+      i += 1
+
+    return messages
 
   def as_tryte_strings(self, head_to_tail=True):
     # type: (bool) -> List[TransactionTrytes]

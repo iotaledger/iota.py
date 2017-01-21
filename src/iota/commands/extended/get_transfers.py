@@ -71,40 +71,49 @@ class GetTransfersCommand(FilterCommand):
 
     if hashes:
       # Sort transactions into tail and non-tail.
-      tails     = set()
-      non_tails = set()
+      tail_transaction_hashes = set()
+      non_tail_bundle_hashes  = set()
 
       gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
-      transactions = list(map(
+      all_transactions = list(map(
         Transaction.from_tryte_string,
         gt_response['trytes'],
-      ))
+      )) # type: List[Transaction]
 
-      for txn in transactions:
+      for txn in all_transactions:
         if txn.is_tail:
-          tails.add(txn.hash)
+          tail_transaction_hashes.add(txn.hash)
         else:
           # Capture the bundle ID instead of the transaction hash so that
           # we can query the node to find the tail transaction for that
           # bundle.
-          non_tails.add(txn.bundle_hash)
+          non_tail_bundle_hashes.add(txn.bundle_hash)
 
-      if non_tails:
-        for txn in self._find_transactions(bundles=non_tails):
+      if non_tail_bundle_hashes:
+        for txn in self._find_transactions(bundles=list(non_tail_bundle_hashes)):
           if txn.is_tail:
-            tails.add(txn.hash)
+            if txn.hash not in tail_transaction_hashes:
+              all_transactions.append(txn)
+              tail_transaction_hashes.add(txn.hash)
+
+      # Filter out all non-tail transactions.
+      tail_transactions = [
+        txn
+          for txn in all_transactions
+          if txn.hash in tail_transaction_hashes
+      ]
 
       # Attach inclusion states, if requested.
       if inclusion_states:
         gli_response = GetLatestInclusionCommand(self.adapter)(
-          hashes = list(tails),
+          hashes = list(tail_transaction_hashes),
         )
 
-        for txn in transactions:
+        for txn in tail_transactions:
           txn.is_confirmed = gli_response['states'].get(txn.hash)
 
       # Find the bundles for each transaction.
-      for txn in transactions:
+      for txn in tail_transactions:
         gb_response = GetBundlesCommand(self.adapter)(transaction=txn.hash)
         txn_bundles = gb_response['bundles'] # type: List[Bundle]
 

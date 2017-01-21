@@ -9,12 +9,6 @@ This is the official Python library for the IOTA Core.
 It implements both the `official API`_, as well as newly-proposed functionality
 (such as signing, bundles, utilities and conversion).
 
-.. warning::
-   This is pre-release software!
-   There may be performance and stability issues.
-
-   Please report any issues using the `PyOTA Bug Tracker`_.
-
 Join the Discussion
 ===================
 If you want to get involved in the community, need help with getting setup,
@@ -22,6 +16,9 @@ have any issues related with the library or just want to discuss Blockchain,
 Distributed Ledgers and IoT with other people, feel free to join our `Slack`_.
 
 You can also ask questions on our `dedicated forum`_.
+
+If you encounter any issues while using PyOTA, please report them using the
+`PyOTA Bug Tracker`_.
 
 ============
 Dependencies
@@ -33,12 +30,7 @@ Installation
 ============
 To install the latest version::
 
-  pip install --pre pyota
-
-**Important:** PyOTA is currently pre-release software.
-There may be performance and stability issues.
-
-Please report any issues using the `PyOTA Bug Tracker`_.
+  pip install pyota
 
 Installing from Source
 ======================

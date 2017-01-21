@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Optional
+
 import filters as f
 
 from iota.commands import FilterCommand, RequestFilter
@@ -30,12 +32,9 @@ class GetNewAddressesCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    # Optional parameters.
-    count = request.get('count')
-    index = request.get('index')
-
-    # Required parameters.
-    seed = request['seed']
+    count = request['count'] # type: Optional[int]
+    index = request['index'] # type: int
+    seed = request['seed'] # type: Seed
 
     generator = AddressGenerator(seed)
 
@@ -57,7 +56,7 @@ class GetNewAddressesRequestFilter(RequestFilter):
       {
         # ``count`` and ``index`` are optional.
         'count':  f.Type(int) | f.Min(1),
-        'index':  f.Type(int) | f.Min(0),
+        'index':  f.Type(int) | f.Min(0) | f.Optional(default=0),
 
         'seed':   f.Required | Trytes(result_type=Seed),
       },

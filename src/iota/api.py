@@ -385,55 +385,68 @@ class Iota(StrictIota):
     """
     return self.getBundles(transaction=transaction)
 
-  def get_inputs(self, start=None, end=None, threshold=None):
-    # type: (Optional[int], Optional[int], Optional[int]) -> dict
+  def get_inputs(self, start=0, stop=None, threshold=None):
+    # type: (int, Optional[int], Optional[int]) -> dict
     """
     Gets all possible inputs of a seed and returns them with the total
     balance.
 
     This is either done deterministically (by generating all addresses
-    until :py:meth:`find_transactions` returns an empty
-    result and then doing :py:meth:`get_balances`), or by providing a
-    key range to search.
+    until :py:meth:`find_transactions` returns an empty result), or by
+    providing a key range to search.
 
     :param start:
       Starting key index.
+      Defaults to 0.
 
-    :param end:
+    :param stop:
       Stop before this index.
       Note that this parameter behaves like the ``stop`` attribute in a
-      :py:class:`slice` object; the end index is _not_ included in the
+      :py:class:`slice` object; the stop index is *not* included in the
       result.
 
-      If not specified, then this method will not stop until it finds
-      an unused address.
+      If ``None`` (default), then this method will not stop until it
+      finds an unused address.
 
     :param threshold:
-      Determines the minimum threshold for a successful result.
+      If set, determines the minimum threshold for a successful result:
 
       - As soon as this threshold is reached, iteration will stop.
       - If the command runs out of addresses before the threshold is
         reached, an exception is raised.
 
+      Note that this method does not attempt to "optimize" the result
+      (e.g., smallest number of inputs, get as close to ``threshold``
+      as possible, etc.); it simply accumulates inputs in order until
+      the threshold is met.
+
+      If ``threshold`` is 0, the first address in the key range with
+      a non-zero balance will be returned (if it exists).
+
+      If ``threshold`` is ``None`` (default), this method will return
+      **all** inputs in the specified key range.
+
     :return:
       Dict with the following structure::
 
          {
-           'inputs': [
-              {
-                'address':  <Address object>,
-                'balance':  <address balance>,
-                'keyIndex`: <index of the address>,
-              },
-              ... <one object per input found>
-           ]
-
+           'inputs':        <list of Address objects>
            'totalBalance':  <aggregate balance of all inputs>,
          }
 
+      Note that each Address in the result has its ``balance``
+      attribute set.
+
+      Example::
+
+         response = iota.get_inputs(...)
+
+         input0 = response['inputs'][0] # type: Address
+         input0.balance # 42
+
     :raise:
       - :py:class:`iota.adapter.BadApiResponse` if ``threshold`` is not
-        met.
+        met.  Not applicable if ``threshold`` is ``None``.
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getinputs
@@ -441,7 +454,7 @@ class Iota(StrictIota):
     return self.getInputs(
       seed      = self.seed,
       start     = start,
-      end       = end,
+      stop      = stop,
       threshold = threshold,
     )
 

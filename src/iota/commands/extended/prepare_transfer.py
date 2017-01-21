@@ -54,10 +54,7 @@ class PrepareTransferCommand(FilterCommand):
           threshold = want_to_spend,
         )
 
-        confirmed_inputs = [
-          input_['address']
-            for input_ in gi_response['inputs']
-        ]
+        confirmed_inputs = gi_response['inputs']
       else:
         # Inputs provided.  Check to make sure we have sufficient
         # balance.

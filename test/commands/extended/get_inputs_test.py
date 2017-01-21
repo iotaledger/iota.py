@@ -6,7 +6,9 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota
+from mock import Mock, patch
+
+from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_inputs import GetInputsCommand, \
   GetInputsRequestFilter
@@ -33,7 +35,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
     request = {
       'seed':       Seed(self.seed),
       'start':      0,
-      'end':        10,
+      'stop':       10,
       'threshold':  100,
     }
 
@@ -54,7 +56,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
       # These values must still be integers, however.
       'start':      42,
-      'end':        86,
+      'stop':       86,
       'threshold':  99,
     })
 
@@ -65,7 +67,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':       Seed(self.seed),
         'start':      42,
-        'end':        86,
+        'stop':       86,
         'threshold':  99,
       },
     )
@@ -85,7 +87,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':       Seed(self.seed),
         'start':      0,
-        'end':        None,
+        'stop':       None,
         'threshold':  None,
       }
     )
@@ -212,65 +214,65 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_end_string(self):
+  def test_fail_stop_string(self):
     """
-    ``end`` is a string.
+    ``stop`` is a string.
     """
     self.assertFilterErrors(
       {
         # Not valid; it must be an int.
-        'end': '0',
+        'stop': '0',
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Type.CODE_WRONG_TYPE],
+        'stop': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
-  def test_fail_end_float(self):
+  def test_fail_stop_float(self):
     """
-    ``end`` is a float.
+    ``stop`` is a float.
     """
     self.assertFilterErrors(
       {
         # Even with an empty fpart, floats are not valid.
         # It's gotta be an int.
-        'end': 8.0,
+        'stop': 8.0,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Type.CODE_WRONG_TYPE],
+        'stop': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
-  def test_fail_end_too_small(self):
+  def test_fail_stop_too_small(self):
     """
-    ``end`` is less than 0.
+    ``stop`` is less than 0.
     """
     self.assertFilterErrors(
       {
-        'end': -1,
+        'stop': -1,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end': [f.Min.CODE_TOO_SMALL],
+        'stop': [f.Min.CODE_TOO_SMALL],
       },
     )
 
-  def test_fail_end_occurs_before_start(self):
+  def test_fail_stop_occurs_before_start(self):
     """
-    ``end`` is less than ``start``.
+    ``stop`` is less than ``start``.
     """
     self.assertFilterErrors(
       {
         'start':  1,
-        'end':    0,
+        'stop':   0,
 
         'seed': Seed(self.seed),
       },
@@ -282,18 +284,18 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_interval_too_large(self):
     """
-    ``end`` is way more than ``start``.
+    ``stop`` is way more than ``start``.
     """
     self.assertFilterErrors(
       {
         'start':  0,
-        'end':    GetInputsRequestFilter.MAX_INTERVAL + 1,
+        'stop':   GetInputsRequestFilter.MAX_INTERVAL + 1,
 
         'seed': Seed(self.seed),
       },
 
       {
-        'end':  [GetInputsRequestFilter.CODE_INTERVAL_TOO_BIG],
+        'stop':  [GetInputsRequestFilter.CODE_INTERVAL_TOO_BIG],
       },
     )
 
@@ -350,11 +352,32 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetInputsCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetInputsCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
     self.command = GetInputsCommand(self.adapter)
+
+    # Define some valid tryte sequences that we can reuse between
+    # tests.
+    self.addy0 =\
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999FIODSG'
+          b'IC9CCIFCNBTBDFIEHHE9RBAEVGK9JECCLCPBIINAX',
+
+        key_index = 0,
+      )
+
+    self.addy1 =\
+      Address(
+        trytes =
+          b'TESTVALUE9DONTUSEINPRODUCTION999999EPCNH'
+          b'MBTEH9KDVFMHHESDOBTFFACCGBFGACEDCDDCGICIL',
+
+        key_index = 1,
+      )
 
   def test_wireup(self):
     """
@@ -365,30 +388,79 @@ class GetInputsCommandTestCase(TestCase):
       GetInputsCommand,
     )
 
-  def test_start_and_end_with_threshold(self):
+  def test_start_and_stop_threshold_met(self):
     """
-    ``start`` and ``end`` values provided, with ``threshold``.
+    ``start`` and ``stop`` provided, balance meets ``threshold``.
+    """
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
+    })
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator.get_addresses',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed      = Seed.random(),
+        start     = 0,
+        stop      = 2,
+        threshold = 43,
+      )
+
+    self.assertEqual(response['totalBalance'], 71)
+    self.assertEqual(len(response['inputs']), 2)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+
+    self.assertEqual(input0, self.addy0)
+    self.assertEqual(input0.balance, 42)
+    self.assertEqual(input0.key_index, 0)
+
+    input1 = response['inputs'][1]
+    self.assertIsInstance(input1, Address)
+
+    self.assertEqual(input1, self.addy1)
+    self.assertEqual(input1.balance, 29)
+    self.assertEqual(input1.key_index, 1)
+
+  def test_start_and_stop_threshold_not_met(self):
+    """
+    ``start`` and ``stop`` provided, balance does not meet
+    ``threshold``.
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
 
-  def test_start_and_end_no_threshold(self):
+  def test_start_and_stop_no_threshold(self):
     """
-    ``start`` and ``end`` values provided, no ``threshold``.
-    """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
-
-  def test_no_end_with_threshold(self):
-    """
-    No ``end`` value provided, with ``threshold``.
+    ``start`` and ``stop`` provided, no ``threshold``.
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
 
-  def test_no_end_no_threshold(self):
+  def test_no_stop_threshold_met(self):
     """
-    No ``end`` value provided, no ``threshold``.
+    No ``stop`` provided, balance meets ``threshold``.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_no_stop_threshold_not_met(self):
+    """
+    No ``stop`` provided, balance does not meet ``threshold``.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_no_stop_no_threshold(self):
+    """
+    No ``stop`` provided, no ``threshold``.
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')

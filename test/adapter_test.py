@@ -25,13 +25,6 @@ class ResolveAdapterTestCase(TestCase):
     adapter = MockAdapter()
     self.assertIs(resolve_adapter(adapter), adapter)
 
-  def test_udp(self):
-    """
-    Resolving a valid udp:// URI.
-    """
-    adapter = resolve_adapter('udp://localhost:14265/')
-    self.assertIsInstance(adapter, HttpAdapter)
-
   def test_http(self):
     """
     Resolving a valid http:// URI.
@@ -55,16 +48,6 @@ class ResolveAdapterTestCase(TestCase):
 
 
 class HttpAdapterTestCase(TestCase):
-  def test_configure_udp(self):
-    """
-    Configuring an HttpAdapter using a valid udp:// URI.
-    """
-    adapter = HttpAdapter.configure('udp://localhost:14265/')
-
-    self.assertEqual(adapter.host, 'localhost')
-    self.assertEqual(adapter.port, 14265)
-    self.assertEqual(adapter.path, '/')
-
   def test_configure_http(self):
     """
     Configuring HttpAdapter using a valid http:// URI.
@@ -79,20 +62,10 @@ class HttpAdapterTestCase(TestCase):
     """
     Configuring an HttpAdapter using an IPv4 address.
     """
-    adapter = HttpAdapter.configure('udp://127.0.0.1:8080/')
+    adapter = HttpAdapter.configure('http://127.0.0.1:8080/')
 
     self.assertEqual(adapter.host, '127.0.0.1')
     self.assertEqual(adapter.port, 8080)
-    self.assertEqual(adapter.path, '/')
-
-  def test_configure_default_port_udp(self):
-    """
-    Implicitly use default UDP port for HttpAdapter.
-    """
-    adapter = HttpAdapter.configure('udp://iotatoken.com/')
-
-    self.assertEqual(adapter.host, 'iotatoken.com')
-    self.assertEqual(adapter.port, DEFAULT_PORT)
     self.assertEqual(adapter.path, '/')
 
   def test_configure_default_port_http(self):
@@ -109,10 +82,10 @@ class HttpAdapterTestCase(TestCase):
     """
     Specifying a different path for HttpAdapter.
     """
-    adapter = HttpAdapter.configure('http://iotatoken.com:443/node')
+    adapter = HttpAdapter.configure('http://iotatoken.com:1024/node')
 
     self.assertEqual(adapter.host, 'iotatoken.com')
-    self.assertEqual(adapter.port, 443)
+    self.assertEqual(adapter.port, 1024)
     self.assertEqual(adapter.path, '/node')
 
   def test_configure_custom_path_default_port(self):
@@ -130,7 +103,7 @@ class HttpAdapterTestCase(TestCase):
     """
     Implicitly use default path for HttpAdapter.
     """
-    adapter = HttpAdapter.configure('udp://example.com:8000')
+    adapter = HttpAdapter.configure('http://example.com:8000')
 
     self.assertEqual(adapter.host, 'example.com')
     self.assertEqual(adapter.port, 8000)
@@ -140,10 +113,10 @@ class HttpAdapterTestCase(TestCase):
     """
     Implicitly use default port and path for HttpAdapter.
     """
-    adapter = HttpAdapter.configure('udp://localhost')
+    adapter = HttpAdapter.configure('http://localhost')
 
     self.assertEqual(adapter.host, 'localhost')
-    self.assertEqual(adapter.port, DEFAULT_PORT)
+    self.assertEqual(adapter.port, 80)
     self.assertEqual(adapter.path, '/')
 
   def test_configure_error_missing_protocol(self):
@@ -165,14 +138,21 @@ class HttpAdapterTestCase(TestCase):
     Attempting to configure HttpAdapter with empty host.
     """
     with self.assertRaises(InvalidUri):
-      HttpAdapter.configure('udp://:14265')
+      HttpAdapter.configure('http://:14265')
 
   def test_configure_error_non_numeric_port(self):
     """
     Attempting to configure HttpAdapter with non-numeric port.
     """
     with self.assertRaises(InvalidUri):
-      HttpAdapter.configure('udp://localhost:iota/')
+      HttpAdapter.configure('http://localhost:iota/')
+
+  def test_configure_error_udp(self):
+    """
+    UDP is not a valid protocol for ``HttpAdapter``.
+    """
+    with self.assertRaises(InvalidUri):
+      HttpAdapter.configure('udp://localhost:14265')
 
   def test_success_response(self):
     """

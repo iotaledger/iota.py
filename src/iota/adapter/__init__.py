@@ -13,7 +13,7 @@ import requests
 from iota import DEFAULT_PORT
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
-from six import PY2, binary_type, with_metaclass
+from six import PY2, binary_type, moves as compat, text_type, with_metaclass
 
 __all__ = [
   'AdapterSpec',
@@ -33,6 +33,14 @@ if PY2:
 # Custom types for type hints and docstrings.
 AdapterSpec = Union[Text, 'BaseAdapter']
 
+# Load SplitResult for IDE type hinting and autocompletion.
+if PY2:
+  # noinspection PyCompatibility,PyUnresolvedReferences
+  from urlparse import SplitResult
+else:
+  # noinspection PyCompatibility,PyUnresolvedReferences
+  from urllib.parse import SplitResult
+
 
 class BadApiResponse(ValueError):
   """
@@ -48,67 +56,75 @@ class InvalidUri(ValueError):
   pass
 
 
-adapter_registry = {} # type: Dict[Text, _AdapterMeta]
-"""Keeps track of available adapters and their supported protocols."""
+adapter_registry = {} # type: Dict[Text, AdapterMeta]
+"""
+Keeps track of available adapters and their supported protocols.
+"""
 
 
 def resolve_adapter(uri):
   # type: (AdapterSpec) -> BaseAdapter
-  """Given a URI, returns a properly-configured adapter instance."""
+  """
+  Given a URI, returns a properly-configured adapter instance.
+  """
   if isinstance(uri, BaseAdapter):
     return uri
 
-  try:
-    protocol, _ = uri.split('://', 1)
-  except ValueError:
+  parsed = compat.urllib_parse.urlsplit(uri) # type: SplitResult
+
+  if not parsed.scheme:
     raise with_context(
       exc = InvalidUri(
         'URI must begin with "<protocol>://" (e.g., "udp://").',
       ),
 
       context = {
-        'uri': uri,
+        'parsed': parsed,
+        'uri':    uri,
       },
     )
 
   try:
-    adapter_type = adapter_registry[protocol]
+    adapter_type = adapter_registry[parsed.scheme]
   except KeyError:
     raise with_context(
       exc = InvalidUri('Unrecognized protocol {protocol!r}.'.format(
-        protocol = protocol,
+        protocol = parsed.scheme,
       )),
 
       context = {
-        'protocol': protocol,
-        'uri':      uri,
+        'parsed': parsed,
+        'uri':    uri,
       },
     )
 
-  return adapter_type.configure(uri)
+  return adapter_type.configure(parsed)
 
 
-class _AdapterMeta(ABCMeta):
+class AdapterMeta(ABCMeta):
   """
   Automatically registers new adapter classes in ``adapter_registry``.
   """
   # noinspection PyShadowingBuiltins
   def __init__(cls, what, bases=None, dict=None):
-    super(_AdapterMeta, cls).__init__(what, bases, dict)
+    super(AdapterMeta, cls).__init__(what, bases, dict)
 
     if not is_abstract(cls):
       for protocol in getattr(cls, 'supported_protocols', ()):
         adapter_registry[protocol] = cls
 
-  def configure(cls, uri):
-    # type: (Text) -> BaseAdapter
+  def configure(cls, parsed):
+    # type: (Union[Text, SplitResult]) -> BaseAdapter
     """
     Creates a new adapter from the specified URI.
     """
-    return cls(uri)
+    if isinstance(parsed, SplitResult):
+      parsed = parsed.geturl()
+
+    return cls(parsed)
 
 
-class BaseAdapter(with_metaclass(_AdapterMeta)):
+class BaseAdapter(with_metaclass(AdapterMeta)):
   """
   Interface for IOTA API adapters.
 
@@ -148,62 +164,66 @@ class HttpAdapter(BaseAdapter):
   """
   Sends standard HTTP requests.
   """
-  supported_protocols = ('udp', 'http',)
+  supported_protocols = ('http',)
 
   @classmethod
-  def configure(cls, uri):
-    # type: (Text) -> HttpAdapter
+  def configure(cls, parsed):
+    # type: (Union[Text, SplitResult]) -> HttpAdapter
     """
     Creates a new instance using the specified URI.
 
-    :param uri:
-      E.g., `udp://localhost:14265/`
+    :param parsed:
+      Result of :py:func:`urllib.parse.urlsplit`.
     """
+    if isinstance(parsed, text_type):
+      parsed = compat.urllib_parse.urlsplit(parsed) # type: SplitResult
+
+    if parsed.scheme not in cls.supported_protocols:
+      raise with_context(
+        exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
+          protocol = parsed.scheme,
+        )),
+
+        context = {
+          'uri': parsed,
+        },
+      )
+
+    if not parsed.hostname:
+      raise with_context(
+        exc = InvalidUri(
+          'Empty hostname in URI {uri!r}.'.format(
+            uri = parsed.geturl(),
+          ),
+        ),
+
+        context = {
+          'uri': parsed,
+        },
+      )
+
     try:
-      protocol, config = uri.split('://', 1)
+      port = parsed.port
     except ValueError:
-      raise InvalidUri('No protocol specified in URI {uri!r}.'.format(uri=uri))
-    else:
-      if protocol not in cls.supported_protocols:
-        raise with_context(
-          exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
-            protocol = protocol,
-          )),
+      raise with_context(
+        exc = InvalidUri(
+          'Non-numeric port in URI {uri!r}.'.format(
+            uri = parsed.geturl(),
+          ),
+        ),
 
-          context = {
-            'uri': uri,
-          },
-        )
+        context = {
+          'uri': parsed,
+        },
+      )
 
-    try:
-      server, path = config.split('/', 1)
-    except ValueError:
-      server  = config
-      path    = '/'
-    else:
-      # Restore the '/' delimiter that we used to split the string.
-      path = '/' + path
-
-    try:
-      host, port = server.split(':', 1)
-    except ValueError:
-      host = server
-
-      if protocol == 'http':
+    if not port:
+      if parsed.scheme == 'http':
         port = 80
       else:
         port = DEFAULT_PORT
 
-    if not host:
-      raise InvalidUri('Empty hostname in URI {uri!r}.'.format(uri=uri))
-
-    try:
-      port = int(port)
-    except ValueError:
-      raise InvalidUri('Non-numeric port in URI {uri!r}.'.format(uri=uri))
-
-    return cls(host, port, path)
-
+    return cls(parsed.hostname, port, parsed.path or '/')
 
   def __init__(self, host, port=DEFAULT_PORT, path='/'):
     # type: (Text, int) -> None

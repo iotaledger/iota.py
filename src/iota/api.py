@@ -2,20 +2,27 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Dict, Iterable, List, Optional, Text
-
-from six import with_metaclass
+from typing import Dict, Iterable, Optional, Text
 
 from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
   TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, discover_commands
 from iota.crypto.types import Seed
+from six import with_metaclass
 
 __all__ = [
+  'InvalidCommand',
   'Iota',
   'StrictIota',
 ]
+
+
+class InvalidCommand(ValueError):
+  """
+  Indicates that an invalid command name was specified.
+  """
+  pass
 
 
 class ApiMeta(type):
@@ -78,7 +85,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     This method will only return commands supported by the API class.
 
     If you want to execute an arbitrary API command, use
-    :py:meth:`custom_command`.
+    :py:meth:`create_command`.
 
     :param command:
       The name of the command to create.
@@ -86,9 +93,19 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/making-requests
     """
-    return self.commands[command](self.adapter)
+    try:
+      command_class = self.commands[command]
+    except KeyError:
+      raise InvalidCommand(
+        '{cls} does not support {command!r} command.'.format(
+          cls     = type(self).__name__,
+          command = command,
+        ),
+      )
 
-  def custom_command(self, command):
+    return command_class(self.adapter)
+
+  def create_command(self, command):
     # type: (Text) -> CustomCommand
     """
     Creates a pre-configured CustomCommand instance.

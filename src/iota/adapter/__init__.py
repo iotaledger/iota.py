@@ -10,7 +10,6 @@ from socket import getdefaulttimeout as get_default_timeout
 from typing import Dict, List, Text, Tuple, Union
 
 import requests
-from iota import DEFAULT_PORT
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
 from six import PY2, binary_type, moves as compat, text_type, with_metaclass
@@ -114,13 +113,13 @@ class AdapterMeta(ABCMeta):
         adapter_registry[protocol] = cls
 
   def configure(cls, parsed):
-    # type: (Union[Text, SplitResult]) -> BaseAdapter
+    # type: (Union[Text, SplitResult]) -> HttpAdapter
     """
-    Creates a new adapter from the specified URI.
-    """
-    if isinstance(parsed, SplitResult):
-      parsed = parsed.geturl()
+    Creates a new instance using the specified URI.
 
+    :param parsed:
+      Result of :py:func:`urllib.parse.urlsplit`.
+    """
     return cls(parsed)
 
 
@@ -164,74 +163,56 @@ class HttpAdapter(BaseAdapter):
   """
   Sends standard HTTP requests.
   """
-  supported_protocols = ('http',)
+  supported_protocols = ('http', 'https',)
 
-  @classmethod
-  def configure(cls, parsed):
-    # type: (Union[Text, SplitResult]) -> HttpAdapter
-    """
-    Creates a new instance using the specified URI.
+  def __init__(self, uri):
+    # type: (Union[Text, SplitResult]) -> None
+    super(HttpAdapter, self).__init__()
 
-    :param parsed:
-      Result of :py:func:`urllib.parse.urlsplit`.
-    """
-    if isinstance(parsed, text_type):
-      parsed = compat.urllib_parse.urlsplit(parsed) # type: SplitResult
+    if isinstance(uri, text_type):
+      uri = compat.urllib_parse.urlsplit(uri) # type: SplitResult
 
-    if parsed.scheme not in cls.supported_protocols:
+    if uri.scheme not in self.supported_protocols:
       raise with_context(
         exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
-          protocol = parsed.scheme,
+          protocol = uri.scheme,
         )),
 
         context = {
-          'uri': parsed,
+          'uri': uri,
         },
       )
 
-    if not parsed.hostname:
+    if not uri.hostname:
       raise with_context(
         exc = InvalidUri(
           'Empty hostname in URI {uri!r}.'.format(
-            uri = parsed.geturl(),
+            uri = uri.geturl(),
           ),
         ),
 
         context = {
-          'uri': parsed,
+          'uri': uri,
         },
       )
 
     try:
-      port = parsed.port
+      # noinspection PyStatementEffect
+      uri.port
     except ValueError:
       raise with_context(
         exc = InvalidUri(
           'Non-numeric port in URI {uri!r}.'.format(
-            uri = parsed.geturl(),
+            uri = uri.geturl(),
           ),
         ),
 
         context = {
-          'uri': parsed,
+          'uri': uri,
         },
       )
 
-    if not port:
-      if parsed.scheme == 'http':
-        port = 80
-      else:
-        port = DEFAULT_PORT
-
-    return cls(parsed.hostname, port, parsed.path or '/')
-
-  def __init__(self, host, port=DEFAULT_PORT, path='/'):
-    # type: (Text, int) -> None
-    super(HttpAdapter, self).__init__()
-
-    self.host = host
-    self.port = port
-    self.path = path
+    self.uri = uri
 
   @property
   def node_url(self):
@@ -239,11 +220,7 @@ class HttpAdapter(BaseAdapter):
     """
     Returns the node URL.
     """
-    return 'http://{host}:{port}{path}'.format(
-      host = self.host,
-      port = self.port,
-      path = self.path,
-    )
+    return self.uri.geturl()
 
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict

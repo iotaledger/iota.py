@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from abc import ABCMeta, abstractmethod as abstract_method
 from importlib import import_module
-from inspect import isabstract as is_abstract
+from inspect import isabstract as is_abstract, isclass as is_class, \
+  getmembers as get_members
 from pkgutil import walk_packages
 from types import ModuleType
 from typing import Dict, Mapping, Optional, Text, Union
@@ -28,7 +29,7 @@ Registry of commands, indexed by command name.
 
 
 def discover_commands(package, recursively=True):
-  # type: (Union[ModuleType, Text], bool) -> None
+  # type: (Union[ModuleType, Text], bool) -> Dict[Text, 'CommandMeta']
   """
   Automatically discover commands in the specified package.
 
@@ -37,19 +38,33 @@ def discover_commands(package, recursively=True):
 
   :param recursively:
     If True, will descend recursively into sub-packages.
+
+  :return:
+    All commands discovered in the specified package, indexed by
+    command name (note: not class name).
   """
   # :see: http://stackoverflow.com/a/25562415/
   if isinstance(package, string_types):
     package = import_module(package) # type: ModuleType
+
+  commands = {}
 
   for _, name, is_package in walk_packages(package.__path__):
     # Loading the module is good enough; the CommandMeta metaclass will
     # ensure that any commands in the module get registered.
     sub_package = import_module(package.__name__ + '.' + name)
 
-    if recursively and is_package:
-      discover_commands(sub_package)
+    # Index any command classes that we find.
+    for (_, obj) in get_members(sub_package):
+      if is_class(obj) and isinstance(obj, CommandMeta):
+        command_name = getattr(obj, 'command')
+        if command_name:
+          commands[command_name] = obj
 
+    if recursively and is_package:
+      commands.update(discover_commands(sub_package))
+
+  return commands
 
 class CommandMeta(ABCMeta):
   """

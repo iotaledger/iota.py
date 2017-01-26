@@ -2176,15 +2176,17 @@ class PrepareTransferCommandTestCase(TestCase):
     #   References:
     #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_new_addresses.GetNewAddressesCommand`
-    mock_get_new_addresses_command = Mock(return_value=[
-      Address(
-        trytes =
-          b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
-          b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
+    mock_get_new_addresses_command = Mock(return_value={
+      'addresses': [
+        Address(
+          trytes =
+            b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
+            b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
 
-        key_index = 5,
-      ),
-    ])
+          key_index = 5,
+        ),
+      ],
+    })
 
     self.adapter.seed_response('getBalances', {
       'balances': [86],

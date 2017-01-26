@@ -115,13 +115,23 @@ class IotaApiTestCase(TestCase):
     command = api.getNodeInfo
     self.assertIsInstance(command, GetNodeInfoCommand)
 
+  def test_unregistered_command(self):
+    """
+    Attempting to create an unsupported command.
+    """
+    api = StrictIota(MockAdapter())
+
+    with self.assertRaises(KeyError):
+      # noinspection PyStatementEffect
+      api.helloWorld
+
   def test_custom_command(self):
     """
     Preparing an experimental/undocumented command.
     """
     api = StrictIota(MockAdapter())
 
-    # We just need to make sure the correct command type is
-    # instantiated; custom commands have their own unit tests.
-    command = api.helloWorld
-    self.assertIsInstance(command, CustomCommand)
+    custom_command = api.custom_command('helloWorld')
+
+    self.assertIsInstance(custom_command, CustomCommand)
+    self.assertEqual(custom_command.command, 'helloWorld')

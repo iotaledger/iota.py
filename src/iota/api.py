@@ -4,10 +4,12 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Dict, Iterable, List, Optional, Text
 
+from six import with_metaclass
+
 from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
   TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.commands import CustomCommand, command_registry
+from iota.commands import BaseCommand, CustomCommand, discover_commands
 from iota.crypto.types import Seed
 
 __all__ = [
@@ -16,7 +18,30 @@ __all__ = [
 ]
 
 
-class StrictIota(object):
+class ApiMeta(type):
+  """
+  Manages command registries for IOTA API base classes.
+  """
+  def __init__(cls, name, bases=None, attrs=None):
+    super(ApiMeta, cls).__init__(name, bases, attrs)
+
+    if not hasattr(cls, 'commands'):
+      cls.commands = {}
+
+    # Copy command registry from base class to derived class, but
+    # in the event of a conflict, preserve the derived class'
+    # commands.
+    commands = {}
+    for base in bases:
+      if isinstance(base, ApiMeta):
+          commands.update(base.commands)
+
+    if commands:
+        commands.update(cls.commands)
+        cls.commands = commands
+
+
+class StrictIota(with_metaclass(ApiMeta)):
   """
   API to send HTTP requests for communicating with an IOTA node.
 
@@ -26,6 +51,8 @@ class StrictIota(object):
   References:
     - https://iota.readme.io/docs/getting-started
   """
+  commands = discover_commands('iota.commands.core')
+
   def __init__(self, adapter, testnet=False):
     # type: (AdapterSpec, bool) -> None
     """
@@ -44,23 +71,35 @@ class StrictIota(object):
     self.testnet = testnet
 
   def __getattr__(self, command):
-    # type: (Text, dict) -> CustomCommand
+    # type: (Text) -> BaseCommand
     """
-    Sends an arbitrary API command to the node.
+    Creates a pre-configured command instance.
+
+    This method will only return commands supported by the API class.
+
+    If you want to execute an arbitrary API command, use
+    :py:meth:`custom_command`.
+
+    :param command:
+      The name of the command to create.
+
+    References:
+      - https://iota.readme.io/docs/making-requests
+    """
+    return self.commands[command](self.adapter)
+
+  def custom_command(self, command):
+    # type: (Text) -> CustomCommand
+    """
+    Creates a pre-configured CustomCommand instance.
 
     This method is useful for invoking undocumented or experimental
     methods, or if you just want to troll your node for awhile.
 
     :param command:
-      The name of the command to send.
-
-    References:
-      - https://iota.readme.io/docs/making-requests
+      The name of the command to create.
     """
-    try:
-      return command_registry[command](self.adapter)
-    except KeyError:
-      return CustomCommand(self.adapter, command)
+    return CustomCommand(self.adapter, command)
 
   @property
   def default_min_weight_magnitude(self):
@@ -334,6 +373,8 @@ class Iota(StrictIota):
     - https://iota.readme.io/docs/getting-started
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
   """
+  commands = discover_commands('iota.commands.extended')
+
   def __init__(self, adapter, seed=None, testnet=False):
     # type: (AdapterSpec, Optional[TrytesCompatible], bool) -> None
     """

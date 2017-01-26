@@ -533,7 +533,7 @@ class Iota(StrictIota):
     return self.getLatestInclusion(hashes=hashes)
 
   def get_new_addresses(self, index=0, count=1):
-    # type: (int, Optional[int]) -> List[Address]
+    # type: (int, Optional[int]) -> dict
     """
     Generates one or more new addresses from the seed.
 
@@ -550,10 +550,12 @@ class Iota(StrictIota):
       available unused address and return that.
 
     :return:
-      List of generated addresses.
+      Dict with the following items::
 
-      Note that this method always returns a list, even if only one
-      address is generated.
+         {
+           'addresses': List[Address],
+             Always a list, even if only one address was generated.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress

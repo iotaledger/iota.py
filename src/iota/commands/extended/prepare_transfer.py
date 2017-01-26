@@ -98,7 +98,8 @@ class PrepareTransferCommand(FilterCommand):
 
       if bundle.balance < 0:
         if not change_address:
-          change_address = GetNewAddressesCommand(self.adapter)(seed=seed)[0]
+          change_address =\
+            GetNewAddressesCommand(self.adapter)(seed=seed)['addresses'][0]
 
         bundle.send_unspent_inputs_to(change_address)
 

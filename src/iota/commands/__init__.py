@@ -22,7 +22,9 @@ __all__ = [
 ]
 
 command_registry = {} # type: Dict[Text, CommandMeta]
-"""Registry of commands, indexed by command name."""
+"""
+Registry of commands, indexed by command name.
+"""
 
 
 def discover_commands(package, recursively=True):
@@ -30,9 +32,11 @@ def discover_commands(package, recursively=True):
   """
   Automatically discover commands in the specified package.
 
-  :param package: Package path or reference.
-  :param recursively: If True, will descend recursively into
-    sub-packages.
+  :param package:
+    Package path or reference.
+
+  :param recursively:
+    If True, will descend recursively into sub-packages.
   """
   # :see: http://stackoverflow.com/a/25562415/
   if isinstance(package, string_types):
@@ -40,7 +44,7 @@ def discover_commands(package, recursively=True):
 
   for _, name, is_package in walk_packages(package.__path__):
     # Loading the module is good enough; the CommandMeta metaclass will
-    #   ensure that any commands in the module get registered.
+    # ensure that any commands in the module get registered.
     sub_package = import_module(package.__name__ + '.' + name)
 
     if recursively and is_package:
@@ -48,7 +52,9 @@ def discover_commands(package, recursively=True):
 
 
 class CommandMeta(ABCMeta):
-  """Automatically register new commands."""
+  """
+  Automatically register new commands.
+  """
   # noinspection PyShadowingBuiltins
   def __init__(cls, what, bases=None, dict=None):
     super(CommandMeta, cls).__init__(what, bases, dict)
@@ -60,7 +66,9 @@ class CommandMeta(ABCMeta):
 
 
 class BaseCommand(with_metaclass(CommandMeta)):
-  """An API command ready to send to the node."""
+  """
+  An API command ready to send to the node.
+  """
   command = None # Text
 
   def __init__(self, adapter):
@@ -77,7 +85,9 @@ class BaseCommand(with_metaclass(CommandMeta)):
 
   def __call__(self, **kwargs):
     # type: (dict) -> dict
-    """Sends the command to the node."""
+    """
+    Sends the command to the node.
+    """
     if self.called:
       raise with_context(
         exc = RuntimeError('Command has already been called.'),
@@ -131,12 +141,13 @@ class BaseCommand(with_metaclass(CommandMeta)):
     Modifies the request before sending it to the node.
 
     If this method returns a dict, it will replace the request
-      entirely.
+    entirely.
 
     Note:  the `command` parameter will be injected later; it is
-      not necessary for this method to include it.
+    not necessary for this method to include it.
 
-    :param request: Guaranteed to be a dict, but it might be empty.
+    :param request:
+      Guaranteed to be a dict, but it might be empty.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -149,9 +160,10 @@ class BaseCommand(with_metaclass(CommandMeta)):
     Modifies the response from the node.
 
     If this method returns a dict, it will replace the response
-      entirely.
+    entirely.
 
-    :param response: Guaranteed to be a dict, but it might be empty.
+    :param response:
+      Guaranteed to be a dict, but it might be empty.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -161,7 +173,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
 class CustomCommand(BaseCommand):
   """
   Sends an arbitrary command to the node, with no request/response
-    validation.
+  validation.
 
   Useful for executing experimental/undocumented commands.
   """
@@ -179,9 +191,11 @@ class CustomCommand(BaseCommand):
 
 
 class RequestFilter(f.FilterChain):
-  """Template for filter applied to API requests."""
+  """
+  Template for filter applied to API requests.
+  """
   # Be more strict about missing/extra keys for requests, since they
-  #   tend to come from code that the developer has control over.
+  # tend to come from code that the developer has control over.
   def __init__(
       self,
       filter_map,
@@ -200,9 +214,11 @@ class RequestFilter(f.FilterChain):
 
 
 class ResponseFilter(f.FilterChain):
-  """Template for filter applied to API responses."""
+  """
+  Template for filter applied to API responses.
+  """
   # Be a little looser about missing/extra keys for responses, since we
-  #   can't control what the node sends us back.
+  # can't control what the node sends us back.
   def __init__(
       self,
       filter_map,
@@ -222,7 +238,9 @@ class ResponseFilter(f.FilterChain):
 
 
 class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
-  """Uses filters to manipulate request/response values."""
+  """
+  Uses filters to manipulate request/response values.
+  """
   @abstract_method
   def get_request_filter(self):
     # type: () -> Optional[RequestFilter]
@@ -230,8 +248,8 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
     Returns the filter that should be applied to the request (if any).
 
     Generally, this filter should be strict about validating/converting
-      the values in the request, to minimize the chance of an error
-      response from the node.
+    the values in the request, to minimize the chance of an error
+    response from the node.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -244,8 +262,8 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
     Returns the filter that should be applied to the response (if any).
 
     Generally, this filter should be less concerned with validation and
-      more concerned with ensuring the response values have the correct
-      types, since we can't control what the node sends us.
+    more concerned with ensuring the response values have the correct
+    types, since we can't control what the node sends us.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -270,8 +288,8 @@ class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
     # type: (dict, Optional[f.BaseFilter], Text) -> dict
     """
     Applies a filter to a value.  If the value does not pass the
-      filter, an exception will be raised with lots of contextual info
-      attached to it.
+    filter, an exception will be raised with lots of contextual info
+    attached to it.
     """
     if filter_:
       runner = f.FilterRunner(filter_, value)

@@ -7,11 +7,10 @@ from typing import Text
 from unittest import TestCase
 
 import requests
+from iota import BadApiResponse, InvalidUri, TryteString
+from iota.adapter import HttpAdapter, MockAdapter, resolve_adapter
 from mock import Mock, patch
 from six import BytesIO, text_type as text
-
-from iota import BadApiResponse, DEFAULT_PORT, InvalidUri, TryteString
-from iota.adapter import HttpAdapter, MockAdapter, resolve_adapter
 
 
 class ResolveAdapterTestCase(TestCase):
@@ -27,9 +26,16 @@ class ResolveAdapterTestCase(TestCase):
 
   def test_http(self):
     """
-    Resolving a valid http:// URI.
+    Resolving a valid `http://` URI.
     """
     adapter = resolve_adapter('http://localhost:14265/')
+    self.assertIsInstance(adapter, HttpAdapter)
+
+  def test_https(self):
+    """
+    Resolving a valid `https://` URI.
+    """
+    adapter = resolve_adapter('https://localhost:14265/')
     self.assertIsInstance(adapter, HttpAdapter)
 
   def test_missing_protocol(self):
@@ -48,76 +54,32 @@ class ResolveAdapterTestCase(TestCase):
 
 
 class HttpAdapterTestCase(TestCase):
-  def test_configure_http(self):
+  def test_http(self):
     """
     Configuring HttpAdapter using a valid http:// URI.
     """
-    adapter = HttpAdapter.configure('http://localhost:14265/')
+    uri     = 'http://localhost:14265/'
+    adapter = HttpAdapter(uri)
 
-    self.assertEqual(adapter.host, 'localhost')
-    self.assertEqual(adapter.port, 14265)
-    self.assertEqual(adapter.path, '/')
+    self.assertEqual(adapter.node_url, uri)
 
-  def test_configure_ipv4_address(self):
+  def test_https(self):
+    """
+    Configuring HttpAdapter using a valid https:// URI.
+    """
+    uri     = 'https://localhost:14265/'
+    adapter = HttpAdapter(uri)
+
+    self.assertEqual(adapter.node_url, uri)
+
+  def test_ipv4_address(self):
     """
     Configuring an HttpAdapter using an IPv4 address.
     """
-    adapter = HttpAdapter.configure('http://127.0.0.1:8080/')
+    uri     = 'http://127.0.0.1:8080/'
+    adapter = HttpAdapter(uri)
 
-    self.assertEqual(adapter.host, '127.0.0.1')
-    self.assertEqual(adapter.port, 8080)
-    self.assertEqual(adapter.path, '/')
-
-  def test_configure_default_port_http(self):
-    """
-    Implicitly use default HTTP port for HttpAdapter.
-    """
-    adapter = HttpAdapter.configure('http://iotatoken.com/')
-
-    self.assertEqual(adapter.host, 'iotatoken.com')
-    self.assertEqual(adapter.port, 80)
-    self.assertEqual(adapter.path, '/')
-
-  def test_configure_path(self):
-    """
-    Specifying a different path for HttpAdapter.
-    """
-    adapter = HttpAdapter.configure('http://iotatoken.com:1024/node')
-
-    self.assertEqual(adapter.host, 'iotatoken.com')
-    self.assertEqual(adapter.port, 1024)
-    self.assertEqual(adapter.path, '/node')
-
-  def test_configure_custom_path_default_port(self):
-    """
-    Configuring HttpAdapter to use a custom path but implicitly use
-    default port.
-    """
-    adapter = HttpAdapter.configure('http://iotatoken.com/node')
-
-    self.assertEqual(adapter.host, 'iotatoken.com')
-    self.assertEqual(adapter.port, 80)
-    self.assertEqual(adapter.path, '/node')
-
-  def test_configure_default_path(self):
-    """
-    Implicitly use default path for HttpAdapter.
-    """
-    adapter = HttpAdapter.configure('http://example.com:8000')
-
-    self.assertEqual(adapter.host, 'example.com')
-    self.assertEqual(adapter.port, 8000)
-    self.assertEqual(adapter.path, '/')
-
-  def test_configure_default_port_and_path(self):
-    """
-    Implicitly use default port and path for HttpAdapter.
-    """
-    adapter = HttpAdapter.configure('http://localhost')
-
-    self.assertEqual(adapter.host, 'localhost')
-    self.assertEqual(adapter.port, 80)
-    self.assertEqual(adapter.path, '/')
+    self.assertEqual(adapter.node_url, uri)
 
   def test_configure_error_missing_protocol(self):
     """
@@ -159,7 +121,7 @@ class HttpAdapterTestCase(TestCase):
     Simulates sending a command to the node and getting a success
     response.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     expected_result = {
       'message': 'Hello, IOTA!',
@@ -179,7 +141,7 @@ class HttpAdapterTestCase(TestCase):
     Simulates sending a command to the node and getting an error
     response.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     expected_result = 'Command \u0027helloWorld\u0027 is unknown'
 
@@ -202,7 +164,7 @@ class HttpAdapterTestCase(TestCase):
     Simulates sending a command to the node and getting an exception
     response.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     expected_result = 'java.lang.ArrayIndexOutOfBoundsException: 4'
 
@@ -224,7 +186,7 @@ class HttpAdapterTestCase(TestCase):
     """
     The response is empty.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     mocked_response = self._create_response('')
 
@@ -241,7 +203,7 @@ class HttpAdapterTestCase(TestCase):
     """
     The response is not JSON.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     invalid_response  = 'EHLO iotatoken.com' # Erm...
     mocked_response   = self._create_response(invalid_response)
@@ -262,7 +224,7 @@ class HttpAdapterTestCase(TestCase):
     """
     The response is valid JSON, but it's not an object.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     invalid_response  = '["message", "Hello, IOTA!"]'
     mocked_response   = self._create_response(invalid_response)
@@ -284,7 +246,7 @@ class HttpAdapterTestCase(TestCase):
     """
     Sending a request that includes trytes.
     """
-    adapter = HttpAdapter('localhost')
+    adapter = HttpAdapter('http://localhost:14265')
 
     # Response is not important for this test; we just need to make
     # sure that the request is converted correctly.

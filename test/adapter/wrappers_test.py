@@ -69,7 +69,7 @@ class RoutingWrapperTestCase(TestCase):
     )
 
     # Providing an adapter instance bypasses the whole setup.
-    wrapper1.add_route('delta', HttpAdapter('localhost', 14265))
+    wrapper1.add_route('delta', HttpAdapter('http://localhost:14265'))
     self.assertIsNot(
       wrapper1.get_adapter('delta'),
       wrapper1.get_adapter('alpha'),

@@ -57,20 +57,44 @@ class SandboxAdapterTestCase(TestCase):
     other methods to control access (e.g., listen only on loopback
     interface, use IP address whitelist, etc.).
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # No access token.
+    adapter = SandboxAdapter('https://localhost', None)
 
-  def test_error_token_wrong_type(self):
+    expected_result = {
+      'message': 'Hello, IOTA!',
+    }
+
+    mocked_response = create_http_response(json.dumps(expected_result))
+    mocked_sender = Mock(return_value=mocked_response)
+
+    payload = {'command': 'helloWorld'}
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      result = adapter.send_request(payload)
+
+    self.assertEqual(result, expected_result)
+
+    mocked_sender.assert_called_once_with(
+      payload = json.dumps(payload),
+
+      # No auth token, so no Authorization header.
+      # headers = {
+      #   'Authorization': 'token ACCESS-TOKEN',
+      # },
+    )
+
+  def test_error_auth_token_wrong_type(self):
     """
-    ``token`` is not a string.
+    ``auth_token`` is not a string.
     """
     with self.assertRaises(TypeError):
       # Nope; it has to be a unicode string.
       SandboxAdapter('https://localhost', b'not valid')
 
-  def test_error_token_empty(self):
+  def test_error_auth_token_empty(self):
     """
-    ``token`` is an empty string.
+    ``auth_token`` is an empty string.
     """
     with self.assertRaises(ValueError):
       # If the node does not require authorization, use ``None``.

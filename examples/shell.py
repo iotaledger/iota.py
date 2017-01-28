@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from argparse import ArgumentParser
 from getpass import getpass as secure_input
-from logging import INFO, basicConfig, getLogger
+from logging import DEBUG, basicConfig, getLogger
 from sys import argv, stderr
 
 from six import text_type
@@ -18,10 +18,10 @@ from iota import *
 
 from iota import __version__
 from iota.adapter import resolve_adapter
-from iota.adapter.wrappers import LogWrapper, RoutingWrapper
+from iota.adapter.wrappers import RoutingWrapper
 
 
-basicConfig(level=INFO, stream=stderr)
+basicConfig(level=DEBUG, stream=stderr)
 
 
 def main(uri, testnet, pow_uri, debug_requests):
@@ -34,15 +34,22 @@ def main(uri, testnet, pow_uri, debug_requests):
   if isinstance(seed, text_type):
     seed = seed.encode('ascii')
 
+  adapter_ = resolve_adapter(uri)
+
   # If ``pow_uri`` is specified, route POW requests to a separate node.
-  adapter_ = create_adapter(uri, debug_requests)
   if pow_uri:
-    pow_adapter = create_adapter(pow_uri, debug_requests)
+    pow_adapter = resolve_adapter(pow_uri)
 
     adapter_ =\
       RoutingWrapper(adapter_)\
         .add_route('attachToTangle', pow_adapter)\
         .add_route('interruptAttachingToTangle', pow_adapter)
+
+  # If ``debug_requests`` is specified, log HTTP requests/responses.
+  if debug_requests:
+    logger = getLogger(__name__)
+    logger.setLevel(DEBUG)
+    adapter_.set_logger(logger)
 
   iota = Iota(adapter_, seed=seed, testnet=testnet)
 
@@ -55,26 +62,6 @@ def main(uri, testnet, pow_uri, debug_requests):
   )
 
   start_shell(iota, _banner)
-
-
-def create_adapter(uri, debug):
-  # type: (Text, bool) -> BaseAdapter
-  """
-  Creates an adapter with the specified settings.
-
-  :param uri:
-    Node URI.
-
-  :param debug:
-    Whether to attach a LogWrapper to the adapter.
-  """
-  adapter_ = resolve_adapter(uri)
-
-  return (
-    LogWrapper(adapter_, getLogger(__name__), INFO)
-      if debug
-      else adapter_
-  )
 
 
 def start_shell(iota, _banner):
@@ -102,11 +89,11 @@ if __name__ == '__main__':
   parser.add_argument(
     '--uri',
       type    = text_type,
-      default = 'udp://localhost:14265/',
+      default = 'http://localhost:14265/',
 
       help =
         'URI of the node to connect to '
-        '(defaults to udp://localhost:14265/).',
+        '(defaults to http://localhost:14265/).',
   )
 
   parser.add_argument(

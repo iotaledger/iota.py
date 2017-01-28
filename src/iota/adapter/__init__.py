@@ -6,14 +6,14 @@ import json
 from abc import ABCMeta, abstractmethod as abstract_method
 from collections import deque
 from inspect import isabstract as is_abstract
+from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Dict, List, Text, Tuple, Union
+from typing import Container, Dict, List, Optional, Text, Tuple, Union
 
-import requests
-from iota import DEFAULT_PORT
+from requests import Response, codes, request
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
-from six import PY2, binary_type, with_metaclass
+from six import PY2, binary_type, moves as compat, text_type, with_metaclass
 
 __all__ = [
   'AdapterSpec',
@@ -33,6 +33,14 @@ if PY2:
 # Custom types for type hints and docstrings.
 AdapterSpec = Union[Text, 'BaseAdapter']
 
+# Load SplitResult for IDE type hinting and autocompletion.
+if PY2:
+  # noinspection PyCompatibility,PyUnresolvedReferences
+  from urlparse import SplitResult
+else:
+  # noinspection PyCompatibility,PyUnresolvedReferences
+  from urllib.parse import SplitResult
+
 
 class BadApiResponse(ValueError):
   """
@@ -48,67 +56,76 @@ class InvalidUri(ValueError):
   pass
 
 
-adapter_registry = {} # type: Dict[Text, _AdapterMeta]
-"""Keeps track of available adapters and their supported protocols."""
+adapter_registry = {} # type: Dict[Text, AdapterMeta]
+"""
+Keeps track of available adapters and their supported protocols.
+"""
 
 
 def resolve_adapter(uri):
   # type: (AdapterSpec) -> BaseAdapter
-  """Given a URI, returns a properly-configured adapter instance."""
+  """
+  Given a URI, returns a properly-configured adapter instance.
+  """
   if isinstance(uri, BaseAdapter):
     return uri
 
-  try:
-    protocol, _ = uri.split('://', 1)
-  except ValueError:
+  parsed = compat.urllib_parse.urlsplit(uri) # type: SplitResult
+
+  if not parsed.scheme:
     raise with_context(
       exc = InvalidUri(
         'URI must begin with "<protocol>://" (e.g., "udp://").',
       ),
 
       context = {
-        'uri': uri,
+        'parsed': parsed,
+        'uri':    uri,
       },
     )
 
   try:
-    adapter_type = adapter_registry[protocol]
+    adapter_type = adapter_registry[parsed.scheme]
   except KeyError:
     raise with_context(
       exc = InvalidUri('Unrecognized protocol {protocol!r}.'.format(
-        protocol = protocol,
+        protocol = parsed.scheme,
       )),
 
       context = {
-        'protocol': protocol,
-        'uri':      uri,
+        'parsed': parsed,
+        'uri':    uri,
       },
     )
 
-  return adapter_type.configure(uri)
+  return adapter_type.configure(parsed)
 
 
-class _AdapterMeta(ABCMeta):
+class AdapterMeta(ABCMeta):
   """
   Automatically registers new adapter classes in ``adapter_registry``.
   """
   # noinspection PyShadowingBuiltins
   def __init__(cls, what, bases=None, dict=None):
-    super(_AdapterMeta, cls).__init__(what, bases, dict)
+    super(AdapterMeta, cls).__init__(what, bases, dict)
 
     if not is_abstract(cls):
       for protocol in getattr(cls, 'supported_protocols', ()):
-        adapter_registry[protocol] = cls
+        # Note that we will not overwrite existing registered adapters.
+        adapter_registry.setdefault(protocol, cls)
 
-  def configure(cls, uri):
-    # type: (Text) -> BaseAdapter
+  def configure(cls, parsed):
+    # type: (Union[Text, SplitResult]) -> HttpAdapter
     """
-    Creates a new adapter from the specified URI.
+    Creates a new instance using the specified URI.
+
+    :param parsed:
+      Result of :py:func:`urllib.parse.urlsplit`.
     """
-    return cls(uri)
+    return cls(parsed)
 
 
-class BaseAdapter(with_metaclass(_AdapterMeta)):
+class BaseAdapter(with_metaclass(AdapterMeta)):
   """
   Interface for IOTA API adapters.
 
@@ -120,6 +137,12 @@ class BaseAdapter(with_metaclass(_AdapterMeta)):
   Protocols that ``resolve_adapter`` can use to identify this adapter
   type.
   """
+
+  def __init__(self):
+    super(BaseAdapter, self).__init__()
+
+    self._logger = None # type: Logger
+
   @abstract_method
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
@@ -143,75 +166,79 @@ class BaseAdapter(with_metaclass(_AdapterMeta)):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
+  def set_logger(self, logger):
+    # type: (Logger) -> BaseAdapter
+    """
+    Attaches a logger instance to the adapter.
+    The adapter will send information about API requests/responses to
+    the logger.
+    """
+    self._logger = logger
+    return self
+
+  def _log(self, level, message, context=None):
+    # type: (int, Text, Optional[dict]) -> None
+    """
+    Sends a message to the instance's logger, if configured.
+    """
+    if self._logger:
+      self._logger.log(level, message, extra={'context': context or {}})
+
 
 class HttpAdapter(BaseAdapter):
   """
   Sends standard HTTP requests.
   """
-  supported_protocols = ('udp', 'http',)
+  supported_protocols = ('http', 'https',)
 
-  @classmethod
-  def configure(cls, uri):
-    # type: (Text) -> HttpAdapter
-    """
-    Creates a new instance using the specified URI.
-
-    :param uri:
-      E.g., `udp://localhost:14265/`
-    """
-    try:
-      protocol, config = uri.split('://', 1)
-    except ValueError:
-      raise InvalidUri('No protocol specified in URI {uri!r}.'.format(uri=uri))
-    else:
-      if protocol not in cls.supported_protocols:
-        raise with_context(
-          exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
-            protocol = protocol,
-          )),
-
-          context = {
-            'uri': uri,
-          },
-        )
-
-    try:
-      server, path = config.split('/', 1)
-    except ValueError:
-      server  = config
-      path    = '/'
-    else:
-      # Restore the '/' delimiter that we used to split the string.
-      path = '/' + path
-
-    try:
-      host, port = server.split(':', 1)
-    except ValueError:
-      host = server
-
-      if protocol == 'http':
-        port = 80
-      else:
-        port = DEFAULT_PORT
-
-    if not host:
-      raise InvalidUri('Empty hostname in URI {uri!r}.'.format(uri=uri))
-
-    try:
-      port = int(port)
-    except ValueError:
-      raise InvalidUri('Non-numeric port in URI {uri!r}.'.format(uri=uri))
-
-    return cls(host, port, path)
-
-
-  def __init__(self, host, port=DEFAULT_PORT, path='/'):
-    # type: (Text, int) -> None
+  def __init__(self, uri):
+    # type: (Union[Text, SplitResult]) -> None
     super(HttpAdapter, self).__init__()
 
-    self.host = host
-    self.port = port
-    self.path = path
+    if isinstance(uri, text_type):
+      uri = compat.urllib_parse.urlsplit(uri) # type: SplitResult
+
+    if uri.scheme not in self.supported_protocols:
+      raise with_context(
+        exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
+          protocol = uri.scheme,
+        )),
+
+        context = {
+          'uri': uri,
+        },
+      )
+
+    if not uri.hostname:
+      raise with_context(
+        exc = InvalidUri(
+          'Empty hostname in URI {uri!r}.'.format(
+            uri = uri.geturl(),
+          ),
+        ),
+
+        context = {
+          'uri': uri,
+        },
+      )
+
+    try:
+      # noinspection PyStatementEffect
+      uri.port
+    except ValueError:
+      raise with_context(
+        exc = InvalidUri(
+          'Non-numeric port in URI {uri!r}.'.format(
+            uri = uri.geturl(),
+          ),
+        ),
+
+        context = {
+          'uri': uri,
+        },
+      )
+
+    self.uri = uri
 
   @property
   def node_url(self):
@@ -219,20 +246,89 @@ class HttpAdapter(BaseAdapter):
     """
     Returns the node URL.
     """
-    return 'http://{host}:{port}{path}'.format(
-      host = self.host,
-      port = self.port,
-      path = self.path,
-    )
+    return self.uri.geturl()
 
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
+    kwargs.setdefault('headers', {})
+    kwargs['headers']['Content-type'] = 'application/json'
+
     response = self._send_http_request(
       # Use a custom JSON encoder that knows how to convert Tryte values.
       payload = JsonEncoder().encode(payload),
+
+      url = self.node_url,
       **kwargs
     )
 
+    return self._interpret_response(response, payload, {codes['ok']})
+
+  def _send_http_request(self, url, payload, method='post', **kwargs):
+    # type: (Text, Optional[Text], Text, dict) -> Response
+    """
+    Sends the actual HTTP request.
+
+    Split into its own method so that it can be mocked during unit
+    tests.
+    """
+    kwargs.setdefault('timeout', get_default_timeout())
+
+    self._log(
+      level = DEBUG,
+
+      message = 'Sending {method} to {url}: {payload!r}'.format(
+        method  = method,
+        payload = payload,
+        url     = url,
+      ),
+
+      context = {
+        'request_method':   method,
+        'request_kwargs':   kwargs,
+        'request_payload':  payload,
+        'request_url':      url,
+      },
+    )
+
+    response = request(method=method, url=url, data=payload, **kwargs)
+
+    self._log(
+      level = DEBUG,
+
+      message = 'Receiving {method} from {url}: {response!r}'.format(
+        method    = method,
+        response  = response.content,
+        url       = url,
+      ),
+
+      context = {
+        'request_method':   method,
+        'request_kwargs':   kwargs,
+        'request_payload':  payload,
+        'request_url':      url,
+
+        'response_headers': response.headers,
+        'response_content': response.content,
+      },
+    )
+
+    return response
+
+  def _interpret_response(self, response, payload, expected_status):
+    # type: (Response, dict, Container[int]) -> dict
+    """
+    Interprets the HTTP response from the node.
+
+    :param response:
+      The response object received from :py:meth:`_send_http_request`.
+
+    :param payload:
+      The request payload that was sent (used for debugging).
+
+    :param expected_status:
+      The response should match one of these status codes to be
+      considered valid.
+    """
     raw_content = response.text
     if not raw_content:
       raise with_context(
@@ -255,44 +351,50 @@ class HttpAdapter(BaseAdapter):
         ),
 
         context = {
-          'request': payload,
+          'request':      payload,
+          'raw_response': raw_content,
         },
       )
 
-    try:
-      # Response always has 200 status, even for errors/exceptions, so the
-      # only way to check for success is to inspect the response body.
-      # https://github.com/iotaledger/iri/issues/9
-      # https://github.com/iotaledger/iri/issues/12
-      error = decoded.get('exception') or decoded.get('error')
-    except AttributeError:
+    if not isinstance(decoded, dict):
       raise with_context(
         exc = BadApiResponse(
-          'Invalid response from node: {raw_content}'.format(
-            raw_content = raw_content,
+          'Invalid response from node: {decoded!r}'.format(
+            decoded = decoded,
           ),
         ),
 
         context = {
-          'request': payload,
+          'request':  payload,
+          'response': decoded,
         },
       )
 
-    if error:
-      raise with_context(BadApiResponse(error), context={'request': payload})
+    if response.status_code in expected_status:
+      return decoded
 
-    return decoded
+    error = None
+    try:
+      if response.status_code == codes['bad_request']:
+        error = decoded['error']
+      elif response.status_code == codes['internal_server_error']:
+        error = decoded['exception']
+    except KeyError:
+      pass
 
-  def _send_http_request(self, payload, **kwargs):
-    # type: (Text, dict) -> requests.Response
-    """
-    Sends the actual HTTP request.
+    raise with_context(
+      exc = BadApiResponse(
+        '{status} response from node: {error}'.format(
+          error   = error or decoded,
+          status  = response.status_code,
+        ),
+      ),
 
-    Split into its own method so that it can be mocked during unit
-    tests.
-    """
-    kwargs.setdefault('timeout', get_default_timeout())
-    return requests.post(self.node_url, data=payload, **kwargs)
+      context = {
+        'request':  payload,
+        'response': decoded,
+      },
+    )
 
 
 class MockAdapter(BaseAdapter):

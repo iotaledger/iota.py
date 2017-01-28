@@ -53,22 +53,19 @@ class ResolveAdapterTestCase(TestCase):
       resolve_adapter('foobar://localhost:14265')
 
 
-def create_http_response(content):
-  # type: (Text) -> requests.Response
+def create_http_response(content, status=200):
+  # type: (Text, int) -> requests.Response
   """
   Creates an HTTP Response object for a test.
+
+  References:
+    - :py:meth:`requests.adapters.HTTPAdapter.build_response`
   """
-  # :py:meth:`requests.adapters.HTTPAdapter.build_response`
   response = requests.Response()
 
-  # Response status is always 200, even for an error.
-  # Note that this is fixed in later IRI implementations, but for
-  # backwards-compatibility, the adapter will ignore the status code.
-  # https://github.com/iotaledger/iri/issues/9
-  response.status_code = 200
-
-  response.encoding = 'utf-8'
-  response.raw = BytesIO(content.encode('utf-8'))
+  response.encoding     = 'utf-8'
+  response.status_code  = status
+  response.raw          = BytesIO(content.encode('utf-8'))
 
   return response
 
@@ -287,6 +284,8 @@ class HttpAdapterTestCase(TestCase):
       })
 
     mocked_sender.assert_called_once_with(
+      url = adapter.node_url,
+
       payload = json.dumps({
         'command': 'helloWorld',
 

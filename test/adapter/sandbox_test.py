@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import json
+from collections import deque
 from unittest import TestCase
 
 from mock import Mock, patch
@@ -35,6 +36,7 @@ class SandboxAdapterTestCase(TestCase):
 
     mocked_sender.assert_called_once_with(
       payload = json.dumps(payload),
+      url     = adapter.node_url,
 
       # Auth token automatically added to the HTTP request.
       headers = {
@@ -42,9 +44,87 @@ class SandboxAdapterTestCase(TestCase):
       },
     )
 
-  def test_sandbox_command(self):
+  def test_sandbox_command_succeeds(self):
     """
     Sending a sandbox command to the node.
+    """
+    adapter = SandboxAdapter('https://localhost', 'ACCESS-TOKEN')
+
+    expected_result = {
+      'message': 'Hello, IOTA!',
+    }
+
+    # Simulate responses from the node.
+    responses =\
+      deque([
+        # The first request creates the job.
+        # Note that the response has a 202 status.
+        create_http_response(status=202, content=json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'QUEUED',
+          'createdAt':  1483574581,
+          'startedAt':  None,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+
+        # The job is still running when we poll.
+        create_http_response(json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'RUNNING',
+          'createdAt':  1483574581,
+          'startedAt':  1483574589,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+
+        # The job has finished by the next polling request.
+        create_http_response(json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'FINISHED',
+          'createdAt':  1483574581,
+          'startedAt':  1483574589,
+          'finishedAt': 1483574604,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+
+          'helloWorldResponse': expected_result,
+        })),
+      ])
+
+    # noinspection PyUnusedLocal
+    def _send_http_request(*args, **kwargs):
+      return responses.popleft()
+
+    mocked_sender = Mock(wraps=_send_http_request)
+    mocked_waiter = Mock()
+
+    payload = {'command': 'helloWorld'}
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      # Mock ``_wait_to_poll`` so that it returns immediately, instead
+      # of waiting for 15 seconds.  Bad for production, good for tests.
+      # noinspection PyUnresolvedReferences
+      with patch.object(adapter, '_wait_to_poll', mocked_waiter):
+        result = adapter.send_request(payload)
+
+    self.assertEqual(result, expected_result)
+
+  def test_sandbox_command_fails(self):
+    """
+    A sandbox command fails after an interval.
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
@@ -77,6 +157,7 @@ class SandboxAdapterTestCase(TestCase):
 
     mocked_sender.assert_called_once_with(
       payload = json.dumps(payload),
+      url     = adapter.node_url,
 
       # No auth token, so no Authorization header.
       # headers = {

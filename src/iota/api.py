@@ -2,21 +2,53 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Dict, Iterable, List, Optional, Text
+from typing import Dict, Iterable, Optional, Text
 
-from iota import AdapterSpec, Address, Bundle, ProposedTransaction, Tag, \
-  TransactionHash, TryteString, TrytesCompatible
+from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
+  TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.commands import CustomCommand, command_registry
+from iota.commands import BaseCommand, CustomCommand, discover_commands
 from iota.crypto.types import Seed
+from six import with_metaclass
 
 __all__ = [
+  'InvalidCommand',
   'Iota',
   'StrictIota',
 ]
 
 
-class StrictIota(object):
+class InvalidCommand(ValueError):
+  """
+  Indicates that an invalid command name was specified.
+  """
+  pass
+
+
+class ApiMeta(type):
+  """
+  Manages command registries for IOTA API base classes.
+  """
+  def __init__(cls, name, bases=None, attrs=None):
+    super(ApiMeta, cls).__init__(name, bases, attrs)
+
+    if not hasattr(cls, 'commands'):
+      cls.commands = {}
+
+    # Copy command registry from base class to derived class, but
+    # in the event of a conflict, preserve the derived class'
+    # commands.
+    commands = {}
+    for base in bases:
+      if isinstance(base, ApiMeta):
+          commands.update(base.commands)
+
+    if commands:
+        commands.update(cls.commands)
+        cls.commands = commands
+
+
+class StrictIota(with_metaclass(ApiMeta)):
   """
   API to send HTTP requests for communicating with an IOTA node.
 
@@ -26,6 +58,8 @@ class StrictIota(object):
   References:
     - https://iota.readme.io/docs/getting-started
   """
+  commands = discover_commands('iota.commands.core')
+
   def __init__(self, adapter, testnet=False):
     # type: (AdapterSpec, bool) -> None
     """
@@ -44,23 +78,45 @@ class StrictIota(object):
     self.testnet = testnet
 
   def __getattr__(self, command):
-    # type: (Text, dict) -> CustomCommand
+    # type: (Text) -> BaseCommand
     """
-    Sends an arbitrary API command to the node.
+    Creates a pre-configured command instance.
 
-    This method is useful for invoking undocumented or experimental
-    methods, or if you just want to troll your node for awhile.
+    This method will only return commands supported by the API class.
+
+    If you want to execute an arbitrary API command, use
+    :py:meth:`create_command`.
 
     :param command:
-      The name of the command to send.
+      The name of the command to create.
 
     References:
       - https://iota.readme.io/docs/making-requests
     """
     try:
-      return command_registry[command](self.adapter)
+      command_class = self.commands[command]
     except KeyError:
-      return CustomCommand(self.adapter, command)
+      raise InvalidCommand(
+        '{cls} does not support {command!r} command.'.format(
+          cls     = type(self).__name__,
+          command = command,
+        ),
+      )
+
+    return command_class(self.adapter)
+
+  def create_command(self, command):
+    # type: (Text) -> CustomCommand
+    """
+    Creates a pre-configured CustomCommand instance.
+
+    This method is useful for invoking undocumented or experimental
+    methods, or if you just want to troll your node for awhile.
+
+    :param command:
+      The name of the command to create.
+    """
+    return CustomCommand(self.adapter, command)
 
   @property
   def default_min_weight_magnitude(self):
@@ -334,6 +390,8 @@ class Iota(StrictIota):
     - https://iota.readme.io/docs/getting-started
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
   """
+  commands = discover_commands('iota.commands.extended')
+
   def __init__(self, adapter, seed=None, testnet=False):
     # type: (AdapterSpec, Optional[TrytesCompatible], bool) -> None
     """
@@ -348,9 +406,18 @@ class Iota(StrictIota):
     self.seed = Seed(seed) if seed else Seed.random()
 
   def broadcast_and_store(self, trytes):
-    # type: (Iterable[TryteString]) -> List[TryteString]
+    # type: (Iterable[TransactionTrytes]) -> dict
     """
     Broadcasts and stores a set of transaction trytes.
+
+    :return:
+      Dict with the following structure::
+
+         {
+           'trytes': List[TransactionTrytes],
+             List of TransactionTrytes that were broadcast.
+             Same as the input ``trytes``.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
@@ -364,14 +431,13 @@ class Iota(StrictIota):
     hash.
 
     :param transaction:
-      Transaction hash.  Can be any type of transaction (tail or non-
-      tail).
+      Transaction hash.  Must be a tail transaction.
 
     :return:
       Dict with the following structure::
 
          {
-           'bundles': List[Bundle]
+           'bundles': List[Bundle],
              List of matching bundles.  Note that this value is always
              a list, even if only one bundle was found.
          }
@@ -430,8 +496,12 @@ class Iota(StrictIota):
       Dict with the following structure::
 
          {
-           'inputs':        <list of Address objects>
-           'totalBalance':  <aggregate balance of all inputs>,
+           'inputs': List[Address],
+             Addresses with nonzero balances that can be used as
+             inputs.
+
+           'totalBalance': int,
+             Aggregate balance from all matching addresses.
          }
 
       Note that each Address in the result has its ``balance``
@@ -470,12 +540,17 @@ class Iota(StrictIota):
       Iterable of transaction hashes.
 
     :return:
-      {<TransactionHash>: <bool>}
+      Dict with one boolean per transaction hash in ``hashes``::
+
+         {
+           <TransactionHash>: <bool>,
+           ...
+         }
     """
     return self.getLatestInclusion(hashes=hashes)
 
   def get_new_addresses(self, index=0, count=1):
-    # type: (int, Optional[int]) -> List[Address]
+    # type: (int, Optional[int]) -> dict
     """
     Generates one or more new addresses from the seed.
 
@@ -492,10 +567,12 @@ class Iota(StrictIota):
       available unused address and return that.
 
     :return:
-      List of generated addresses.
+      Dict with the following items::
 
-      Note that this method always returns a list, even if only one
-      address is generated.
+         {
+           'addresses': List[Address],
+             Always a list, even if only one address was generated.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
@@ -513,7 +590,7 @@ class Iota(StrictIota):
     :param stop:
       Stop before this index.
       Note that this parameter behaves like the ``stop`` attribute in a
-      :py:class:`slice` object; the stop index is _not_ included in the
+      :py:class:`slice` object; the stop index is *not* included in the
       result.
 
       If ``None`` (default), then this method will check every address
@@ -529,7 +606,7 @@ class Iota(StrictIota):
       Dict containing the following values::
 
          {
-           'bundles': List[Bundle]
+           'bundles': List[Bundle],
              Matching bundles, sorted by tail transaction timestamp.
          }
 
@@ -550,7 +627,8 @@ class Iota(StrictIota):
     the correct bundle, as well as choosing and signing the inputs (for
     value transfers).
 
-    :param transfers: Transaction objects to prepare.
+    :param transfers:
+      Transaction objects to prepare.
 
     :param inputs:
       List of addresses used to fund the transfer.
@@ -571,7 +649,7 @@ class Iota(StrictIota):
       Dict containing the following values::
 
          {
-           'trytes': List[TryteString]
+           'trytes': List[TransactionTrytes],
              Raw trytes for the transactions in the bundle, ready to
              be provided to :py:meth:`send_trytes`.
          }
@@ -592,11 +670,11 @@ class Iota(StrictIota):
       depth,
       min_weight_magnitude = None,
   ):
-    # type: (TransactionHash, int, Optional[int]) -> Bundle
+    # type: (TransactionHash, int, Optional[int]) -> dict
     """
     Takes a tail transaction hash as input, gets the bundle associated
     with the transaction and then replays the bundle by attaching it to
-    the tangle.
+    the Tangle.
 
     :param transaction:
       Transaction hash.  Must be a tail.
@@ -611,7 +689,12 @@ class Iota(StrictIota):
       If not provided, a default value will be used.
 
     :return:
-      The bundle containing the replayed transfer.
+      Dict containing the following values::
+
+         {
+           'trytes': List[TransactionTrytes],
+             Raw trytes that were published to the Tangle.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#replaytransfer
@@ -633,7 +716,7 @@ class Iota(StrictIota):
       change_address        = None,
       min_weight_magnitude  = None,
   ):
-    # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> Bundle
+    # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> dict
     """
     Prepares a set of transfers and creates the bundle, then attaches
     the bundle to the Tangle, and broadcasts and stores the
@@ -663,7 +746,12 @@ class Iota(StrictIota):
       If not provided, a default value will be used.
 
     :return:
-      The newly-attached bundle.
+      Dict containing the following values::
+
+         {
+           'trytes': List[TransactionTrytes],
+             Raw trytes that were published to the Tangle.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtransfer
@@ -681,7 +769,7 @@ class Iota(StrictIota):
     )
 
   def send_trytes(self, trytes, depth, min_weight_magnitude=18):
-    # type: (Iterable[TryteString], int, int) -> List[TryteString]
+    # type: (Iterable[TransactionTrytes], int, int) -> dict
     """
     Attaches transaction trytes to the Tangle, then broadcasts and
     stores them.
@@ -696,8 +784,15 @@ class Iota(StrictIota):
       Min weight magnitude, used by the node to calibrate Proof of
       Work.
 
+      If not provided, a default value will be used.
+
     :return:
-      The trytes that were attached to the Tangle.
+      Dict containing the following values::
+
+         {
+           'trytes': List[TransactionTrytes],
+             Raw trytes that were published to the Tangle.
+         }
 
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes

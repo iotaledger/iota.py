@@ -2,10 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional
+from typing import List, Optional
 
 import filters as f
 
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.crypto.addresses import AddressGenerator
@@ -34,8 +35,17 @@ class GetNewAddressesCommand(FilterCommand):
   def _execute(self, request):
     count = request['count'] # type: Optional[int]
     index = request['index'] # type: int
-    seed = request['seed'] # type: Seed
+    seed  = request['seed'] # type: Seed
 
+    return {
+      'addresses': self._find_addresses(seed, index, count),
+    }
+
+  def _find_addresses(self, seed, index, count):
+    """
+    Find addresses matching the command parameters.
+    """
+    # type: (Seed, int, Optional[int]) -> List[Address]
     generator = AddressGenerator(seed)
 
     if count is None:

@@ -2,11 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from six import moves as compat
 from typing import Text
 
 import filters as f
 from iota import Address, TryteString, TrytesCompatible
-from iota.adapter import resolve_adapter, InvalidUri
 from six import binary_type, text_type
 
 
@@ -49,10 +49,10 @@ class NodeUri(f.BaseFilter):
     if self._has_errors:
       return None
 
-    try:
-      resolve_adapter(value)
-    except InvalidUri:
-      return self._invalid_value(value, self.CODE_NOT_NODE_URI, exc_info=True)
+    parsed = compat.urllib_parse.urlparse(value)
+
+    if parsed.scheme != 'udp':
+      return self._invalid_value(value, self.CODE_NOT_NODE_URI)
 
     return value
 

@@ -12,6 +12,10 @@ from six import moves as compat, text_type
 from iota.adapter import HttpAdapter, SplitResult
 from iota.exceptions import with_context
 
+__all__ = [
+  'SandboxAdapter',
+]
+
 
 STATUS_ABORTED  = 'ABORTED'
 STATUS_FAILED   = 'FAILED'

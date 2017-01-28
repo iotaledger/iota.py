@@ -8,6 +8,7 @@ from unittest import TestCase
 
 from mock import Mock, patch
 
+from iota import BadApiResponse
 from iota.adapter.sandbox import SandboxAdapter
 from test.adapter_test import create_http_response
 
@@ -110,15 +111,13 @@ class SandboxAdapterTestCase(TestCase):
     mocked_sender = Mock(wraps=_send_http_request)
     mocked_waiter = Mock()
 
-    payload = {'command': 'helloWorld'}
-
     # noinspection PyUnresolvedReferences
     with patch.object(adapter, '_send_http_request', mocked_sender):
       # Mock ``_wait_to_poll`` so that it returns immediately, instead
       # of waiting for 15 seconds.  Bad for production, good for tests.
       # noinspection PyUnresolvedReferences
       with patch.object(adapter, '_wait_to_poll', mocked_waiter):
-        result = adapter.send_request(payload)
+        result = adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(result, expected_result)
 
@@ -126,8 +125,74 @@ class SandboxAdapterTestCase(TestCase):
     """
     A sandbox command fails after an interval.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    adapter = SandboxAdapter('https://localhost', 'ACCESS-TOKEN')
+
+    # Simulate responses from the node.
+    responses =\
+      deque([
+        # The first request creates the job.
+        # Note that the response has a 202 status.
+        create_http_response(status=202, content=json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'QUEUED',
+          'createdAt':  1483574581,
+          'startedAt':  None,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+
+        # The job is still running when we poll.
+        create_http_response(json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'RUNNING',
+          'createdAt':  1483574581,
+          'startedAt':  1483574589,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+
+        # The job has finished by the next polling request.
+        create_http_response(json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'FAILED',
+          'createdAt':  1483574581,
+          'startedAt':  1483574589,
+          'finishedAt': 1483574604,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+
+          'error': {
+            'message': "You didn't say the magic word!"
+          },
+        })),
+      ])
+
+    # noinspection PyUnusedLocal
+    def _send_http_request(*args, **kwargs):
+      return responses.popleft()
+
+    mocked_sender = Mock(wraps=_send_http_request)
+    mocked_waiter = Mock()
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      # Mock ``_wait_to_poll`` so that it returns immediately, instead
+      # of waiting for 15 seconds.  Bad for production, good for tests.
+      # noinspection PyUnresolvedReferences
+      with patch.object(adapter, '_wait_to_poll', mocked_waiter):
+        with self.assertRaises(BadApiResponse):
+          adapter.send_request({'command': 'helloWorld'})
 
   def test_regular_command_null_token(self):
     """

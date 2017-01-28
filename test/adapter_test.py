@@ -254,7 +254,10 @@ class HttpAdapterTestCase(TestCase):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
-    self.assertEqual(text_type(context.exception), 'Empty response from node.')
+    self.assertEqual(
+      text_type(context.exception),
+      'Empty 200 response from node.',
+    )
 
   def test_non_json_response(self):
     """
@@ -274,7 +277,7 @@ class HttpAdapterTestCase(TestCase):
 
     self.assertEqual(
       text_type(context.exception),
-      'Non-JSON response from node: ' + invalid_response,
+      'Non-JSON 200 response from node: ' + invalid_response,
     )
 
   def test_non_object_response(self):
@@ -296,7 +299,7 @@ class HttpAdapterTestCase(TestCase):
     self.assertEqual(
       text_type(context.exception),
 
-      'Invalid response from node: {response!r}'.format(
+      'Malformed 200 response from node: {response!r}'.format(
         response = invalid_response,
       ),
     )

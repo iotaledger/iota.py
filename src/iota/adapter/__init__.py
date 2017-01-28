@@ -332,7 +332,11 @@ class HttpAdapter(BaseAdapter):
     raw_content = response.text
     if not raw_content:
       raise with_context(
-        exc = BadApiResponse('Empty response from node.'),
+        exc = BadApiResponse(
+          'Empty {status} response from node.'.format(
+            status = response.status_code,
+          ),
+        ),
 
         context = {
           'request': payload,
@@ -345,7 +349,8 @@ class HttpAdapter(BaseAdapter):
     except ValueError:
       raise with_context(
         exc = BadApiResponse(
-          'Non-JSON response from node: {raw_content}'.format(
+          'Non-JSON {status} response from node: {raw_content}'.format(
+            status      = response.status_code,
             raw_content = raw_content,
           )
         ),
@@ -359,7 +364,8 @@ class HttpAdapter(BaseAdapter):
     if not isinstance(decoded, dict):
       raise with_context(
         exc = BadApiResponse(
-          'Invalid response from node: {decoded!r}'.format(
+          'Malformed {status} response from node: {decoded!r}'.format(
+            status  = response.status_code,
             decoded = decoded,
           ),
         ),

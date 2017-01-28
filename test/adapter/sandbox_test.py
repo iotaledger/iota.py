@@ -7,6 +7,7 @@ from collections import deque
 from unittest import TestCase
 
 from mock import Mock, patch
+from six import text_type
 
 from iota import BadApiResponse
 from iota.adapter.sandbox import SandboxAdapter
@@ -127,6 +128,8 @@ class SandboxAdapterTestCase(TestCase):
     """
     adapter = SandboxAdapter('https://localhost', 'ACCESS-TOKEN')
 
+    error_message = "You didn't say the magic word!"
+
     # Simulate responses from the node.
     responses =\
       deque([
@@ -173,7 +176,7 @@ class SandboxAdapterTestCase(TestCase):
           },
 
           'error': {
-            'message': "You didn't say the magic word!"
+            'message': error_message,
           },
         })),
       ])
@@ -191,8 +194,10 @@ class SandboxAdapterTestCase(TestCase):
       # of waiting for 15 seconds.  Bad for production, good for tests.
       # noinspection PyUnresolvedReferences
       with patch.object(adapter, '_wait_to_poll', mocked_waiter):
-        with self.assertRaises(BadApiResponse):
+        with self.assertRaises(BadApiResponse) as context:
           adapter.send_request({'command': 'helloWorld'})
+
+    self.assertEqual(text_type(context.exception), error_message)
 
   def test_regular_command_null_token(self):
     """
@@ -228,6 +233,31 @@ class SandboxAdapterTestCase(TestCase):
       # headers = {
       #   'Authorization': 'token ACCESS-TOKEN',
       # },
+    )
+
+  def test_error_non_200_response(self):
+    """
+    The node sends back a non-200 response.
+    """
+    adapter = SandboxAdapter('https://localhost', 'ACCESS-TOKEN')
+
+    decoded_response = {
+      'message': 'You have reached maximum request limit.',
+    }
+
+    mocked_sender = Mock(return_value=create_http_response(
+      status  = 429,
+      content = json.dumps(decoded_response),
+    ))
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      with self.assertRaises(BadApiResponse) as context:
+        adapter.send_request({'command': 'helloWorld'})
+
+    self.assertEqual(
+      text_type(context.exception),
+      '429 response from node: {decoded}'.format(decoded=decoded_response),
     )
 
   def test_error_auth_token_wrong_type(self):

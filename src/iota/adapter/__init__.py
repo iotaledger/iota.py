@@ -7,9 +7,9 @@ from abc import ABCMeta, abstractmethod as abstract_method
 from collections import deque
 from inspect import isabstract as is_abstract
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Dict, List, Optional, Text, Tuple, Union
+from typing import Container, Dict, List, Optional, Text, Tuple, Union
 
-import requests
+from requests import Response, codes, request
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
 from six import PY2, binary_type, moves as compat, text_type, with_metaclass
@@ -233,11 +233,11 @@ class HttpAdapter(BaseAdapter):
       **kwargs
     )
 
-    return self._interpret_response(response, payload)
+    return self._interpret_response(response, payload, {codes['ok']})
 
   @staticmethod
   def _send_http_request(url, payload, method='post', **kwargs):
-    # type: (Text, Optional[Text], Text, dict) -> requests.Response
+    # type: (Text, Optional[Text], Text, dict) -> Response
     """
     Sends the actual HTTP request.
 
@@ -245,10 +245,10 @@ class HttpAdapter(BaseAdapter):
     tests.
     """
     kwargs.setdefault('timeout', get_default_timeout())
-    return requests.request(method=method, url=url, data=payload, **kwargs)
+    return request(method=method, url=url, data=payload, **kwargs)
 
-  def _interpret_response(self, response, payload):
-    # type: (requests.Response,  dict) -> dict
+  def _interpret_response(self, response, payload, expected_status):
+    # type: (Response, dict, Container[int]) -> dict
     """
     Interprets the HTTP response from the node.
 
@@ -257,6 +257,10 @@ class HttpAdapter(BaseAdapter):
 
     :param payload:
       The request payload that was sent (used for debugging).
+
+    :param expected_status:
+      The response should match one of these status codes to be
+      considered valid.
     """
     raw_content = response.text
     if not raw_content:
@@ -280,34 +284,50 @@ class HttpAdapter(BaseAdapter):
         ),
 
         context = {
-          'request': payload,
+          'request':      payload,
+          'raw_response': raw_content,
         },
       )
 
-    try:
-      # Response always has 200 status, even for errors/exceptions, so
-      # the only reliable way to check for success is to inspect the
-      # response body.
-      # https://github.com/iotaledger/iri/issues/9
-      # https://github.com/iotaledger/iri/issues/12
-      error = decoded.get('exception') or decoded.get('error')
-    except AttributeError:
+    if not isinstance(decoded, dict):
       raise with_context(
         exc = BadApiResponse(
-          'Invalid response from node: {raw_content}'.format(
-            raw_content = raw_content,
+          'Invalid response from node: {decoded!r}'.format(
+            decoded = decoded,
           ),
         ),
 
         context = {
-          'request': payload,
+          'request':  payload,
+          'response': decoded,
         },
       )
 
-    if error:
-      raise with_context(BadApiResponse(error), context={'request': payload})
+    if response.status_code in expected_status:
+      return decoded
 
-    return decoded
+    error = None
+    try:
+      if response.status_code == codes['bad_request']:
+        error = decoded['error']
+      elif response.status_code == codes['internal_server_error']:
+        error = decoded['exception']
+    except KeyError:
+      pass
+
+    raise with_context(
+      exc = BadApiResponse(
+        '{status} response from node: {error}'.format(
+          error   = error or decoded,
+          status  = response.status_code,
+        ),
+      ),
+
+      context = {
+        'request':  payload,
+        'response': decoded,
+      },
+    )
 
 
 class MockAdapter(BaseAdapter):

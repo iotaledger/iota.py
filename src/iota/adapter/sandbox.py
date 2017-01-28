@@ -3,13 +3,12 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from time import sleep
-from typing import Optional, Text, Union
+from typing import Container, Optional, Text, Union
 
-from requests import Response
-from requests.status_codes import codes
+from requests import Response, codes
 from six import moves as compat, text_type
 
-from iota.adapter import HttpAdapter, SplitResult
+from iota.adapter import BadApiResponse, HttpAdapter, SplitResult
 from iota.exceptions import with_context
 
 __all__ = [
@@ -174,14 +173,18 @@ class SandboxAdapter(HttpAdapter):
 
     return super(SandboxAdapter, self).send_request(payload, **kwargs)
 
-  def _interpret_response(self, response, payload, check_for_poll=True):
-    # type: (Response, dict, bool) -> dict
+  def _interpret_response(self, response, payload, expected_status):
+    # type: (Response, dict, Container[int], bool) -> dict
     decoded =\
-      super(SandboxAdapter, self)._interpret_response(response, payload)
+      super(SandboxAdapter, self)._interpret_response(
+        response        = response,
+        payload         = payload,
+        expected_status = {codes['ok'], codes['accepted']},
+      )
 
     # Check to see if the request was queued for asynchronous
     # execution.
-    if check_for_poll and (response.status_code == codes['accepted']):
+    if response.status_code == codes['accepted']:
       while decoded['status'] in (STATUS_QUEUED, STATUS_RUNNING):
         self._wait_to_poll()
 
@@ -192,9 +195,30 @@ class SandboxAdapter(HttpAdapter):
           url     = self.get_jobs_url(decoded['id']),
         )
 
-        decoded = self._interpret_response(poll_response, payload, False)
+        decoded =\
+          super(SandboxAdapter, self)._interpret_response(
+            response        = poll_response,
+            payload         = payload,
+            expected_status = {codes['ok']},
+          )
 
-      return decoded['{command}Response'.format(command=decoded['command'])]
+      if decoded['status'] == STATUS_FINISHED:
+        return decoded['{command}Response'.format(command=decoded['command'])]
+
+      raise with_context(
+        exc = BadApiResponse(
+              decoded.get('error', {}).get('message')
+          or  'Command {status}: {decoded}'.format(
+                decoded = decoded,
+                status  = decoded['status'].lower(),
+              ),
+        ),
+
+        context = {
+          'request':  payload,
+          'response': decoded,
+        },
+      )
 
     return decoded
 

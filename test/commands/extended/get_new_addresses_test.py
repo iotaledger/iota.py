@@ -311,7 +311,7 @@ class GetNewAddressesCommandTestCase(TestCase):
         seed  = b'TESTSEED9DONTUSEINPRODUCTION99999',
       )
 
-    self.assertListEqual(response, [self.addy1, self.addy2])
+    self.assertDictEqual(response, {'addresses': [self.addy1, self.addy2]})
 
     # No API requests were made.
     self.assertListEqual(self.adapter.requests, [])
@@ -359,7 +359,7 @@ class GetNewAddressesCommandTestCase(TestCase):
 
     # The command determined that ``self.addy1`` was already used, so
     # it skipped that one.
-    self.assertListEqual(response, [self.addy2])
+    self.assertDictEqual(response, {'addresses': [self.addy2]})
 
     self.assertListEqual(
       self.adapter.requests,

@@ -23,7 +23,7 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
     request = {
       'uris': [
         'udp://node1.iotatoken.com',
-        'http://localhost:14265/',
+        'udp://localhost:14265/',
       ],
     }
 
@@ -83,7 +83,7 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
       {
         # Nope; it's gotta be an array, even if you only want to add
         # a single neighbor.
-        'uris': 'http://localhost:8080/'
+        'uris': 'udp://localhost:8080/'
       },
 
       {
@@ -116,12 +116,15 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
           '',
           False,
           None,
-          b'http://localhost:8080/',
+          b'udp://localhost:8080/',
           'not a valid uri',
 
           # This is actually valid; I just added it to make sure the
           # filter isn't cheating!
-          'udp://localhost',
+          'udp://localhost:14265',
+
+          # Only UDP URIs are allowed.
+          'http://localhost:14265',
 
           2130706433,
         ],
@@ -133,7 +136,8 @@ class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
         'uris.2':  [f.Required.CODE_EMPTY],
         'uris.3':  [f.Type.CODE_WRONG_TYPE],
         'uris.4':  [NodeUri.CODE_NOT_NODE_URI],
-        'uris.6':  [f.Type.CODE_WRONG_TYPE],
+        'uris.6':  [NodeUri.CODE_NOT_NODE_URI],
+        'uris.7':  [f.Type.CODE_WRONG_TYPE],
       },
     )
 

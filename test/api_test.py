@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import StrictIota
+from iota import InvalidCommand, StrictIota
 from iota.adapter import MockAdapter
 from iota.commands import CustomCommand
 from iota.commands.core.get_node_info import GetNodeInfoCommand
@@ -115,13 +115,23 @@ class IotaApiTestCase(TestCase):
     command = api.getNodeInfo
     self.assertIsInstance(command, GetNodeInfoCommand)
 
-  def test_custom_command(self):
+  def test_unregistered_command(self):
+    """
+    Attempting to create an unsupported command.
+    """
+    api = StrictIota(MockAdapter())
+
+    with self.assertRaises(InvalidCommand):
+      # noinspection PyStatementEffect
+      api.helloWorld
+
+  def test_create_command(self):
     """
     Preparing an experimental/undocumented command.
     """
     api = StrictIota(MockAdapter())
 
-    # We just need to make sure the correct command type is
-    # instantiated; custom commands have their own unit tests.
-    command = api.helloWorld
-    self.assertIsInstance(command, CustomCommand)
+    custom_command = api.create_command('helloWorld')
+
+    self.assertIsInstance(custom_command, CustomCommand)
+    self.assertEqual(custom_command.command, 'helloWorld')

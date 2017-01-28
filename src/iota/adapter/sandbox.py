@@ -2,13 +2,22 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from time import sleep
 from typing import Optional, Text, Union
 
-from six import text_type
+from requests import Response
+from requests.status_codes import codes
+from six import moves as compat, text_type
 
 from iota.adapter import HttpAdapter, SplitResult
 from iota.exceptions import with_context
 
+
+STATUS_ABORTED  = 'ABORTED'
+STATUS_FAILED   = 'FAILED'
+STATUS_FINISHED = 'FINISHED'
+STATUS_QUEUED   = 'QUEUED'
+STATUS_RUNNING  = 'RUNNING'
 
 class SandboxAdapter(HttpAdapter):
   """
@@ -119,14 +128,77 @@ class SandboxAdapter(HttpAdapter):
     self.auth_token     = auth_token # type: Optional[Text]
     self.poll_interval  = poll_interval # type: int
 
+  @property
+  def node_url(self):
+    return compat.urllib_parse.urlunsplit((
+      self.uri.scheme,
+      self.uri.netloc,
+      self.uri.path.rstrip('/') + '/commands',
+      self.uri.query,
+      self.uri.fragment,
+    ))
+
+  @property
+  def authorization_header(self):
+    # type: () -> Text
+    """
+    Returns the value to use for the ``Authorization`` header.
+    """
+    return 'token {auth_token}'.format(auth_token=self.auth_token)
+
+  def get_jobs_url(self, job_id):
+    # type: (Text) -> Text
+    """
+    Returns the URL to check job status.
+
+    :param job_id:
+      The ID of the job to check.
+    """
+    return compat.urllib_parse.urlunsplit((
+      self.uri.scheme,
+      self.uri.netloc,
+      self.uri.path.rstrip('/') + '/jobs/' + job_id,
+      self.uri.query,
+      self.uri.fragment,
+    ))
+
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
     if self.auth_token:
       kwargs.setdefault('headers', {})
-
-      kwargs['headers']['Authorization'] =\
-        'token {token}'.format(
-          token = self.auth_token,
-        )
+      kwargs['headers']['Authorization'] = self.authorization_header
 
     return super(SandboxAdapter, self).send_request(payload, **kwargs)
+
+  def _interpret_response(self, response, payload, check_for_poll=True):
+    # type: (Response, dict, bool) -> dict
+    decoded =\
+      super(SandboxAdapter, self)._interpret_response(response, payload)
+
+    # Check to see if the request was queued for asynchronous
+    # execution.
+    if check_for_poll and (response.status_code == codes['accepted']):
+      while decoded['status'] in (STATUS_QUEUED, STATUS_RUNNING):
+        self._wait_to_poll()
+
+        poll_response = self._send_http_request(
+          headers = {'Authorization': self.authorization_header},
+          method  = 'get',
+          payload = None,
+          url     = self.get_jobs_url(decoded['id']),
+        )
+
+        decoded = self._interpret_response(poll_response, payload, False)
+
+      return decoded['{command}Response'.format(command=decoded['command'])]
+
+    return decoded
+
+  def _wait_to_poll(self):
+    """
+    Waits for 1 interval (according to :py:attr:`poll_interval`).
+
+    Implemented as a separate method so that it can be mocked during
+    unit tests ("Do you bite your thumb at us, sir?").
+    """
+    sleep(self.poll_interval)

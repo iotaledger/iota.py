@@ -7,7 +7,7 @@ from abc import ABCMeta, abstractmethod as abstract_method
 from collections import deque
 from inspect import isabstract as is_abstract
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Dict, List, Text, Tuple, Union
+from typing import Dict, List, Optional, Text, Tuple, Union
 
 import requests
 from iota.exceptions import with_context
@@ -110,7 +110,8 @@ class AdapterMeta(ABCMeta):
 
     if not is_abstract(cls):
       for protocol in getattr(cls, 'supported_protocols', ()):
-        adapter_registry[protocol] = cls
+        # Note that we will not overwrite existing registered adapters.
+        adapter_registry.setdefault(protocol, cls)
 
   def configure(cls, parsed):
     # type: (Union[Text, SplitResult]) -> HttpAdapter
@@ -227,9 +228,36 @@ class HttpAdapter(BaseAdapter):
     response = self._send_http_request(
       # Use a custom JSON encoder that knows how to convert Tryte values.
       payload = JsonEncoder().encode(payload),
+
+      url = self.node_url,
       **kwargs
     )
 
+    return self._interpret_response(response, payload)
+
+  @staticmethod
+  def _send_http_request(url, payload, method='post', **kwargs):
+    # type: (Text, Optional[Text], Text, dict) -> requests.Response
+    """
+    Sends the actual HTTP request.
+
+    Split into its own method so that it can be mocked during unit
+    tests.
+    """
+    kwargs.setdefault('timeout', get_default_timeout())
+    return requests.request(method=method, url=url, data=payload, **kwargs)
+
+  def _interpret_response(self, response, payload):
+    # type: (requests.Response,  dict) -> dict
+    """
+    Interprets the HTTP response from the node.
+
+    :param response:
+      The response object received from :py:meth:`_send_http_request`.
+
+    :param payload:
+      The request payload that was sent (used for debugging).
+    """
     raw_content = response.text
     if not raw_content:
       raise with_context(
@@ -257,8 +285,9 @@ class HttpAdapter(BaseAdapter):
       )
 
     try:
-      # Response always has 200 status, even for errors/exceptions, so the
-      # only way to check for success is to inspect the response body.
+      # Response always has 200 status, even for errors/exceptions, so
+      # the only reliable way to check for success is to inspect the
+      # response body.
       # https://github.com/iotaledger/iri/issues/9
       # https://github.com/iotaledger/iri/issues/12
       error = decoded.get('exception') or decoded.get('error')
@@ -279,17 +308,6 @@ class HttpAdapter(BaseAdapter):
       raise with_context(BadApiResponse(error), context={'request': payload})
 
     return decoded
-
-  def _send_http_request(self, payload, **kwargs):
-    # type: (Text, dict) -> requests.Response
-    """
-    Sends the actual HTTP request.
-
-    Split into its own method so that it can be mocked during unit
-    tests.
-    """
-    kwargs.setdefault('timeout', get_default_timeout())
-    return requests.post(self.node_url, data=payload, **kwargs)
 
 
 class MockAdapter(BaseAdapter):

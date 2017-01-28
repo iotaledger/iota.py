@@ -10,7 +10,7 @@ import requests
 from iota import BadApiResponse, InvalidUri, TryteString
 from iota.adapter import HttpAdapter, MockAdapter, resolve_adapter
 from mock import Mock, patch
-from six import BytesIO, text_type as text
+from six import BytesIO, text_type
 
 
 class ResolveAdapterTestCase(TestCase):
@@ -160,12 +160,16 @@ class HttpAdapterTestCase(TestCase):
     """
     adapter = HttpAdapter('http://localhost:14265')
 
-    expected_result = 'Command \u0027helloWorld\u0027 is unknown'
+    error_message = 'Command \u0027helloWorld\u0027 is unknown'
 
-    mocked_response = create_http_response(json.dumps({
-      'error':    expected_result,
-      'duration': 42,
-    }))
+    mocked_response = create_http_response(
+      status = 400,
+
+      content = json.dumps({
+        'error':    error_message,
+        'duration': 42,
+      }),
+    )
 
     mocked_sender = Mock(return_value=mocked_response)
 
@@ -174,7 +178,10 @@ class HttpAdapterTestCase(TestCase):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
-    self.assertEqual(text(context.exception), expected_result)
+    self.assertEqual(
+      text_type(context.exception),
+      '400 response from node: {error}'.format(error=error_message),
+    )
 
   def test_exception_response(self):
     """
@@ -183,12 +190,16 @@ class HttpAdapterTestCase(TestCase):
     """
     adapter = HttpAdapter('http://localhost:14265')
 
-    expected_result = 'java.lang.ArrayIndexOutOfBoundsException: 4'
+    error_message = 'java.lang.ArrayIndexOutOfBoundsException: 4'
 
-    mocked_response = create_http_response(json.dumps({
-      'exception':  'java.lang.ArrayIndexOutOfBoundsException: 4',
-      'duration':   16
-    }))
+    mocked_response = create_http_response(
+      status = 500,
+
+      content = json.dumps({
+        'exception':  error_message,
+        'duration':   16,
+      }),
+    )
 
     mocked_sender = Mock(return_value=mocked_response)
 
@@ -197,7 +208,36 @@ class HttpAdapterTestCase(TestCase):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
-    self.assertEqual(text(context.exception), expected_result)
+    self.assertEqual(
+      text_type(context.exception),
+      '500 response from node: {error}'.format(error=error_message),
+    )
+
+  def test_non_200_status(self):
+    """
+    The node sends back a non-200 response that we don't know how to
+    handle.
+    """
+    adapter = HttpAdapter('http://localhost')
+
+    decoded_response = {'message': 'Request limit exceeded.'}
+
+    mocked_response = create_http_response(
+      status  = 429,
+      content = json.dumps(decoded_response),
+    )
+
+    mocked_sender = Mock(return_value=mocked_response)
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      with self.assertRaises(BadApiResponse) as context:
+        adapter.send_request({'command': 'helloWorld'})
+
+    self.assertEqual(
+      text_type(context.exception),
+      '429 response from node: {decoded}'.format(decoded=decoded_response),
+    )
 
   def test_empty_response(self):
     """
@@ -214,7 +254,7 @@ class HttpAdapterTestCase(TestCase):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
-    self.assertEqual(text(context.exception), 'Empty response from node.')
+    self.assertEqual(text_type(context.exception), 'Empty response from node.')
 
   def test_non_json_response(self):
     """
@@ -233,7 +273,7 @@ class HttpAdapterTestCase(TestCase):
         adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text(context.exception),
+      text_type(context.exception),
       'Non-JSON response from node: ' + invalid_response,
     )
 
@@ -243,8 +283,8 @@ class HttpAdapterTestCase(TestCase):
     """
     adapter = HttpAdapter('http://localhost:14265')
 
-    invalid_response  = '["message", "Hello, IOTA!"]'
-    mocked_response   = create_http_response(invalid_response)
+    invalid_response  = ['message', 'Hello, IOTA!']
+    mocked_response   = create_http_response(json.dumps(invalid_response))
 
     mocked_sender = Mock(return_value=mocked_response)
 
@@ -254,8 +294,11 @@ class HttpAdapterTestCase(TestCase):
         adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text(context.exception),
-      'Invalid response from node: ' + invalid_response,
+      text_type(context.exception),
+
+      'Invalid response from node: {response!r}'.format(
+        response = invalid_response,
+      ),
     )
 
   # noinspection SpellCheckingInspection

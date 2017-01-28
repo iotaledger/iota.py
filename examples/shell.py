@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from argparse import ArgumentParser
 from getpass import getpass as secure_input
-from logging import INFO, basicConfig, getLogger
+from logging import DEBUG, basicConfig, getLogger
 from sys import argv, stderr
 
 from six import text_type
@@ -18,10 +18,10 @@ from iota import *
 
 from iota import __version__
 from iota.adapter import resolve_adapter
-from iota.adapter.wrappers import LogWrapper, RoutingWrapper
+from iota.adapter.wrappers import RoutingWrapper
 
 
-basicConfig(level=INFO, stream=stderr)
+basicConfig(level=DEBUG, stream=stderr)
 
 
 def main(uri, testnet, pow_uri, debug_requests):
@@ -47,7 +47,9 @@ def main(uri, testnet, pow_uri, debug_requests):
 
   # If ``debug_requests`` is specified, log HTTP requests/responses.
   if debug_requests:
-    adapter_ = LogWrapper(adapter_, getLogger(__name__), INFO)
+    logger = getLogger(__name__)
+    logger.setLevel(DEBUG)
+    adapter_.set_logger(logger)
 
   iota = Iota(adapter_, seed=seed, testnet=testnet)
 

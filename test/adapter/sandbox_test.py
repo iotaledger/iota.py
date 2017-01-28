@@ -42,7 +42,8 @@ class SandboxAdapterTestCase(TestCase):
 
       # Auth token automatically added to the HTTP request.
       headers = {
-        'Authorization': 'token ACCESS-TOKEN',
+        'Authorization':  'token ACCESS-TOKEN',
+        'Content-type':   'application/json',
       },
     )
 
@@ -229,10 +230,11 @@ class SandboxAdapterTestCase(TestCase):
       payload = json.dumps(payload),
       url     = adapter.node_url,
 
-      # No auth token, so no Authorization header.
-      # headers = {
-      #   'Authorization': 'token ACCESS-TOKEN',
-      # },
+      headers = {
+        # No auth token, so no Authorization header.
+        # 'Authorization':  'token ACCESS-TOKEN',
+        'Content-type':   'application/json',
+      },
     )
 
   def test_error_non_200_response(self):

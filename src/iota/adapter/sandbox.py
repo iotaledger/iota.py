@@ -31,7 +31,7 @@ class SandboxAdapter(HttpAdapter):
   Number of seconds to wait between requests to check job status.
   """
 
-  def __init__(self, uri, token, poll_interval=DEFAULT_POLL_INTERVAL):
+  def __init__(self, uri, auth_token, poll_interval=DEFAULT_POLL_INTERVAL):
     # type: (Union[Text, SplitResult], Optional[Text], int) -> None
     """
     :param uri:
@@ -45,7 +45,7 @@ class SandboxAdapter(HttpAdapter):
       - Incorrect: ``https://sandbox.iota:14265``
       - Correct:   ``https://sandbox.iota:14265/api/v1/``
 
-    :param token:
+    :param auth_token:
       Authorization token used to authenticate requests.
 
       Contact the node's maintainer to obtain a token.
@@ -64,29 +64,29 @@ class SandboxAdapter(HttpAdapter):
     """
     super(SandboxAdapter, self).__init__(uri)
 
-    if not (isinstance(token, text_type) or (token is None)):
+    if not (isinstance(auth_token, text_type) or (auth_token is None)):
       raise with_context(
         exc =
           TypeError(
-            '``token`` must be a unicode string or ``None`` '
+            '``auth_token`` must be a unicode string or ``None`` '
             '(``exc.context`` has more info).'
           ),
 
         context = {
-          'token': token,
+          'auth_token': auth_token,
         },
       )
 
-    if token == '':
+    if auth_token == '':
       raise with_context(
         exc =
           ValueError(
-            'Set ``token=None`` if requests do not require authorization '
+            'Set ``auth_token=None`` if requests do not require authorization '
             '(``exc.context`` has more info).',
           ),
 
         context = {
-          'token': token,
+          'auth_token': auth_token,
         },
       )
 
@@ -116,5 +116,17 @@ class SandboxAdapter(HttpAdapter):
         },
       )
 
-    self.token          = token # type: Optional[Text]
+    self.auth_token     = auth_token # type: Optional[Text]
     self.poll_interval  = poll_interval # type: int
+
+  def send_request(self, payload, **kwargs):
+    # type: (dict, dict) -> dict
+    if self.auth_token:
+      kwargs.setdefault('headers', {})
+
+      kwargs['headers']['Authorization'] =\
+        'token {token}'.format(
+          token = self.auth_token,
+        )
+
+    return super(SandboxAdapter, self).send_request(payload, **kwargs)

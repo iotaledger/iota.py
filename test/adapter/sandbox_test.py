@@ -2,9 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import json
 from unittest import TestCase
 
+from mock import Mock, patch
+
 from iota.adapter.sandbox import SandboxAdapter
+from test.adapter_test import create_http_response
 
 
 class SandboxAdapterTestCase(TestCase):
@@ -12,8 +16,31 @@ class SandboxAdapterTestCase(TestCase):
     """
     Sending a non-sandbox command to the node.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    adapter = SandboxAdapter('https://localhost', 'ACCESS-TOKEN')
+
+    expected_result = {
+      'message': 'Hello, IOTA!',
+    }
+
+    mocked_response = create_http_response(json.dumps(expected_result))
+    mocked_sender = Mock(return_value=mocked_response)
+
+    payload = {'command': 'helloWorld'}
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      result = adapter.send_request(payload)
+
+    self.assertEqual(result, expected_result)
+
+    mocked_sender.assert_called_once_with(
+      payload = json.dumps(payload),
+
+      # Auth token automatically added to the HTTP request.
+      headers = {
+        'Authorization': 'token ACCESS-TOKEN',
+      },
+    )
 
   def test_sandbox_command(self):
     """

@@ -53,6 +53,26 @@ class ResolveAdapterTestCase(TestCase):
       resolve_adapter('foobar://localhost:14265')
 
 
+def create_http_response(content):
+  # type: (Text) -> requests.Response
+  """
+  Creates an HTTP Response object for a test.
+  """
+  # :py:meth:`requests.adapters.HTTPAdapter.build_response`
+  response = requests.Response()
+
+  # Response status is always 200, even for an error.
+  # Note that this is fixed in later IRI implementations, but for
+  # backwards-compatibility, the adapter will ignore the status code.
+  # https://github.com/iotaledger/iri/issues/9
+  response.status_code = 200
+
+  response.encoding = 'utf-8'
+  response.raw = BytesIO(content.encode('utf-8'))
+
+  return response
+
+
 class HttpAdapterTestCase(TestCase):
   def test_http(self):
     """
@@ -127,7 +147,7 @@ class HttpAdapterTestCase(TestCase):
       'message': 'Hello, IOTA!',
     }
 
-    mocked_response = self._create_response(json.dumps(expected_result))
+    mocked_response = create_http_response(json.dumps(expected_result))
     mocked_sender   = Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
@@ -145,7 +165,7 @@ class HttpAdapterTestCase(TestCase):
 
     expected_result = 'Command \u0027helloWorld\u0027 is unknown'
 
-    mocked_response = self._create_response(json.dumps({
+    mocked_response = create_http_response(json.dumps({
       'error':    expected_result,
       'duration': 42,
     }))
@@ -168,7 +188,7 @@ class HttpAdapterTestCase(TestCase):
 
     expected_result = 'java.lang.ArrayIndexOutOfBoundsException: 4'
 
-    mocked_response = self._create_response(json.dumps({
+    mocked_response = create_http_response(json.dumps({
       'exception':  'java.lang.ArrayIndexOutOfBoundsException: 4',
       'duration':   16
     }))
@@ -188,7 +208,7 @@ class HttpAdapterTestCase(TestCase):
     """
     adapter = HttpAdapter('http://localhost:14265')
 
-    mocked_response = self._create_response('')
+    mocked_response = create_http_response('')
 
     mocked_sender = Mock(return_value=mocked_response)
 
@@ -206,7 +226,7 @@ class HttpAdapterTestCase(TestCase):
     adapter = HttpAdapter('http://localhost:14265')
 
     invalid_response  = 'EHLO iotatoken.com' # Erm...
-    mocked_response   = self._create_response(invalid_response)
+    mocked_response   = create_http_response(invalid_response)
 
     mocked_sender = Mock(return_value=mocked_response)
 
@@ -227,7 +247,7 @@ class HttpAdapterTestCase(TestCase):
     adapter = HttpAdapter('http://localhost:14265')
 
     invalid_response  = '["message", "Hello, IOTA!"]'
-    mocked_response   = self._create_response(invalid_response)
+    mocked_response   = create_http_response(invalid_response)
 
     mocked_sender = Mock(return_value=mocked_response)
 
@@ -242,7 +262,8 @@ class HttpAdapterTestCase(TestCase):
     )
 
   # noinspection SpellCheckingInspection
-  def test_trytes_in_request(self):
+  @staticmethod
+  def test_trytes_in_request():
     """
     Sending a request that includes trytes.
     """
@@ -250,7 +271,7 @@ class HttpAdapterTestCase(TestCase):
 
     # Response is not important for this test; we just need to make
     # sure that the request is converted correctly.
-    mocked_sender = Mock(return_value=self._create_response('{}'))
+    mocked_sender = Mock(return_value=create_http_response('{}'))
 
     # noinspection PyUnresolvedReferences
     with patch.object(adapter, '_send_http_request', mocked_sender):
@@ -276,21 +297,3 @@ class HttpAdapterTestCase(TestCase):
         ],
       }),
     )
-
-  @staticmethod
-  def _create_response(content):
-    # type: (Text) -> requests.Response
-    """
-    Creates a Response object for a test.
-    """
-    # :py:meth:`requests.adapters.HTTPAdapter.build_response`
-    response = requests.Response()
-
-    # Response status is always 200, even for an error.
-    # https://github.com/iotaledger/iri/issues/9
-    response.status_code = 200
-
-    response.encoding = 'utf-8'
-    response.raw = BytesIO(content.encode('utf-8'))
-
-    return response

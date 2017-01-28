@@ -37,7 +37,7 @@ setup(
 
   install_requires = [
     'filters',
-    'requests',
+    'requests[security]',
     'six',
     'typing',
   ],

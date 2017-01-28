@@ -6,6 +6,7 @@ import json
 from abc import ABCMeta, abstractmethod as abstract_method
 from collections import deque
 from inspect import isabstract as is_abstract
+from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
 
@@ -136,6 +137,12 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
   Protocols that ``resolve_adapter`` can use to identify this adapter
   type.
   """
+
+  def __init__(self):
+    super(BaseAdapter, self).__init__()
+
+    self._logger = None # type: Logger
+
   @abstract_method
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
@@ -158,6 +165,24 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
+
+  def set_logger(self, logger):
+    # type: (Logger) -> BaseAdapter
+    """
+    Attaches a logger instance to the adapter.
+    The adapter will send information about API requests/responses to
+    the logger.
+    """
+    self._logger = logger
+    return self
+
+  def _log(self, level, message, context=None):
+    # type: (int, Text, Optional[dict]) -> None
+    """
+    Sends a message to the instance's logger, if configured.
+    """
+    if self._logger:
+      self._logger.log(level, message, extra={'context': context or {}})
 
 
 class HttpAdapter(BaseAdapter):
@@ -225,6 +250,9 @@ class HttpAdapter(BaseAdapter):
 
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
+    kwargs.setdefault('headers', {})
+    kwargs['headers']['Content-type'] = 'application/json'
+
     response = self._send_http_request(
       # Use a custom JSON encoder that knows how to convert Tryte values.
       payload = JsonEncoder().encode(payload),
@@ -235,8 +263,7 @@ class HttpAdapter(BaseAdapter):
 
     return self._interpret_response(response, payload, {codes['ok']})
 
-  @staticmethod
-  def _send_http_request(url, payload, method='post', **kwargs):
+  def _send_http_request(self, url, payload, method='post', **kwargs):
     # type: (Text, Optional[Text], Text, dict) -> Response
     """
     Sends the actual HTTP request.
@@ -245,7 +272,47 @@ class HttpAdapter(BaseAdapter):
     tests.
     """
     kwargs.setdefault('timeout', get_default_timeout())
-    return request(method=method, url=url, data=payload, **kwargs)
+
+    self._log(
+      level = DEBUG,
+
+      message = 'Sending {method} to {url}: {payload!r}'.format(
+        method  = method,
+        payload = payload,
+        url     = url,
+      ),
+
+      context = {
+        'request_method':   method,
+        'request_kwargs':   kwargs,
+        'request_payload':  payload,
+        'request_url':      url,
+      },
+    )
+
+    response = request(method=method, url=url, data=payload, **kwargs)
+
+    self._log(
+      level = DEBUG,
+
+      message = 'Receiving {method} from {url}: {response!r}'.format(
+        method    = method,
+        response  = response.content,
+        url       = url,
+      ),
+
+      context = {
+        'request_method':   method,
+        'request_kwargs':   kwargs,
+        'request_payload':  payload,
+        'request_url':      url,
+
+        'response_headers': response.headers,
+        'response_content': response.content,
+      },
+    )
+
+    return response
 
   def _interpret_response(self, response, payload, expected_status):
     # type: (Response, dict, Container[int]) -> dict

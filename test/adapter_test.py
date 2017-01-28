@@ -26,14 +26,14 @@ class ResolveAdapterTestCase(TestCase):
 
   def test_http(self):
     """
-    Resolving a valid `http://` URI.
+    Resolving a valid ``http://`` URI.
     """
     adapter = resolve_adapter('http://localhost:14265/')
     self.assertIsInstance(adapter, HttpAdapter)
 
   def test_https(self):
     """
-    Resolving a valid `https://` URI.
+    Resolving a valid ``https://`` URI.
     """
     adapter = resolve_adapter('https://localhost:14265/')
     self.assertIsInstance(adapter, HttpAdapter)
@@ -73,7 +73,7 @@ def create_http_response(content, status=200):
 class HttpAdapterTestCase(TestCase):
   def test_http(self):
     """
-    Configuring HttpAdapter using a valid http:// URI.
+    Configuring HttpAdapter using a valid ``http://`` URI.
     """
     uri     = 'http://localhost:14265/'
     adapter = HttpAdapter(uri)
@@ -82,7 +82,7 @@ class HttpAdapterTestCase(TestCase):
 
   def test_https(self):
     """
-    Configuring HttpAdapter using a valid https:// URI.
+    Configuring HttpAdapter using a valid ``https://`` URI.
     """
     uri     = 'https://localhost:14265/'
     adapter = HttpAdapter(uri)
@@ -338,4 +338,8 @@ class HttpAdapterTestCase(TestCase):
           'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
         ],
       }),
+
+      headers = {
+        'Content-type': 'application/json',
+      },
     )

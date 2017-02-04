@@ -427,8 +427,8 @@ class Iota(StrictIota):
   def get_account_data(self, start=0, stop=None):
     # type± (int, Optional[int]) -> dict
     """
-    Returns all transfers to/from the account, as well as the
-    corresponding addresses and total account balance.
+    More comprehensive version of :py:meth:`get_transfers` that returns
+    addresses and account balance in addition to bundles.
 
     This function is useful in getting all the relevant information of
     your account.
@@ -455,9 +455,8 @@ class Iota(StrictIota):
            'balance': int,
              Total account balance.  Might be 0.
 
-           'transfers': List[Transaction],
-             List of transactions to/from this account.
-             Includes transactions with 0 value.
+           'bundles': List[Bundles],
+             List of bundles with transactions to/from this account.
          }
     """
     return self.getAccountData(

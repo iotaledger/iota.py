@@ -24,6 +24,29 @@ class JsonSerializable(with_metaclass(ABCMeta)):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
+  def _repr_pretty_(self, p, cycle):
+    """
+    Makes JSON-serializable objects play nice with IPython's default
+    pretty-printer.
+
+    Sadly, :py:func:`pprint.pprint` does not have a similar mechanism.
+
+    References:
+      - http://ipython.readthedocs.io/en/stable/api/generated/IPython.lib.pretty.html
+      - :py:meth:`IPython.lib.pretty.RepresentationPrinter.pretty`
+      - :py:func:`pprint._safe_repr`
+    """
+    # type: (JsonSerializable, bool) -> Text
+    class_name = type(self).__name__
+
+    if cycle:
+      p.text('{cls}(...)'.format(
+        cls = class_name,
+      ))
+    else:
+      with p.group(len(class_name)+1, '{cls}('.format(cls=class_name), ')'):
+        p.pretty(self.as_json_compatible())
+
 
 # noinspection PyClassHasNoInit
 class JsonEncoder(BaseJsonEncoder):

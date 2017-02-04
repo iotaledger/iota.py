@@ -14,9 +14,9 @@ __all__ = [
 
 class BroadcastAndStoreCommand(FilterCommand):
   """
-  Executes `broadcastAndStore` extended API command.
+  Executes ``broadcastAndStore`` extended API command.
 
-  See :py:meth:`iota.api.IotaApi.broadcast_and_store` for more info.
+  See :py:meth:`iota.api.Iota.broadcast_and_store` for more info.
   """
   command = 'broadcastAndStore'
 

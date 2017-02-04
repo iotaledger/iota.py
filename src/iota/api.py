@@ -424,6 +424,48 @@ class Iota(StrictIota):
     """
     return self.broadcastAndStore(trytes=trytes)
 
+  def get_account_data(self, start=0, stop=None):
+    # type± (int, Optional[int]) -> dict
+    """
+    Returns all transfers to/from the account, as well as the
+    corresponding addresses and total account balance.
+
+    This function is useful in getting all the relevant information of
+    your account.
+
+    :param start:
+      Starting key index.
+
+    :param stop:
+      Stop before this index.
+      Note that this parameter behaves like the ``stop`` attribute in a
+      :py:class:`slice` object; the stop index is *not* included in the
+      result.
+
+      If ``None`` (default), then this method will check every address
+      until it finds one without any transfers.
+
+    :return:
+      Dict containing the following values::
+
+         {
+           'addresses': List[Address],
+             List of addresses with transfers.
+
+           'balance': int,
+             Total account balance.  Might be 0.
+
+           'transfers': List[Transaction],
+             List of transactions to/from this account.
+             Includes transactions with 0 value.
+         }
+    """
+    return self.getAccountData(
+      seed  = self.seed,
+      start = start,
+      stop  = stop,
+    )
+
   def get_bundles(self, transaction):
     # type: (TransactionHash) -> dict
     """

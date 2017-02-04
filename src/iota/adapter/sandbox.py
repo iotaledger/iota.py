@@ -43,8 +43,19 @@ class SandboxAdapter(HttpAdapter):
   Number of seconds to wait between requests to check job status.
   """
 
-  def __init__(self, uri, auth_token, poll_interval=DEFAULT_POLL_INTERVAL):
-    # type: (Union[Text, SplitResult], Optional[Text], int) -> None
+  DEFAULT_MAX_POLLS = 8
+  """
+  Maximum number of times to poll for job status before giving up.
+  """
+
+  def __init__(
+      self,
+      uri,
+      auth_token,
+      poll_interval = DEFAULT_POLL_INTERVAL,
+      max_polls     = DEFAULT_MAX_POLLS,
+  ):
+    # type: (Union[Text, SplitResult], Optional[Text], int, int) -> None
     """
     :param uri:
       URI of the node to connect to.
@@ -73,6 +84,13 @@ class SandboxAdapter(HttpAdapter):
       (once the node completes the job), but it increases traffic to
       the node (which may trip a rate limiter and/or incur additional
       costs).
+
+    :param max_polls:
+      Max number of times to poll for job status before giving up.
+      Must be a positive integer.
+
+      This is effectively a timeout setting for asynchronous jobs;
+      multiply by ``poll_interval`` to get the timeout duration.
     """
     super(SandboxAdapter, self).__init__(uri)
 
@@ -119,7 +137,7 @@ class SandboxAdapter(HttpAdapter):
       raise with_context(
         exc =
           ValueError(
-            '``poll_interval`` must be >= 1 '
+            '``poll_interval`` must be > 0 '
             '(``exc.context`` has more info).',
           ),
 
@@ -128,8 +146,35 @@ class SandboxAdapter(HttpAdapter):
         },
       )
 
+    if not isinstance(max_polls, int):
+      raise with_context(
+        exc =
+          TypeError(
+            '``max_polls`` must be an int '
+            '(``exc.context`` has more info).',
+          ),
+
+        context = {
+          'max_polls': max_polls,
+        },
+      )
+
+    if max_polls < 1:
+      raise with_context(
+        exc =
+          ValueError(
+            '``max_polls`` must be > 0 '
+            '(``exc.context`` has more info).',
+          ),
+
+        context = {
+          'max_polls': max_polls,
+        },
+      )
+
     self.auth_token     = auth_token # type: Optional[Text]
     self.poll_interval  = poll_interval # type: int
+    self.max_polls      = max_polls # type: int
 
   @property
   def node_url(self):
@@ -185,8 +230,27 @@ class SandboxAdapter(HttpAdapter):
     # Check to see if the request was queued for asynchronous
     # execution.
     if response.status_code == codes['accepted']:
+      poll_count = 0
       while decoded['status'] in (STATUS_QUEUED, STATUS_RUNNING):
+        if poll_count >= self.max_polls:
+          raise with_context(
+            exc =
+              BadApiResponse(
+                '``{command}`` job timed out after {duration} seconds '
+                '(``exc.context`` has more info).'.format(
+                  command   = decoded['command'],
+                  duration  = self.poll_interval * self.max_polls,
+                ),
+              ),
+
+            context = {
+              'request':  payload,
+              'response': decoded,
+            },
+          )
+
         self._wait_to_poll()
+        poll_count += 1
 
         poll_response = self._send_http_request(
           headers = {'Authorization': self.authorization_header},

@@ -546,10 +546,10 @@ class KeyGeneratorTestCase(TestCase):
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999IPKZWMLYYOLWBJGINLSO9EEYQMCUJ',
     )
 
-    generator = kg.create_generator()
+    iterator = kg.create_iterator()
 
     self.assertEqual(
-      next(generator),
+      next(iterator),
 
       PrivateKey(
         b'LZDQHHPRICEESIHX9VVYCHLYSJDMXPLFOMMVOMUZKHSXLQYSQNDFHWLNKTCAJYPWUM'
@@ -590,7 +590,7 @@ class KeyGeneratorTestCase(TestCase):
     )
 
     self.assertEqual(
-      next(generator),
+      next(iterator),
 
       PrivateKey(
         b'BTQKIPUTHFDMCKGVLBCFGEFLJHCHOANY9GBIRSODCOWTJGUWGFMDXWEB9HDNP9M9ZU'
@@ -638,10 +638,10 @@ class KeyGeneratorTestCase(TestCase):
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999FFRFYAMRNWLGSGZNYUJNEBNWJQNYF',
     )
 
-    generator = kg.create_generator(start=3, step=2)
+    iterator = kg.create_iterator(start=3, step=2)
 
     self.assertEqual(
-      next(generator),
+      next(iterator),
 
       PrivateKey(
         b'CBKFYOTDYHFWSIOUYAUAHQWOOQDNNQBTSSJPHREUWFBXZFYFHPHZJN9ILAMZYOXLBQ'
@@ -682,7 +682,7 @@ class KeyGeneratorTestCase(TestCase):
     )
 
     self.assertEqual(
-      next(generator),
+      next(iterator),
 
       PrivateKey(
         b'OTOFWEAUQFRSWBTJPPAACBIPCTMYAESBAGVMPVMH9IQAEEKEXVUCSOWORDIQBRZZLD'
@@ -733,10 +733,10 @@ class KeyGeneratorTestCase(TestCase):
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999FFRFYAMRNWLGSGZNYUJNEBNWJQNYF',
     )
 
-    generator = kg.create_generator(start=3, iterations=2)
+    iterator = kg.create_iterator(start=3, iterations=2)
 
     self.assertEqual(
-      next(generator),
+      next(iterator),
 
       PrivateKey(
         b'CBKFYOTDYHFWSIOUYAUAHQWOOQDNNQBTSSJPHREUWFBXZFYFHPHZJN9ILAMZYOXLBQ'

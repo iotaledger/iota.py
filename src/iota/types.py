@@ -249,7 +249,7 @@ class TryteString(JsonSerializable):
   def __bytes__(self):
     # type: () -> binary_type
     """
-    Converts the TryteString into a string representation.
+    Converts the TryteString into a bytestring representation.
 
     Note that this method will NOT convert the trytes back into bytes;
     use :py:meth:`as_bytes` for that.
@@ -260,8 +260,8 @@ class TryteString(JsonSerializable):
     # type: () -> bool
     return bool(self._trytes) and any(t != b'9' for t in self)
 
-  # :bc: Magic methods have different names in Python 2.
   if PY2:
+    # Magic methods have different names in Python 2.
     __nonzero__ = __bool__
     __str__     = __bytes__
 

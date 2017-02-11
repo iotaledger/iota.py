@@ -51,7 +51,7 @@ class GetNewAddressesCommand(FilterCommand):
     if count is None:
       # Connect to Tangle and find the first address without any
       # transactions.
-      for addy in generator.create_generator(start=index):
+      for addy in generator.create_iterator(start=index):
         response = FindTransactionsCommand(self.adapter)(addresses=[addy])
 
         if not response.get('hashes'):

@@ -2,16 +2,14 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import List, Optional
+from itertools import chain
+from typing import Optional
 
 import filters as f
-from iota import Bundle, Transaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
-from iota.commands.core.get_trytes import GetTrytesCommand
-from iota.commands.extended.get_bundles import GetBundlesCommand
-from iota.commands.extended.get_latest_inclusion import \
-  GetLatestInclusionCommand
+from iota.commands.extended.utils import get_bundles_from_transaction_hashes, \
+  iter_used_addresses
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
@@ -36,121 +34,35 @@ class GetTransfersCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    stop              = request['stop'] # type: Optional[int]
     inclusion_states  = request['inclusionStates'] # type: bool
     seed              = request['seed'] # type: Seed
     start             = request['start'] # type: int
-
-    generator   = AddressGenerator(seed)
-    ft_command  = FindTransactionsCommand(self.adapter)
+    stop              = request['stop'] # type: Optional[int]
 
     # Determine the addresses we will be scanning, and pull their
     # transaction hashes.
     if stop is None:
-      # This is similar to the ``getNewAddresses`` command, except it
-      # is interested in all the addresses that `getNewAddresses`
-      # skips.
-      hashes = []
-      for addy in generator.create_generator(start):
-        ft_response = ft_command(addresses=[addy])
-
-        if ft_response.get('hashes'):
-          hashes += ft_response['hashes']
-        else:
-          break
-
-        # Reset the command so that we can call it again.
-        ft_command.reset()
+      my_hashes = list(chain(*(
+        hashes
+          for _, hashes in iter_used_addresses(self.adapter, seed, start)
+      )))
     else:
       ft_response =\
-        ft_command(addresses=generator.get_addresses(start, stop - start))
-
-      hashes = ft_response.get('hashes') or []
-
-    all_bundles = [] # type: List[Bundle]
-
-    if hashes:
-      # Sort transactions into tail and non-tail.
-      tail_transaction_hashes = set()
-      non_tail_bundle_hashes  = set()
-
-      gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
-      all_transactions = list(map(
-        Transaction.from_tryte_string,
-        gt_response['trytes'],
-      )) # type: List[Transaction]
-
-      for txn in all_transactions:
-        if txn.is_tail:
-          tail_transaction_hashes.add(txn.hash)
-        else:
-          # Capture the bundle ID instead of the transaction hash so that
-          # we can query the node to find the tail transaction for that
-          # bundle.
-          non_tail_bundle_hashes.add(txn.bundle_hash)
-
-      if non_tail_bundle_hashes:
-        for txn in self._find_transactions(bundles=list(non_tail_bundle_hashes)):
-          if txn.is_tail:
-            if txn.hash not in tail_transaction_hashes:
-              all_transactions.append(txn)
-              tail_transaction_hashes.add(txn.hash)
-
-      # Filter out all non-tail transactions.
-      tail_transactions = [
-        txn
-          for txn in all_transactions
-          if txn.hash in tail_transaction_hashes
-      ]
-
-      # Attach inclusion states, if requested.
-      if inclusion_states:
-        gli_response = GetLatestInclusionCommand(self.adapter)(
-          hashes = list(tail_transaction_hashes),
+        FindTransactionsCommand(self.adapter)(
+          addresses =
+            AddressGenerator(seed).get_addresses(start, stop - start),
         )
 
-        for txn in tail_transactions:
-          txn.is_confirmed = gli_response['states'].get(txn.hash)
-
-      # Find the bundles for each transaction.
-      for txn in tail_transactions:
-        gb_response = GetBundlesCommand(self.adapter)(transaction=txn.hash)
-        txn_bundles = gb_response['bundles'] # type: List[Bundle]
-
-        if inclusion_states:
-          for bundle in txn_bundles:
-            bundle.is_confirmed = txn.is_confirmed
-
-        all_bundles.extend(txn_bundles)
+      my_hashes = ft_response['hashes']
 
     return {
-      # Sort bundles by tail transaction timestamp.
-      'bundles': list(sorted(
-        all_bundles,
-        key = lambda bundle_: bundle_.tail_transaction.timestamp,
-      )),
+      'bundles':
+        get_bundles_from_transaction_hashes(
+          adapter             = self.adapter,
+          transaction_hashes  = my_hashes,
+          inclusion_states    = inclusion_states,
+        ),
     }
-
-
-  def _find_transactions(self, **kwargs):
-    # type: (dict) -> List[Transaction]
-    """
-    Finds transactions matching the specified criteria, fetches the
-    corresponding trytes and converts them into Transaction objects.
-    """
-    ft_response = FindTransactionsCommand(self.adapter)(**kwargs)
-
-    hashes = ft_response.get('hashes') or []
-
-    if hashes:
-      gt_response = GetTrytesCommand(self.adapter)(hashes=hashes)
-
-      return list(map(
-        Transaction.from_tryte_string,
-        gt_response.get('trytes') or [],
-      )) # type: List[Transaction]
-
-    return []
 
 
 class GetTransfersRequestFilter(RequestFilter):

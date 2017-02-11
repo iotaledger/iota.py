@@ -108,7 +108,7 @@ class AddressGenerator(Iterable[Address]):
     Returns a generator for creating new addresses, starting at index
     0 and potentially continuing on forever.
     """
-    return self.create_generator()
+    return self.create_iterator()
 
   def get_addresses(self, start, count=1, step=1):
     # type: (int, int, int) -> List[Address]
@@ -118,7 +118,7 @@ class AddressGenerator(Iterable[Address]):
 
     This is a one-time operation; if you want to create lots of
     addresses across multiple contexts, consider invoking
-    :py:meth:`create_generator` and sharing the resulting generator
+    :py:meth:`create_iterator` and sharing the resulting generator
     object instead.
 
     Warning: This method may take awhile to run if the starting index
@@ -165,7 +165,7 @@ class AddressGenerator(Iterable[Address]):
         },
       )
 
-    generator = self.create_generator(start, step)
+    generator = self.create_iterator(start, step)
 
     addresses = []
     for _ in range(count):
@@ -178,10 +178,10 @@ class AddressGenerator(Iterable[Address]):
 
     return addresses
 
-  def create_generator(self, start=0, step=1):
+  def create_iterator(self, start=0, step=1):
     # type: (int, int) -> Generator[Address]
     """
-    Creates a generator that can be used to progressively generate new
+    Creates an iterator that can be used to progressively generate new
     addresses.
 
     :param start:

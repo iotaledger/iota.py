@@ -419,7 +419,7 @@ class GetTransfersCommandTestCase(TestCase):
     })
 
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
       with patch(
@@ -459,7 +459,7 @@ class GetTransfersCommandTestCase(TestCase):
     )
 
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
       response = self.command(seed=Seed.random())
@@ -534,7 +534,7 @@ class GetTransfersCommandTestCase(TestCase):
     })
 
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
       with patch(
@@ -609,7 +609,7 @@ class GetTransfersCommandTestCase(TestCase):
     })
 
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
       with patch(
@@ -717,7 +717,7 @@ class GetTransfersCommandTestCase(TestCase):
     })
 
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
       with patch(

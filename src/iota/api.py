@@ -424,8 +424,8 @@ class Iota(StrictIota):
     """
     return self.broadcastAndStore(trytes=trytes)
 
-  def get_account_data(self, start=0, stop=None):
-    # type± (int, Optional[int]) -> dict
+  def get_account_data(self, start=0, stop=None, inclusion_states=False):
+    # type± (int, Optional[int], bool) -> dict
     """
     More comprehensive version of :py:meth:`get_transfers` that returns
     addresses and account balance in addition to bundles.
@@ -445,6 +445,12 @@ class Iota(StrictIota):
       If ``None`` (default), then this method will check every address
       until it finds one without any transfers.
 
+    :param inclusion_states:
+      Whether to also fetch the inclusion states of the transfers.
+
+      This requires an additional API call to the node, so it is
+      disabled by default.
+
     :return:
       Dict containing the following values::
 
@@ -460,9 +466,10 @@ class Iota(StrictIota):
          }
     """
     return self.getAccountData(
-      seed  = self.seed,
-      start = start,
-      stop  = stop,
+      seed            = self.seed,
+      start           = start,
+      stop            = stop,
+      inclusionStates = inclusion_states,
     )
 
   def get_bundles(self, transaction):

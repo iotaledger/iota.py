@@ -2,17 +2,16 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import hashlib
 from abc import ABCMeta, abstractmethod as abstract_method
-from collections import defaultdict
 from typing import Dict, Generator, Iterable, List, MutableSequence, Optional
-
-from six import with_metaclass
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto import Curl
 from iota.crypto.signing import KeyGenerator, KeyIterator
 from iota.crypto.types import PrivateKey, Seed
 from iota.exceptions import with_context
+from six import binary_type, with_metaclass
 
 __all__ = [
   'AddressGenerator',
@@ -54,15 +53,26 @@ class MemoryAddressCache(BaseAddressCache):
   def __init__(self):
     super(MemoryAddressCache, self).__init__()
 
-    self.cache = defaultdict(dict) # type: Dict[Seed, Dict[int, Address]]
+    self.cache = {} # type: Dict[binary_type, Address]
 
   def get(self, seed, index):
     # type: (Seed, int) -> Optional[Address]
-    return self.cache[seed].get(index)
+    return self.cache.get(self._gen_cache_key(seed, index))
 
   def set(self, seed, index, address):
     # type: (Seed, int, Address) -> None
-    self.cache[seed][index] = address
+    self.cache[self._gen_cache_key(seed, index)] = address
+
+  @staticmethod
+  def _gen_cache_key(seed, index):
+    # type: (Seed, int) -> binary_type
+    """
+    Generates an obfuscated cache key so that we're not storing seeds
+    in cleartext.
+    """
+    h = hashlib.new('sha256')
+    h.update(binary_type(seed) + b':' + binary_type(index))
+    return h.digest()
 
 
 class AddressGenerator(Iterable[Address]):

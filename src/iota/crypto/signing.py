@@ -76,7 +76,7 @@ class KeyGenerator(object):
 
     This is a one-time operation; if you want to create lots of keys
     across multiple contexts, consider invoking
-    :py:meth:`create_generator` and sharing the resulting generator
+    :py:meth:`create_iterator` and sharing the resulting generator
     object instead.
 
     Warning: This method may take awhile to run if the starting index

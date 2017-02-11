@@ -456,7 +456,8 @@ class Iota(StrictIota):
 
          {
            'addresses': List[Address],
-             List of addresses with transfers.
+             List of generated addresses.
+             Note that this list may include unused addresses.
 
            'balance': int,
              Total account balance.  Might be 0.

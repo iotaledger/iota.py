@@ -580,7 +580,7 @@ class GetInputsCommandTestCase(TestCase):
 
     # When ``stop`` is None, the command uses a generator internally.
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
       response = self.command(
@@ -623,7 +623,7 @@ class GetInputsCommandTestCase(TestCase):
 
     # When ``stop`` is None, the command uses a generator internally.
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
       with self.assertRaises(BadApiResponse):
@@ -677,7 +677,7 @@ class GetInputsCommandTestCase(TestCase):
 
     # When ``stop`` is None, the command uses a generator internally.
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
       response = self.command(
@@ -740,7 +740,7 @@ class GetInputsCommandTestCase(TestCase):
 
     # When ``stop`` is None, the command uses a generator internally.
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
       response = self.command(
@@ -800,7 +800,7 @@ class GetInputsCommandTestCase(TestCase):
 
     # When ``stop`` is None, the command uses a generator internally.
     with patch(
-        'iota.crypto.addresses.AddressGenerator.create_generator',
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
       response = self.command(

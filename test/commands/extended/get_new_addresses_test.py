@@ -302,7 +302,7 @@ class GetNewAddressesCommandTestCase(TestCase):
         yield addy
 
     with patch(
-        target  = 'iota.crypto.addresses.AddressGenerator.create_generator',
+        target  = 'iota.crypto.addresses.AddressGenerator.create_iterator',
         new     = create_generator,
     ):
       response = self.command(
@@ -346,7 +346,7 @@ class GetNewAddressesCommandTestCase(TestCase):
         yield addy
 
     with patch(
-        target  = 'iota.crypto.addresses.AddressGenerator.create_generator',
+        target  = 'iota.crypto.addresses.AddressGenerator.create_iterator',
         new     = create_generator,
     ):
       response = self.command(

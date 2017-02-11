@@ -6,14 +6,12 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, Tag, \
-  Transaction, TransactionHash
+from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_account_data import GetAccountDataCommand, \
   GetAccountDataRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from mock import Mock
 from six import binary_type, text_type
 
 
@@ -352,45 +350,3 @@ class GetAccountDataTestCase(TestCase):
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
-
-    # To speed up the test, we will mock the address generator.
-    # :py:class:`iota.crypto.addresses.AddressGenerator` already has
-    # its own test case, so this does not impact the stability of the
-    # codebase.
-    # noinspection PyUnusedLocal
-    def create_generator(ag, start, step=1):
-      for addy in [self.addy1, self.addy2][start::step]:
-        yield addy
-
-    # Generate a unique value so we can verify that the correct bundle
-    # data was returned by the command.
-    # noinspection SpellCheckingInspection
-    address =\
-      Address(
-        b'TESTVALUE9DONTUSEINPRODUCTION99999IEUDHI'
-        b'UHDDPEXFVGZGJFBEGFAGZ9GIOGEGED9GMDEEQ9JCB'
-      )
-
-    mock_get_transfers = Mock(return_value={
-      'bundles': [
-        Bundle([
-          Transaction(
-            address = address,
-
-            # The rest of the values are not relevant to this test.
-            bundle_hash   = BundleHash(b''),
-            current_index = 0,
-            hash_         = TransactionHash(b''),
-            last_index    = 0,
-            nonce         = Hash(b''),
-            tag           = Tag(b''),
-            timestamp     = 0,
-            value         = 0,
-
-            branch_transaction_hash     = TransactionHash(b''),
-            trunk_transaction_hash      = TransactionHash(b''),
-            signature_message_fragment  = Fragment(b''),
-          ),
-        ]),
-      ],
-    })

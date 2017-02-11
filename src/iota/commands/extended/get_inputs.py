@@ -2,13 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import List, Optional
+from typing import Optional
 
 import filters as f
-from iota import Address, BadApiResponse
+from iota import BadApiResponse
 from iota.commands import FilterCommand, RequestFilter
-from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_balances import GetBalancesCommand
+from iota.commands.extended.utils import iter_used_addresses
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
@@ -39,23 +39,12 @@ class GetInputsCommand(FilterCommand):
     start     = request['start'] # type: int
     threshold = request['threshold'] # type: Optional[int]
 
-    generator = AddressGenerator(seed)
-
     # Determine the addresses we will be scanning.
     if stop is None:
-      # This is similar to the ``getNewAddresses`` command, except it
-      # is interested in all the addresses that `getNewAddresses`
-      # skips.
-      addresses = [] # type: List[Address]
-      for addy in generator.create_generator(start):
-        ft_response = FindTransactionsCommand(self.adapter)(addresses=[addy])
-
-        if ft_response.get('hashes'):
-          addresses.append(addy)
-        else:
-          break
+      addresses =\
+        [addy for addy, _ in iter_used_addresses(self.adapter, seed, start)]
     else:
-      addresses = generator.get_addresses(start, stop)
+      addresses = AddressGenerator(seed).get_addresses(start, stop)
 
     if addresses:
       # Load balances for the addresses that we generated.

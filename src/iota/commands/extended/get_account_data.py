@@ -2,11 +2,17 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional
+from operator import attrgetter
+from typing import List, Optional
 
 import filters as f
-
+from iota import Address, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
+from iota.commands.core.find_transactions import FindTransactionsCommand
+from iota.commands.core.get_balances import GetBalancesCommand
+from iota.commands.extended.utils import get_bundles_from_transaction_hashes, \
+  iter_used_addresses
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 
@@ -30,14 +36,44 @@ class GetAccountDataCommand(FilterCommand):
     pass
 
   def _execute(self, request):
+    inclusion_states  = request['inclusionStates'] # type: bool
     seed              = request['seed'] # type: Seed
     start             = request['start'] # type: int
     stop              = request['stop'] # type: Optional[int]
-    inclusion_states  = request['inclusionStates'] # type: bool
 
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
+    if stop is None:
+      my_addresses  = [] # type: List[Address]
+      my_hashes     = [] # type: List[TransactionHash]
+
+      for addy, hashes in iter_used_addresses(self.adapter, seed, start):
+        my_addresses.append(addy)
+        my_hashes.extend(hashes)
+    else:
+      ft_command = FindTransactionsCommand(self.adapter)
+
+      my_addresses  = AddressGenerator(seed).get_addresses(start, stop - start)
+      my_hashes     = ft_command(addresses=my_addresses).get('hashes') or []
+
+    account_balance = 0
+    if my_hashes:
+      # Load balances for the addresses that we generated.
+      gb_response = GetBalancesCommand(self.adapter)(addresses=my_addresses)
+
+      for i, balance in enumerate(gb_response['balances']):
+        my_addresses[i].balance = balance
+        account_balance += balance
+
+    return {
+      'addresses':  list(sorted(my_addresses, key=attrgetter('key_index'))),
+      'balance':    account_balance,
+
+      'bundles':
+        get_bundles_from_transaction_hashes(
+          adapter             = self.adapter,
+          transaction_hashes  = my_hashes,
+          inclusion_states    = inclusion_states,
+        ),
+    }
 
 
 class GetAccountDataRequestFilter(RequestFilter):

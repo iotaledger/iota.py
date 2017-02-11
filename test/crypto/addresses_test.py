@@ -144,7 +144,7 @@ class AddressGeneratorTestCase(TestCase):
 
     # noinspection PyUnresolvedReferences
     with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
-      generator = ag.create_generator()
+      generator = ag.create_iterator()
 
       self.assertEqual(next(generator), self.addy0)
       self.assertEqual(next(generator), self.addy1)
@@ -160,7 +160,7 @@ class AddressGeneratorTestCase(TestCase):
 
     # noinspection PyUnresolvedReferences
     with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
-      generator = ag.create_generator(start=1, step=2)
+      generator = ag.create_iterator(start=1, step=2)
 
       self.assertEqual(next(generator), self.addy1)
       self.assertEqual(next(generator), self.addy3)

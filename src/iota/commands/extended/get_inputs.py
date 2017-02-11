@@ -57,8 +57,11 @@ class GetInputsCommand(FilterCommand):
     else:
       addresses = generator.get_addresses(start, stop)
 
-    # Load balances for the addresses that we generated.
-    gb_response = GetBalancesCommand(self.adapter)(addresses=addresses)
+    if addresses:
+      # Load balances for the addresses that we generated.
+      gb_response = GetBalancesCommand(self.adapter)(addresses=addresses)
+    else:
+      gb_response = {'balances': []}
 
     result = {
       'inputs': [],

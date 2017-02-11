@@ -188,5 +188,5 @@ class AddressGenerator(Iterable[Address]):
     )
 
     while True:
-      signing_key = next(key_generator) # type: PrivateKey
-      yield signing_key.get_digest_trits()
+      private_key = next(key_generator) # type: PrivateKey
+      yield private_key.get_digest_trits()

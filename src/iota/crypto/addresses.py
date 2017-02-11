@@ -2,17 +2,67 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterable, List, MutableSequence
+from abc import ABCMeta, abstractmethod as abstract_method
+from collections import defaultdict
+from typing import Dict, Generator, Iterable, List, MutableSequence, Optional
 
-from iota import Address, TRITS_PER_TRYTE, TryteString, TrytesCompatible
+from six import with_metaclass
+
+from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto import Curl
-from iota.crypto.signing import KeyGenerator
-from iota.crypto.types import PrivateKey
+from iota.crypto.signing import KeyGenerator, KeyIterator
+from iota.crypto.types import PrivateKey, Seed
 from iota.exceptions import with_context
 
 __all__ = [
   'AddressGenerator',
+  'MemoryAddressCache',
 ]
+
+
+class BaseAddressCache(with_metaclass(ABCMeta)):
+  """
+  Base functionality for classes that cache generated addresses.
+  """
+  @abstract_method
+  def get(self, seed, index):
+    # type: (Seed, int) -> Optional[Address]
+    """
+    Retrieves an address from the cache.
+    Returns ``None`` if the address hasn't been cached yet.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
+
+  @abstract_method
+  def set(self, seed, index, address):
+    # type: (Seed, int, Address) -> None
+    """
+    Adds an address to the cache, overwriting the existing address if
+    set.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
+
+
+class MemoryAddressCache(BaseAddressCache):
+  """
+  Caches addresses in memory.
+  """
+  def __init__(self):
+    super(MemoryAddressCache, self).__init__()
+
+    self.cache = defaultdict(dict) # type: Dict[Seed, Dict[int, Address]]
+
+  def get(self, seed, index):
+    # type: (Seed, int) -> Optional[Address]
+    return self.cache[seed].get(index)
+
+  def set(self, seed, index, address):
+    # type: (Seed, int, Address) -> None
+    self.cache[seed][index] = address
 
 
 class AddressGenerator(Iterable[Address]):
@@ -40,11 +90,17 @@ class AddressGenerator(Iterable[Address]):
     - :py:class:`iota.transaction.BundleValidator`
   """
 
+  cache = None # type: BaseAddressCache
+  """
+  Set a the instance or class level to inject a cache into the address
+  generation process.
+  """
+
   def __init__(self, seed):
     # type: (TrytesCompatible) -> None
     super(AddressGenerator, self).__init__()
 
-    self.seed = TryteString(seed)
+    self.seed = Seed(seed)
 
   def __iter__(self):
     # type: () -> Generator[Address]
@@ -140,27 +196,26 @@ class AddressGenerator(Iterable[Address]):
       Warning: The generator may take awhile to advance between
       iterations if ``step`` is a large number!
     """
-    if start < 0:
-      raise with_context(
-        exc = ValueError('``start`` cannot be negative.'),
+    key_iterator = (
+      KeyGenerator(self.seed)
+        .create_iterator(start, step, iterations=self.DIGEST_ITERATIONS)
+    )
 
-        context = {
-          'start':  start,
-          'step':   step,
-        },
-      )
+    while True:
+      if self.cache:
+        address = self.cache.get(self.seed, key_iterator.current)
 
-    digest_generator = self._create_digest_generator(start, step)
+        if not address:
+          address = self._generate_address(key_iterator)
+          self.cache.set(self.seed, address.key_index, address)
+      else:
+        address = self._generate_address(key_iterator)
 
-    current = start
-
-    while current >= 0:
-      yield self.address_from_digest(next(digest_generator), current)
-      current += step
+      yield address
 
   @staticmethod
   def address_from_digest(digest_trits, key_index):
-    # type: (Iterable[int], int) -> Address
+    # type: (List[int], int) -> Address
     """
     Generates an address from a private key digest.
     """
@@ -172,21 +227,26 @@ class AddressGenerator(Iterable[Address]):
 
     address = Address.from_trits(address_trits)
     address.key_index = key_index
+
     return address
 
-  def _create_digest_generator(self, start, step):
-    # type: (int, int) -> Generator[List[int]]
+  def _generate_address(self, key_iterator):
+    # type: (KeyIterator) -> Address
     """
-    Initializes a generator to create PrivateKey digests.
+    Generates a new address.
 
-    Implemented as a separate method so that it can be mocked during
-    unit tests.
+    Used in the event of a cache miss.
     """
-    key_generator = (
-      KeyGenerator(self.seed)
-        .create_generator(start, step, iterations=self.DIGEST_ITERATIONS)
-    )
+    return self.address_from_digest(*self._get_digest_params(key_iterator))
 
-    while True:
-      private_key = next(key_generator) # type: PrivateKey
-      yield private_key.get_digest_trits()
+  @staticmethod
+  def _get_digest_params(key_iterator):
+    # type: (KeyIterator) -> Tuple[List[int], int]
+    """
+    Extracts parameters for :py:meth:`address_from_digest`.
+
+    Split into a separate method so that it can be mocked during unit
+    tests.
+    """
+    private_key = next(key_iterator) # type: PrivateKey
+    return private_key.get_digest_trits(), private_key.key_index

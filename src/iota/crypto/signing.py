@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterator, List, MutableSequence, Sequence, Tuple
+from typing import Iterator, List, MutableSequence, Sequence, Tuple
 
 from six import PY2
 
@@ -14,7 +14,6 @@ from iota.exceptions import with_context
 __all__ = [
   'KeyGenerator',
   'SignatureFragmentGenerator',
-  'normalize',
   'validate_signature_fragments',
 ]
 
@@ -133,12 +132,12 @@ class KeyGenerator(object):
         },
       )
 
-    generator = self.create_generator(start, step, iterations)
+    iterator = self.create_iterator(start, step, iterations)
 
     keys = []
     for _ in range(count):
       try:
-        next_key = next(generator)
+        next_key = next(iterator)
       except StopIteration:
         break
       else:
@@ -146,8 +145,8 @@ class KeyGenerator(object):
 
     return keys
 
-  def create_generator(self, start=0, step=1, iterations=1):
-    # type: (int, int) -> Generator[PrivateKey]
+  def create_iterator(self, start=0, step=1, iterations=1):
+    # type: (int, int) -> KeyIterator
     """
     Creates a generator that can be used to progressively generate new
     keys.
@@ -174,6 +173,17 @@ class KeyGenerator(object):
       Increasing this value makes key generation slower, but more
       resistant to brute-forcing.
     """
+    return KeyIterator(self.seed, start, step, iterations)
+
+
+class KeyIterator(Iterator[PrivateKey]):
+  """
+  Creates PrivateKeys from a set of iteration parameters.
+  """
+  def __init__(self, seed, start, step, iterations):
+    # type: (Seed, int, int, int) -> None
+    super(KeyIterator, self).__init__()
+
     if start < 0:
       raise with_context(
         exc = ValueError('``start`` cannot be negative.'),
@@ -196,35 +206,50 @@ class KeyGenerator(object):
         },
       )
 
-    current = start
+    self.seed       = seed
+    self.start      = start
+    self.step       = step
+    self.iterations = iterations
 
-    fragment_length     = FRAGMENT_LENGTH * TRITS_PER_TRYTE
-    hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
+    self.current = self.start
 
-    while current >= 0:
-      sponge = self._create_sponge(current)
+    self.fragment_length     = FRAGMENT_LENGTH * TRITS_PER_TRYTE
+    self.hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
-      key     = [0] * (fragment_length * iterations)
+  def __iter__(self):
+    # type: () -> KeyIterator
+    return self
+
+  def __next__(self):
+    # type: () -> PrivateKey
+    while self.current >= 0:
+      sponge = self._create_sponge(self.current)
+
+      key     = [0] * (self.fragment_length * self.iterations)
       buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
 
-      for fragment_seq in range(iterations):
+      for fragment_seq in range(self.iterations):
         # Squeeze trits from the buffer and append them to the key, one
         # hash at a time.
-        for hash_seq in range(hashes_per_fragment):
+        for hash_seq in range(self.hashes_per_fragment):
           sponge.squeeze(buffer)
 
           key_start =\
-            (fragment_seq * fragment_length) + (hash_seq * HASH_LENGTH)
+            (fragment_seq * self.fragment_length) + (hash_seq * HASH_LENGTH)
 
           key_stop = key_start + HASH_LENGTH
 
           key[key_start:key_stop] = buffer
 
       private_key = PrivateKey.from_trits(key)
-      private_key.key_index = current
-      yield private_key
+      private_key.key_index = self.current
 
-      current += step
+      self.current += self.step
+
+      return private_key
+
+  if PY2:
+    next = __next__
 
   def _create_sponge(self, index):
     # type: (int) -> Curl

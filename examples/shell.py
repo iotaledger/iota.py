@@ -19,6 +19,7 @@ from iota import *
 from iota import __version__
 from iota.adapter import resolve_adapter
 from iota.adapter.wrappers import RoutingWrapper
+from iota.crypto.addresses import AddressGenerator, MemoryAddressCache
 
 
 def main(uri, testnet, pow_uri, debug_requests):
@@ -52,6 +53,9 @@ def main(uri, testnet, pow_uri, debug_requests):
     adapter_.set_logger(logger)
 
   iota = Iota(adapter_, seed=seed, testnet=testnet)
+
+  # To speed up certain operations, install an address cache.
+  AddressGenerator.cache = MemoryAddressCache()
 
   _banner = (
     'IOTA API client for {uri} ({testnet}) initialized as variable `iota`.\n'

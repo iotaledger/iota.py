@@ -6,7 +6,9 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Iota
+from mock import Mock, patch
+
+from iota import Address, Bundle, Iota, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_account_data import GetAccountDataCommand, \
   GetAccountDataRequestFilter
@@ -314,10 +316,10 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
-class GetAccountDataTestCase(TestCase):
+class GetAccountDataCommandTestCase(TestCase):
   # noinspection SpellCheckingInspection
   def setUp(self):
-    super(GetAccountDataTestCase, self).setUp()
+    super(GetAccountDataCommandTestCase, self).setUp()
 
     self.adapter  = MockAdapter()
     self.command  = GetAccountDataCommand(self.adapter)
@@ -326,13 +328,29 @@ class GetAccountDataTestCase(TestCase):
     self.addy1 =\
       Address(
         b'TESTVALUEONE9DONTUSEINPRODUCTION99999YDZ'
-        b'E9TAFAJGJA9CECKDAEPHBICDR9LHFCOFRBQDHC9IG'
+        b'E9TAFAJGJA9CECKDAEPHBICDR9LHFCOFRBQDHC9IG',
+
+        key_index = 0,
       )
 
     self.addy2 =\
       Address(
         b'TESTVALUETWO9DONTUSEINPRODUCTION99999TES'
-        b'GINEIDLEEHRAOGEBMDLENFDAFCHEIHZ9EBZDD9YHL'
+        b'GINEIDLEEHRAOGEBMDLENFDAFCHEIHZ9EBZDD9YHL',
+
+        key_index = 1,
+      )
+
+    self.hash1 =\
+      TransactionHash(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999O99IDB'
+        b'MBPAPDXBSDWAMHV9DASEGCOGHBV9VAF9UGRHFDPFJ'
+      )
+
+    self.hash2 =\
+      TransactionHash(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999OCNCHC'
+        b'TEPBHEPBJEWFXERHSCQCH9TAAANDBBCCHCIDEAVBV'
       )
 
   def test_wireup(self):
@@ -347,6 +365,54 @@ class GetAccountDataTestCase(TestCase):
   def test_happy_path(self):
     """
     Loading account data for an account.
+    """
+    # noinspection PyUnusedLocal
+    def mock_iter_used_addresses(adapter, seed, start):
+      """
+      Mocks the ``iter_used_addresses`` function, so that we can
+      simulate its functionality without actually connecting to the
+      Tangle.
+
+      References:
+        - :py:func:`iota.commands.extended.utils.iter_used_addresses`
+      """
+      yield self.addy1, [self.hash1]
+      yield self.addy2, [self.hash2]
+
+    mock_get_balances = Mock(return_value={'balances': [42, 0]})
+
+    # Not particularly realistic, but good enough to prove that the
+    # mocked function was invoked correctly.
+    bundles = [Bundle(), Bundle()]
+    mock_get_bundles_from_transaction_hashes = Mock(return_value=bundles)
+
+    with patch(
+        'iota.commands.extended.get_account_data.iter_used_addresses',
+        mock_iter_used_addresses,
+    ):
+      with patch(
+        'iota.commands.extended.get_account_data.get_bundles_from_transaction_hashes',
+        mock_get_bundles_from_transaction_hashes,
+      ):
+        with patch(
+          'iota.commands.core.get_balances.GetBalancesCommand._execute',
+          mock_get_balances,
+        ):
+          response = self.command(seed=Seed.random())
+
+    self.assertDictEqual(
+      response,
+
+      {
+        'addresses':  [self.addy1, self.addy2],
+        'balance':    42,
+        'bundles':    bundles,
+      },
+    )
+
+  def test_no_transactions(self):
+    """
+    Loading account data for a seed that hasn't been used yet.
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')

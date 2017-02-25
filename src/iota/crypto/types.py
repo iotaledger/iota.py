@@ -87,12 +87,12 @@ class PrivateKey(TryteString):
     """
     hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
-    key_chunks = self.iter_chunks(FRAGMENT_LENGTH)
+    key_fragments = self.iter_chunks(FRAGMENT_LENGTH)
 
     # The digest will contain one hash per key fragment.
-    digest = [0] * HASH_LENGTH * len(key_chunks)
+    digest = [0] * HASH_LENGTH * len(key_fragments)
 
-    for (i, fragment) in enumerate(key_chunks): # type: Tuple[int, TryteString]
+    for (i, fragment) in enumerate(key_fragments): # type: Tuple[int, TryteString]
       fragment_trits = fragment.as_trits()
 
       key_fragment  = [0] * FRAGMENT_LENGTH

@@ -2,12 +2,14 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from itertools import chain
-from typing import Optional
+from operator import attrgetter
+from typing import List, Optional
 
 import filters as f
+from iota import Address, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
+from iota.commands.core.get_balances import GetBalancesCommand
 from iota.commands.extended.utils import get_bundles_from_transaction_hashes, \
   iter_used_addresses
 from iota.crypto.addresses import AddressGenerator
@@ -15,20 +17,20 @@ from iota.crypto.types import Seed
 from iota.filters import Trytes
 
 __all__ = [
-  'GetTransfersCommand',
+  'GetAccountDataCommand',
 ]
 
 
-class GetTransfersCommand(FilterCommand):
+class GetAccountDataCommand(FilterCommand):
   """
-  Executes ``getTransfers`` extended API command.
+  Executes ``getAccountData`` extended API command.
 
-  See :py:meth:`iota.api.Iota.get_transfers` for more info.
+  See :py:meth:`iota.api.Iota.get_account_data` for more info.
   """
-  command = 'getTransfers'
+  command = 'getAccountData'
 
   def get_request_filter(self):
-    return GetTransfersRequestFilter()
+    return GetAccountDataRequestFilter()
 
   def get_response_filter(self):
     pass
@@ -39,23 +41,32 @@ class GetTransfersCommand(FilterCommand):
     start             = request['start'] # type: int
     stop              = request['stop'] # type: Optional[int]
 
-    # Determine the addresses we will be scanning, and pull their
-    # transaction hashes.
     if stop is None:
-      my_hashes = list(chain(*(
-        hashes
-          for _, hashes in iter_used_addresses(self.adapter, seed, start)
-      )))
-    else:
-      ft_response =\
-        FindTransactionsCommand(self.adapter)(
-          addresses =
-            AddressGenerator(seed).get_addresses(start, stop - start),
-        )
+      my_addresses  = [] # type: List[Address]
+      my_hashes     = [] # type: List[TransactionHash]
 
-      my_hashes = ft_response['hashes']
+      for addy, hashes in iter_used_addresses(self.adapter, seed, start):
+        my_addresses.append(addy)
+        my_hashes.extend(hashes)
+    else:
+      ft_command = FindTransactionsCommand(self.adapter)
+
+      my_addresses  = AddressGenerator(seed).get_addresses(start, stop - start)
+      my_hashes     = ft_command(addresses=my_addresses).get('hashes') or []
+
+    account_balance = 0
+    if my_hashes:
+      # Load balances for the addresses that we generated.
+      gb_response = GetBalancesCommand(self.adapter)(addresses=my_addresses)
+
+      for i, balance in enumerate(gb_response['balances']):
+        my_addresses[i].balance = balance
+        account_balance += balance
 
     return {
+      'addresses':  list(sorted(my_addresses, key=attrgetter('key_index'))),
+      'balance':    account_balance,
+
       'bundles':
         get_bundles_from_transaction_hashes(
           adapter             = self.adapter,
@@ -65,7 +76,7 @@ class GetTransfersCommand(FilterCommand):
     }
 
 
-class GetTransfersRequestFilter(RequestFilter):
+class GetAccountDataRequestFilter(RequestFilter):
   MAX_INTERVAL = 500
 
   CODE_INTERVAL_INVALID = 'interval_invalid'
@@ -77,7 +88,7 @@ class GetTransfersRequestFilter(RequestFilter):
   }
 
   def __init__(self):
-    super(GetTransfersRequestFilter, self).__init__(
+    super(GetAccountDataRequestFilter, self).__init__(
       {
         # Required parameters.
         'seed': f.Required | Trytes(result_type=Seed),
@@ -98,7 +109,7 @@ class GetTransfersRequestFilter(RequestFilter):
 
   def _apply(self, value):
     # noinspection PyProtectedMember
-    filtered = super(GetTransfersRequestFilter, self)._apply(value)
+    filtered = super(GetAccountDataRequestFilter, self)._apply(value)
 
     if self._has_errors:
       return filtered

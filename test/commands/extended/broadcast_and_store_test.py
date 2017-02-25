@@ -14,6 +14,8 @@ from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 class BroadcastAndStoreCommandTestCase(TestCase):
   # noinspection SpellCheckingInspection
   def setUp(self):
+    super(BroadcastAndStoreCommandTestCase, self).setUp()
+
     self.adapter = MockAdapter()
     self.command = BroadcastAndStoreCommand(self.adapter)
 

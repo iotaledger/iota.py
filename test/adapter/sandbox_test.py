@@ -237,6 +237,85 @@ class SandboxAdapterTestCase(TestCase):
       },
     )
 
+  def test_error_job_takes_too_long(self):
+    """
+    A job takes too long to complete, and we lose interest.
+    """
+    adapter =\
+      SandboxAdapter(
+        uri           = 'https://localhost',
+        auth_token    = 'token',
+        poll_interval = 15,
+        max_polls     = 2,
+      )
+
+    responses =\
+      deque([
+        # The first request creates the job.
+        create_http_response(status=202, content=json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'QUEUED',
+          'createdAt':  1483574581,
+          'startedAt':  None,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+
+        # The next two times we poll, the job is still in progress.
+        create_http_response(json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'RUNNING',
+          'createdAt':  1483574581,
+          'startedAt':  1483574589,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+
+        create_http_response(json.dumps({
+          'id':         '70fef55d-6933-49fb-ae17-ec5d02bc9117',
+          'status':     'RUNNING',
+          'createdAt':  1483574581,
+          'startedAt':  1483574589,
+          'finishedAt': None,
+          'command':    'helloWorld',
+
+          'helloWorldRequest': {
+            'command': 'helloWorld',
+          },
+        })),
+      ])
+
+    # noinspection PyUnusedLocal
+    def _send_http_request(*args, **kwargs):
+      return responses.popleft()
+
+    mocked_sender = Mock(wraps=_send_http_request)
+    mocked_waiter = Mock()
+
+    # noinspection PyUnresolvedReferences
+    with patch.object(adapter, '_send_http_request', mocked_sender):
+      # Mock ``_wait_to_poll`` so that it returns immediately, instead
+      # of waiting for 15 seconds.  Bad for production, good for tests.
+      # noinspection PyUnresolvedReferences
+      with patch.object(adapter, '_wait_to_poll', mocked_waiter):
+        with self.assertRaises(BadApiResponse) as context:
+          adapter.send_request({'command': 'helloWorld'})
+
+    self.assertEqual(
+      text_type(context.exception),
+
+      '``helloWorld`` job timed out after 30 seconds '
+      '(``exc.context`` has more info).',
+    )
+
   def test_error_non_200_response(self):
     """
     The node sends back a non-200 response.
@@ -291,7 +370,7 @@ class SandboxAdapterTestCase(TestCase):
 
   def test_error_poll_interval_wrong_type(self):
     """
-    ``poll_interval`` is not an int or float.
+    ``poll_interval`` is not an int.
     """
     with self.assertRaises(TypeError):
       # ``poll_interval`` must be an int.
@@ -304,3 +383,28 @@ class SandboxAdapterTestCase(TestCase):
     """
     with self.assertRaises(ValueError):
       SandboxAdapter('https://localhost', 'token', 0)
+
+  def test_error_max_polls_null(self):
+    """
+    ``max_polls`` is None.
+    """
+    with self.assertRaises(TypeError):
+      # noinspection PyTypeChecker
+      SandboxAdapter('https://localhost', 'token', max_polls=None)
+
+  def test_max_polls_wrong_type(self):
+    """
+    ``max_polls`` is not an int.
+    """
+    with self.assertRaises(TypeError):
+      # ``max_polls`` must be an int.
+      # noinspection PyTypeChecker
+      SandboxAdapter('https://localhost', 'token', max_polls=2.0)
+
+  def test_max_polls_too_small(self):
+    """
+    ``max_polls`` is < 1.
+    """
+    with self.assertRaises(ValueError):
+      # noinspection PyTypeChecker
+      SandboxAdapter('https://localhost', 'token', max_polls=0)

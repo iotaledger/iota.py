@@ -7,7 +7,8 @@ from typing import Dict, Iterable, Optional, Text
 from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
   TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.commands import BaseCommand, CustomCommand, discover_commands
+from iota.commands import BaseCommand, CustomCommand, core, \
+  discover_commands, extended
 from iota.crypto.types import Seed
 from six import with_metaclass
 
@@ -140,7 +141,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/addneighors
     """
-    return self.addNeighbors(uris=uris)
+    return core.AddNeighborsCommand(self.adapter)(uris=uris)
 
   def attach_to_tangle(
       self,
@@ -167,7 +168,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     if min_weight_magnitude is None:
       min_weight_magnitude = self.default_min_weight_magnitude
 
-    return self.attachToTangle(
+    return core.AttachToTangleCommand(self.adapter)(
       trunkTransaction    = trunk_transaction,
       branchTransaction   = branch_transaction,
       minWeightMagnitude  = min_weight_magnitude,
@@ -185,7 +186,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/broadcasttransactions
     """
-    return self.broadcastTransactions(trytes=trytes)
+    return core.BroadcastTransactionsCommand(self.adapter)(trytes=trytes)
 
   def find_transactions(
       self,
@@ -220,7 +221,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/findtransactions
     """
-    return self.findTransactions(
+    return core.FindTransactionsCommand(self.adapter)(
       bundles   = bundles,
       addresses = addresses,
       tags      = tags,
@@ -248,7 +249,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/getbalances
     """
-    return self.getBalances(
+    return core.GetBalancesCommand(self.adapter)(
       addresses = addresses,
       threshold = threshold,
     )
@@ -271,7 +272,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/getinclusionstates
     """
-    return self.getInclusionStates(
+    return core.GetInclusionStatesCommand(self.adapter)(
       transactions  = transactions,
       tips          = tips,
     )
@@ -287,7 +288,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/getneighborsactivity
     """
-    return self.getNeighbors()
+    return core.GetNeighborsCommand(self.adapter)()
 
   def get_node_info(self):
     # type: () -> dict
@@ -297,7 +298,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/getnodeinfo
     """
-    return self.getNodeInfo()
+    return core.GetNodeInfoCommand(self.adapter)()
 
   def get_tips(self):
     # type: () -> dict
@@ -309,7 +310,7 @@ class StrictIota(with_metaclass(ApiMeta)):
       - https://iota.readme.io/docs/gettips
       - https://iota.readme.io/docs/glossary#iota-terms
     """
-    return self.getTips()
+    return core.GetTipsCommand(self.adapter)()
 
   def get_transactions_to_approve(self, depth):
     # type: (int) -> dict
@@ -328,7 +329,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/gettransactionstoapprove
     """
-    return self.getTransactionsToApprove(depth=depth)
+    return core.GetTransactionsToApproveCommand(self.adapter)(depth=depth)
 
   def get_trytes(self, hashes):
     # type: (Iterable[TransactionHash]) -> dict
@@ -339,7 +340,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/gettrytes
     """
-    return self.getTrytes(hashes=hashes)
+    return core.GetTrytesCommand(self.adapter)(hashes=hashes)
 
   def interrupt_attaching_to_tangle(self):
     # type: () -> dict
@@ -350,7 +351,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/interruptattachingtotangle
     """
-    return self.interruptAttachingToTangle()
+    return core.InterruptAttachingToTangleCommand(self.adapter)()
 
   def remove_neighbors(self, uris):
     # type: (Iterable[Text]) -> dict
@@ -365,7 +366,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/removeneighors
     """
-    return self.removeNeighbors(uris=uris)
+    return core.RemoveNeighborsCommand(self.adapter)(uris=uris)
 
   def store_transactions(self, trytes):
     # type: (Iterable[TryteString]) -> dict
@@ -378,7 +379,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/storetransactions
     """
-    return self.storeTransactions(trytes=trytes)
+    return core.StoreTransactionsCommand(self.adapter)(trytes=trytes)
 
 
 class Iota(StrictIota):
@@ -422,7 +423,56 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
     """
-    return self.broadcastAndStore(trytes=trytes)
+    return extended.BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
+
+  def get_account_data(self, start=0, stop=None, inclusion_states=False):
+    # type± (int, Optional[int], bool) -> dict
+    """
+    More comprehensive version of :py:meth:`get_transfers` that returns
+    addresses and account balance in addition to bundles.
+
+    This function is useful in getting all the relevant information of
+    your account.
+
+    :param start:
+      Starting key index.
+
+    :param stop:
+      Stop before this index.
+      Note that this parameter behaves like the ``stop`` attribute in a
+      :py:class:`slice` object; the stop index is *not* included in the
+      result.
+
+      If ``None`` (default), then this method will check every address
+      until it finds one without any transfers.
+
+    :param inclusion_states:
+      Whether to also fetch the inclusion states of the transfers.
+
+      This requires an additional API call to the node, so it is
+      disabled by default.
+
+    :return:
+      Dict containing the following values::
+
+         {
+           'addresses': List[Address],
+             List of generated addresses.
+             Note that this list may include unused addresses.
+
+           'balance': int,
+             Total account balance.  Might be 0.
+
+           'bundles': List[Bundles],
+             List of bundles with transactions to/from this account.
+         }
+    """
+    return extended.GetAccountDataCommand(self.adapter)(
+      seed            = self.seed,
+      start           = start,
+      stop            = stop,
+      inclusionStates = inclusion_states,
+    )
 
   def get_bundles(self, transaction):
     # type: (TransactionHash) -> dict
@@ -449,7 +499,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
     """
-    return self.getBundles(transaction=transaction)
+    return extended.GetBundlesCommand(self.adapter)(transaction=transaction)
 
   def get_inputs(self, start=0, stop=None, threshold=None):
     # type: (int, Optional[int], Optional[int]) -> dict
@@ -521,7 +571,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getinputs
     """
-    return self.getInputs(
+    return extended.GetInputsCommand(self.adapter)(
       seed      = self.seed,
       start     = start,
       stop      = stop,
@@ -547,7 +597,7 @@ class Iota(StrictIota):
            ...
          }
     """
-    return self.getLatestInclusion(hashes=hashes)
+    return extended.GetLatestInclusionCommand(self.adapter)(hashes=hashes)
 
   def get_new_addresses(self, index=0, count=1):
     # type: (int, Optional[int]) -> dict
@@ -577,7 +627,11 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
     """
-    return self.getNewAddresses(seed=self.seed, index=index, count=count)
+    return extended.GetNewAddressesCommand(self.adapter)(
+      seed  = self.seed,
+      index = index,
+      count = count,
+    )
 
   def get_transfers(self, start=0, stop=None, inclusion_states=False):
     # type: (int, Optional[int], bool) -> dict
@@ -613,7 +667,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers
     """
-    return self.getTransfers(
+    return extended.GetTransfersCommand(self.adapter)(
       seed            = self.seed,
       start           = start,
       stop            = stop,
@@ -657,7 +711,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
     """
-    return self.prepareTransfer(
+    return extended.PrepareTransferCommand(self.adapter)(
       seed          = self.seed,
       transfers     = transfers,
       inputs        = inputs,
@@ -702,7 +756,7 @@ class Iota(StrictIota):
     if min_weight_magnitude is None:
       min_weight_magnitude = self.default_min_weight_magnitude
 
-    return self.replayBundle(
+    return extended.ReplayBundleCommand(self.adapter)(
       transaction         = transaction,
       depth               = depth,
       minWeightMagnitude  = min_weight_magnitude,
@@ -759,7 +813,7 @@ class Iota(StrictIota):
     if min_weight_magnitude is None:
       min_weight_magnitude = self.default_min_weight_magnitude
 
-    return self.sendTransfer(
+    return extended.SendTransferCommand(self.adapter)(
       seed                = self.seed,
       depth               = depth,
       transfers           = transfers,
@@ -797,7 +851,7 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
     """
-    return self.sendTrytes(
+    return extended.SendTrytesCommand(self.adapter)(
       trytes              = trytes,
       depth               = depth,
       minWeightMagnitude  = min_weight_magnitude,

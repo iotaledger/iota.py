@@ -414,5 +414,18 @@ class GetAccountDataCommandTestCase(TestCase):
     """
     Loading account data for a seed that hasn't been used yet.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    with patch(
+        'iota.commands.extended.get_account_data.iter_used_addresses',
+        Mock(return_value=[]),
+    ):
+      response = self.command(seed=Seed.random())
+
+    self.assertDictEqual(
+      response,
+
+      {
+        'addresses':  [],
+        'balance':    0,
+        'bundles':    [],
+      },
+    )

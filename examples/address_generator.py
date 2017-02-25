@@ -86,11 +86,11 @@ if __name__ == '__main__':
   parser.add_argument(
     '--uri',
       type    = text_type,
-      default = 'udp://localhost:14265/',
+      default = 'http://localhost:14265/',
 
       help =
         'URI of the node to connect to '
-        '(defaults to udp://localhost:14265/).',
+        '(defaults to http://localhost:14265/).',
   )
 
   parser.add_argument(

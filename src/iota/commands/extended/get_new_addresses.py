@@ -2,11 +2,10 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import List, Optional
+from typing import Optional
 
 import filters as f
 
-from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.crypto.addresses import AddressGenerator
@@ -51,7 +50,7 @@ class GetNewAddressesCommand(FilterCommand):
     if count is None:
       # Connect to Tangle and find the first address without any
       # transactions.
-      for addy in generator.create_generator(start=index):
+      for addy in generator.create_iterator(start=index):
         response = FindTransactionsCommand(self.adapter)(addresses=[addy])
 
         if not response.get('hashes'):

@@ -91,8 +91,9 @@ class FindTransactionsResponseFilter(ResponseFilter):
   def __init__(self):
     super(FindTransactionsResponseFilter, self).__init__({
       'hashes':
-        f.FilterRepeater(
-            f.ByteString(encoding='ascii')
-          | Trytes(result_type=TransactionHash)
-        ),
+          f.FilterRepeater(
+              f.ByteString(encoding='ascii')
+            | Trytes(result_type=TransactionHash)
+          )
+        | f.Optional(default=[]),
     })

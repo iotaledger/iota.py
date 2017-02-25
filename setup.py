@@ -5,17 +5,8 @@
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
-from sys import version_info
 
 from setuptools import find_packages, setup
-
-##
-# Check Python version.
-if version_info[0:2] < (2, 7):
-  raise EnvironmentError('PyOTA requires Python 2.7 or greater.')
-
-if (version_info[0] == 3) and (version_info[1] < 5):
-  raise EnvironmentError('PyOTA requires Python 3.5 or greater.')
 
 ##
 # Load long description for PyPi.
@@ -28,7 +19,7 @@ setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '1.1.0',
+  version     = '1.1.1',
 
   packages              = find_packages('src'),
   include_package_data  = True,
@@ -63,7 +54,9 @@ setup(
     'Topic :: Software Development :: Libraries :: Python Modules',
   ],
 
-  keywords = 'iota,tangle,iot,internet of things,api,library',
+  keywords =
+    'iota,tangle,iot,internet of things,api,library,cryptocurrency,'
+    'balanced ternary',
 
   author        = 'Phoenix Zerin',
   author_email  = 'phx@phx.ph',

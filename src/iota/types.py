@@ -249,7 +249,7 @@ class TryteString(JsonSerializable):
   def __bytes__(self):
     # type: () -> binary_type
     """
-    Converts the TryteString into a string representation.
+    Converts the TryteString into a bytestring representation.
 
     Note that this method will NOT convert the trytes back into bytes;
     use :py:meth:`as_bytes` for that.
@@ -260,8 +260,8 @@ class TryteString(JsonSerializable):
     # type: () -> bool
     return bool(self._trytes) and any(t != b'9' for t in self)
 
-  # :bc: Magic methods have different names in Python 2.
   if PY2:
+    # Magic methods have different names in Python 2.
     __nonzero__ = __bool__
     __str__     = __bytes__
 
@@ -505,6 +505,20 @@ class TryteString(JsonSerializable):
     """
     # http://stackoverflow.com/a/952952/5568265#comment4204394_952952
     return list(chain.from_iterable(self.as_trytes()))
+
+  def _repr_pretty_(self, p, cycle):
+    """
+    Makes JSON-serializable objects play nice with IPython's default
+    pretty-printer.
+
+    Sadly, :py:func:`pprint.pprint` does not have a similar mechanism.
+
+    References:
+      - http://ipython.readthedocs.io/en/stable/api/generated/IPython.lib.pretty.html
+      - :py:meth:`IPython.lib.pretty.RepresentationPrinter.pretty`
+      - :py:func:`pprint._safe_repr`
+    """
+    return p.text(repr(self))
 
   @staticmethod
   def _normalize(n):

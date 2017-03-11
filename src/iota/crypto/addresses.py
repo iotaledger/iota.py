@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 import hashlib
 from abc import ABCMeta, abstractmethod as abstract_method
-from typing import Dict, Generator, Iterable, List, MutableSequence, Optional
+from typing import Dict, Generator, Iterable, List, MutableSequence, \
+  Optional, Tuple
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto import Curl
@@ -45,6 +46,17 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
+  @staticmethod
+  def _gen_cache_key(seed, index):
+    # type: (Seed, int) -> binary_type
+    """
+    Generates an obfuscated cache key so that we're not storing seeds
+    in cleartext.
+    """
+    h = hashlib.new('sha256')
+    h.update(binary_type(seed) + b':' + binary_type(index))
+    return h.digest()
+
 
 class MemoryAddressCache(BaseAddressCache):
   """
@@ -62,17 +74,6 @@ class MemoryAddressCache(BaseAddressCache):
   def set(self, seed, index, address):
     # type: (Seed, int, Address) -> None
     self.cache[self._gen_cache_key(seed, index)] = address
-
-  @staticmethod
-  def _gen_cache_key(seed, index):
-    # type: (Seed, int) -> binary_type
-    """
-    Generates an obfuscated cache key so that we're not storing seeds
-    in cleartext.
-    """
-    h = hashlib.new('sha256')
-    h.update(binary_type(seed) + b':' + binary_type(index))
-    return h.digest()
 
 
 class AddressGenerator(Iterable[Address]):

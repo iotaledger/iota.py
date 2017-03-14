@@ -822,8 +822,8 @@ class Iota(StrictIota):
       minWeightMagnitude  = min_weight_magnitude,
     )
 
-  def send_trytes(self, trytes, depth, min_weight_magnitude=18):
-    # type: (Iterable[TransactionTrytes], int, int) -> dict
+  def send_trytes(self, trytes, depth, min_weight_magnitude=None):
+    # type: (Iterable[TransactionTrytes], int, Optional[int]) -> dict
     """
     Attaches transaction trytes to the Tangle, then broadcasts and
     stores them.
@@ -851,6 +851,9 @@ class Iota(StrictIota):
     References:
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
     """
+    if min_weight_magnitude is None:
+      min_weight_magnitude = self.default_min_weight_magnitude
+
     return extended.SendTrytesCommand(self.adapter)(
       trytes              = trytes,
       depth               = depth,

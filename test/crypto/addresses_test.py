@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from threading import Thread
+from time import sleep
 from typing import List, Tuple
 from unittest import TestCase
 
@@ -329,3 +331,53 @@ class MemoryAddressCacheTestCase(TestCase):
       generator2 = AddressGenerator(Seed.random())
       generator2.get_addresses(42)
       self.assertEqual(mock_generate_address.call_count, 2)
+
+  def test_thread_safety(self):
+    """
+    Address cache is thread-safe, eliminating invalid cache misses when
+    multiple threads attempt to access the cache concurrently.
+    """
+    AddressGenerator.cache = MemoryAddressCache()
+
+    seed = Seed.random()
+
+    generated = []
+
+    def get_address():
+      generator = AddressGenerator(seed)
+      generated.extend(generator.get_addresses(0))
+
+    # noinspection PyUnusedLocal
+    def mock_generate_address(address_generator, key_iterator):
+      # type: (AddressGenerator, KeyIterator) -> Address
+      # Insert a teensy delay, to make it more likely that multiple
+      # threads hit the cache concurrently.
+      sleep(0.01)
+
+      # Note that in this test, the address generator always returns a
+      # new instance.
+      return Address(self.addy, key_index=key_iterator.current)
+
+    with patch(
+        'iota.crypto.addresses.AddressGenerator._generate_address',
+        mock_generate_address,
+    ):
+      threads = [Thread(target=get_address) for _ in range(100)]
+
+      for t in threads:
+        t.start()
+
+      for t in threads:
+        t.join()
+
+    # Quick sanity check.
+    self.assertEqual(len(generated), len(threads))
+
+    # If the cache is operating in a thread-safe manner, then it will
+    # always return the exact same instance, given the same seed and
+    # key index.
+    expected = generated[0]
+    for actual in generated[1:]:
+      # Compare `id` values instead of using ``self.assertIs`` because
+      # the failure message is a bit easier to understand.
+      self.assertEqual(id(actual), id(expected))

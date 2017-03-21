@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 import hashlib
 from abc import ABCMeta, abstractmethod as abstract_method
+from contextlib import contextmanager as context_manager
+from threading import Lock
 from typing import Dict, Generator, Iterable, List, MutableSequence, \
   Optional, Tuple
 
@@ -24,6 +26,19 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
   """
   Base functionality for classes that cache generated addresses.
   """
+  LockType = Lock
+  """
+  The type of locking mechanism used by :py:meth:`acquire_lock`.
+
+  Defaults to ``threading.Lock``, but you can change it if you want to
+  use a different mechanism (e.g., multithreading or distributed).
+  """
+
+  def __init__(self):
+    super(BaseAddressCache, self).__init__()
+
+    self._lock = self.LockType()
+
   @abstract_method
   def get(self, seed, index):
     # type: (Seed, int) -> Optional[Address]
@@ -34,6 +49,21 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
+
+  @context_manager
+  def acquire_lock(self):
+    """
+    Acquires a lock on the cache instance, to prevent invalid cache
+    misses when multiple threads access the cache concurrently.
+
+    Note: Acquire lock before checking the cache, and do not release it
+    until after the cache hit/miss is resolved.
+    """
+    self._lock.acquire()
+    try:
+      yield
+    finally:
+      self._lock.release()
 
   @abstract_method
   def set(self, seed, index, address):
@@ -214,11 +244,12 @@ class AddressGenerator(Iterable[Address]):
 
     while True:
       if self.cache:
-        address = self.cache.get(self.seed, key_iterator.current)
+        with self.cache.acquire_lock():
+          address = self.cache.get(self.seed, key_iterator.current)
 
-        if not address:
-          address = self._generate_address(key_iterator)
-          self.cache.set(self.seed, address.key_index, address)
+          if not address:
+            address = self._generate_address(key_iterator)
+            self.cache.set(self.seed, address.key_index, address)
       else:
         address = self._generate_address(key_iterator)
 

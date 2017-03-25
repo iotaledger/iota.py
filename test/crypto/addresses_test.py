@@ -46,6 +46,26 @@ class AddressGeneratorTestCase(TestCase):
         b'CFANWBQFGMFKITZBJDSYLGXYUIQVCMXFWSWFRNHRV'
       )
 
+  # noinspection SpellCheckingInspection
+  def test_address_from_digest(self):
+    """
+    Generating an address from a private key digest.
+    """
+    digest =\
+      Hash(
+        b'ABQXVJNER9MPMXMBPNMFBMDGTXRWSYHNZKGAGUOI'
+        b'JKOJGZVGHCUXXGFZEMMGDSGWDCKJXO9ILLFAKGGZE'
+      )
+
+    self.assertEqual(
+      AddressGenerator.address_from_digest_trits(digest.as_trits(), 0),
+
+      Address(
+        b'QLOEDSBXXOLLUJYLEGKEPYDRIJJTPIMEPKMFHUVJ'
+        b'MPMLYYCLPQPANEVDSERQWPVNHCAXYRLAYMBHJLWWR'
+      ),
+    )
+
   def test_get_addresses_single(self):
     """
     Generating a single address.

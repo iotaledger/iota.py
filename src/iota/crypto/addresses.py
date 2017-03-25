@@ -256,7 +256,7 @@ class AddressGenerator(Iterable[Address]):
       yield address
 
   @staticmethod
-  def address_from_digest(digest_trits, key_index):
+  def address_from_digest_trits(digest_trits, key_index):
     # type: (List[int], int) -> Address
     """
     Generates an address from a private key digest.
@@ -279,13 +279,13 @@ class AddressGenerator(Iterable[Address]):
 
     Used in the event of a cache miss.
     """
-    return self.address_from_digest(*self._get_digest_params(key_iterator))
+    return self.address_from_digest_trits(*self._get_digest_params(key_iterator))
 
   @staticmethod
   def _get_digest_params(key_iterator):
     # type: (KeyIterator) -> Tuple[List[int], int]
     """
-    Extracts parameters for :py:meth:`address_from_digest`.
+    Extracts parameters for :py:meth:`address_from_digest_trits`.
 
     Split into a separate method so that it can be mocked during unit
     tests.

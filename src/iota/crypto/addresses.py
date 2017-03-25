@@ -59,11 +59,8 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
     Note: Acquire lock before checking the cache, and do not release it
     until after the cache hit/miss is resolved.
     """
-    self._lock.acquire()
-    try:
+    with self._lock:
       yield
-    finally:
-      self._lock.release()
 
   @abstract_method
   def set(self, seed, index, address):

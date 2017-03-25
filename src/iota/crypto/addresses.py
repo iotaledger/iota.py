@@ -4,7 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 import hashlib
 from abc import ABCMeta, abstractmethod as abstract_method
-from typing import Dict, Generator, Iterable, List, MutableSequence, Optional
+from contextlib import contextmanager as context_manager
+from threading import Lock
+from typing import Dict, Generator, Iterable, List, MutableSequence, \
+  Optional, Tuple
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto import Curl
@@ -23,6 +26,19 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
   """
   Base functionality for classes that cache generated addresses.
   """
+  LockType = Lock
+  """
+  The type of locking mechanism used by :py:meth:`acquire_lock`.
+
+  Defaults to ``threading.Lock``, but you can change it if you want to
+  use a different mechanism (e.g., multithreading or distributed).
+  """
+
+  def __init__(self):
+    super(BaseAddressCache, self).__init__()
+
+    self._lock = self.LockType()
+
   @abstract_method
   def get(self, seed, index):
     # type: (Seed, int) -> Optional[Address]
@@ -34,6 +50,18 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
+  @context_manager
+  def acquire_lock(self):
+    """
+    Acquires a lock on the cache instance, to prevent invalid cache
+    misses when multiple threads access the cache concurrently.
+
+    Note: Acquire lock before checking the cache, and do not release it
+    until after the cache hit/miss is resolved.
+    """
+    with self._lock:
+      yield
+
   @abstract_method
   def set(self, seed, index, address):
     # type: (Seed, int, Address) -> None
@@ -44,6 +72,17 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
+
+  @staticmethod
+  def _gen_cache_key(seed, index):
+    # type: (Seed, int) -> binary_type
+    """
+    Generates an obfuscated cache key so that we're not storing seeds
+    in cleartext.
+    """
+    h = hashlib.new('sha256')
+    h.update(binary_type(seed) + b':' + binary_type(index))
+    return h.digest()
 
 
 class MemoryAddressCache(BaseAddressCache):
@@ -62,17 +101,6 @@ class MemoryAddressCache(BaseAddressCache):
   def set(self, seed, index, address):
     # type: (Seed, int, Address) -> None
     self.cache[self._gen_cache_key(seed, index)] = address
-
-  @staticmethod
-  def _gen_cache_key(seed, index):
-    # type: (Seed, int) -> binary_type
-    """
-    Generates an obfuscated cache key so that we're not storing seeds
-    in cleartext.
-    """
-    h = hashlib.new('sha256')
-    h.update(binary_type(seed) + b':' + binary_type(index))
-    return h.digest()
 
 
 class AddressGenerator(Iterable[Address]):
@@ -213,18 +241,19 @@ class AddressGenerator(Iterable[Address]):
 
     while True:
       if self.cache:
-        address = self.cache.get(self.seed, key_iterator.current)
+        with self.cache.acquire_lock():
+          address = self.cache.get(self.seed, key_iterator.current)
 
-        if not address:
-          address = self._generate_address(key_iterator)
-          self.cache.set(self.seed, address.key_index, address)
+          if not address:
+            address = self._generate_address(key_iterator)
+            self.cache.set(self.seed, address.key_index, address)
       else:
         address = self._generate_address(key_iterator)
 
       yield address
 
   @staticmethod
-  def address_from_digest(digest_trits, key_index):
+  def address_from_digest_trits(digest_trits, key_index):
     # type: (List[int], int) -> Address
     """
     Generates an address from a private key digest.
@@ -247,13 +276,13 @@ class AddressGenerator(Iterable[Address]):
 
     Used in the event of a cache miss.
     """
-    return self.address_from_digest(*self._get_digest_params(key_iterator))
+    return self.address_from_digest_trits(*self._get_digest_params(key_iterator))
 
   @staticmethod
   def _get_digest_params(key_iterator):
     # type: (KeyIterator) -> Tuple[List[int], int]
     """
-    Extracts parameters for :py:meth:`address_from_digest`.
+    Extracts parameters for :py:meth:`address_from_digest_trits`.
 
     Split into a separate method so that it can be mocked during unit
     tests.

@@ -33,6 +33,10 @@ setup(
     'typing',
   ],
 
+  extras_require = {
+    'ccurl': ['pyota-ccurl'],
+  },
+
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',
   tests_require = [

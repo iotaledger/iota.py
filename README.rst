@@ -32,6 +32,19 @@ To install the latest version::
 
   pip install pyota
 
+Optional C Extension
+====================
+PyOTA has an optional C extension that improves the performance of its
+cryptography features significantly.
+
+To install this **experimental** extension, use the following command::
+
+   pip install pyota[ccurl]
+
+.. DANGER::
+   **THE C EXTENSION IS EXPERIMENTAL AND HAS NOT BEEN VETTED FOR**
+   **STABILITY/SECURITY YET; DO NOT USE IN PRODUCTION CODE!!!**
+
 Installing from Source
 ======================
 

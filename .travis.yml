@@ -3,5 +3,8 @@ python:
   - "2.7"
   - "3.5"
   - "3.6"
-install: "pip install ."
+env:
+  - USE_CCURL=0
+  - USE_CCURL=1
+install: "if [[ $USE_CCURL == 1 ]]; then pip install .[ccurl]; else pip install .; fi"
 script: "nosetests"

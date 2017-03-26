@@ -4,18 +4,31 @@ from __future__ import absolute_import, division, print_function, \
 
 from math import ceil
 from os import urandom
-from typing import Callable, List, MutableSequence, Optional, Tuple
 
 from six import binary_type
+from typing import Callable, MutableSequence, Optional, Tuple
 
 from iota import Hash, TryteString, TrytesCompatible
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.exceptions import with_context
 
 __all__ = [
+  'Digest',
   'PrivateKey',
   'Seed',
 ]
+
+
+class Digest(TryteString):
+  """
+  A private key digest.  Basically the same thing as a regular
+  `TryteString`, except that it has a key index associated with it.
+  """
+  def __init__(self, trytes, key_index):
+    # type: (TrytesCompatible, int) -> None
+    super(Digest, self).__init__(trytes)
+
+    self.key_index = key_index
 
 
 class Seed(TryteString):
@@ -73,8 +86,8 @@ class PrivateKey(TryteString):
 
     self.key_index = key_index
 
-  def get_digest_trits(self):
-    # type: () -> List[int]
+  def get_digest(self):
+    # type: () -> Digest
     """
     Generates the digest used to do the actual signing.
 
@@ -119,4 +132,4 @@ class PrivateKey(TryteString):
 
       digest[fragment_start:fragment_end] = hash_trits
 
-    return digest
+    return Digest(TryteString.from_trits(digest), self.key_index)

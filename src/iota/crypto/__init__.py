@@ -4,9 +4,12 @@ from __future__ import absolute_import, division, print_function, \
 
 
 # Load curl library.
-# If a compiled c extension is available, we will prefer to load that
-# (once implemented).
-from .pycurl import *
+# If a compiled c extension is available, we will prefer to load that;
+# otherwise fall back to pure-Python implementation.
+try:
+  from ccurl import *
+except ImportError:
+  from .pycurl import *
 
 
 FRAGMENT_LENGTH = 2187

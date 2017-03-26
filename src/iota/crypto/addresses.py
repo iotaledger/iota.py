@@ -6,15 +6,16 @@ import hashlib
 from abc import ABCMeta, abstractmethod as abstract_method
 from contextlib import contextmanager as context_manager
 from threading import Lock
+
+from six import binary_type, with_metaclass
 from typing import Dict, Generator, Iterable, List, MutableSequence, \
-  Optional, Tuple
+  Optional
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto import Curl
 from iota.crypto.signing import KeyGenerator, KeyIterator
-from iota.crypto.types import PrivateKey, Seed
+from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.exceptions import with_context
-from six import binary_type, with_metaclass
 
 __all__ = [
   'AddressGenerator',
@@ -253,19 +254,19 @@ class AddressGenerator(Iterable[Address]):
       yield address
 
   @staticmethod
-  def address_from_digest_trits(digest_trits, key_index):
-    # type: (List[int], int) -> Address
+  def address_from_digest(digest):
+    # type: (Digest) -> Address
     """
     Generates an address from a private key digest.
     """
     address_trits = [0] * (Address.LEN * TRITS_PER_TRYTE) # type: MutableSequence[int]
 
     sponge = Curl()
-    sponge.absorb(digest_trits)
+    sponge.absorb(digest.as_trits())
     sponge.squeeze(address_trits)
 
     address = Address.from_trits(address_trits)
-    address.key_index = key_index
+    address.key_index = digest.key_index
 
     return address
 
@@ -276,16 +277,16 @@ class AddressGenerator(Iterable[Address]):
 
     Used in the event of a cache miss.
     """
-    return self.address_from_digest_trits(*self._get_digest_params(key_iterator))
+    return self.address_from_digest(self._get_digest(key_iterator))
 
   @staticmethod
-  def _get_digest_params(key_iterator):
-    # type: (KeyIterator) -> Tuple[List[int], int]
+  def _get_digest(key_iterator):
+    # type: (KeyIterator) -> Digest
     """
-    Extracts parameters for :py:meth:`address_from_digest_trits`.
+    Extracts parameters for :py:meth:`address_from_digest`.
 
     Split into a separate method so that it can be mocked during unit
     tests.
     """
     private_key = next(key_iterator) # type: PrivateKey
-    return private_key.get_digest_trits(), private_key.key_index
+    return private_key.get_digest()

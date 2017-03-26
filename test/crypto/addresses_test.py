@@ -4,15 +4,14 @@ from __future__ import absolute_import, division, print_function, \
 
 from threading import Thread
 from time import sleep
-from typing import List, Tuple
 from unittest import TestCase
 
 from mock import Mock, patch
 
-from iota import Address, Hash
+from iota import Address
 from iota.crypto.addresses import AddressGenerator, MemoryAddressCache
 from iota.crypto.signing import KeyIterator
-from iota.crypto.types import Seed
+from iota.crypto.types import Digest, Seed
 
 
 class AddressGeneratorTestCase(TestCase):
@@ -21,7 +20,7 @@ class AddressGeneratorTestCase(TestCase):
     super(AddressGeneratorTestCase, self).setUp()
 
     # Addresses that correspond to the digests defined in
-    # :py:meth:`_mock_get_digest_params`.
+    # :py:meth:`_mock_get_digest`.
     self.addy0 =\
       Address(
         b'VOPYUSDRHYGGOHLAYDWCLLOFWBLK99PYYKENW9IQ'
@@ -52,13 +51,16 @@ class AddressGeneratorTestCase(TestCase):
     Generating an address from a private key digest.
     """
     digest =\
-      Hash(
-        b'ABQXVJNER9MPMXMBPNMFBMDGTXRWSYHNZKGAGUOI'
-        b'JKOJGZVGHCUXXGFZEMMGDSGWDCKJXO9ILLFAKGGZE'
+      Digest(
+        trytes =
+          b'ABQXVJNER9MPMXMBPNMFBMDGTXRWSYHNZKGAGUOI'
+          b'JKOJGZVGHCUXXGFZEMMGDSGWDCKJXO9ILLFAKGGZE',
+
+        key_index = 0,
       )
 
     self.assertEqual(
-      AddressGenerator.address_from_digest_trits(digest.as_trits(), 0),
+      AddressGenerator.address_from_digest(digest),
 
       Address(
         b'QLOEDSBXXOLLUJYLEGKEPYDRIJJTPIMEPKMFHUVJ'
@@ -75,13 +77,13 @@ class AddressGeneratorTestCase(TestCase):
     ag = AddressGenerator(seed=b'')
 
     # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
+    with patch.object(ag, '_get_digest', self._mock_get_digest):
       addresses = ag.get_addresses(start=0)
 
     self.assertListEqual(addresses, [self.addy0])
 
     # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
+    with patch.object(ag, '_get_digest', self._mock_get_digest):
       # You can provide any positive integer as the ``start`` value.
       addresses = ag.get_addresses(start=2)
 
@@ -96,7 +98,7 @@ class AddressGeneratorTestCase(TestCase):
     ag = AddressGenerator(seed=b'')
 
     # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
+    with patch.object(ag, '_get_digest', self._mock_get_digest):
       addresses = ag.get_addresses(start=1, count=2)
 
     self.assertListEqual(addresses, [self.addy1, self.addy2])
@@ -145,7 +147,7 @@ class AddressGeneratorTestCase(TestCase):
     ag = AddressGenerator(seed=b'')
 
     # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
+    with patch.object(ag, '_get_digest', self._mock_get_digest):
       addresses = ag.get_addresses(start=1, count=2, step=-1)
 
     self.assertListEqual(
@@ -165,7 +167,7 @@ class AddressGeneratorTestCase(TestCase):
     ag = AddressGenerator(seed=b'')
 
     # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
+    with patch.object(ag, '_get_digest', self._mock_get_digest):
       generator = ag.create_iterator()
 
       self.assertEqual(next(generator), self.addy0)
@@ -181,15 +183,15 @@ class AddressGeneratorTestCase(TestCase):
     ag = AddressGenerator(seed=b'')
 
     # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest_params', self._mock_get_digest_params):
+    with patch.object(ag, '_get_digest', self._mock_get_digest):
       generator = ag.create_iterator(start=1, step=2)
 
       self.assertEqual(next(generator), self.addy1)
       self.assertEqual(next(generator), self.addy3)
 
   @staticmethod
-  def _mock_get_digest_params(key_iterator):
-    # type: (KeyIterator) -> Tuple[List[int], int]
+  def _mock_get_digest(key_iterator):
+    # type: (KeyIterator) -> Digest
     """
     Mocks the behavior of :py:class:`KeyGenerator`, to speed up unit
     tests.
@@ -220,7 +222,7 @@ class AddressGeneratorTestCase(TestCase):
     # This should still behave like the real thing, so that we can
     # verify that :py:class`AddressGenerator` is invoking the key
     # generator correctly.
-    return Hash(digests[key_index]).as_trits(), key_index
+    return Digest(digests[key_index], key_index)
 
 
 class MemoryAddressCacheTestCase(TestCase):

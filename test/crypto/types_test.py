@@ -10,9 +10,9 @@ from iota.crypto.types import PrivateKey
 
 # noinspection SpellCheckingInspection
 class PrivateKeyTestCase(TestCase):
-  def test_get_digest_trits_single_fragment(self):
+  def test_get_digest_single_fragment(self):
     """
-    Generating digest trits from a PrivateKey 1 fragment long.
+    Generating digest from a PrivateKey 1 fragment long.
     """
     key =\
       PrivateKey(
@@ -53,7 +53,7 @@ class PrivateKeyTestCase(TestCase):
       )
 
     self.assertEqual(
-      TryteString.from_trits(key.get_digest_trits()),
+      key.get_digest(),
 
       TryteString(
         b'ABQXVJNER9MPMXMBPNMFBMDGTXRWSYHNZKGAGUOI'
@@ -61,9 +61,9 @@ class PrivateKeyTestCase(TestCase):
       ),
     )
 
-  def test_get_digest_trits_multiple_fragments(self):
+  def test_get_digest_multiple_fragments(self):
     """
-    Generating digest trits from a PrivateKey longer than 1 fragment.
+    Generating digest from a PrivateKey longer than 1 fragment.
     """
     key =\
       PrivateKey(
@@ -137,7 +137,7 @@ class PrivateKeyTestCase(TestCase):
       )
 
     self.assertEqual(
-      TryteString.from_trits(key.get_digest_trits()),
+      key.get_digest(),
 
       # Note that the digest is 2 hashes long, because the key
       # is 2 fragments long.

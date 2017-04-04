@@ -803,8 +803,8 @@ class Iota(StrictIota):
       Dict containing the following values::
 
          {
-           'trytes': List[TransactionTrytes],
-             Raw trytes that were published to the Tangle.
+           'bundle': Bundle,
+             The newly-published bundle.
          }
 
     References:

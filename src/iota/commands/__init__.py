@@ -43,7 +43,7 @@ def discover_commands(package, recursively=True):
     All commands discovered in the specified package, indexed by
     command name (note: not class name).
   """
-  # :see: http://stackoverflow.com/a/25562415/
+  # http://stackoverflow.com/a/25562415/
   if isinstance(package, string_types):
     package = import_module(package) # type: ModuleType
 

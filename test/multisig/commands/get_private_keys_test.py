@@ -2,13 +2,45 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota.adapter import MockAdapter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from iota.multisig.api import MultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
 from six import binary_type, text_type
+
+
+class GetPrivateKeysCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(GetPrivateKeysCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+    self.command = GetPrivateKeysCommand(self.adapter)
+
+    #
+    # Create a few tryte sequences we can reuse across tests.
+    #
+    # Note that these are not realistic values for private keys (a real
+    # private key's length is a multiple of 2187 trytes), but we're
+    # going to mock the KeyGenerator functionality anyway, so we just
+    # need something that's short enough to be easy to compare.
+    #
+    self.trytes1 = b'KEYONE'
+    self.trytes2 = b'KEYTWO'
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      MultisigIota(self.adapter).getPrivateKeys,
+      GetPrivateKeysCommand,
+    )
 
 
 class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):

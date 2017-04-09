@@ -19,6 +19,8 @@ class GetPrivateKeysCommand(FilterCommand):
     - :py:meth:`iota.multisig.MultisigIota.get_private_key`
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
   """
+  command = 'getPrivateKeys'
+
   def get_request_filter(self):
     return GetPrivateKeysRequestFilter()
 

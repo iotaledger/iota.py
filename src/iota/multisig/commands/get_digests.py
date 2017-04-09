@@ -6,7 +6,8 @@ import filters as f
 from iota.commands import FilterCommand, RequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-
+from iota.multisig.commands.get_private_keys import GetPrivateKeysCommand
+from typing import Optional
 
 __all__ = [
   'GetDigestsCommand',
@@ -29,9 +30,19 @@ class GetDigestsCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    count = request['count'] # type: Optional[int]
+    index = request['index'] # type: int
+    seed  = request['seed'] # type: Seed
+
+    gpk_result = GetPrivateKeysCommand(self.adapter)(
+      seed  = seed,
+      count = count,
+      index = index,
     )
+
+    return {
+      'digests': [key.get_digest() for key in gpk_result['keys']],
+    }
 
 
 class GetDigestsRequestFilter(RequestFilter):

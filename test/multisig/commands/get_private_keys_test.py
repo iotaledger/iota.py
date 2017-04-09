@@ -9,7 +9,7 @@ from filters.test import BaseFilterTestCase
 from iota.adapter import MockAdapter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from iota.multisig.api import MultisigIota
+from iota.multisig import MultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
 from six import binary_type, text_type
 

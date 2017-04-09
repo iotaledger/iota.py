@@ -28,7 +28,12 @@ setup(
 
   install_requires = [
     'filters',
-    'requests[security]',
+
+    # `security` package wasn't introduced until 2.4.1
+    # References:
+    #   - http://docs.python-requests.org/en/latest/community/updates/#id35
+    'requests[security] >= 2.4.1',
+
     'six',
     'typing',
   ],

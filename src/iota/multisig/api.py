@@ -6,6 +6,9 @@ from iota import Iota
 from iota.commands import discover_commands
 from iota.multisig import commands
 
+__all__ = [
+  'MultisigIota',
+]
 
 class MultisigIota(Iota):
   """

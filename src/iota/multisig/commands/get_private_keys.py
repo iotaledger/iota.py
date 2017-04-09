@@ -7,6 +7,7 @@ from iota.commands import FilterCommand, RequestFilter
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from typing import Optional
 
 __all__ = [
   'GetPrivateKeysCommand',

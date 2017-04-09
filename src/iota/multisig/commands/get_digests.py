@@ -4,48 +4,39 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from iota.commands import FilterCommand, RequestFilter
-from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from typing import Optional
 
 
 __all__ = [
-  'GetPrivateKeysCommand',
+  'GetDigestsCommand',
 ]
 
 
-class GetPrivateKeysCommand(FilterCommand):
+class GetDigestsCommand(FilterCommand):
   """
-  Implements `get_private_keys` multisig API command.
+  Implements `getDigests` multisig API command.
 
   References:
-    - :py:meth:`iota.multisig.MultisigIota.get_private_key`
-    - https://github.com/iotaledger/wiki/blob/master/multisigs.md
+    - :py:meth:`iota.multisig.api.MultisigIota.get_digests`
   """
-  command = 'getPrivateKeys'
+  command = 'getDigests'
 
   def get_request_filter(self):
-    return GetPrivateKeysRequestFilter()
+    return GetDigestsRequestFilter()
 
   def get_response_filter(self):
     pass
 
   def _execute(self, request):
-    count = request['count'] # type: Optional[int]
-    index = request['index'] # type: int
-    seed  = request['seed'] # type: Seed
-
-    generator = KeyGenerator(seed)
-
-    return {
-      'keys': generator.get_keys(start=index, count=count),
-    }
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
 
 
-class GetPrivateKeysRequestFilter(RequestFilter):
+class GetDigestsRequestFilter(RequestFilter):
   def __init__(self):
-    super(GetPrivateKeysRequestFilter, self).__init__(
+    super(GetDigestsRequestFilter, self).__init__(
       {
         # ``count`` and ``index`` are optional.
         'count':  f.Type(int) | f.Min(1) | f.Optional(default=1),

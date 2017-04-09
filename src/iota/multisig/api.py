@@ -14,16 +14,58 @@ class MultisigIota(Iota):
   """
   Extends the IOTA API so that it can send multi-signature
   transactions.
+  
+  **CAUTION:** Make sure you understand how multisig works before
+  attempting to use it.  If you are not careful, you could easily
+  compromise the security of your private keys, send IOTAs to
+  inaccessible addresses, etc.
 
   References:
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
   """
   commands = discover_commands('iota.multisig.commands')
 
+  def get_digests(self, index=0, count=1):
+    # type: (int, int) -> dict
+    """
+    Generates one or more key digests from the seed.
+
+    Digests are safe to share; use them to generate multisig addresses.
+
+    :param index:
+      The starting key index.
+
+    :param count:
+      Number of digests to generate.
+
+    :return:
+      Dict with the following items::
+
+         {
+           'digests': List[Digest],
+             Always contains a list, even if only one digest was
+             generated.
+         }
+    """
+    return commands.GetDigestsCommand(self.adapter)(
+      seed  = self.seed,
+      index = index,
+      count = count,
+    )
+
   def get_private_keys(self, index=0, count=1):
     # type: (int, int) -> dict
     """
     Generates one or more private keys from the seed.
+
+    As the name implies, private keys should not be shared.  However,
+    in a few cases it may be necessary (e.g., for M-of-N transactions).
+
+    :param index:
+      The starting key index.
+
+    :param count:
+      Number of keys to generate.
 
     :return:
       Dict with the following items::
@@ -36,6 +78,7 @@ class MultisigIota(Iota):
 
     References:
       - :py:class:`iota.crypto.signing.KeyGenerator`
+      - https://github.com/iotaledger/wiki/blob/master/multisigs.md#how-m-of-n-works
     """
     return commands.GetPrivateKeysCommand(self.adapter)(
       seed  = self.seed,

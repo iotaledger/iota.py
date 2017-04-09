@@ -2,28 +2,23 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from unittest import TestCase
-
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Iota
 from iota.adapter import MockAdapter
-from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from mock import patch
+from iota.multisig.commands import GetPrivateKeysCommand
 from six import binary_type, text_type
 
 
-class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = GetNewAddressesCommand(MockAdapter()).get_request_filter
+class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
+  filter_type = GetPrivateKeysCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
-    super(GetNewAddressesRequestFilterTestCase, self).setUp()
+    super(GetPrivateKeysRequestFilterTestCase, self).setUp()
 
-    # Define a few tryte sequences that we can re-use between tests.
+    # Define some tryte sequences that we can reuse between tests.
     self.seed = b'HELLOIOTA'
 
   def test_pass_happy_path(self):
@@ -56,7 +51,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       {
         'seed':   Seed(self.seed),
         'index':  0,
-        'count':  None,
+        'count':  1,
       },
     )
 
@@ -254,133 +249,4 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       {
         'index': [f.Min.CODE_TOO_SMALL],
       },
-    )
-
-
-# noinspection SpellCheckingInspection
-class GetNewAddressesCommandTestCase(TestCase):
-  def setUp(self):
-    super(GetNewAddressesCommandTestCase, self).setUp()
-
-    self.adapter = MockAdapter()
-    self.command = GetNewAddressesCommand(self.adapter)
-
-    # Create a few TryteStrings we can reuse across tests.
-    self.addy1 =\
-      Address(
-        b'ADDYONE999AHHKVD9SBEYWQFNVQSNTGYQSQ9AGWD'
-        b'JDZKBYCVTODUHFEVVMNMPQMIXOVXVCZRUENAWYNTO'
-      )
-
-    self.addy2 =\
-      Address(
-        b'ADDYTWO999AGAQKYXHRMSFAQNPWCIYUYTXPWUEUR'
-        b'VNZTCTFUPQ9ESTKNSSLLIZWDQISJVEWIJDVGIECXF'
-      )
-
-  def test_wireup(self):
-    """
-    Verify that the command is wired up correctly.
-    """
-    self.assertIsInstance(
-      Iota(self.adapter).getNewAddresses,
-      GetNewAddressesCommand,
-    )
-
-  def test_get_addresses_offline(self):
-    """
-    Generate addresses in offline mode (without filtering used
-    addresses).
-    """
-    # To speed up the test, we will mock the address generator.
-    # :py:class:`iota.crypto.addresses.AddressGenerator` already has
-    # its own test case, so this does not impact the stability of the
-    # codebase.
-    # noinspection PyUnusedLocal
-    def create_generator(ag, start, step=1):
-      for addy in [self.addy1, self.addy2][start::step]:
-        yield addy
-
-    with patch(
-        target  = 'iota.crypto.addresses.AddressGenerator.create_iterator',
-        new     = create_generator,
-    ):
-      response = self.command(
-        count = 2,
-        index = 0,
-        seed  = b'TESTSEED9DONTUSEINPRODUCTION99999',
-      )
-
-    self.assertDictEqual(response, {'addresses': [self.addy1, self.addy2]})
-
-    # No API requests were made.
-    self.assertListEqual(self.adapter.requests, [])
-
-  def test_get_addresses_online(self):
-    """
-    Generate address in online mode (filtering used addresses).
-    """
-    # Pretend that ``self.addy1`` has already been used, but not
-    # ``self.addy2``.
-    self.adapter.seed_response('findTransactions', {
-      'duration': 18,
-
-      'hashes': [
-        'ZJVYUGTDRPDYFGFXMKOTV9ZWSGFK9CFPXTITQLQN'
-        'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
-      ],
-    })
-
-    self.adapter.seed_response('findTransactions', {
-      'duration': 1,
-      'hashes':   [],
-    })
-
-    # To speed up the test, we will mock the address generator.
-    # :py:class:`iota.crypto.addresses.AddressGenerator` already has
-    # its own test case, so this does not impact the stability of the
-    # codebase.
-    # noinspection PyUnusedLocal
-    def create_generator(ag, start, step=1):
-      for addy in [self.addy1, self.addy2][start::step]:
-        yield addy
-
-    with patch(
-        target  = 'iota.crypto.addresses.AddressGenerator.create_iterator',
-        new     = create_generator,
-    ):
-      response = self.command(
-        # If ``count`` is missing or ``None``, the command will operate
-        # in online mode.
-        # count = None,
-        index = 0,
-        seed  = b'TESTSEED9DONTUSEINPRODUCTION99999',
-      )
-
-    # The command determined that ``self.addy1`` was already used, so
-    # it skipped that one.
-    self.assertDictEqual(response, {'addresses': [self.addy2]})
-
-    self.assertListEqual(
-      self.adapter.requests,
-
-      # The command issued two `findTransactions` API requests: one for
-      # each address generated, until it found an unused address.
-      [
-        {
-          'command':    'findTransactions',
-          'addresses':  [self.addy1],
-          'approvees':  [],
-          'bundles':    [],
-          'tags':       [],
-        },
-
-        {
-          'command':    'findTransactions',
-          'addresses':  [self.addy2],
-          'approvees':  [],
-          'bundles':    [],
-          'tags':       [],
-        },
-      ],
     )

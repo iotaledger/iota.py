@@ -6,11 +6,14 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from iota import TryteString
 from iota.adapter import MockAdapter
-from iota.crypto.types import Seed
+from iota.crypto import FRAGMENT_LENGTH
+from iota.crypto.types import Seed, PrivateKey
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
+from mock import Mock, patch
 from six import binary_type, text_type
 
 
@@ -30,8 +33,8 @@ class GetPrivateKeysCommandTestCase(TestCase):
     # going to mock the KeyGenerator functionality anyway, so we just
     # need something that's short enough to be easy to compare.
     #
-    self.trytes1 = b'KEYONE'
-    self.trytes2 = b'KEYTWO'
+    self.trytes1 = TryteString(b'KEYONE', pad=FRAGMENT_LENGTH)
+    self.trytes2 = TryteString(b'KEYTWO', pad=FRAGMENT_LENGTH)
 
   def test_wireup(self):
     """
@@ -41,6 +44,32 @@ class GetPrivateKeysCommandTestCase(TestCase):
       MultisigIota(self.adapter).getPrivateKeys,
       GetPrivateKeysCommand,
     )
+
+  def test_generate_single_key(self):
+    """
+    Generating a single key.
+    """
+    keys = [PrivateKey(self.trytes1, 0)]
+
+    mock_get_keys = Mock(return_value=keys)
+    with patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
+      result = self.command(seed=Seed.random())
+
+    self.assertDictEqual(result, {'keys': keys})
+    mock_get_keys.assert_called_once_with(start=0, count=1)
+
+  def test_generate_multiple_keys(self):
+    """
+    Generating multiple keys.
+    """
+    keys = [PrivateKey(self.trytes1, 0), PrivateKey(self.trytes2, 1)]
+
+    mock_get_keys = Mock(return_value=keys)
+    with patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
+      result = self.command(seed=Seed.random(), index=0, count=2)
+
+    self.assertDictEqual(result, {'keys': keys})
+    mock_get_keys.assert_called_once_with(start=0, count=2)
 
 
 class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):

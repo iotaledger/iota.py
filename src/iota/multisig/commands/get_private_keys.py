@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 from iota.commands import FilterCommand, RequestFilter
+from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 
@@ -28,9 +29,15 @@ class GetPrivateKeysCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
+    count = request['count'] # type: Optional[int]
+    index = request['index'] # type: int
+    seed  = request['seed'] # type: Seed
+
+    generator = KeyGenerator(seed)
+
+    return {
+      'keys': generator.get_keys(start=index, count=count),
+    }
 
 
 class GetPrivateKeysRequestFilter(RequestFilter):

@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from iota import Iota
+from iota.commands import discover_commands
 from iota.multisig import commands
 
 
@@ -14,6 +15,8 @@ class MultisigIota(Iota):
   References:
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
   """
+  commands = discover_commands('iota.multisig.commands')
+
   def get_private_keys(self, index=0, count=1):
     # type: (int, int) -> dict
     """

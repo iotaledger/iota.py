@@ -6,14 +6,14 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import TryteString
+from iota import Hash, TryteString
 from iota.adapter import MockAdapter
 from iota.crypto import FRAGMENT_LENGTH
-from iota.crypto.types import Seed, PrivateKey
+from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetDigestsCommand
-from mock import Mock, patch
+from mock import MagicMock, Mock, patch
 from six import binary_type, text_type
 
 
@@ -24,6 +24,13 @@ class GetDigestsCommandTestCase(TestCase):
 
     self.adapter = MockAdapter()
     self.command = GetDigestsCommand(self.adapter)
+
+    # Define some tryte sequences that we can reuse between tests.
+    self.key1 = PrivateKey(TryteString(b'KEYONE', pad=FRAGMENT_LENGTH), 0)
+    self.key2 = PrivateKey(TryteString(b'KEYTWO', pad=FRAGMENT_LENGTH), 1)
+
+    self.digest1 = Digest(TryteString(b'DIGESTONE', pad=Hash.LEN), 0)
+    self.digest2 = Digest(TryteString(b'DIGESTTWO', pad=Hash.LEN), 1)
 
   def test_wireup(self):
     """
@@ -38,15 +45,57 @@ class GetDigestsCommandTestCase(TestCase):
     """
     Generating a single digest.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    seed = Seed.random()
+
+    mock_get_private_keys = Mock(return_value={'keys': [self.key1]})
+
+    with patch(
+        'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
+        mock_get_private_keys
+    ):
+      # noinspection PyUnresolvedReferences
+      with patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: MagicMock
+        mock_get_digest_1.return_value = self.digest1
+
+        result = self.command(seed=seed, index=0, count=1)
+
+    self.assertDictEqual(result, {'digests': [self.digest1]})
+
+    mock_get_private_keys.assert_called_once_with({
+      'count':  1,
+      'index':  0,
+      'seed':   seed,
+    })
 
   def test_generate_multiple_digests(self):
     """
     Generating multiple digests.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    seed = Seed.random()
+
+    mock_get_private_keys = Mock(return_value={'keys': [self.key1, self.key2]})
+
+    with patch(
+        'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
+        mock_get_private_keys
+    ):
+      # noinspection PyUnresolvedReferences
+      with patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: MagicMock
+        mock_get_digest_1.return_value = self.digest1
+
+        # noinspection PyUnresolvedReferences
+        with patch.object(self.key2, 'get_digest') as mock_get_digest_2: # type: MagicMock
+          mock_get_digest_2.return_value = self.digest2
+
+          result = self.command(seed=seed, index=0, count=2)
+
+    self.assertDictEqual(result, {'digests': [self.digest1, self.digest2]})
+
+    mock_get_private_keys.assert_called_once_with({
+      'count':  2,
+      'index':  0,
+      'seed':   seed,
+    })
 
 
 class GetDigestsRequestFilterTestCase(BaseFilterTestCase):

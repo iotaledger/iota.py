@@ -36,9 +36,9 @@ Need Some Inspiration?
 If you would like to help out but don't know how to get started, here are some
 places you can look for inspiration:
 
-- Developers:  Look for issues marked ``help wanted`` in the `PyOTA Bug Tracker`_
-- Technicians:  Introduce yourself in the `#iota-libs-pyota` channel in `Slack`_ and watch for questions or issues that you can help with.
-- Writers:  Browse existing `tutorials`_ for other programming languages and create Python versions.
+- Look for issues marked `help wanted`_ in the `PyOTA Bug Tracker`_
+- Introduce yourself in the `#iota-libs-pyota` channel in `Slack`_ and watch for questions or issues that you can help with.
+- Browse existing `tutorials`_ for other programming languages and create Python versions.
 
 Is This Your First Contribution?
 --------------------------------
@@ -131,6 +131,7 @@ When you submit a Pull Request, here is what you can expect from the individual 
 
 .. _email you: https://help.github.com/articles/managing-notification-delivery-methods/
 .. _forum: https://forum.iota.org
+.. _help wanted: https://github.com/iotaledger/iota.lib.py/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
 .. _how to contribute to open source: https://opensource.guide/how-to-contribute/
 .. _notifications: https://github.com/notifications
 .. _pep-8: https://www.python.org/dev/peps/pep-0008/

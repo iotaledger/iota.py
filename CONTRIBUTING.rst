@@ -107,7 +107,7 @@ This is a big list, but don't let it intimidate you!  Many of these are "common 
 
 If you have any questions, please feel free to post in the ``#iota-libs-pyota`` channel in `Slack`_!
 
-- Please create Pull Requests against the `develop` branch.
+- Please create Pull Requests against the ``develop`` branch.
 - Please limit each Pull Request to a single bugfix/enhancement.
 - Please limit the scope of each Pull Request to just the changes needed for that bugfix/enhancement.
     - If you would like to refactor existing code, please create separate Pull Request(s) just for the refactoring.

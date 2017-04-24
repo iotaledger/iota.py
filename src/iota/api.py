@@ -94,6 +94,12 @@ class StrictIota(with_metaclass(ApiMeta)):
     References:
       - https://iota.readme.io/docs/making-requests
     """
+    # Fix an error when invoking :py:func:`help`.
+    # https://github.com/iotaledger/iota.lib.py/issues/41
+    if command == '__name__':
+      # noinspection PyTypeChecker
+      return None
+
     try:
       command_class = self.commands[command]
     except KeyError:

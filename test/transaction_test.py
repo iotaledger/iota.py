@@ -1543,6 +1543,22 @@ class TransactionTestCase(TestCase):
       ),
     )
 
+  def test_from_tryte_string_with_hash(self):
+    """
+    Initializing a Transaction object from a TryteString, with a
+    pre-computed hash.
+    """
+    # noinspection SpellCheckingInspection
+    txn_hash =\
+      TransactionHash(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999VALCXC'
+        b'DHTDZBVCAAIEZCQCXGEFYBXHNDJFZEBEVELA9HHEJ'
+      )
+
+    txn = Transaction.from_tryte_string(b'', hash_=txn_hash)
+
+    self.assertEqual(txn.hash, txn_hash)
+
   # noinspection SpellCheckingInspection
   def test_as_tryte_string(self):
     """

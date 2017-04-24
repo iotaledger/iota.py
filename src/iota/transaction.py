@@ -110,21 +110,31 @@ class Transaction(JsonSerializable):
   A transaction that has been attached to the Tangle.
   """
   @classmethod
-  def from_tryte_string(cls, trytes):
-    # type: (TrytesCompatible) -> Transaction
+  def from_tryte_string(cls, trytes, hash_=None):
+    # type: (TrytesCompatible, Optional[TransactionHash]) -> Transaction
     """
     Creates a Transaction object from a sequence of trytes.
+
+    :param trytes:
+      Raw trytes.  Should be exactly 2673 trytes long.
+
+    :param hash_:
+      The transaction hash, if available.
+      If not provided, it will be computed from the transaction trytes.
     """
     tryte_string = TransactionTrytes(trytes)
 
-    hash_ = [0] * HASH_LENGTH # type: MutableSequence[int]
+    if not hash_:
+      hash_trits = [0] * HASH_LENGTH # type: MutableSequence[int]
 
-    sponge = Curl()
-    sponge.absorb(tryte_string.as_trits())
-    sponge.squeeze(hash_)
+      sponge = Curl()
+      sponge.absorb(tryte_string.as_trits())
+      sponge.squeeze(hash_trits)
+
+      hash_ = TransactionHash.from_trits(hash_trits)
 
     return cls(
-      hash_ = TransactionHash.from_trits(hash_),
+      hash_ = hash_,
       signature_message_fragment = Fragment(tryte_string[0:2187]),
       address = Address(tryte_string[2187:2268]),
       value = int_from_trits(tryte_string[2268:2295].as_trits()),

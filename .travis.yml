@@ -1,7 +1,15 @@
 language: python
 python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
-install: "pip install ."
-script: "nosetests"
+  - '2.7'
+  - '3.5'
+  - '3.6'
+install: pip install .
+script: nosetests
+deploy:
+  on:
+    branch: master
+  provider: pypi
+  distribution: sdist bdist_wheel
+  user: phx
+  password:
+    secure: KsjEOuDysFa7Z+ACy9qBgTadWEWR/zrBwxEQMGg7k9Hxr7tzq6bofywQID9GW6XQZWfcGXMCSo9RKmL0rtvbPenftJKwUtimssME6+TuNgnA/nu9QVuDvOc7PiaG471JdayDkutu61RNfiUeZKUk7h6xf1hHlLj+wBFPsNkFEuWCiVLGO54/tG9sDfGuPpomx9PBFwHZigSVBRelagkViYKva1fhzwW1sQG+yqK19TyDajCCp2pbCqKqqhwXDG16l4jS1basSfhtDty9IYtYMq8U6OPsgJyLXzCUJ3nU1OGy8ZvIAfJIloNwAekC1SukbUEpSA1S6wygGO3S5D9nQbwW4Z6pJi87tiNg71coPapDSI55jMQ3QUqycISHZ26iHmD6kgLXmEPYt4xpQMSBV5MGkn96w7qULlxF6eKCxoGbQZDuebXWJhzE2EG80NSSF3leVpFpbsobhiXcOm1pQ9hZ0sjgEzW40cnTTodbsx0CzALVyfGecZa2dFT9atS5ohvXYNYowMk86bghDpq+5Pnp7gdrs+TxWuElAfDz0BucE+uh1ZaG8YwZ13LPZmMlg50Bu+A96Qu0GTo1VwYh0/DhtCjVAM/07WJT2BggPbNYbLDlBbhsz/9EA0bhBjjGitXQ5GHKYT71DziLJHomo8h/pZnsmd9GFj3/tOK7Drw=

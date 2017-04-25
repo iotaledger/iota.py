@@ -5,6 +5,7 @@
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
+from sys import version_info
 
 from setuptools import find_packages, setup
 
@@ -12,6 +13,24 @@ from setuptools import find_packages, setup
 # Load long description for PyPi.
 with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
   long_description = f.read()
+
+
+##
+# Certain dependencies are optional depending on Python version.
+dependencies = [
+  'filters',
+  'six',
+
+  # ``security`` extra wasn't introduced until 2.4.1
+  # http://docs.python-requests.org/en/latest/community/updates/#id35
+  'requests[security] >= 2.4.1',
+]
+
+if version_info[0] < 3:
+  dependencies.extend([
+    'typing',
+  ])
+
 
 ##
 # Off we go!
@@ -26,17 +45,7 @@ setup(
 
   long_description = long_description,
 
-  install_requires = [
-    'filters',
-
-    # `security` package wasn't introduced until 2.4.1
-    # References:
-    #   - http://docs.python-requests.org/en/latest/community/updates/#id35
-    'requests[security] >= 2.4.1',
-
-    'six',
-    'typing',
-  ],
+  install_requires = dependencies,
 
   extras_require = {
     'ccurl': ['pyota-ccurl'],

@@ -2,9 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from iota import Address
 from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.types import Digest
+from iota.multisig.types import MultisigAddress
+
+__all__ = [
+  'MultisigAddressBuilder',
+]
 
 
 class MultisigAddressBuilder(object):
@@ -19,6 +23,7 @@ class MultisigAddressBuilder(object):
     super(MultisigAddressBuilder, self).__init__()
 
     self.sponge = Curl()
+    self.digests = []
 
   def add_digest(self, digest):
     # type: (Digest) -> None
@@ -33,9 +38,10 @@ class MultisigAddressBuilder(object):
       - https://github.com/iotaledger/wiki/blob/master/multisigs.md#spending-inputs
     """
     self.sponge.absorb(digest.as_trits())
+    self.digests.append(digest)
 
   def get_address(self):
-    # type: () -> Address
+    # type: () -> MultisigAddress
     """
     Returns the new multisig address.
 
@@ -43,6 +49,12 @@ class MultisigAddressBuilder(object):
     address; the next address will use *all* of the digests that have
     been added so far.
     """
+    if not self.digests:
+      raise ValueError(
+        'Must call ``add_digest`` at least once '
+        'before calling ``get_address``.',
+      )
+
     address_trits = [0] * HASH_LENGTH
     self.sponge.squeeze(address_trits)
-    return Address.from_trits(address_trits)
+    return MultisigAddress.from_trits(address_trits, digests=self.digests[:])

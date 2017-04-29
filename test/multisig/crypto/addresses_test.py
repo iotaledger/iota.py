@@ -8,6 +8,7 @@ from iota import Address
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest
 from iota.multisig.crypto.addresses import MultisigAddressBuilder
+from iota.multisig.types import MultisigAddress
 
 
 class MultisigAddressBuilderTestCase(TestCase):
@@ -45,6 +46,8 @@ class MultisigAddressBuilderTestCase(TestCase):
     builder.add_digest(self.digest_2)
     addy = builder.get_address()
 
+    self.assertIsInstance(addy, MultisigAddress)
+
     # noinspection SpellCheckingInspection
     self.assertEqual(
       addy,
@@ -54,6 +57,10 @@ class MultisigAddressBuilderTestCase(TestCase):
         b'COJHJKZVUOCEYSCLXAGDABCEWSUXCILJCGQWI9SF'
       ),
     )
+
+    # The multisig address also keeps track of the digests used to
+    # create it (mostly for troubleshooting purposes).
+    self.assertListEqual(addy.digests, [self.digest_1, self.digest_2])
 
   def test_success_single_digest(self):
     """
@@ -66,11 +73,17 @@ class MultisigAddressBuilderTestCase(TestCase):
     builder.add_digest(self.digest_1)
     addy = builder.get_address()
 
+    self.assertIsInstance(addy, MultisigAddress)
+
     # noinspection SpellCheckingInspection
     self.assertEqual(
       addy,
       AddressGenerator(b'ABCDFG').get_addresses(0, 1)[0],
     )
+
+    # The address is still designated multisig, so we keep track of the
+    # digest used to generate it.
+    self.assertListEqual(addy.digests, [self.digest_1])
 
   def test_error_no_digests(self):
     """
@@ -79,8 +92,10 @@ class MultisigAddressBuilderTestCase(TestCase):
 
     I mean, why even bother, right?
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    builder = MultisigAddressBuilder()
+
+    with self.assertRaises(ValueError):
+      builder.get_address()
 
   def test_success_get_multiple_addresses(self):
     """

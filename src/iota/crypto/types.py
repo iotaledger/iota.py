@@ -22,10 +22,14 @@ __all__ = [
 class Digest(TryteString):
   """
   A private key digest.  Basically the same thing as a regular
-  `TryteString`, except that it has a key index associated with it.
+  :py:class:`TryteString`, except that it (usually) has a key index
+  associated with it.
+
+  Note: in a few cases (e.g., generating multisig addresses), a key
+  index is not necessary/available.
   """
-  def __init__(self, trytes, key_index):
-    # type: (TrytesCompatible, int) -> None
+  def __init__(self, trytes, key_index=None):
+    # type: (TrytesCompatible, Optional[int]) -> None
     super(Digest, self).__init__(trytes)
 
     self.key_index = key_index

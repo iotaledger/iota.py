@@ -2,14 +2,80 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from unittest import TestCase
+
 import filters as f
 from filters.test import BaseFilterTestCase
 from iota import TryteString
 from iota.adapter import MockAdapter
 from iota.crypto.types import Digest
 from iota.filters import Trytes
+from iota.multisig import MultisigIota
 from iota.multisig.commands import CreateMultisigAddressCommand
+from iota.multisig.types import MultisigAddress
+from mock import patch
 from six import binary_type, text_type
+
+
+class CreateMultisigAddressCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(CreateMultisigAddressCommandTestCase, self).setUp()
+
+    self.adapter = MockAdapter()
+    self.command = CreateMultisigAddressCommand(self.adapter)
+
+    # Define some tryte sequences that we can reuse between tests.
+    self.digest_1 =\
+      Digest(
+        trytes =
+          b'FWNEPVJNGUKTSHSBDO9AORBCVWWLVXC9KAMKYYNKPYNJDKSAUURI9ELKOEEYPKVTYP'
+          b'CKOCJQESYFEMINIFKX9PDDGRBEEHYYXCJW9LHGWFZGHKCPVDBGMGQKIPCNKNITGMZT'
+          b'DIWVUB9PCHCOPHMIWKSUKRHZOJPMAY',
+
+        key_index = 0,
+      )
+
+    self.digest_2 =\
+      Digest(
+        trytes =
+          b'PAIRLDJQY9XAUSKIGCTHRJHZVARBEY9NNHYJ9UI9HWWZXFSDWEZEGDCWNVVYSYDV9O'
+          b'HTR9NGGZURISWTNECFTCMEWQQFJ9VKLFPDTYJYXC99OLGRH9OSFJLMEOGHFDHZYEAF'
+          b'IMIZTJRBQUVCR9U9ZWTMUXTUEOUBLC',
+
+        key_index = 0,
+      )
+
+  def test_wireup(self):
+    """
+    Verify that the command is wired up correctly.
+    """
+    self.assertIsInstance(
+      MultisigIota(self.adapter).createMultisigAddress,
+      CreateMultisigAddressCommand,
+    )
+
+  def test_happy_path(self):
+    """
+    Generating a multisig address.
+    """
+    result = self.command(digests=[self.digest_1, self.digest_2])
+
+    # noinspection SpellCheckingInspection
+    self.assertDictEqual(
+      result,
+
+      {
+        'address':
+          MultisigAddress(
+            trytes =
+              b'JUIFYSUQFVBFGNHOJMLWBHMGASFGBPAUMRZRRCJF'
+              b'CCOJHJKZVUOCEYSCLXAGDABCEWSUXCILJCGQWI9SF',
+
+            digests = [self.digest_1, self.digest_2],
+          ),
+      },
+    )
 
 
 class CreateMultisigAddressRequestFilterTestCase(BaseFilterTestCase):

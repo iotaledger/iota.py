@@ -2,10 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import List
+
 import filters as f
 from iota.commands import FilterCommand, RequestFilter
 from iota.crypto.types import Digest
 from iota.filters import Trytes
+from iota.multisig.crypto.addresses import MultisigAddressBuilder
 
 __all__ = [
   'CreateMultisigAddressCommand',
@@ -28,9 +31,16 @@ class CreateMultisigAddressCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
+    digests = request['digests'] # type: List[Digest]
+
+    builder = MultisigAddressBuilder()
+
+    for d in digests:
+      builder.add_digest(d)
+
+    return {
+      'address': builder.get_address(),
+    }
 
 
 class CreateMultisigAddressRequestFilter(RequestFilter):

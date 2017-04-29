@@ -106,6 +106,7 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     super(GetDigestsRequestFilterTestCase, self).setUp()
 
     # Define some tryte sequences that we can reuse between tests.
+    # noinspection SpellCheckingInspection
     self.seed = b'HELLOIOTA'
 
   def test_pass_happy_path(self):

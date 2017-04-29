@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import Address
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest
 from iota.multisig.crypto.addresses import MultisigAddressBuilder
 
@@ -20,8 +21,7 @@ class MultisigAddressBuilderTestCase(TestCase):
         trytes =
           b'FWNEPVJNGUKTSHSBDO9AORBCVWWLVXC9KAMKYYNKPYNJDKSAUURI9ELKOEEYPKVTYP'
           b'CKOCJQESYFEMINIFKX9PDDGRBEEHYYXCJW9LHGWFZGHKCPVDBGMGQKIPCNKNITGMZT'
-          b'DIWVUB9PCHCOPHMIWKSUKRHZOJPMAYXQPLLUDJNCYMUAJBE9XXYYDQ9JYANVMAOEN9'
-          b'NKGJR9HUNJKV9YYBQLOQLXBIEBIMPL9IAWXATKLEMOCVP',
+          b'DIWVUB9PCHCOPHMIWKSUKRHZOJPMAY',
 
         key_index = 0,
       )
@@ -31,8 +31,7 @@ class MultisigAddressBuilderTestCase(TestCase):
         trytes =
           b'PAIRLDJQY9XAUSKIGCTHRJHZVARBEY9NNHYJ9UI9HWWZXFSDWEZEGDCWNVVYSYDV9O'
           b'HTR9NGGZURISWTNECFTCMEWQQFJ9VKLFPDTYJYXC99OLGRH9OSFJLMEOGHFDHZYEAF'
-          b'IMIZTJRBQUVCR9U9ZWTMUXTUEOUBLCJDXJSTHQNB9IRIOIOQOLHFFUOERZSJAWJHFD'
-          b'PLCOKKFBOYWOF9WGHLCWONJKICPFDXXWNWBKDVCDFKRZJ',
+          b'IMIZTJRBQUVCR9U9ZWTMUXTUEOUBLC',
 
         key_index = 0,
       )
@@ -51,8 +50,8 @@ class MultisigAddressBuilderTestCase(TestCase):
       addy,
 
       Address(
-        b'DKXUXQCELGAABFFTCNPHTTGZJSUATFPUUZLVIIRHQ'
-        b'YGPFKRLATYZZUSDULVWUXFGNAYN99W9ZQSENSP9D'
+        b'JUIFYSUQFVBFGNHOJMLWBHMGASFGBPAUMRZRRCJFC'
+        b'COJHJKZVUOCEYSCLXAGDABCEWSUXCILJCGQWI9SF'
       ),
     )
 
@@ -63,8 +62,15 @@ class MultisigAddressBuilderTestCase(TestCase):
     This does the same thing as generating a regular address from the
     corresponding key.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    builder = MultisigAddressBuilder()
+    builder.add_digest(self.digest_1)
+    addy = builder.get_address()
+
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      addy,
+      AddressGenerator(b'ABCDFG').get_addresses(0, 1)[0],
+    )
 
   def test_error_no_digests(self):
     """

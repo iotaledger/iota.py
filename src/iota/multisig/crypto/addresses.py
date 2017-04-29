@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import List, Optional
+
 from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.types import Digest
 from iota.multisig.types import MultisigAddress
@@ -22,8 +24,22 @@ class MultisigAddressBuilder(object):
   def __init__(self):
     super(MultisigAddressBuilder, self).__init__()
 
-    self.sponge = Curl()
-    self.digests = []
+    self._digests = [] # type: List[Digest]
+    """
+    Keeps track of digests that were added, so that we can attach them
+    to the final :py:class:`MultisigAddress` object.
+    """
+
+    self._address = None # type: Optional[MultisigAddress]
+    """
+    Caches the generated address.
+
+    Generating the address modifies the internal state of the curl
+    sponge, so each :py:class:`MultisigAddressBuilder` instance can
+    only generate a single address.
+    """
+
+    self._sponge = Curl()
 
   def add_digest(self, digest):
     # type: (Digest) -> None
@@ -37,8 +53,11 @@ class MultisigAddressBuilder(object):
     References:
       - https://github.com/iotaledger/wiki/blob/master/multisigs.md#spending-inputs
     """
-    self.sponge.absorb(digest.as_trits())
-    self.digests.append(digest)
+    if self._address:
+      raise ValueError('Cannot add digests once an address is extracted.')
+
+    self._sponge.absorb(digest.as_trits())
+    self._digests.append(digest)
 
   def get_address(self):
     # type: () -> MultisigAddress
@@ -49,12 +68,17 @@ class MultisigAddressBuilder(object):
     address; the next address will use *all* of the digests that have
     been added so far.
     """
-    if not self.digests:
+    if not self._digests:
       raise ValueError(
         'Must call ``add_digest`` at least once '
         'before calling ``get_address``.',
       )
 
-    address_trits = [0] * HASH_LENGTH
-    self.sponge.squeeze(address_trits)
-    return MultisigAddress.from_trits(address_trits, digests=self.digests[:])
+    if not self._address:
+      address_trits = [0] * HASH_LENGTH
+      self._sponge.squeeze(address_trits)
+
+      self._address =\
+        MultisigAddress.from_trits(address_trits, digests=self._digests[:])
+
+    return self._address

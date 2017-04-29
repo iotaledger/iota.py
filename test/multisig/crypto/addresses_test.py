@@ -37,6 +37,16 @@ class MultisigAddressBuilderTestCase(TestCase):
         key_index = 0,
       )
 
+    self.digest_3 =\
+      Digest(
+        trytes =
+          b'KBNYOFY9HJSPBDBFSTIEMYJAAMNOXLVXBDUKJRBUGAPIIZNDARXEWDZRBCIYFQCBID'
+          b'HXIQFIDFPNGIFN9DDXQUGYZGDML9ZIELDSVICFUOPWEPCUWEDUFKXKSOZKTSHIMEIR'
+          b'HOXKPJFRWWCNYPXR9RI9SMBFSDQFWM',
+
+        key_index = 0,
+      )
+
   def test_success_multiple_digests(self):
     """
     Generating a multisig address from multiple digests.
@@ -97,10 +107,29 @@ class MultisigAddressBuilderTestCase(TestCase):
     with self.assertRaises(ValueError):
       builder.get_address()
 
-  def test_success_get_multiple_addresses(self):
+  def test_success_extract_multiple(self):
     """
-    You can continue adding digests to the address builder even after
-    extracting an address.
+    You can extract the address multiple times from the same builder
+    (it's the same instance every time).
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    builder = MultisigAddressBuilder()
+    builder.add_digest(self.digest_1)
+    builder.add_digest(self.digest_2)
+    addy_1 = builder.get_address()
+    addy_2 = builder.get_address()
+
+    # Same instance is returned every time.
+    self.assertIs(addy_1, addy_2)
+
+  def test_error_already_finalized(self):
+    """
+    Once an address is extracted from the builder, no more digests can
+    be added.
+    """
+    builder = MultisigAddressBuilder()
+    builder.add_digest(self.digest_1)
+    builder.add_digest(self.digest_2)
+    builder.get_address()
+
+    with self.assertRaises(ValueError):
+      builder.add_digest(self.digest_3)

@@ -107,6 +107,40 @@ class MultisigAddressBuilderTestCase(TestCase):
     with self.assertRaises(ValueError):
       builder.get_address()
 
+  def test_success_duplicate_digest(self):
+    """
+    Using the same digest multiple times in the same multisig address?
+
+    It's unconventional, admittedly, but the maths work out, so..
+    """
+    builder = MultisigAddressBuilder()
+    builder.add_digest(self.digest_1)
+    builder.add_digest(self.digest_2)
+
+    # I have no idea why you'd want to do this, but that's why it's not
+    # my job to make those kinds of decisions.
+    builder.add_digest(self.digest_1)
+
+    addy = builder.get_address()
+
+    self.assertIsInstance(addy, MultisigAddress)
+
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      addy,
+
+      Address(
+        b'XOASSIYBLK9OQCJJNRGLFRAMSB9ZFBKSULIMCZQJ'
+        b'OONAMEPRMSMUHBIPEKRLIRIVJQDGFBBQBINSGDADX'
+      ),
+    )
+
+    # Note that ``digest_1`` appears twice, because we added it twice.
+    self.assertListEqual(
+      addy.digests,
+      [self.digest_1, self.digest_2, self.digest_1],
+    )
+
   def test_success_extract_multiple(self):
     """
     You can extract the address multiple times from the same builder

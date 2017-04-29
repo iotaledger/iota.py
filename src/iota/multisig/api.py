@@ -2,8 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Iterable
+
 from iota import Iota
 from iota.commands import discover_commands
+from iota.crypto.types import Digest
 from iota.multisig import commands
 
 __all__ = [
@@ -14,7 +17,7 @@ class MultisigIota(Iota):
   """
   Extends the IOTA API so that it can send multi-signature
   transactions.
-  
+
   **CAUTION:** Make sure you understand how multisig works before
   attempting to use it.  If you are not careful, you could easily
   compromise the security of your private keys, send IOTAs to
@@ -24,6 +27,30 @@ class MultisigIota(Iota):
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
   """
   commands = discover_commands('iota.multisig.commands')
+
+  def create_multisig_address(self, digests):
+    # type: (Iterable[Digest]) -> dict
+    """
+    Generates a multisig address from a collection of digests.
+
+    :param digests:
+      Digests to use to create the multisig address.
+
+      IMPORTANT: In order to spend IOTAs from a multisig address, the
+      signature must be generated from the corresponding private keys
+      in the exact same order.
+
+    :return:
+      Dict with the following items::
+
+         {
+           'address': MultisigAddress,
+             The generated multisig address.
+         }
+    """
+    return commands.CreateMultisigAddressCommand(self.adapter)(
+      digests = digests,
+    )
 
   def get_digests(self, index=0, count=1):
     # type: (int, int) -> dict

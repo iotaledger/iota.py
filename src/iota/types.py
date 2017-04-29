@@ -87,32 +87,56 @@ class TryteString(JsonSerializable):
   IMPORTANT: A TryteString does not represent a numeric value!
   """
   @classmethod
-  def from_bytes(cls, bytes_):
-    # type: (Union[binary_type, bytearray]) -> TryteString
+  def from_bytes(cls, bytes_, *args, **kwargs):
+    # type: (Union[binary_type, bytearray], ...) -> TryteString
     """
     Creates a TryteString from a sequence of bytes.
+
+    :param bytes_:
+      Source bytes.
+
+    :param args:
+      Additional positional arguments to pass to the initializer.
+
+    :param kwargs:
+      Additional keyword arguments to pass to the initializer.
     """
-    return cls(encode(bytes_, 'trytes'))
+    return cls(encode(bytes_, 'trytes'), *args, **kwargs)
 
   @classmethod
-  def from_string(cls, string):
-    # type: (Text) -> TryteString
+  def from_string(cls, string, *args, **kwargs):
+    # type: (Text, ...) -> TryteString
     """
     Creates a TryteString from a Unicode string.
 
     Note: The string will be encoded using UTF-8.
+
+    :param string:
+      Source string.
+
+    :param args:
+      Additional positional arguments to pass to the initializer.
+
+    :param kwargs:
+      Additional keyword arguments to pass to the initializer.
     """
-    return cls.from_bytes(string.encode('utf-8'))
+    return cls.from_bytes(string.encode('utf-8'), *args, **kwargs)
 
   @classmethod
-  def from_trytes(cls, trytes):
-    # type: (Iterable[Iterable[int]]) -> TryteString
+  def from_trytes(cls, trytes, *args, **kwargs):
+    # type: (Iterable[Iterable[int]], ...) -> TryteString
     """
     Creates a TryteString from a sequence of trytes.
 
     :param trytes:
       Iterable of tryte values.
       In this context, a tryte is defined as a list containing 3 trits.
+
+    :param args:
+      Additional positional arguments to pass to the initializer.
+
+    :param kwargs:
+      Additional keyword arguments to pass to the initializer.
 
     References:
       - :py:meth:`as_trytes`
@@ -128,16 +152,22 @@ class TryteString(JsonSerializable):
 
       chars.append(TrytesCodec.alphabet[converted])
 
-    return cls(chars)
+    return cls(chars, *args, **kwargs)
 
   @classmethod
-  def from_trits(cls, trits):
-    # type: (Iterable[int]) -> TryteString
+  def from_trits(cls, trits, *args, **kwargs):
+    # type: (Iterable[int], ...) -> TryteString
     """
     Creates a TryteString from a sequence of trits.
 
     :param trits:
       Iterable of trit values (-1, 0, 1).
+
+    :param args:
+      Additional positional arguments to pass to the initializer.
+
+    :param kwargs:
+      Additional keyword arguments to pass to the initializer.
 
     References:
       - :py:func:`int_from_trits`
@@ -153,7 +183,10 @@ class TryteString(JsonSerializable):
 
     return cls.from_trytes(
       # :see: http://stackoverflow.com/a/1751478/
-      trits[i:i+3] for i in range(0, len(trits), 3)
+      (trits[i:i+3] for i in range(0, len(trits), 3)),
+
+      *args,
+      **kwargs
     )
 
   def __init__(self, trytes, pad=None):

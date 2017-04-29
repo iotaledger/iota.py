@@ -683,7 +683,13 @@ class Address(TryteString):
     """
     Returns the address with a valid checksum attached.
     """
-    return Address(self.address + self._generate_checksum())
+    return Address(
+      trytes    = self.address + self._generate_checksum(),
+
+      # Make sure to copy all of the ancillary attributes, too!
+      balance   = self.balance,
+      key_index = self.key_index,
+    )
 
   def _generate_checksum(self):
     # type: () -> TryteString

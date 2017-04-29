@@ -940,6 +940,26 @@ class AddressTestCase(TestCase):
       b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVSDPEKQPMM',
     )
 
+  def test_with_checksum_attributes(self):
+    """
+    :py:meth:`Address.with_valid_checksum` also copies attributes such
+    as key index and balance.
+    """
+    addy =\
+      Address(
+        trytes =
+          b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+          b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMV',
+
+        key_index = 42,
+        balance   = 86,
+      )
+
+    checked = addy.with_valid_checksum()
+
+    self.assertEqual(checked.key_index, 42)
+    self.assertEqual(checked.balance, 86)
+
 
 # noinspection SpellCheckingInspection
 class AddressChecksumTestCase(TestCase):

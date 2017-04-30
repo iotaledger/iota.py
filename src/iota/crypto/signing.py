@@ -244,12 +244,18 @@ class KeyIterator(Iterator[PrivateKey]):
       private_key = PrivateKey.from_trits(key)
       private_key.key_index = self.current
 
-      self.current += self.step
+      self.advance()
 
       return private_key
 
   if PY2:
     next = __next__
+
+  def advance(self):
+    """
+    Advances the generator without creating a key.
+    """
+    self.current += self.step
 
   def _create_sponge(self, index):
     # type: (int) -> Curl

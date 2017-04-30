@@ -245,7 +245,9 @@ class AddressGenerator(Iterable[Address]):
         with self.cache.acquire_lock():
           address = self.cache.get(self.seed, key_iterator.current)
 
-          if not address:
+          if address:
+            key_iterator.advance()
+          else:
             address = self._generate_address(key_iterator)
             self.cache.set(self.seed, address.key_index, address)
       else:

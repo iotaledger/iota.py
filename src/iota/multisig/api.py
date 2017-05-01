@@ -171,8 +171,8 @@ class MultisigIota(Iota):
       in the correct order (same order that was used to generate the
       multisig address in the first place).
 
-      Once the correct signatures are applied, you can then perform PoW
-      and broadcast the bundle using
+      Once the correct signatures are applied, you can then perform
+      proof of work (``attachToTangle``) and broadcast the bundle using
       :py:meth:`iota.api.Iota.send_trytes`.
     """
     return commands.PrepareMultisigTransferCommand(self.adapter)(

@@ -39,7 +39,9 @@ class PrepareMultisigTransferRequestFilter(RequestFilter):
       {
         'changeAddress': Trytes(result_type=Address),
 
-        'multisigInput': Trytes(result_type=Address),
+        'multisigInput':
+            f.Required
+          | Trytes(result_type=Address),
 
         'transfers':
             f.Required

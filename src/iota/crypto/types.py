@@ -34,6 +34,15 @@ class Digest(TryteString):
 
     self.key_index = key_index
 
+  @property
+  def security_level(self):
+    # type: () -> int
+    """
+    Returns the number of iterations that were used to generate this
+    digest (also known as "security level").
+    """
+    return len(self) // Hash.LEN
+
 
 class Seed(TryteString):
   """
@@ -109,12 +118,14 @@ class PrivateKey(TryteString):
     # The digest will contain one hash per key fragment.
     digest = [0] * HASH_LENGTH * len(key_fragments)
 
+    # Iterate over each fragment in the key.
     for (i, fragment) in enumerate(key_fragments): # type: Tuple[int, TryteString]
       fragment_trits = fragment.as_trits()
 
       key_fragment  = [0] * FRAGMENT_LENGTH
       hash_trits    = []
 
+      # Within each fragment, iterate over one hash at a time.
       for j in range(hashes_per_fragment):
         hash_start  = j * HASH_LENGTH
         hash_end    = hash_start + HASH_LENGTH
@@ -127,6 +138,13 @@ class PrivateKey(TryteString):
 
         key_fragment[hash_start:hash_end] = hash_trits
 
+      #
+      # After processing all of the hashes in the fragment, generate a
+      # final hash and append it to the digest.
+      #
+      # Note that we will do this once per fragment in the key, so the
+      # longer the key is, the longer the digest will be.
+      #
       sponge = Curl()
       sponge.absorb(key_fragment)
       sponge.squeeze(hash_trits)

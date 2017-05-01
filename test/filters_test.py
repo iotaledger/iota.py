@@ -20,19 +20,28 @@ class GeneratedAddressTestCase(BaseFilterTestCase):
     """
     self.assertFilterPasses(None)
 
-  def test_pass_key_index_set(self):
+  def test_pass_happy_path(self):
     """
-    Incoming value has correct type, and ``key_index`` is set.
+    Incoming value has correct type and attributes.
     """
-    self.assertFilterPasses(Address(b'', key_index=42))
+    self.assertFilterPasses(Address(b'', key_index=42, security_level=2))
 
   def test_fail_key_index_null(self):
     """
     Incoming value does not have ``key_index`` set.
     """
     self.assertFilterErrors(
-      Address(b''),
+      Address(b'', security_level=2),
       [GeneratedAddress.CODE_NO_KEY_INDEX],
+    )
+
+  def test_fail_security_level_null(self):
+    """
+    Incoming value does not have ``security_level`` set.
+    """
+    self.assertFilterErrors(
+      Address(b'', key_index=2),
+      [GeneratedAddress.CODE_NO_SECURITY_LEVEL],
     )
 
   def test_fail_wrong_type(self):

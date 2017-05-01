@@ -6,8 +6,9 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, ProposedTransaction
+from iota import Address, Bundle, ProposedTransaction
 from iota.adapter import MockAdapter
+from iota.commands.core import GetBalancesCommand
 from iota.crypto.types import Digest
 from iota.multisig import MultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
@@ -105,12 +106,15 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
         # :py:class:`Address`.
         'changeAddress': self.trytes_1,
 
-        # It is recommended that you use a MultisigAddress for
-        # ``multisigInput``, but it is not required.
-        'multisigInput': self.trytes_2,
+        # ``multisigInput`` must be a :py:class:`MultisigInput` object.
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
 
         # ``transfers`` must contain an array of
-        # :py:class:`ProposedTransaction` objects, however.
+        # :py:class:`ProposedTransaction` objects.
         'transfers': [txn],
       })
 
@@ -122,10 +126,11 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'changeAddress': Address(self.trytes_1),
 
-        # We can't reconstruct the digests for the multisig address, so
-        # we'll just have to trust that the user knows what they are
-        # doing.
-        'multisigInput': Address(self.trytes_2),
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
 
         'transfers': [txn],
       },
@@ -389,15 +394,17 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_multisigInput_wrong_type(self):
     """
-    ``multisigInput`` is not a TrytesCompatible value.
+    ``multisigInput`` is not a MultisigAddress.
     """
     self.assertFilterErrors(
       {
         'changeAddress':
           Address(self.trytes_1),
 
+        # This value must be a MultisigAddress, so that we know the
+        # total security level of the digests used to create it.
         'multisigInput':
-          text_type(self.trytes_2, 'ascii'),
+          Address(self.trytes_2),
 
         'transfers':
           [
@@ -475,11 +482,48 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
 
 
 class PrepareMultisigTransferCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
   def setUp(self):
     super(PrepareMultisigTransferCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
     self.command = PrepareMultisigTransferCommand(self.adapter)
+
+    # Define some tryte sequences that we can reuse between tests.
+    self.digest_1 =\
+      Digest(
+        trytes =
+          b'FWNEPVJNGUKTSHSBDO9AORBCVWWLVXC9KAMKYYNKPYNJDKSAUURI9ELKOEEYPKVTYP'
+          b'CKOCJQESYFEMINIFKX9PDDGRBEEHYYXCJW9LHGWFZGHKCPVDBGMGQKIPCNKNITGMZT'
+          b'DIWVUB9PCHCOPHMIWKSUKRHZOJPMAY',
+
+        key_index = 0,
+      )
+
+    self.digest_2 =\
+      Digest(
+        trytes =
+          b'PAIRLDJQY9XAUSKIGCTHRJHZVARBEY9NNHYJ9UI9HWWZXFSDWEZEGDCWNVVYSYDV9O'
+          b'HTR9NGGZURISWTNECFTCMEWQQFJ9VKLFPDTYJYXC99OLGRH9OSFJLMEOGHFDHZYEAF'
+          b'IMIZTJRBQUVCR9U9ZWTMUXTUEOUBLC',
+
+        key_index = 0,
+      )
+
+    self.trytes_1 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999IIPEM9'
+      b'LA9FLHEGHDACSA9DOBQHQCX9BBHCFDIIMACARHA9B'
+    )
+
+    self.trytes_2 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999BGUDVE'
+      b'DGH9WFQDEDVETCOGEGCDI9RFHGFGXBI99EJICHNEM'
+    )
+
+    self.trytes_3 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999XBGEUC'
+      b'LF9EIFXHM9KHQANBLBHFVGTEGBWHNAKFDGZHYGCHI'
+    )
 
   def test_wireup(self):
     """
@@ -496,6 +540,72 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     """
     # :todo: Implement test.
     self.skipTest('Not implemented yet.')
+
+    self.adapter.seed_response(
+      command = GetBalancesCommand.command,
+
+      response = {
+        'balances': [42],
+
+        # Would it be cheeky to put 7½ million years here?
+        'duration': 86,
+      },
+    )
+
+    pmt_result =\
+      self.command(
+        transfers = [
+          ProposedTransaction(
+            address = Address(self.trytes_1),
+            value   = 42,
+          ),
+        ],
+
+        multisigInput =
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+      )
+
+    bundle = pmt_result['bundle'] # type: Bundle
+
+    #
+    # This bundle looks almost identical to what you would expect from
+    # :py:meth:`iota.api.Iota.prepare_transfer`, except:
+    # - There are 4 inputs (to hold all of the signature fragments).
+    # - The inputs are unsigned.
+    #
+    self.assertEqual(len(bundle), 5)
+
+    # Spend Transaction
+    txn_1 = bundle[0]
+    self.assertEqual(txn_1.address, self.trytes_1)
+    self.assertEqual(txn_1.value, 42)
+
+    # Input 1, Part 1 of 4
+    txn_2 = bundle[1]
+    self.assertEqual(txn_2.address, self.trytes_2)
+    self.assertEqual(txn_2.value, -42)
+    self.assertEqual(txn_2.signature_message_fragment, b'')
+
+    # Input 1, Part 2 of 4
+    txn_3 = bundle[2]
+    self.assertEqual(txn_3.address, self.trytes_2)
+    self.assertEqual(txn_3.value, 0)
+    self.assertEqual(txn_3.signature_message_fragment, b'')
+
+    # Input 1, Part 3 of 4
+    txn_4 = bundle[3]
+    self.assertEqual(txn_4.address, self.trytes_2)
+    self.assertEqual(txn_4.value, 0)
+    self.assertEqual(txn_4.signature_message_fragment, b'')
+
+    # Input 1, Part 4 of 4
+    txn_5 = bundle[4]
+    self.assertEqual(txn_5.address, self.trytes_2)
+    self.assertEqual(txn_5.value, 0)
+    self.assertEqual(txn_5.signature_message_fragment, b'')
 
   def test_unspent_inputs_with_change_address(self):
     """

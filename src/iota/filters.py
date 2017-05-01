@@ -15,10 +15,15 @@ class GeneratedAddress(f.BaseFilter):
   Validates an incoming value as a generated :py:class:`Address` (must
   have ``key_index`` set).
   """
-  CODE_NO_KEY_INDEX = 'no_key_index'
+  CODE_NO_KEY_INDEX       = 'no_key_index'
+  CODE_NO_SECURITY_LEVEL  = 'no_security_level'
 
   templates = {
-    CODE_NO_KEY_INDEX: 'Address must have ``key_index`` attribute set.',
+    CODE_NO_KEY_INDEX:
+      'Address must have ``key_index`` attribute set.',
+
+    CODE_NO_SECURITY_LEVEL:
+      'Address must have ``security_level`` attribute set.',
   }
 
   def _apply(self, value):
@@ -29,6 +34,9 @@ class GeneratedAddress(f.BaseFilter):
 
     if value.key_index is None:
       return self._invalid_value(value, self.CODE_NO_KEY_INDEX)
+
+    if value.security_level is None:
+      return self._invalid_value(value, self.CODE_NO_SECURITY_LEVEL)
 
     return value
 

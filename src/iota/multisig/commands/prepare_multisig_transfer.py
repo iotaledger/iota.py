@@ -2,10 +2,15 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from typing import Optional, List
+
 import filters as f
-from iota import Address, ProposedTransaction
+from iota import Address, ProposedTransaction, ProposedBundle
 from iota.commands import FilterCommand, RequestFilter
+from iota.commands.core import GetBalancesCommand
+from iota.exceptions import with_context
 from iota.filters import Trytes
+from iota.multisig.types import MultisigAddress
 
 __all__ = [
   'PrepareMultisigTransferCommand',
@@ -28,20 +33,66 @@ class PrepareMultisigTransferCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
+    change_address  = request['changeAddress'] # type: Optional[Address]
+    multisig_input  = request['multisigInput'] # type: MultisigAddress
+    transfers       = request['transfers'] # type: List[ProposedTransaction]
+
+    bundle = ProposedBundle(transfers)
+
+    want_to_spend = bundle.balance
+    if want_to_spend > 0:
+      gb_response =\
+        GetBalancesCommand(self.adapter)(
+          addresses = [multisig_input],
+        )
+
+      multisig_input.balance = gb_response['balances'][0]
+
+      if multisig_input.balance < want_to_spend:
+        raise with_context(
+          exc =
+            ValueError(
+              'Insufficient balance; found {found}, need {need} '
+              '(``exc.context`` has more info).'.format(
+                found = multisig_input.balance,
+                need  = want_to_spend,
+              ),
+            ),
+
+          # The structure of this context object is intended to match
+          # the one from ``PrepareTransferCommand``.
+          context = {
+            'available_to_spend': multisig_input.balance,
+            'confirmed_inputs':   multisig_input,
+            'request':            request,
+            'want_to_spend':      want_to_spend,
+          },
+        )
+
+      bundle.add_inputs([multisig_input])
+
+      if bundle.balance < 0:
+        if change_address:
+          bundle.send_unspent_inputs_to(change_address)
+
+    bundle.finalize()
+
+    # Return the bundle with inputs unsigned.
+    return {
+      'bundle': bundle,
+    }
 
 
 class PrepareMultisigTransferRequestFilter(RequestFilter):
   def __init__(self):
     super(PrepareMultisigTransferRequestFilter, self).__init__(
       {
-        'changeAddress': Trytes(result_type=Address),
+        'changeAddress':
+          Trytes(result_type=Address),
 
         'multisigInput':
             f.Required
-          | Trytes(result_type=Address),
+          | f.Type(MultisigAddress),
 
         'transfers':
             f.Required

@@ -11,7 +11,6 @@ from typing import Generator, Iterable, Iterator, List, MutableSequence, \
 from iota import Address, Hash, Tag, TryteString, TrytesCompatible, \
   TrytesDecodeError, int_from_trits, trits_from_int
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
-from iota.crypto.addresses import AddressGenerator
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator, \
   validate_signature_fragments
 from iota.exceptions import with_context
@@ -28,6 +27,7 @@ __all__ = [
   'TransactionHash',
   'TransactionTrytes',
 ]
+
 
 def get_current_timestamp():
   # type: () -> int
@@ -551,37 +551,21 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
 
     messages = []
 
-    i = 0
-    while i < len(self):
-      txn = self[i]
-
-      # Ignore inputs.  Note that inputs are split into multiple
-      # transactions due to how big the signatures are.
-      if txn.value < 0:
-        i += AddressGenerator.DIGEST_ITERATIONS
+    for group in self.group_transactions():
+      # Ignore inputs.
+      if group[0].value < 0:
         continue
 
-      message_trytes = TryteString(txn.signature_message_fragment)
+      message_trytes = TryteString(b'')
+      for txn in group:
+        message_trytes += txn.signature_message_fragment
 
-      # If the message is long enough, it has to be split across
-      # multiple transactions.
-      for j in range(i+1, len(self)):
-        aux_txn = self[j]
-        if (aux_txn.address == txn.address) and (aux_txn.value == 0):
-          message_trytes += aux_txn.signature_message_fragment
-          i += 1
-        else:
-          break
-
-      # Ignore empty messages.
       if message_trytes:
         try:
           messages.append(message_trytes.as_string(decode_errors))
         except (TrytesDecodeError, UnicodeDecodeError):
           if errors != 'drop':
             raise
-
-      i += 1
 
     return messages
 
@@ -609,6 +593,33 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
       - :py:class:`iota.json.JsonEncoder`.
     """
     return [txn.as_json_compatible() for txn in self]
+
+  def group_transactions(self):
+    # type: () -> List[List[Transaction]]
+    """
+    Groups transactions in the bundle by address.
+    """
+    groups = []
+
+    if self:
+      last_txn = self.tail_transaction
+      current_group = [last_txn]
+      for current_txn in self.transactions[1:]:
+        # Transactions are grouped by address, so as long as the
+        # address stays consistent from one transaction to another, we
+        # are still in the same group.
+        if current_txn.address == last_txn.address:
+          current_group.append(current_txn)
+        else:
+          groups.append(current_group)
+          current_group = [current_txn]
+
+        last_txn = current_txn
+
+      if current_group:
+        groups.append(current_group)
+
+    return groups
 
 
 class BundleValidator(object):
@@ -657,37 +668,53 @@ class BundleValidator(object):
     """
     Creates a generator that does all the work.
     """
+    # Group transactions by address to make it easier to iterate over
+    # inputs.
+    grouped_transactions = self.bundle.group_transactions()
+
+    # Define a few expected values.
     bundle_hash = self.bundle.hash
     last_index  = len(self.bundle) - 1
 
+    # Track a few others as we go along.
     balance = 0
-    for (i, txn) in enumerate(self.bundle): # type: Tuple[int, Transaction]
-      balance += txn.value
 
-      if txn.bundle_hash != bundle_hash:
-        yield 'Transaction {i} has invalid bundle hash.'.format(
-          i = i,
-        )
+    # Check indices and balance first.
+    # Note that we use a counter to keep track of the current index,
+    # since at this point we can't trust that the transactions have
+    # correct ``current_index`` values.
+    counter = 0
+    for group in grouped_transactions:
+      for txn in group:
+        balance += txn.value
 
-      if txn.current_index != i:
-        yield (
-          'Transaction {i} has invalid current index value '
-          '(expected {i}, actual {actual}).'.format(
-            actual  = txn.current_index,
-            i       = i,
+        if txn.bundle_hash != bundle_hash:
+          yield 'Transaction {i} has invalid bundle hash.'.format(
+            i = counter,
           )
-        )
 
-      if txn.last_index != last_index:
-        yield (
-          'Transaction {i} has invalid last index value '
-          '(expected {expected}, actual {actual}).'.format(
-            actual    = txn.last_index,
-            expected  = last_index,
-            i         = i,
+        if txn.current_index != counter:
+          yield (
+            'Transaction {i} has invalid current index value '
+            '(expected {i}, actual {actual}).'.format(
+              actual  = txn.current_index,
+              i       = counter,
+            )
           )
-        )
 
+        if txn.last_index != last_index:
+          yield (
+            'Transaction {i} has invalid last index value '
+            '(expected {expected}, actual {actual}).'.format(
+              actual    = txn.last_index,
+              expected  = last_index,
+              i         = counter,
+            )
+          )
+
+        counter += 1
+
+    # Bundle must be balanced (spends must match inputs).
     if balance != 0:
       yield (
         'Bundle has invalid balance (expected 0, actual {actual}).'.format(
@@ -698,84 +725,58 @@ class BundleValidator(object):
     # Signature validation is only meaningful if the transactions are
     # otherwise valid.
     if not self._errors:
-      i = 0
-      while i <= last_index:
-        txn = self.bundle[i]
+      for group in grouped_transactions:
+        # Signature validation only applies to inputs.
+        if group[0].value >= 0:
+          continue
 
-        if txn.value < 0:
-          signature_fragments = [txn.signature_message_fragment]
+        signature_valid = True
+        signature_fragments = []
+        for j, txn in enumerate(group): # type: Tuple[int, Transaction]
+          if (j > 0) and (txn.value != 0):
+            # Input is malformed; signature fragments after the first
+            # should have zero value.
+            yield (
+              'Transaction {i} has invalid amount '
+              '(expected 0, actual {actual}).'.format(
+                actual = txn.value,
 
-          # The following transaction(s) should contain additional
-          # fragments.
-          fragments_valid = True
-          j = 0
-          for j in range(1, AddressGenerator.DIGEST_ITERATIONS):
-            i += 1
-            try:
-              next_txn = self.bundle[i]
-            except IndexError:
-              yield (
-                'Reached end of bundle while looking for '
-                'signature fragment {j} for transaction {i}.'.format(
-                  i = txn.current_index,
-                  j = j+1,
-                )
+                # If we get to this point, we know that the
+                # ``current_index`` value for each transaction can be
+                # trusted.
+                i = txn.current_index,
               )
-              fragments_valid = False
-              break
-
-            if next_txn.address != txn.address:
-              yield (
-                'Unable to find signature fragment {j} '
-                'for transaction {i}.'.format(
-                  i = txn.current_index,
-                  j = j+1,
-                )
-              )
-              fragments_valid = False
-              break
-
-            if next_txn.value != 0:
-              yield (
-                'Transaction {i} has invalid amount '
-                '(expected 0, actual {actual}).'.format(
-                  actual  = next_txn.value,
-                  i       = next_txn.current_index,
-                )
-              )
-              fragments_valid = False
-              # Keep going, just in case there's another signature
-              # fragment next (so that we skip it in the next iteration
-              # of the outer loop).
-              continue
-
-            signature_fragments.append(next_txn.signature_message_fragment)
-
-          if fragments_valid:
-            signature_valid = validate_signature_fragments(
-              fragments   = signature_fragments,
-              hash_       = txn.bundle_hash,
-              public_key  = txn.address,
             )
 
-            if not signature_valid:
-              yield (
-                'Transaction {i} has invalid signature '
-                '(using {fragments} fragments).'.format(
-                  fragments = len(signature_fragments),
-                  i         = txn.current_index,
-                )
+            # We won't be able to validate the signature, but continue
+            # anyway, so that we can check that the other transactions
+            # in the group have the correct ``value``.
+            signature_valid = False
+            continue
+
+          signature_fragments.append(txn.signature_message_fragment)
+
+        # After collecting the signature fragment from each transaction
+        # in the group, run it through the validator.
+        if signature_valid:
+          signature_valid = validate_signature_fragments(
+            fragments   = signature_fragments,
+            hash_       = txn.bundle_hash,
+            public_key  = txn.address,
+          )
+
+          if not signature_valid:
+            yield (
+              'Transaction {i} has invalid signature '
+              '(using {fragments} fragments).'.format(
+                fragments = len(signature_fragments),
+
+                # If we get to this point, we know that the
+                # ``current_index`` value for each transaction can be
+                # trusted.
+                i = group[0].current_index,
               )
-
-          # Skip signature fragments in the next iteration.
-          # Note that it's possible to have
-          # ``j < AddressGenerator.DIGEST_ITERATIONS`` if the bundle is
-          # badly malformed.
-          i += j
-
-        else:
-          # No signature to validate; skip this transaction.
-          i += 1
+            )
 
 
 class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
@@ -982,7 +983,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
       # Signatures require additional transactions to store, due to
       # transaction length limit.
       # Subtract 1 to account for the transaction we just added.
-      for _ in range(AddressGenerator.DIGEST_ITERATIONS - 1):
+      for _ in range(addy.security_level - 1):
         self._transactions.append(ProposedTransaction(
           address = addy,
           tag     = self.tag,
@@ -1092,6 +1093,20 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
             },
           )
 
+        if txn.address.security_level is None:
+          raise with_context(
+            exc = ValueError(
+              'Unable to sign input {input}; ``security_level`` is None '
+              '(``exc.context`` has more info).'.format(
+                input = txn.address,
+              ),
+            ),
+
+            context = {
+              'transaction': txn,
+            },
+          )
+
         signature_fragment_generator =\
           self._create_signature_fragment_generator(key_generator, txn)
 
@@ -1099,11 +1114,11 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         # so we have to split the entire signature among the extra
         # transactions we created for this input in
         # :py:meth:`add_inputs`.
-        for j in range(AddressGenerator.DIGEST_ITERATIONS):
+        for j in range(txn.address.security_level):
           self[i+j].signature_message_fragment =\
             next(signature_fragment_generator)
 
-        i += AddressGenerator.DIGEST_ITERATIONS
+        i += txn.address.security_level
       else:
         # No signature needed (nor even possible, in some cases); skip
         # this transaction.
@@ -1121,7 +1136,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     return SignatureFragmentGenerator(
       private_key = key_generator.get_keys(
         start       = txn.address.key_index,
-        iterations  = AddressGenerator.DIGEST_ITERATIONS
+        iterations  = txn.address.security_level,
       )[0],
 
       hash_= txn.bundle_hash,

@@ -267,10 +267,12 @@ class AddressGenerator(Iterable[Address]):
     sponge.absorb(digest.as_trits())
     sponge.squeeze(address_trits)
 
-    address = Address.from_trits(address_trits)
-    address.key_index = digest.key_index
+    return Address.from_trits(
+      trits = address_trits,
 
-    return address
+      key_index       = digest.key_index,
+      security_level  = digest.security_level,
+    )
 
   def _generate_address(self, key_iterator):
     # type: (KeyIterator) -> Address

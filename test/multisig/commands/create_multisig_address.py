@@ -13,7 +13,6 @@ from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import CreateMultisigAddressCommand
 from iota.multisig.types import MultisigAddress
-from mock import patch
 from six import binary_type, text_type
 
 

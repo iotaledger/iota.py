@@ -10,7 +10,7 @@ from iota import Address
 from iota.crypto.addresses import AddressGenerator, MemoryAddressCache
 from iota.crypto.signing import KeyIterator
 from iota.crypto.types import Seed
-from mock import Mock, patch
+from mock import patch
 
 
 class AddressGeneratorTestCase(TestCase):
@@ -286,18 +286,35 @@ class AddressGeneratorTestCase(TestCase):
 
 
 class MemoryAddressCacheTestCase(TestCase):
+  # noinspection SpellCheckingInspection
   def setUp(self):
     super(MemoryAddressCacheTestCase, self).setUp()
 
     # Define some values we can reuse across tests.
-    # noinspection SpellCheckingInspection
-    self.addy =\
+    self.seed =\
+      Seed(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999JCQEVD'
+        b'XENAEEIA9FU9YGTBDEZGRGZ9VE9CLFSHUAGBODMAY',
+      )
+
+    self.addy_1 =\
       Address(
         trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999J9XDHH'
-          b'LHKET9PHTEUAHFFCDCP9ECIDPALFMFSCTCIHMD9CY',
+          b'YWEZSDHGKJMLAFTVLMXOOZTWL9DNFMXP9ZVEBFQD'
+          b'LSTDIVRQSLBVIKGTYVKZZHOLGCGNB9JSZECIRNAJB',
 
-        key_index = 42,
+        key_index       = 0,
+        security_level  = 2,
+      )
+
+    self.addy_2 =\
+      Address(
+        trytes =
+          b'KPBNMBSXNJLOJPRQXWEPMYFDKHMJMNPRORQRBXSK'
+          b'LWPVGCAAMNNUDUVJVVMJGRAFQTDYZHMHK9NXWAUYB',
+
+        key_index       = 1,
+        security_level  = 2,
       )
 
   def tearDown(self):
@@ -314,65 +331,45 @@ class MemoryAddressCacheTestCase(TestCase):
     # Install the cache globally.
     AddressGenerator.cache = MemoryAddressCache()
 
-    mock_generate_address = Mock(return_value=self.addy)
+    generator_1 = AddressGenerator(self.seed)
 
-    with patch(
-        'iota.crypto.addresses.AddressGenerator._generate_address',
-        mock_generate_address,
-    ):
-      generator1 = AddressGenerator(Seed.random())
+    # The second time we try to generate the same address, it is
+    # fetched from the cache.
+    generated_addy_1 = generator_1.get_addresses(self.addy_1.key_index)[0]
+    generated_addy_2 = generator_1.get_addresses(self.addy_1.key_index)[0]
+    self.assertEqual(id(generated_addy_2), id(generated_addy_1))
 
-      addy1 = generator1.get_addresses(42)
-      mock_generate_address.assert_called_once()
+    # Create a new AddressGenerator and verify it uses the same
+    # cache.
+    generator_2 = AddressGenerator(generator_1.seed)
 
-      # The second time we try to generate the same address, it is
-      # fetched from the cache.
-      addy2 = generator1.get_addresses(42)
-      mock_generate_address.assert_called_once()
-      self.assertEqual(addy2, addy1)
-
-      # Create a new AddressGenerator and verify it uses the same
-      # cache.
-      generator2 = AddressGenerator(generator1.seed)
-
-      # Cache is global, so the cached address is returned again.
-      addy3 = generator2.get_addresses(42)
-      mock_generate_address.assert_called_once()
-      self.assertEqual(addy3, addy1)
+    # Cache is global, so the cached address is returned again.
+    generated_addy_3 = generator_2.get_addresses(self.addy_1.key_index)[0]
+    self.assertEqual(id(generated_addy_3), id(generated_addy_1))
 
   def test_local_cache(self):
     """
     Installing a cache only for a single instance of
     :py:class:`AddressGenerator`.
     """
-    mock_generate_address = Mock(return_value=self.addy)
+    # Install the cache locally.
+    generator_1 = AddressGenerator(seed=self.seed, security_level=2)
+    generator_1.cache = MemoryAddressCache()
 
-    with patch(
-        'iota.crypto.addresses.AddressGenerator._generate_address',
-        mock_generate_address,
-    ):
-      generator1 = AddressGenerator(Seed.random())
+    # The second time we try to generate the same address, it is
+    # fetched from the cache.
+    generated_addy_1 = generator_1.get_addresses(self.addy_1.key_index)[0]
+    generated_addy_2 = generator_1.get_addresses(self.addy_1.key_index)[0]
+    self.assertEqual(id(generated_addy_2), id(generated_addy_1))
 
-      # Install the cache locally.
-      generator1.cache = MemoryAddressCache()
+    # Create a new instance to verify it has its own cache.
+    generator_2 = AddressGenerator(seed=self.seed, security_level=2)
+    generated_addy_3 = generator_2.get_addresses(self.addy_1.key_index)[0]
 
-      addy1 = generator1.get_addresses(42)
-      mock_generate_address.assert_called_once()
-
-      # The second time we try to generate the same address, it is
-      # fetched from the cache.
-      addy2 = generator1.get_addresses(42)
-      mock_generate_address.assert_called_once()
-      self.assertEqual(addy2, addy1)
-
-      # Create a new instance to verify it has its own cache.
-      generator2 = AddressGenerator(generator1.seed)
-
-      # The generator has its own cache instance, so even though the
-      # resulting address is the same, it is not fetched from cache.
-      addy3 = generator2.get_addresses(42)
-      self.assertEqual(mock_generate_address.call_count, 2)
-      self.assertEqual(addy3, addy1)
+    # The generator has its own cache instance, so even though the
+    # resulting address is the same, it is not fetched from cache.
+    self.assertEqual(generated_addy_3, generated_addy_1)
+    self.assertNotEqual(id(generated_addy_3), id(generated_addy_1))
 
   def test_cache_miss_key_index(self):
     """
@@ -380,19 +377,41 @@ class MemoryAddressCacheTestCase(TestCase):
     """
     AddressGenerator.cache = MemoryAddressCache()
 
-    mock_generate_address = Mock(return_value=self.addy)
+    # Populate the cache.
+    generator_1 = AddressGenerator(seed=self.seed, security_level=2)
+    generator_1.get_addresses(self.addy_1.key_index)
 
-    with patch(
-        'iota.crypto.addresses.AddressGenerator._generate_address',
-        mock_generate_address,
-    ):
-      generator = AddressGenerator(Seed.random())
+    # Same seed, same security level, different key index.
+    generator_2 = AddressGenerator(seed=self.seed, security_level=2)
+    generated_addy = generator_2.get_addresses(self.addy_2.key_index)[0]
 
-      generator.get_addresses(42)
-      mock_generate_address.assert_called_once()
+    # Different key index, so cached address is not returned.
+    self.assertEqual(generated_addy, self.addy_2)
 
-      generator.get_addresses(43)
-      self.assertEqual(mock_generate_address.call_count, 2)
+  def test_cache_miss_security_level(self):
+    """
+    Cached addresses are also keyed by security level.
+    """
+    AddressGenerator.cache = MemoryAddressCache()
+
+    # Populate the cache.
+    generator_1 = AddressGenerator(seed=self.seed, security_level=2)
+    generator_1.get_addresses(self.addy_1.key_index)
+
+    # Same seed, same key index, but different security level.
+    generator_2 = AddressGenerator(seed=self.seed, security_level=3)
+    generated_addy = generator_2.get_addresses(self.addy_1.key_index)[0]
+
+    # Different security level, so the cached address is not returned.
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      generated_addy,
+
+      Address(
+        b'AJZTKXRPHBPDTOWMXPSNXTNTVSMVROCZQBQFTEQO'
+        b'MEACOUCB9PCRINJCCQTHERSHCI9WRIGBVHZQKCERK',
+      ),
+    )
 
   def test_cache_miss_seed(self):
     """
@@ -400,19 +419,33 @@ class MemoryAddressCacheTestCase(TestCase):
     """
     AddressGenerator.cache = MemoryAddressCache()
 
-    mock_generate_address = Mock(return_value=self.addy)
+    # Populate the cache.
+    generator_1 = AddressGenerator(seed=self.seed, security_level=2)
+    generator_1.get_addresses(self.addy_1.key_index)
 
-    with patch(
-        'iota.crypto.addresses.AddressGenerator._generate_address',
-        mock_generate_address,
-    ):
-      generator1 = AddressGenerator(Seed.random())
-      generator1.get_addresses(42)
-      mock_generate_address.assert_called_once()
+    # Same key index, same security level, but different seed.
+    # noinspection SpellCheckingInspection
+    generator_2 =\
+      AddressGenerator(
+        seed =
+          Seed(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999BCIGM9'
+            b'ZEF9HCDAWAFHUBDCBEYDGEBGQEP9ACBGFAACWFYEP',
+          ),
 
-      generator2 = AddressGenerator(Seed.random())
-      generator2.get_addresses(42)
-      self.assertEqual(mock_generate_address.call_count, 2)
+        security_level = 2,
+      )
+
+    # Different seed, so cached address is not returned.
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      generator_2.get_addresses(self.addy_1.key_index)[0],
+
+      Address(
+        b'FMYUDWUDWSWRLCFTEFJXP9IDZNCLTCFJLF9MXVCW'
+        b'SSAEUGGDXKFML9CDEA9LNKNLWYVEDHLJNTXBWQSZT',
+      ),
+    )
 
   def test_thread_safety(self):
     """
@@ -421,12 +454,10 @@ class MemoryAddressCacheTestCase(TestCase):
     """
     AddressGenerator.cache = MemoryAddressCache()
 
-    seed = Seed.random()
-
     generated = []
 
     def get_address():
-      generator = AddressGenerator(seed)
+      generator = AddressGenerator(self.seed)
       generated.extend(generator.get_addresses(0))
 
     # noinspection PyUnusedLocal
@@ -438,7 +469,11 @@ class MemoryAddressCacheTestCase(TestCase):
 
       # Note that in this test, the address generator always returns a
       # new instance.
-      return Address(self.addy, key_index=key_iterator.current)
+      return Address(
+        key_index       = key_iterator.current,
+        security_level  = key_iterator.security_level,
+        trytes          = self.addy_1,
+      )
 
     with patch(
         'iota.crypto.addresses.AddressGenerator._generate_address',
@@ -460,6 +495,4 @@ class MemoryAddressCacheTestCase(TestCase):
     # key index.
     expected = generated[0]
     for actual in generated[1:]:
-      # Compare `id` values instead of using ``self.assertIs`` because
-      # the failure message is a bit easier to understand.
       self.assertEqual(id(actual), id(expected))

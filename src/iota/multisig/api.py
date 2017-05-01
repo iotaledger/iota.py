@@ -2,12 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Iterable
+from typing import Iterable, Optional
 
-from iota import Iota
+from iota import Address, Iota, ProposedTransaction
 from iota.commands import discover_commands
 from iota.crypto.types import Digest
 from iota.multisig import commands
+from iota.multisig.types import MultisigAddress
 
 __all__ = [
   'MultisigIota',
@@ -111,4 +112,71 @@ class MultisigIota(Iota):
       seed  = self.seed,
       index = index,
       count = count,
+    )
+
+  def prepare_multisig_transfer(
+      self,
+      transfers,
+      multisig_input,
+      change_address=None,
+  ):
+    # type: (Iterable[ProposedTransaction], MultisigAddress, Optional[Address]) -> dict
+    """
+    Prepares a bundle that authorizes the spending of IOTAs from a
+    multisig address.
+
+    Note: if you want to spend IOTAs from non-multisig addresses, or if
+    you want to create 0-value transfers (i.e., that don't require
+    inputs), you can use :py:meth:`iota.api.Iota.prepare_transfer`
+    instead.
+
+    :param transfers:
+      Transaction objects to prepare.
+
+    :param multisig_input:
+      The multisig address to use as the input for the transfers.
+
+      Note: a bundle may contain only one multisig input.
+
+    :param change_address:
+      If inputs are provided, any unspent amount will be sent to this
+      address.  If the bundle has no unspent inputs, ``change_address`
+      is ignored.
+
+      Unlike :py:meth:`iota.api.Iota.prepare_transfer`, this method
+      will NOT generate a change address automatically.  If there are
+      unspent inputs and ``change_address`` is empty, an exception will
+      be raised.
+
+      This is because multisig transactions typically involve multiple
+      individuals, and it would be unfair to the participants if we
+      generated a change address automatically using the seed of
+      whoever happened to run the ``prepare_multisig_transfer`` method!
+
+      Note: this is not a substitute for due diligence! Always verify
+      the details of every transaction in a bundle (including the
+      change transaction) before signing the input(s)!
+
+    :return:
+      Dict containing the following values::
+
+         {
+           'bundle': Bundle,
+             Bundle object, missing signatures for the multisig input.
+         }
+
+      In order to authorize the spending of IOTAs from the multisig
+      input, you must generate the correct private keys and invoke
+      their :py:meth:`iota.crypto.types.PrivateKey.sign_bundle` methods
+      in the correct order (same order that was used to generate the
+      multisig address in the first place).
+
+      Once the correct signatures are applied, you can then perform PoW
+      and broadcast the bundle using
+      :py:meth:`iota.api.Iota.send_trytes`.
+    """
+    return commands.PrepareMultisigTransferCommand(self.adapter)(
+      changeAddress = change_address,
+      multisigInput = multisig_input,
+      transfers     = transfers,
     )

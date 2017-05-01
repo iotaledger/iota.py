@@ -17,7 +17,7 @@ __all__ = [
 
 class CreateMultisigAddressCommand(FilterCommand):
   """
-  Implements `createMultisigAddress` multisig command.
+  Implements `create_multisig_address` multisig command.
 
   References:
     - :py:meth:`iota.multisig.api.MultisigIota.create_multisig_address`

@@ -9,6 +9,7 @@ from filters.test import BaseFilterTestCase
 from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from mock import patch
@@ -31,9 +32,10 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'seed':   Seed(self.seed),
-      'index':  1,
-      'count':  1,
+      'seed':           Seed(self.seed),
+      'index':          1,
+      'count':          1,
+      'securityLevel':  2,
     }
 
     filter_ = self._filter(request)
@@ -43,7 +45,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_optional_parameters_excluded(self):
     """
-    Request omits ``index`` and ``count``.
+    Request omits optional parameters.
     """
     filter_ = self._filter({
       'seed': Seed(self.seed),
@@ -54,9 +56,10 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   Seed(self.seed),
-        'index':  0,
-        'count':  None,
+        'seed':           Seed(self.seed),
+        'index':          0,
+        'count':          None,
+        'securityLevel':  AddressGenerator.DEFAULT_SECURITY_LEVEL,
       },
     )
 
@@ -70,8 +73,9 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       'seed': binary_type(self.seed),
 
       # These values must be integers, however.
-      'index': 100,
-      'count': 8,
+      'index':          100,
+      'count':          8,
+      'securityLevel':  2,
     })
 
     self.assertFilterPasses(filter_)
@@ -79,9 +83,10 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   Seed(self.seed),
-        'index':  100,
-        'count':  8,
+        'seed':           Seed(self.seed),
+        'index':          100,
+        'count':          8,
+        'securityLevel':  2,
       },
     )
 
@@ -103,9 +108,10 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed':   Seed(self.seed),
-        'index':  None,
-        'count':  1,
+        'seed':           Seed(self.seed),
+        'index':          None,
+        'count':          1,
+        'securityLevel':  2,
 
         # Some men just want to watch the world burn.
         'foo': 'bar',
@@ -253,6 +259,51 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'index': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_small(self):
+    """
+    ``securityLevel`` is < 1.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_big(self):
+    """
+    ``securityLevel`` is > 3.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  4,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Max.CODE_TOO_BIG],
+      },
+    )
+
+  def test_fail_security_level_wrong_type(self):
+    """
+    ``securityLevel`` is not an int.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  '2',
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
       },
     )
 

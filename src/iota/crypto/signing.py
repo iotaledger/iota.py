@@ -145,8 +145,8 @@ class KeyGenerator(object):
 
     return keys
 
-  def create_iterator(self, start=0, step=1, iterations=1):
-    # type: (int, int) -> KeyIterator
+  def create_iterator(self, start=0, step=1, security_level=1):
+    # type: (int, int, int) -> KeyIterator
     """
     Creates a generator that can be used to progressively generate new
     keys.
@@ -166,21 +166,21 @@ class KeyGenerator(object):
       Warning: The generator may take awhile to advance between
       iterations if ``step`` is a large number!
 
-    :param iterations:
+    :param security_level:
       Number of _transform iterations to apply to each key.
       Must be >= 1.
 
       Increasing this value makes key generation slower, but more
       resistant to brute-forcing.
     """
-    return KeyIterator(self.seed, start, step, iterations)
+    return KeyIterator(self.seed, start, step, security_level)
 
 
 class KeyIterator(Iterator[PrivateKey]):
   """
   Creates PrivateKeys from a set of iteration parameters.
   """
-  def __init__(self, seed, start, step, iterations):
+  def __init__(self, seed, start, step, security_level):
     # type: (Seed, int, int, int) -> None
     super(KeyIterator, self).__init__()
 
@@ -189,27 +189,27 @@ class KeyIterator(Iterator[PrivateKey]):
         exc = ValueError('``start`` cannot be negative.'),
 
         context = {
-          'start':      start,
-          'step':       step,
-          'iterations': iterations,
+          'start':          start,
+          'step':           step,
+          'security_level': security_level,
         },
       )
 
-    if iterations < 1:
+    if security_level < 1:
       raise with_context(
-        exc = ValueError('``iterations`` must be >= 1.'),
+        exc = ValueError('``security_level`` must be >= 1.'),
 
         context = {
-          'start':      start,
-          'step':       step,
-          'iterations': iterations,
+          'start':          start,
+          'step':           step,
+          'security_level': security_level,
         },
       )
 
-    self.seed       = seed
-    self.start      = start
-    self.step       = step
-    self.iterations = iterations
+    self.security_level = security_level
+    self.seed           = seed
+    self.start          = start
+    self.step           = step
 
     self.current = self.start
 
@@ -225,10 +225,10 @@ class KeyIterator(Iterator[PrivateKey]):
     while self.current >= 0:
       sponge = self._create_sponge(self.current)
 
-      key     = [0] * (self.fragment_length * self.iterations)
+      key     = [0] * (self.fragment_length * self.security_level)
       buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
 
-      for fragment_seq in range(self.iterations):
+      for fragment_seq in range(self.security_level):
         # Squeeze trits from the buffer and append them to the key, one
         # hash at a time.
         for hash_seq in range(self.hashes_per_fragment):
@@ -297,7 +297,7 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
   key.
   """
   def __init__(self, private_key, hash_):
-    # type: (PrivateKey, TryteString) -> None
+    # type: (PrivateKey, Hash) -> None
     super(SignatureFragmentGenerator, self).__init__()
 
     self._key_chunks      = private_key.iter_chunks(FRAGMENT_LENGTH)

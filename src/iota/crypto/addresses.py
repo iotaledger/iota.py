@@ -41,11 +41,22 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
     self._lock = self.LockType()
 
   @abstract_method
-  def get(self, seed, index):
-    # type: (Seed, int) -> Optional[Address]
+  def get(self, seed, index, security_level):
+    # type: (Seed, int, int) -> Optional[Address]
     """
     Retrieves an address from the cache.
     Returns ``None`` if the address hasn't been cached yet.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
+
+  @abstract_method
+  def set(self, seed, index, security_level, address):
+    # type: (Seed, int, int, Address) -> None
+    """
+    Adds an address to the cache, overwriting the existing address if
+    set.
     """
     raise NotImplementedError(
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
@@ -63,26 +74,21 @@ class BaseAddressCache(with_metaclass(ABCMeta)):
     with self._lock:
       yield
 
-  @abstract_method
-  def set(self, seed, index, address):
-    # type: (Seed, int, Address) -> None
-    """
-    Adds an address to the cache, overwriting the existing address if
-    set.
-    """
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
-
   @staticmethod
-  def _gen_cache_key(seed, index):
-    # type: (Seed, int) -> binary_type
+  def _gen_cache_key(seed, index, security_level):
+    # type: (Seed, int, int) -> binary_type
     """
     Generates an obfuscated cache key so that we're not storing seeds
     in cleartext.
     """
     h = hashlib.new('sha256')
-    h.update(binary_type(seed) + b':' + binary_type(index))
+
+    h.update(
+        binary_type(seed)
+      + b':' + binary_type(index)
+      + b':' + binary_type(security_level)
+    )
+
     return h.digest()
 
 
@@ -95,13 +101,13 @@ class MemoryAddressCache(BaseAddressCache):
 
     self.cache = {} # type: Dict[binary_type, Address]
 
-  def get(self, seed, index):
-    # type: (Seed, int) -> Optional[Address]
-    return self.cache.get(self._gen_cache_key(seed, index))
+  def get(self, seed, index, security_level):
+    # type: (Seed, int, int) -> Optional[Address]
+    return self.cache.get(self._gen_cache_key(seed, index, security_level))
 
-  def set(self, seed, index, address):
-    # type: (Seed, int, Address) -> None
-    self.cache[self._gen_cache_key(seed, index)] = address
+  def set(self, seed, index, security_level, address):
+    # type: (Seed, int, int, Address) -> None
+    self.cache[self._gen_cache_key(seed, index, security_level)] = address
 
 
 class AddressGenerator(Iterable[Address]):
@@ -210,11 +216,11 @@ class AddressGenerator(Iterable[Address]):
     addresses = []
     for _ in range(count):
       try:
-        next_key = next(generator)
+        next_addy = next(generator)
       except StopIteration:
         break
       else:
-        addresses.append(next_key)
+        addresses.append(next_addy)
 
     return addresses
 
@@ -244,13 +250,23 @@ class AddressGenerator(Iterable[Address]):
     while True:
       if self.cache:
         with self.cache.acquire_lock():
-          address = self.cache.get(self.seed, key_iterator.current)
+          address =\
+            self.cache.get(
+              seed            = self.seed,
+              index           = key_iterator.current,
+              security_level  = key_iterator.security_level,
+            )
 
           if address:
             key_iterator.advance()
           else:
             address = self._generate_address(key_iterator)
-            self.cache.set(self.seed, address.key_index, address)
+            self.cache.set(
+              seed            = self.seed,
+              index           = address.key_index,
+              security_level  = address.security_level,
+              address         = address,
+            )
       else:
         address = self._generate_address(key_iterator)
 

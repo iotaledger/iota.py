@@ -5,21 +5,85 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from filters.test import BaseFilterTestCase
+from iota import Address, ProposedTransaction
 from iota.adapter import MockAdapter
+from iota.crypto.types import Digest
 from iota.multisig import MultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
+from iota.multisig.types import MultisigAddress
 
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
   filter_type = PrepareMultisigTransferCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(PrepareMultisigTransferRequestFilterTestCase, self).setUp()
+
+    # Define some tryte sequences that we can reuse between tests.
+    self.digest_1 =\
+      Digest(
+        trytes =
+          b'FWNEPVJNGUKTSHSBDO9AORBCVWWLVXC9KAMKYYNKPYNJDKSAUURI9ELKOEEYPKVTYP'
+          b'CKOCJQESYFEMINIFKX9PDDGRBEEHYYXCJW9LHGWFZGHKCPVDBGMGQKIPCNKNITGMZT'
+          b'DIWVUB9PCHCOPHMIWKSUKRHZOJPMAY',
+
+        key_index = 0,
+      )
+
+    self.digest_2 =\
+      Digest(
+        trytes =
+          b'PAIRLDJQY9XAUSKIGCTHRJHZVARBEY9NNHYJ9UI9HWWZXFSDWEZEGDCWNVVYSYDV9O'
+          b'HTR9NGGZURISWTNECFTCMEWQQFJ9VKLFPDTYJYXC99OLGRH9OSFJLMEOGHFDHZYEAF'
+          b'IMIZTJRBQUVCR9U9ZWTMUXTUEOUBLC',
+
+        key_index = 0,
+      )
+
+    self.trytes_1 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999IIPEM9'
+      b'LA9FLHEGHDACSA9DOBQHQCX9BBHCFDIIMACARHA9B'
+    )
+
+    self.trytes_2 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999BGUDVE'
+      b'DGH9WFQDEDVETCOGEGCDI9RFHGFGXBI99EJICHNEM'
+    )
+
+    self.trytes_3 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999XBGEUC'
+      b'LF9EIFXHM9KHQANBLBHFVGTEGBWHNAKFDGZHYGCHI'
+    )
+
   def test_pass_happy_path(self):
     """
     Request is valid.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    request = {
+      'changeAddress':
+        Address(self.trytes_1),
+
+      'multisigInput':
+        MultisigAddress(
+          digests = [self.digest_1, self.digest_2],
+          trytes  = self.trytes_2,
+        ),
+
+      'transfers':
+        [
+          ProposedTransaction(
+            address = Address(self.trytes_3),
+            value   = 42,
+          ),
+        ],
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
 
   def test_pass_compatible_types(self):
     """

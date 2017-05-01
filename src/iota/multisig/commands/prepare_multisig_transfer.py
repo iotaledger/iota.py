@@ -33,5 +33,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
 class PrepareMultisigTransferRequestFilter(RequestFilter):
   def __init__(self):
     super(PrepareMultisigTransferRequestFilter, self).__init__({
-
+      'changeAddress': None,
+      'multisigInput': None,
+      'transfers': None,
     })

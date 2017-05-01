@@ -235,8 +235,30 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     ``transfers`` is not an array.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        # ``transfers`` must be an array, even if there's only one
+        # transaction.
+        'transfers':
+          ProposedTransaction(
+            address = Address(self.trytes_3),
+            value   = 42,
+          ),
+      },
+
+      {
+        'transfers': [f.Array.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_transfers_empty(self):
     """

@@ -96,7 +96,7 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
       ProposedTransaction(
         address = Address(self.trytes_3),
         value   = 42,
-      ),
+      )
 
     filter_ =\
       self._filter({
@@ -138,7 +138,7 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
       ProposedTransaction(
         address = Address(self.trytes_3),
         value   = 42,
-      ),
+      )
 
     filter_ =\
       self._filter({
@@ -288,8 +288,39 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     ``transfers`` is an array, but it contains invalid values.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        'transfers':
+          [
+            None,
+            42,
+
+            # This one's valid, actually; just making sure that the
+            # filter doesn't cheat.
+            ProposedTransaction(
+              address = Address(self.trytes_3),
+              value   = 42,
+            ),
+
+            Address(self.trytes_3),
+          ],
+      },
+
+      {
+        'transfers.0': [f.Required.CODE_EMPTY],
+        'transfers.1': [f.Type.CODE_WRONG_TYPE],
+        'transfers.3': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_multisigInput_null(self):
     """

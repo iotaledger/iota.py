@@ -211,8 +211,25 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     ``transfers`` is null.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        # On second thought, I changed my mind.
+        'transfers': None,
+      },
+
+      {
+        'transfers': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_transfers_wrong_type(self):
     """

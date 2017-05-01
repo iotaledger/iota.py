@@ -264,8 +264,25 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     ``transfers`` is an array, but it's empty.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        # This is a variation on the ``null`` test.
+        'transfers': [],
+      },
+
+      {
+        'transfers': [f.Required.CODE_EMPTY],
+      },
+    )
 
   def test_fail_transfers_contents_invalid(self):
     """

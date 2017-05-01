@@ -60,12 +60,26 @@ class GetNewAddressesCommand(FilterCommand):
 
 
 class GetNewAddressesRequestFilter(RequestFilter):
+  MAX_SECURITY_LEVEL = 3
+  """
+  Max allowed value for ``securityLevel``.
+
+  Note that :py:class:`AddressGenerator` does not enforce a limit, just
+  in case you are sure that you REALLY know what you are doing.
+  """
+
   def __init__(self):
     super(GetNewAddressesRequestFilter, self).__init__(
       {
-        # ``count`` and ``index`` are optional.
+        # Everything except ``seed`` is optional.
         'count':  f.Type(int) | f.Min(1),
         'index':  f.Type(int) | f.Min(0) | f.Optional(default=0),
+
+        'securityLevel':
+              f.Type(int)
+            | f.Min(1)
+            | f.Max(self.MAX_SECURITY_LEVEL)
+            | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
         'seed':   f.Required | Trytes(result_type=Seed),
       },
@@ -73,5 +87,6 @@ class GetNewAddressesRequestFilter(RequestFilter):
       allow_missing_keys = {
         'count',
         'index',
+        'securityLevel',
       },
     )

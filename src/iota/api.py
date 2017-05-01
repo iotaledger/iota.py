@@ -9,6 +9,7 @@ from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
   discover_commands, extended
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from six import with_metaclass
 
@@ -605,8 +606,13 @@ class Iota(StrictIota):
     """
     return extended.GetLatestInclusionCommand(self.adapter)(hashes=hashes)
 
-  def get_new_addresses(self, index=0, count=1):
-    # type: (int, Optional[int]) -> dict
+  def get_new_addresses(
+      self,
+      index = 0,
+      count = 1,
+      security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+  ):
+    # type: (int, Optional[int], int) -> dict
     """
     Generates one or more new addresses from the seed.
 
@@ -622,6 +628,14 @@ class Iota(StrictIota):
       If ``None``, this method will scan the Tangle to find the next
       available unused address and return that.
 
+    :param security_level:
+      Number of iterations to use when generating new addresses.
+
+      Larger values take longer, but the resulting signatures are more
+      secure.
+
+      This value must be between 1 and 3, inclusive.
+
     :return:
       Dict with the following items::
 
@@ -634,9 +648,10 @@ class Iota(StrictIota):
       - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
     """
     return extended.GetNewAddressesCommand(self.adapter)(
-      seed  = self.seed,
-      index = index,
-      count = count,
+      count         = count,
+      index         = index,
+      securityLevel = security_level,
+      seed          = self.seed,
     )
 
   def get_transfers(self, start=0, stop=None, inclusion_states=False):

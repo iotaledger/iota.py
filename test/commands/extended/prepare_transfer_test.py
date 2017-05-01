@@ -2796,7 +2796,7 @@ class MockSignatureFragmentGenerator(object):
   def __init__(
       self,
       fragments = None,
-      length    = AddressGenerator.DIGEST_ITERATIONS
+      length    = AddressGenerator.DEFAULT_SECURITY_LEVEL
   ):
     # type: (Optional[Iterable[TryteString]], int) -> None
     """

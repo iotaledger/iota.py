@@ -116,10 +116,10 @@ class AddressGenerator(Iterable[Address]):
   ``AddressGenerator`` internally, so you get the best of both worlds
   when you use the API (:
   """
-  DIGEST_ITERATIONS = 2
+  DEFAULT_SECURITY_LEVEL = 2
   """
-  Number of iterations to use when creating digests, used to create
-  addresses.
+  Default number of iterations to use when creating digests, used to
+  create addresses.
 
   Note: this also impacts a few other things like length of transaction
   signatures.
@@ -237,7 +237,7 @@ class AddressGenerator(Iterable[Address]):
     """
     key_iterator = (
       KeyGenerator(self.seed)
-        .create_iterator(start, step, iterations=self.DIGEST_ITERATIONS)
+        .create_iterator(start, step, iterations=self.DEFAULT_SECURITY_LEVEL)
     )
 
     while True:

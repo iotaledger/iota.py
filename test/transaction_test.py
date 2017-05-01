@@ -1049,7 +1049,7 @@ They both licked their dry lips.
 
     # Because transaction signatures are so large, each input
     # transaction must be split into multiple parts.
-    expected_length = 2 + (2 * AddressGenerator.DIGEST_ITERATIONS)
+    expected_length = 2 + (2 * AddressGenerator.DEFAULT_SECURITY_LEVEL)
 
     self.assertEqual(len(self.bundle), expected_length)
 
@@ -1125,7 +1125,7 @@ They both licked their dry lips.
 
     # The change transaction is not created until the bundle is
     # finalized.
-    expected_length = 2 + (2 * AddressGenerator.DIGEST_ITERATIONS)
+    expected_length = 2 + (2 * AddressGenerator.DEFAULT_SECURITY_LEVEL)
 
     self.assertEqual(len(self.bundle), expected_length)
 
@@ -1304,7 +1304,7 @@ They both licked their dry lips.
     # to do here is verify that the method is invoked correctly.
     # noinspection PyUnusedLocal
     def mock_signature_generator(bundle, key_generator, txn):
-      for i in range(AddressGenerator.DIGEST_ITERATIONS):
+      for i in range(AddressGenerator.DEFAULT_SECURITY_LEVEL):
         yield Fragment.from_trits(trits_from_int(i))
 
     with patch(
@@ -1317,7 +1317,7 @@ They both licked their dry lips.
       len(self.bundle),
 
       # Spend txn + input fragments
-      1 + AddressGenerator.DIGEST_ITERATIONS,
+      1 + AddressGenerator.DEFAULT_SECURITY_LEVEL,
     )
 
     # The spending transaction does not have a signature.
@@ -1326,7 +1326,7 @@ They both licked their dry lips.
       Fragment(b''),
     )
 
-    for j in range(AddressGenerator.DIGEST_ITERATIONS):
+    for j in range(AddressGenerator.DEFAULT_SECURITY_LEVEL):
       self.assertEqual(
         self.bundle[j+1].signature_message_fragment,
         Fragment.from_trits(trits_from_int(j)),

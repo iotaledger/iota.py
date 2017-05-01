@@ -12,7 +12,7 @@ iota =\
     # To use sandbox mode, inject a ``SandboxAdapter``.
     adapter = SandboxAdapter(
       # URI of the sandbox node.
-      uri = 'https://sandbox.iotatoken.com/api/v1/',
+      uri = 'https://sandbox.iota.org/api/v1/',
 
       # Access token used to authenticate requests.
       # Contact the node maintainer to get an access token.

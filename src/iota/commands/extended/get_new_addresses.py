@@ -2,9 +2,10 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional
+from typing import Optional, List
 
 import filters as f
+from iota import Address
 
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
@@ -32,20 +33,22 @@ class GetNewAddressesCommand(FilterCommand):
     pass
 
   def _execute(self, request):
-    count = request['count'] # type: Optional[int]
-    index = request['index'] # type: int
-    seed  = request['seed'] # type: Seed
+    count           = request['count'] # type: Optional[int]
+    index           = request['index'] # type: int
+    security_level  = request['securityLevel'] # type: int
+    seed            = request['seed'] # type: Seed
 
     return {
-      'addresses': self._find_addresses(seed, index, count),
+      'addresses': self._find_addresses(seed, index, count, security_level),
     }
 
-  def _find_addresses(self, seed, index, count):
+  def _find_addresses(self, seed, index, count, security_level):
+    # type: (Seed, int, Optional[int], int) -> List[Address]
     """
     Find addresses matching the command parameters.
     """
     # type: (Seed, int, Optional[int]) -> List[Address]
-    generator = AddressGenerator(seed)
+    generator = AddressGenerator(seed, security_level)
 
     if count is None:
       # Connect to Tangle and find the first address without any

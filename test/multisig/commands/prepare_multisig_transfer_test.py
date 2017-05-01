@@ -12,6 +12,7 @@ from iota.crypto.types import Digest
 from iota.multisig import MultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
 from iota.multisig.types import MultisigAddress
+from six import text_type
 
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -354,29 +355,123 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     This is not valid; a bundle may only contain a single multisig
     input.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          [
+            MultisigAddress(
+              digests = [self.digest_1, self.digest_2],
+              trytes  = self.trytes_2,
+            ),
+
+            MultisigAddress(
+              digests = [self.digest_1, self.digest_2],
+              trytes  = self.trytes_2,
+            )
+          ],
+
+        'transfers':
+          [
+            ProposedTransaction(
+              address = Address(self.trytes_3),
+              value   = 42,
+            ),
+          ],
+      },
+
+      {
+        'multisigInput': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_fail_multisigInput_wrong_type(self):
     """
-    ``multisigInput`` is not a MultisigAddress.
+    ``multisigInput`` is not a TrytesCompatible value.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          text_type(self.trytes_2, 'ascii'),
+
+        'transfers':
+          [
+            ProposedTransaction(
+              address = Address(self.trytes_3),
+              value   = 42,
+            ),
+          ],
+      },
+
+      {
+        'multisigInput': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
   def test_pass_changeAddress_multisig_address(self):
     """
     ``changeAddress`` is allowed to be a MultisigAddress.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    change_addy =\
+      MultisigAddress(
+        digests = [self.digest_1, self.digest_2],
+        trytes  = self.trytes_1
+      )
+
+    filter_ = self._filter({
+      'changeAddress': change_addy,
+
+      'multisigInput':
+        MultisigAddress(
+          digests = [self.digest_1, self.digest_2],
+          trytes  = self.trytes_2,
+        ),
+
+      'transfers':
+        [
+          ProposedTransaction(
+            address = Address(self.trytes_3),
+            value   = 42,
+          ),
+        ],
+    })
+
+    self.assertFilterPasses(filter_)
+    self.assertIs(filter_.cleaned_data['changeAddress'], change_addy)
 
   def test_fail_changeAddress_wrong_type(self):
     """
-    ``changeAddress`` is not an Address.
+    ``changeAddress`` is not a TrytesCompatible value.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          text_type(self.trytes_1, 'ascii'),
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        'transfers':
+          [
+            ProposedTransaction(
+              address = Address(self.trytes_3),
+              value   = 42,
+            ),
+          ],
+      },
+
+      {
+        'changeAddress': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
 
 
 class PrepareMultisigTransferCommandTestCase(TestCase):

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-from iota import Address
+from iota import Address, ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.filters import Trytes
 
@@ -41,7 +41,10 @@ class PrepareMultisigTransferRequestFilter(RequestFilter):
 
         'multisigInput': Trytes(result_type=Address),
 
-        'transfers': f.Required | f.Array,
+        'transfers':
+            f.Required
+          | f.Array
+          | f.FilterRepeater(f.Required | f.Type(ProposedTransaction)),
       },
 
       allow_missing_keys = {

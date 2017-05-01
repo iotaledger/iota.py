@@ -41,7 +41,7 @@ class PrepareMultisigTransferRequestFilter(RequestFilter):
 
         'multisigInput': Trytes(result_type=Address),
 
-        'transfers': f.Required,
+        'transfers': f.Required | f.Array,
       },
 
       allow_missing_keys = {

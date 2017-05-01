@@ -161,8 +161,8 @@ class MultisigIota(Iota):
       Dict containing the following values::
 
          {
-           'bundle': Bundle,
-             Bundle object, missing signatures for the multisig input.
+           'bundle': ProposedBundle,
+             Finalized bundle.  The input transactions are not signed.
          }
 
       In order to authorize the spending of IOTAs from the multisig

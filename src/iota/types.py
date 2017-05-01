@@ -656,8 +656,8 @@ class Address(TryteString):
   """
   LEN = Hash.LEN
 
-  def __init__(self, trytes, balance=None, key_index=None):
-    # type: (TrytesCompatible, Optional[int], Optional[int]) -> None
+  def __init__(self, trytes, balance=None, key_index=None, security_level=None):
+    # type: (TrytesCompatible, Optional[int], Optional[int], Optional[int]) -> None
     super(Address, self).__init__(trytes, pad=self.LEN)
 
     self.checksum = None
@@ -701,6 +701,12 @@ class Address(TryteString):
       - :py:class:`iota.crypto.addresses.AddressGenerator`
     """
 
+    self.security_level = security_level
+    """
+    Number of hashes in the digest that was used to generate this
+    address.
+    """
+
   def is_checksum_valid(self):
     # type: () -> bool
     """
@@ -717,11 +723,12 @@ class Address(TryteString):
     Returns the address with a valid checksum attached.
     """
     return Address(
-      trytes    = self.address + self._generate_checksum(),
+      trytes = self.address + self._generate_checksum(),
 
       # Make sure to copy all of the ancillary attributes, too!
-      balance   = self.balance,
-      key_index = self.key_index,
+      balance         = self.balance,
+      key_index       = self.key_index,
+      security_level  = self.security_level,
     )
 
   def _generate_checksum(self):

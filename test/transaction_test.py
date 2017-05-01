@@ -637,8 +637,8 @@ class BundleValidatorTestCase(TestCase):
     """
     validator = BundleValidator(self.bundle)
 
-    self.assertTrue(validator.is_valid())
     self.assertListEqual(validator.errors, [])
+    self.assertTrue(validator.is_valid())
 
   def test_pass_empty(self):
     """
@@ -646,8 +646,8 @@ class BundleValidatorTestCase(TestCase):
     """
     validator = BundleValidator(Bundle())
 
-    self.assertTrue(validator.is_valid())
     self.assertListEqual(validator.errors, [])
+    self.assertTrue(validator.is_valid())
 
   def test_fail_balance_positive(self):
     """
@@ -769,8 +769,7 @@ class BundleValidatorTestCase(TestCase):
       validator.errors,
 
       [
-        'Reached end of bundle while looking for '
-        'signature fragment 2 for transaction 1.'
+        'Transaction 1 has invalid signature (using 1 fragments).',
       ],
     )
 
@@ -794,7 +793,7 @@ class BundleValidatorTestCase(TestCase):
       validator.errors,
 
       [
-        'Unable to find signature fragment 2 for transaction 1.'
+        'Transaction 1 has invalid signature (using 1 fragments).',
       ],
     )
 
@@ -1032,8 +1031,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999VAFFMC'
           b'X9AABIH9AEEGJHKFSHTGYHSFR9DEH9MEDAGGIGK9E',
 
-        balance   = 40,
-        key_index = 0,
+        balance         = 40,
+        key_index       = 0,
+        security_level  = 2,
       ),
 
       Address(
@@ -1041,8 +1041,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999VDR9AD'
           b'OEH9YGGHGDVBCAREVBDHOFAGNDZCPBBAAIUCDGQ9Z',
 
-        balance   = 2,
-        key_index = 1,
+        balance         = 2,
+        key_index       = 1,
+        security_level  = 2,
       ),
     ])
 
@@ -1098,8 +1099,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999VAFFMC'
           b'X9AABIH9AEEGJHKFSHTGYHSFR9DEH9MEDAGGIGK9E',
 
-        balance   = 40,
-        key_index = 0,
+        balance         = 40,
+        key_index       = 0,
+        security_level  = 2,
       ),
 
       Address(
@@ -1107,8 +1109,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999VDR9AD'
           b'OEH9YGGHGDVBCAREVBDHOFAGNDZCPBBAAIUCDGQ9Z',
 
-        balance   = 20,
-        key_index = 1,
+        balance         = 20,
+        key_index       = 1,
+        security_level  = 2,
       ),
     ])
 
@@ -1220,8 +1223,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999LAHFJ9'
           b'Z9QEHGIHTAQFWFAHYEKFDBXHSBM9K9T9S9SBTF99W',
 
-        balance   = 43,
-        key_index = 0,
+        balance         = 43,
+        key_index       = 0,
+        security_level  = 2,
       ),
     ])
 
@@ -1253,8 +1257,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999LAHFJ9'
           b'Z9QEHGIHTAQFWFAHYEKFDBXHSBM9K9T9S9SBTF99W',
 
-        balance   = 41,
-        key_index = 0,
+        balance         = 41,
+        key_index       = 0,
+        security_level  = 2,
       ),
     ])
 
@@ -1286,8 +1291,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999UGYFU9'
           b'TGMHNEN9S9CAIDUBGETHJHFHRAHGRGVF9GTDYHXCE',
 
-        balance   = 42,
-        key_index = 0,
+        balance         = 42,
+        key_index       = 0,
+        security_level  = 2,
       )
     ])
 
@@ -1347,8 +1353,9 @@ They both licked their dry lips.
           b'TESTVALUE9DONTUSEINPRODUCTION99999UGYFU9'
           b'TGMHNEN9S9CAIDUBGETHJHFHRAHGRGVF9GTDYHXCE',
 
-        balance   = 42,
-        key_index = 0,
+        balance         = 42,
+        key_index       = 0,
+        security_level  = 2,
       )
     ])
 

@@ -80,8 +80,8 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       'transfers':      [self.transfer1, self.transfer2],
 
       'inputs': [
-        Address(self.trytes3, key_index=3),
-        Address(self.trytes4, key_index=4),
+        Address(self.trytes3, key_index=3, security_level=2),
+        Address(self.trytes4, key_index=4, security_level=2),
       ],
 
     }
@@ -104,8 +104,8 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       # These have to be :py:class:`Address` instances, so that we can
       # set ``key_index``.
       'inputs': [
-        Address(self.trytes3, key_index=3),
-        Address(self.trytes4, key_index=4),
+        Address(self.trytes3, key_index=3, security_level=2),
+        Address(self.trytes4, key_index=4, security_level=2),
       ],
 
       # These still have to have the correct type, however.
@@ -371,11 +371,15 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
 
           # This is actually valid; I just added it to make sure the
           #   filter isn't cheating!
-          Address(self.trytes1, key_index=1),
+          Address(self.trytes1, key_index=1, security_level=2),
 
           # Inputs must have ``key_index`` set, so that we can generate
           # the correct private key to sign them.
-          Address(b'', key_index=None),
+          Address(b'', key_index=None, security_level=2),
+
+          # Inputs must have ``security_level`` set, so that we know
+          # how many signature fragments to generate.
+          Address(b'', key_index=2),
         ],
 
         'seed': Seed(self.trytes1),
@@ -389,6 +393,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         'inputs.0': [f.Required.CODE_EMPTY],
         'inputs.1': [f.Type.CODE_WRONG_TYPE],
         'inputs.3': [GeneratedAddress.CODE_NO_KEY_INDEX],
+        'inputs.4': [GeneratedAddress.CODE_NO_SECURITY_LEVEL],
       },
     )
 
@@ -749,7 +754,8 @@ class PrepareTransferCommandTestCase(TestCase):
             # But, AddressGenerator runs a bit slowly, so to speed up
             # test execution, we will use hard-coded values.
             #
-            key_index = 4,
+            key_index       = 4,
+            security_level  = 2,
           ),
 
           Address(
@@ -757,7 +763,8 @@ class PrepareTransferCommandTestCase(TestCase):
               b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
               b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
 
-            key_index = 5,
+            key_index       = 5,
+            security_level  = 2,
           ),
         ],
       )
@@ -1115,7 +1122,8 @@ class PrepareTransferCommandTestCase(TestCase):
               b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
               b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-            key_index = 4,
+            key_index      = 4,
+            security_level = 2,
           ),
         ],
 
@@ -1354,7 +1362,8 @@ class PrepareTransferCommandTestCase(TestCase):
               b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
               b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-            key_index = 4,
+            key_index      = 4,
+            security_level = 2,
           ),
         ],
       )
@@ -1377,8 +1386,9 @@ class PrepareTransferCommandTestCase(TestCase):
             b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
             b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-          balance   = 13,
-          key_index = 4,
+          balance         = 13,
+          key_index       = 4,
+          security_level  = 2,
         ),
 
         Address(
@@ -1386,8 +1396,9 @@ class PrepareTransferCommandTestCase(TestCase):
             b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
             b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
 
-          balance   = 29,
-          key_index = 5,
+          balance         = 29,
+          key_index       = 5,
+          security_level  = 2,
         ),
       ],
 
@@ -1825,8 +1836,9 @@ class PrepareTransferCommandTestCase(TestCase):
             b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
             b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-          balance   = 86,
-          key_index = 4,
+          balance         = 86,
+          key_index       = 4,
+          security_level  = 2,
         ),
       ],
 
@@ -2183,7 +2195,8 @@ class PrepareTransferCommandTestCase(TestCase):
             b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
             b'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
 
-          key_index = 5,
+          key_index       = 5,
+          security_level  = 2,
         ),
       ],
     })
@@ -2303,7 +2316,8 @@ class PrepareTransferCommandTestCase(TestCase):
                 b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
                 b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-              key_index = 4,
+              key_index       = 4,
+              security_level  = 2,
             ),
           ],
         )

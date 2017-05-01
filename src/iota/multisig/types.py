@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from operator import attrgetter
 from typing import Iterable, Optional
 
 from iota import Address, TrytesCompatible
@@ -27,3 +28,5 @@ class MultisigAddress(Address):
     super(MultisigAddress, self).__init__(trytes, balance, key_index=None)
 
     self.digests = digests
+
+    self.security_level = sum(map(attrgetter('security_level'), self.digests))

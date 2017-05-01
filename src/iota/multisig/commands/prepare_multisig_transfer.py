@@ -34,10 +34,16 @@ class PrepareMultisigTransferCommand(FilterCommand):
 
 class PrepareMultisigTransferRequestFilter(RequestFilter):
   def __init__(self):
-    super(PrepareMultisigTransferRequestFilter, self).__init__({
-      'changeAddress': Trytes(result_type=Address),
+    super(PrepareMultisigTransferRequestFilter, self).__init__(
+      {
+        'changeAddress': Trytes(result_type=Address),
 
-      'multisigInput': Trytes(result_type=Address),
+        'multisigInput': Trytes(result_type=Address),
 
-      'transfers': None,
-    })
+        'transfers': None,
+      },
+
+      allow_missing_keys = {
+        'changeAddress',
+      },
+    )

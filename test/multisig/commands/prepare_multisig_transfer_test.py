@@ -133,8 +133,46 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     Request omits optional parameters.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    txn =\
+      ProposedTransaction(
+        address = Address(self.trytes_3),
+        value   = 42,
+      ),
+
+    filter_ =\
+      self._filter({
+        # ``changeAddress`` is optional.
+        # Technically, it's required if there are unspent inputs, but
+        # the filter has no way to know whether this is the case.
+        # 'changeAddress': self.trytes_1,
+
+        # These parameters are required.
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        'transfers': [txn],
+      })
+
+    self.assertFilterPasses(filter_)
+
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'changeAddress': None,
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        'transfers': [txn],
+      },
+    )
 
   def test_fail_unexpected_parameters(self):
     """

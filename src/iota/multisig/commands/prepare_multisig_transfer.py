@@ -2,7 +2,9 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
+from iota.filters import Trytes
 
 __all__ = [
   'PrepareMultisigTransferCommand',
@@ -33,7 +35,9 @@ class PrepareMultisigTransferCommand(FilterCommand):
 class PrepareMultisigTransferRequestFilter(RequestFilter):
   def __init__(self):
     super(PrepareMultisigTransferRequestFilter, self).__init__({
-      'changeAddress': None,
-      'multisigInput': None,
+      'changeAddress': Trytes(result_type=Address),
+
+      'multisigInput': Trytes(result_type=Address),
+
       'transfers': None,
     })

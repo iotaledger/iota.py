@@ -15,6 +15,7 @@ from iota.multisig.types import MultisigAddress
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
   filter_type = PrepareMultisigTransferCommand(MockAdapter()).get_request_filter
+  maxDiff = None
   skip_value_check = True
 
   # noinspection SpellCheckingInspection
@@ -90,8 +91,43 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     Request contains values that can be converted to the expected
     types.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    txn =\
+      ProposedTransaction(
+        address = Address(self.trytes_3),
+        value   = 42,
+      ),
+
+    filter_ =\
+      self._filter({
+        # ``changeAddress`` can be any value that resolves to an
+        # :py:class:`Address`.
+        'changeAddress': self.trytes_1,
+
+        # It is recommended that you use a MultisigAddress for
+        # ``multisigInput``, but it is not required.
+        'multisigInput': self.trytes_2,
+
+        # ``transfers`` must contain an array of
+        # :py:class:`ProposedTransaction` objects, however.
+        'transfers': [txn],
+      })
+
+    self.assertFilterPasses(filter_)
+
+    self.assertDictEqual(
+      filter_.cleaned_data,
+
+      {
+        'changeAddress': Address(self.trytes_1),
+
+        # We can't reconstruct the digests for the multisig address, so
+        # we'll just have to trust that the user knows what they are
+        # doing.
+        'multisigInput': Address(self.trytes_2),
+
+        'transfers': [txn],
+      },
+    )
 
   def test_pass_optional_parameters_excluded(self):
     """

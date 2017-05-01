@@ -118,8 +118,8 @@ class AddressGenerator(Iterable[Address]):
   """
   DEFAULT_SECURITY_LEVEL = 2
   """
-  Default number of iterations to use when creating digests, used to
-  create addresses.
+  Default number of iterations to use when creating digests, used to create
+  addresses.
 
   Note: this also impacts a few other things like length of transaction
   signatures.
@@ -135,11 +135,12 @@ class AddressGenerator(Iterable[Address]):
   generation process.
   """
 
-  def __init__(self, seed):
-    # type: (TrytesCompatible) -> None
+  def __init__(self, seed, security_level=DEFAULT_SECURITY_LEVEL):
+    # type: (TrytesCompatible, int) -> None
     super(AddressGenerator, self).__init__()
 
-    self.seed = Seed(seed)
+    self.security_level = security_level
+    self.seed           = Seed(seed)
 
   def __iter__(self):
     # type: () -> Generator[Address]
@@ -237,7 +238,7 @@ class AddressGenerator(Iterable[Address]):
     """
     key_iterator = (
       KeyGenerator(self.seed)
-        .create_iterator(start, step, iterations=self.DEFAULT_SECURITY_LEVEL)
+        .create_iterator(start, step, self.security_level)
     )
 
     while True:

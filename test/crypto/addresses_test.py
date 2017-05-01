@@ -6,102 +6,111 @@ from threading import Thread
 from time import sleep
 from unittest import TestCase
 
-from mock import Mock, patch
-
 from iota import Address
 from iota.crypto.addresses import AddressGenerator, MemoryAddressCache
 from iota.crypto.signing import KeyIterator
-from iota.crypto.types import Digest, Seed
+from iota.crypto.types import Seed
+from mock import Mock, patch
 
 
 class AddressGeneratorTestCase(TestCase):
+  maxDiff = None
+
   # noinspection SpellCheckingInspection
   def setUp(self):
     super(AddressGeneratorTestCase, self).setUp()
 
-    # Addresses that correspond to the digests defined in
-    # :py:meth:`_mock_get_digest`.
-    self.addy0 =\
-      Address(
-        b'VOPYUSDRHYGGOHLAYDWCLLOFWBLK99PYYKENW9IQ'
-        b'IVIOYMLCCPXGICDBZKCQVJLDWWJLTTUVIXCTOZ9TN'
+    self.seed_1 =\
+      Seed(
+        b'TESTVALUE9DONTUSEINPRODUCTION999999GFDDC'
+        b'PFIIEHBCWFN9KHRBEIHHREFCKBVGUGEDXCFHDFPAL',
       )
 
-    self.addy1 =\
-      Address(
-        b'SKKMQAGLZMXWSXRVVRFWMGN9TIXDACQMCXZJRPMS'
-        b'UFNSXMFOGEBZZPUJBVKVSJNYPSGSXQIUHTRKECVQE'
+    self.seed_2 =\
+      Seed(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999DCZGVE'
+        b'JIZEKEGEEHYE9DOHCHLHMGAFDGEEQFUDVGGDGHRDR',
       )
-
-    self.addy2 =\
-      Address(
-        b'VMMFSGEYJ9SANRULNIMKEZUYVRTWMVR9UKCYDZXW'
-        b'9TENBWIRMFODOSNMDH9QOVBLQWALOHMSBGEVIXSXY'
-      )
-
-    self.addy3 =\
-      Address(
-        b'G9PLHPOMET9NWIBGRGMIF9HFVETTWGKCXWGFYRNG'
-        b'CFANWBQFGMFKITZBJDSYLGXYUIQVCMXFWSWFRNHRV'
-      )
-
-  # noinspection SpellCheckingInspection
-  def test_address_from_digest(self):
-    """
-    Generating an address from a private key digest.
-    """
-    digest =\
-      Digest(
-        trytes =
-          b'ABQXVJNER9MPMXMBPNMFBMDGTXRWSYHNZKGAGUOI'
-          b'JKOJGZVGHCUXXGFZEMMGDSGWDCKJXO9ILLFAKGGZE',
-
-        key_index = 0,
-      )
-
-    self.assertEqual(
-      AddressGenerator.address_from_digest(digest),
-
-      Address(
-        b'QLOEDSBXXOLLUJYLEGKEPYDRIJJTPIMEPKMFHUVJ'
-        b'MPMLYYCLPQPANEVDSERQWPVNHCAXYRLAYMBHJLWWR'
-      ),
-    )
 
   def test_get_addresses_single(self):
     """
     Generating a single address.
     """
-    # Seed is not important for this test; it is only used by
-    # :py:class:`KeyGenerator`, which we will mock in this test.
-    ag = AddressGenerator(seed=b'')
+    ag = AddressGenerator(self.seed_1)
 
-    # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest', self._mock_get_digest):
-      addresses = ag.get_addresses(start=0)
+    # noinspection SpellCheckingInspection
+    self.assertListEqual(
+      ag.get_addresses(start=0),
 
-    self.assertListEqual(addresses, [self.addy0])
+      [
+        Address(
+          b'NWQBMJEBSYFCRKGLNUQZJIOQOMNMYPCIRVSVJLP9'
+          b'OFV9CZ99LFGZHDKOUDGRVJXUDPUPCVOQBKSZLPU9K',
+        ),
+      ],
+    )
 
-    # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest', self._mock_get_digest):
-      # You can provide any positive integer as the ``start`` value.
-      addresses = ag.get_addresses(start=2)
+    # noinspection SpellCheckingInspection
+    self.assertListEqual(
+      ag.get_addresses(start=10),
 
-    self.assertListEqual(addresses, [self.addy2])
+      [
+        Address(
+          b'AQNURLEH9IRPVDWNRLO9JHSY9OWTKHKIJOWSPKPW'
+          b'RQLMUI9KOGSXMONCXPEJMRK9MPYQXKZLNYJXNDUUZ',
+        ),
+      ],
+    )
 
   def test_get_addresses_multiple(self):
     """
     Generating multiple addresses in one go.
     """
-    # Seed is not important for this test; it is only used by
-    # :py:class:`KeyGenerator`, which we will mock in this test.
-    ag = AddressGenerator(seed=b'')
+    ag = AddressGenerator(self.seed_2)
 
-    # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest', self._mock_get_digest):
-      addresses = ag.get_addresses(start=1, count=2)
+    # noinspection SpellCheckingInspection
+    self.assertListEqual(
+      ag.get_addresses(start=0, count=3),
 
-    self.assertListEqual(addresses, [self.addy1, self.addy2])
+      [
+        Address(
+          b'SZWZMYQYWGXWAAVQSDTIOFGTZP9PWIDDUHHNGRDP'
+          b'RCGNSXRNYWBEZIORKNNLNZHJ9QYMFYZIJJ9RFPBJT'
+        ),
+
+        Address(
+          b'N9KY9HCT9VTI99FFRIIBHQZIJOVSLFVWPOIFSHWL'
+          b'CCIVYLIDBKJLVQFYJNPIUNATUUCIRHUHNLFBCAXIY'
+        ),
+
+        Address(
+          b'BH9BWJWHIHLJSHBYBENHLQQBOCQOOMAEJJFFBCSE'
+          b'IMDVPDULGD9HBPNQKWBPM9SIDIMGUOGTPWMQSVVHZ'
+        ),
+      ],
+    )
+
+    # noinspection SpellCheckingInspection
+    self.assertListEqual(
+      ag.get_addresses(start=10, count=3),
+
+      [
+        Address(
+          b'CCKZUWMILLQLLLIFNXBFGGPXFHNROQQOYYBMLIEOLB'
+          b'PVIVFJMQAVCCGKVGNRTKAZQLKYWMTBUEVBPGZMN',
+        ),
+
+        Address(
+          b'XWXALLEBVQXVRYLGPPJUL9RAIUKUXERBEMVTZJOMRB'
+          b'CGXNYA99PN9DKOPAWDSIPIRUBKFQUBQFUOKZMQW',
+        ),
+
+        Address(
+          b'CLYKQDU9WRHEJZSLMZKVDIWLHZKEIITWXDAHFFSQCP'
+          b'LADQKLUQLSECZMIOUDSLXRWEDAEHKRVWQRGZMLI',
+        ),
+      ],
+    )
 
   def test_get_addresses_error_start_too_small(self):
     """
@@ -142,87 +151,138 @@ class AddressGeneratorTestCase(TestCase):
 
     This is probably a weird use case, but what the heck.
     """
-    # Seed is not important for this test; it is only used by
-    # :py:class:`KeyGenerator`, which we will mock in this test.
-    ag = AddressGenerator(seed=b'')
+    ag = AddressGenerator(self.seed_1)
 
-    # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest', self._mock_get_digest):
-      addresses = ag.get_addresses(start=1, count=2, step=-1)
-
+    # noinspection SpellCheckingInspection
     self.assertListEqual(
-      addresses,
+      ag.get_addresses(start=1, count=2, step=-1),
 
-      # This is the same as ``ag.get_addresses(start=0, count=2)``, but
-      # the order is reversed.
-      [self.addy1, self.addy0],
+      [
+        Address(
+          b'DUOVVF9WCNAEOHHWUYUFSYOOWZPDVVD9JKFLQN9Z'
+          b'DPAKKHSBKLTRFHD9UHIWGKSGAWCOMDG9GBPYISPWR',
+        ),
+
+        Address(
+          b'NWQBMJEBSYFCRKGLNUQZJIOQOMNMYPCIRVSVJLP9'
+          b'OFV9CZ99LFGZHDKOUDGRVJXUDPUPCVOQBKSZLPU9K',
+        ),
+      ],
     )
 
   def test_generator(self):
     """
     Creating a generator.
     """
-    # Seed is not important for this test; it is only used by
-    # :py:class:`KeyGenerator`, which we will mock in this test.
-    ag = AddressGenerator(seed=b'')
+    ag = AddressGenerator(self.seed_2)
 
-    # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest', self._mock_get_digest):
-      generator = ag.create_iterator()
+    generator = ag.create_iterator()
 
-      self.assertEqual(next(generator), self.addy0)
-      self.assertEqual(next(generator), self.addy1)
-      # ... ad infinitum ...
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      next(generator),
+
+      Address(
+        b'SZWZMYQYWGXWAAVQSDTIOFGTZP9PWIDDUHHNGRDP'
+        b'RCGNSXRNYWBEZIORKNNLNZHJ9QYMFYZIJJ9RFPBJT',
+      ),
+    )
+
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      next(generator),
+
+      Address(
+        b'N9KY9HCT9VTI99FFRIIBHQZIJOVSLFVWPOIFSHWL'
+        b'CCIVYLIDBKJLVQFYJNPIUNATUUCIRHUHNLFBCAXIY',
+      ),
+    )
+
+    # ... ad infinitum ...
 
   def test_generator_with_offset(self):
     """
     Creating a generator that starts at an offset greater than 0.
     """
-    # Seed is not important for this test; it is only used by
-    # :py:class:`KeyGenerator`, which we will mock in this test.
-    ag = AddressGenerator(seed=b'')
+    ag = AddressGenerator(self.seed_1)
 
-    # noinspection PyUnresolvedReferences
-    with patch.object(ag, '_get_digest', self._mock_get_digest):
-      generator = ag.create_iterator(start=1, step=2)
+    generator = ag.create_iterator(start=1, step=2)
 
-      self.assertEqual(next(generator), self.addy1)
-      self.assertEqual(next(generator), self.addy3)
-
-  @staticmethod
-  def _mock_get_digest(key_iterator):
-    # type: (KeyIterator) -> Digest
-    """
-    Mocks the behavior of :py:class:`KeyGenerator`, to speed up unit
-    tests.
-
-    Note that :py:class:`KeyGenerator` has its own test case, so we're
-    not impacting the stability of the codebase by doing this.
-    """
     # noinspection SpellCheckingInspection
-    digests = [
-      b'KDWISSPKPF9DZNKMYEVPPYI9CXMFZRAAKCQNMFJI'
-      b'JIQLT9IPMEVVNYBTIBTN9CBCJMYTUMSRJAEMUUMIA',
+    self.assertEqual(
+      next(generator),
 
-      b'XUWRYOZQYEVM9CRZZPZQRTAHBMLM9EYMZZIYRFV9'
-      b'GZST9XGK9LWUDGIXCCRFLWHUJPYQ9MMYDZEMAJZOI',
+      Address(
+        b'DUOVVF9WCNAEOHHWUYUFSYOOWZPDVVD9JKFLQN9Z'
+        b'DPAKKHSBKLTRFHD9UHIWGKSGAWCOMDG9GBPYISPWR',
+      ),
+    )
 
-      b'SEJHPHEF9NXPPZQUOVGZNUZSP9DQOBRVSAGADUAD'
-      b'EPRDFQJPXTOJGFPEXUPRQUYTTSD9GVPXTWWZQSGXA',
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      next(generator),
 
-      b'LNXDEKQCP9OXMBNDUJCZIMVRVGJLKFVMMRPHROSH'
-      b'XCWW9M9QGYVUMPXCR9ANPEPVGBI9WOERTFDAGKCVZ',
-    ]
+      Address(
+        b'ZFIRBTDSLFAEDRAFORR9LETRUNRHTACYQPBV9VHR'
+        b'EGVIGSKFQABGVLQPLFTAD9OHLPMAVKWBBDIKZSAOG',
+      ),
+    )
 
-    key_index = key_iterator.current
+  def test_security_level_lowered(self):
+    """
+    Generating addresses with a lower security level.
+    """
+    ag = AddressGenerator(self.seed_1, security_level=1)
 
-    # Simulate generating the key.
-    key_iterator.current += key_iterator.step
+    # noinspection SpellCheckingInspection
+    self.assertListEqual(
+      ag.get_addresses(start=0, count=3),
 
-    # This should still behave like the real thing, so that we can
-    # verify that :py:class`AddressGenerator` is invoking the key
-    # generator correctly.
-    return Digest(digests[key_index], key_index)
+      [
+        Address(
+          b'QTGZZPTYYFMFG9UCTOREALIZZJ9VEASMBFLMZARF'
+          b'LENFSNPSITZZVXH9IGPVIRAVRYMXYVXQBUORWVILF',
+        ),
+
+        Address(
+          b'FHOFBSATJIGMLKGGPWEBIBWIPELKTEAMAQTEDNUN'
+          b'HOJBVBAIGTPLMKSGBHWZGNXTLRMFZXASV9FNZGBNY',
+        ),
+
+        Address(
+          b'VRYXJWWGQIKDLI9R9KFECQXCLYNBHUMCWEYDTOTZ'
+          b'GITLQIRDZCOBWXAOTVPGKBQBXKZAZAFRLZTDBRBXW',
+        ),
+      ],
+    )
+
+  def test_security_level_elevated(self):
+    """
+    Generating addresses with a higher security level.
+    """
+    ag = AddressGenerator(self.seed_1, security_level=3)
+
+    # noinspection SpellCheckingInspection
+    self.assertListEqual(
+      ag.get_addresses(start=0, count=3),
+
+      [
+        Address(
+          b'ZWJEPOOWHOZYEMGJCJAWDETMBUEHOYFHAGOFINQA'
+          b'CSGFNHXTMDHVHVAWQHQEBLDXKOQVKHEIU9QWLWPSV',
+        ),
+
+        Address(
+          b'TNCURBUSWSCMWKJMZFW9SDUTVMQRAHTWVPYQFDRZ'
+          b'ALTMDEMCVWEVWYIJZMKOCEPSJKRV9EGDDDCLMCJBL',
+        ),
+
+        Address(
+          b'HHZUZEKUTMBBIFZDUBVSEXEPEDWATWOBBGVCHBMI'
+          b'MBVRLDDLBBWWMECJGNSXFJOCPOFSEZOHDGPVADYCK',
+        ),
+      ],
+    )
 
 
 class MemoryAddressCacheTestCase(TestCase):

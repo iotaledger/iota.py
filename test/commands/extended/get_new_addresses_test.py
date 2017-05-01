@@ -12,7 +12,6 @@ from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from mock import patch
 from six import binary_type, text_type
 
 
@@ -308,25 +307,30 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class GetNewAddressesCommandTestCase(TestCase):
+  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetNewAddressesCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
     self.command = GetNewAddressesCommand(self.adapter)
 
-    # Create a few TryteStrings we can reuse across tests.
-    self.addy1 =\
-      Address(
-        b'ADDYONE999AHHKVD9SBEYWQFNVQSNTGYQSQ9AGWD'
-        b'JDZKBYCVTODUHFEVVMNMPQMIXOVXVCZRUENAWYNTO'
+    self.seed =\
+      Seed(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999ZDCCUF'
+        b'CBBIQCLGMEXAVFQEOF9DRAB9VCEBAGXAF9VF9FLHP',
       )
 
-    self.addy2 =\
+    self.addy_1 =\
       Address(
-        b'ADDYTWO999AGAQKYXHRMSFAQNPWCIYUYTXPWUEUR'
-        b'VNZTCTFUPQ9ESTKNSSLLIZWDQISJVEWIJDVGIECXF'
+        b'ESCYAARULFBXJRETFWOFWGAURYZHTLYBLVJTNSTK'
+        b'EPHCNLMLMHBPVBDRLYTMQOWPKCFMCQUFRCOVYRTQZ',
+      )
+
+    self.addy_2 =\
+      Address(
+        b'VWTLNSGVCDEGJKEFZOHTHZLUYEZGDDWZZWBJTAPE'
+        b'WNOUOAKTEQHCVIMJGTOCDFCEQJTZ9LFIKEYFH9WFA',
       )
 
   def test_wireup(self):
@@ -343,29 +347,52 @@ class GetNewAddressesCommandTestCase(TestCase):
     Generate addresses in offline mode (without filtering used
     addresses).
     """
-    # To speed up the test, we will mock the address generator.
-    # :py:class:`iota.crypto.addresses.AddressGenerator` already has
-    # its own test case, so this does not impact the stability of the
-    # codebase.
-    # noinspection PyUnusedLocal
-    def create_generator(ag, start, step=1):
-      for addy in [self.addy1, self.addy2][start::step]:
-        yield addy
-
-    with patch(
-        target  = 'iota.crypto.addresses.AddressGenerator.create_iterator',
-        new     = create_generator,
-    ):
-      response = self.command(
+    response =\
+      self.command(
         count = 2,
         index = 0,
-        seed  = b'TESTSEED9DONTUSEINPRODUCTION99999',
+        seed  = self.seed,
       )
 
-    self.assertDictEqual(response, {'addresses': [self.addy1, self.addy2]})
+    self.assertDictEqual(
+      response,
+      {'addresses': [self.addy_1, self.addy_2]},
+    )
 
     # No API requests were made.
     self.assertListEqual(self.adapter.requests, [])
+
+  def test_security_level(self):
+    """
+    Generating addresses with a different security level.
+    """
+    response =\
+      self.command(
+        count         = 2,
+        index         = 0,
+        securityLevel = 1,
+        seed          = self.seed,
+      )
+
+    # noinspection SpellCheckingInspection
+    self.assertDictEqual(
+      response,
+
+      {
+        'addresses':
+          [
+            Address(
+              b'BKWTRXXUNKVSDWDYXP9TXTFFQNJHOONPDBJVJRUF'
+              b'FKGTTKZOTDOOEEFRVRBJCIXKYTYCRJO9VVRUETVHD',
+            ),
+
+            Address(
+              b'GBUHYIWFMYNTVIIODGRUQSGRAUTRJWFWXECUKTDH'
+              b'K9GKDXCZALJILASXFCEWSDFRUVXYOHGVNVOLOJ9DU',
+            ),
+          ],
+      },
+    )
 
   def test_get_addresses_online(self):
     """
@@ -373,6 +400,7 @@ class GetNewAddressesCommandTestCase(TestCase):
     """
     # Pretend that ``self.addy1`` has already been used, but not
     # ``self.addy2``.
+    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'duration': 18,
 
@@ -387,30 +415,19 @@ class GetNewAddressesCommandTestCase(TestCase):
       'hashes':   [],
     })
 
-    # To speed up the test, we will mock the address generator.
-    # :py:class:`iota.crypto.addresses.AddressGenerator` already has
-    # its own test case, so this does not impact the stability of the
-    # codebase.
-    # noinspection PyUnusedLocal
-    def create_generator(ag, start, step=1):
-      for addy in [self.addy1, self.addy2][start::step]:
-        yield addy
-
-    with patch(
-        target  = 'iota.crypto.addresses.AddressGenerator.create_iterator',
-        new     = create_generator,
-    ):
-      response = self.command(
+    response =\
+      self.command(
         # If ``count`` is missing or ``None``, the command will operate
         # in online mode.
         # count = None,
+
         index = 0,
-        seed  = b'TESTSEED9DONTUSEINPRODUCTION99999',
+        seed  = self.seed,
       )
 
     # The command determined that ``self.addy1`` was already used, so
     # it skipped that one.
-    self.assertDictEqual(response, {'addresses': [self.addy2]})
+    self.assertDictEqual(response, {'addresses': [self.addy_2]})
 
     self.assertListEqual(
       self.adapter.requests,
@@ -420,7 +437,7 @@ class GetNewAddressesCommandTestCase(TestCase):
       [
         {
           'command':    'findTransactions',
-          'addresses':  [self.addy1],
+          'addresses':  [self.addy_1],
           'approvees':  [],
           'bundles':    [],
           'tags':       [],
@@ -428,7 +445,7 @@ class GetNewAddressesCommandTestCase(TestCase):
 
         {
           'command':    'findTransactions',
-          'addresses':  [self.addy2],
+          'addresses':  [self.addy_2],
           'approvees':  [],
           'bundles':    [],
           'tags':       [],

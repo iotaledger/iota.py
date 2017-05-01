@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
+import filters as f
 from filters.test import BaseFilterTestCase
 from iota import Address, ProposedTransaction
 from iota.adapter import MockAdapter
@@ -178,8 +179,33 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     Request contains unexpected parameters.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.assertFilterErrors(
+      {
+        'changeAddress':
+          Address(self.trytes_1),
+
+        'multisigInput':
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        'transfers':
+          [
+            ProposedTransaction(
+              address = Address(self.trytes_3),
+              value   = 42,
+            ),
+          ],
+
+        # Oh come on!
+        'foo': 'bar',
+      },
+
+      {
+        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+      },
+    )
 
   def test_fail_transfers_null(self):
     """

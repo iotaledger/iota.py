@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from abc import ABCMeta, abstractmethod as abstract_method
 from json.encoder import JSONEncoder as BaseJsonEncoder
+from typing import Mapping, Iterable
 
 from six import with_metaclass
 
@@ -45,7 +46,13 @@ class JsonSerializable(with_metaclass(ABCMeta)):
       ))
     else:
       with p.group(len(class_name)+1, '{cls}('.format(cls=class_name), ')'):
-        p.pretty(self.as_json_compatible())
+        prepared = self.as_json_compatible()
+        if isinstance(prepared, Mapping):
+          p.text('**')
+        elif isinstance(prepared, Iterable):
+          p.text('*')
+
+        p.pretty(prepared)
 
 
 # noinspection PyClassHasNoInit

@@ -322,7 +322,7 @@ class Transaction(JsonSerializable):
       - :py:class:`iota.json.JsonEncoder`.
     """
     return {
-      'hash':                       self.hash,
+      'hash_':                      self.hash,
       'signature_message_fragment': self.signature_message_fragment,
       'address':                    self.address,
       'value':                      self.value,

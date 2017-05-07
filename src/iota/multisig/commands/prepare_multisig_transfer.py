@@ -2,14 +2,15 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional, List
+from typing import List, Optional
 
 import filters as f
-from iota import Address, ProposedTransaction, ProposedBundle
+from iota import Address, ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core import GetBalancesCommand
 from iota.exceptions import with_context
 from iota.filters import Trytes
+from iota.multisig.transaction import ProposedMultisigBundle
 from iota.multisig.types import MultisigAddress
 
 __all__ = [
@@ -37,7 +38,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
     multisig_input  = request['multisigInput'] # type: MultisigAddress
     transfers       = request['transfers'] # type: List[ProposedTransaction]
 
-    bundle = ProposedBundle(transfers)
+    bundle = ProposedMultisigBundle(transfers)
 
     want_to_spend = bundle.balance
     if want_to_spend > 0:

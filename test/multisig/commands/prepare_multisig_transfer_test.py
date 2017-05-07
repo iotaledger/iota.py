@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Bundle, ProposedTransaction
+from iota import Address, Bundle, Fragment, ProposedTransaction
 from iota.adapter import MockAdapter
 from iota.commands.core import GetBalancesCommand
 from iota.crypto.types import Digest
@@ -538,9 +538,6 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     """
     Preparing a bundle with a multisig input.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
-
     self.adapter.seed_response(
       command = GetBalancesCommand.command,
 
@@ -587,25 +584,25 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     txn_2 = bundle[1]
     self.assertEqual(txn_2.address, self.trytes_2)
     self.assertEqual(txn_2.value, -42)
-    self.assertEqual(txn_2.signature_message_fragment, b'')
+    self.assertEqual(txn_2.signature_message_fragment, Fragment(b''))
 
     # Input 1, Part 2 of 4
     txn_3 = bundle[2]
     self.assertEqual(txn_3.address, self.trytes_2)
     self.assertEqual(txn_3.value, 0)
-    self.assertEqual(txn_3.signature_message_fragment, b'')
+    self.assertEqual(txn_3.signature_message_fragment, Fragment(b''))
 
     # Input 1, Part 3 of 4
     txn_4 = bundle[3]
     self.assertEqual(txn_4.address, self.trytes_2)
     self.assertEqual(txn_4.value, 0)
-    self.assertEqual(txn_4.signature_message_fragment, b'')
+    self.assertEqual(txn_4.signature_message_fragment, Fragment(b''))
 
     # Input 1, Part 4 of 4
     txn_5 = bundle[4]
     self.assertEqual(txn_5.address, self.trytes_2)
     self.assertEqual(txn_5.value, 0)
-    self.assertEqual(txn_5.signature_message_fragment, b'')
+    self.assertEqual(txn_5.signature_message_fragment, Fragment(b''))
 
   def test_unspent_inputs_with_change_address(self):
     """

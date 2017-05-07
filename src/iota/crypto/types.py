@@ -32,6 +32,21 @@ class Digest(TryteString):
     # type: (TrytesCompatible, Optional[int]) -> None
     super(Digest, self).__init__(trytes)
 
+    # A digest is a series of hashes; its length should reflect that.
+    if len(self) % Hash.LEN:
+      raise with_context(
+        exc = ValueError(
+          'Length of {cls} values must be a multiple of {len} trytes.'.format(
+            cls = type(self).__name__,
+            len = Hash.LEN,
+          ),
+        ),
+
+        context = {
+          'trytes': trytes,
+        },
+      )
+
     self.key_index = key_index
 
   @property
@@ -95,12 +110,12 @@ class PrivateKey(TryteString):
         exc = ValueError(
           'Length of {cls} values must be a multiple of {len} trytes.'.format(
             cls = type(self).__name__,
-            len = FRAGMENT_LENGTH
+            len = FRAGMENT_LENGTH,
           ),
         ),
 
         context = {
-          'trytes': trytes,
+          'trytes': self._trytes,
         },
       )
 

@@ -30,3 +30,10 @@ class MultisigAddress(Address):
     self.digests = digests
 
     self.security_level = sum(map(attrgetter('security_level'), self.digests))
+
+  def as_json_compatible(self):
+    # type: () -> dict
+    return {
+      'trytes':   self._trytes.decode('ascii'),
+      'digests':  self.digests,
+    }

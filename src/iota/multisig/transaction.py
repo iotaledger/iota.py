@@ -59,4 +59,21 @@ class ProposedMultisigBundle(ProposedBundle):
           },
         )
 
+      security_level = addy.security_level
+      if security_level < 1:
+        raise with_context(
+          exc =
+            ValueError(
+              'Unable to determine security level for {type} '
+              '(is ``digests`` populated correctly?).'.format(
+                type = type(addy).__name__,
+              ),
+            ),
+
+          context = {
+            'actual_input':   addy,
+            'security_level': security_level,
+          },
+        )
+
       count += 1

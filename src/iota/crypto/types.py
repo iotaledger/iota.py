@@ -43,6 +43,13 @@ class Digest(TryteString):
     """
     return len(self) // Hash.LEN
 
+  def as_json_compatible(self):
+    # type: () -> dict
+    return {
+      'trytes':     self._trytes.decode('ascii'),
+      'key_index':  self.key_index,
+    }
+
 
 class Seed(TryteString):
   """
@@ -98,6 +105,13 @@ class PrivateKey(TryteString):
       )
 
     self.key_index = key_index
+
+  def as_json_compatible(self):
+    # type: () -> dict
+    return {
+      'trytes':     self._trytes.decode('ascii'),
+      'key_index':  self.key_index,
+    }
 
   def get_digest(self):
     # type: () -> Digest

@@ -57,9 +57,6 @@ class ProposedMultisigBundleTestCase(TestCase):
     """
     Adding a multisig input to a bundle.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
-
     # noinspection SpellCheckingInspection
     self.bundle.add_transaction(
       ProposedTransaction(
@@ -72,8 +69,14 @@ class ProposedMultisigBundleTestCase(TestCase):
       MultisigAddress(
         trytes  = self.trytes_2,
         digests = [self.digest_1, self.digest_2],
+        balance = 42,
       )
     ])
+
+    # The multisig input requires a total of 4 transactions to store
+    # all the signatures.  Including the spend, that makes 5
+    # transactions in total.
+    self.assertEqual(len(self.bundle), 5)
 
   def test_add_inputs_error_already_finalized(self):
     """
@@ -103,6 +106,19 @@ class ProposedMultisigBundleTestCase(TestCase):
         ),
       ])
 
+  def test_add_inputs_error_balance_null(self):
+    """
+    Adding a multisig input with null balance.
+    """
+    with self.assertRaises(ValueError):
+      self.bundle.add_inputs([
+        MultisigAddress(
+          trytes  = self.trytes_1,
+          digests = [self.digest_1, self.digest_2],
+          # balance = 42,
+        ),
+      ])
+
   def test_add_inputs_error_multiple(self):
     """
     Attempting to add multiple multisig inputs.
@@ -115,6 +131,7 @@ class ProposedMultisigBundleTestCase(TestCase):
         MultisigAddress(
           trytes  = self.trytes_1,
           digests = [self.digest_1, self.digest_2],
+          balance = 42,
         ),
 
         MultisigAddress(

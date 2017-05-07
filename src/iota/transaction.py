@@ -970,27 +970,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
           },
         )
 
-      # Add the input as a transaction.
-      self._transactions.append(ProposedTransaction(
-        address = addy,
-        tag     = self.tag,
-
-        # Spend the entire address balance; if necessary, we will add a
-        # change transaction to the bundle.
-        value = -addy.balance,
-      ))
-
-      # Signatures require additional transactions to store, due to
-      # transaction length limit.
-      # Subtract 1 to account for the transaction we just added.
-      for _ in range(addy.security_level - 1):
-        self._transactions.append(ProposedTransaction(
-          address = addy,
-          tag     = self.tag,
-
-          # Note zero value; this is a meta transaction.
-          value = 0,
-        ))
+      self._create_input_transactions(addy)
 
   def send_unspent_inputs_to(self, address):
     # type: (Address) -> None
@@ -1123,6 +1103,32 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         # No signature needed (nor even possible, in some cases); skip
         # this transaction.
         i += 1
+
+  def _create_input_transactions(self, addy):
+    # type: (Address) -> None
+    """
+    Creates transactions for the specified input address.
+    """
+    self._transactions.append(ProposedTransaction(
+      address = addy,
+      tag     = self.tag,
+
+      # Spend the entire address balance; if necessary, we will add a
+      # change transaction to the bundle.
+      value = -addy.balance,
+    ))
+
+    # Signatures require additional transactions to store, due to
+    # transaction length limit.
+    # Subtract 1 to account for the transaction we just added.
+    for _ in range(addy.security_level - 1):
+      self._transactions.append(ProposedTransaction(
+        address = addy,
+        tag     = self.tag,
+
+        # Note zero value; this is a meta transaction.
+        value = 0,
+      ))
 
   @staticmethod
   def _create_signature_fragment_generator(key_generator, txn):

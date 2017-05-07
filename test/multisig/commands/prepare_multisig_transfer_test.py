@@ -609,8 +609,76 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     The bundle has unspent inputs, so it uses the provided change
     address.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response(
+      command = GetBalancesCommand.command,
+
+      response = {
+        'balances': [101],
+        'duration': 86,
+      },
+    )
+
+    pmt_result =\
+      self.command(
+        transfers = [
+          ProposedTransaction(
+            address = Address(self.trytes_1),
+            value   = 42,
+          ),
+        ],
+
+        multisigInput =
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        changeAddress = Address(self.trytes_3),
+      )
+
+    bundle = pmt_result['bundle'] # type: Bundle
+
+    #
+    # This bundle looks almost identical to what you would expect from
+    # :py:meth:`iota.api.Iota.prepare_transfer`, except:
+    # - There are 4 inputs (to hold all of the signature fragments).
+    # - The inputs are unsigned.
+    #
+    self.assertEqual(len(bundle), 6)
+
+    # Spend Transaction
+    txn_1 = bundle[0]
+    self.assertEqual(txn_1.address, self.trytes_1)
+    self.assertEqual(txn_1.value, 42)
+
+    # Input 1, Part 1 of 4
+    txn_2 = bundle[1]
+    self.assertEqual(txn_2.address, self.trytes_2)
+    self.assertEqual(txn_2.value, -101)
+    self.assertEqual(txn_2.signature_message_fragment, Fragment(b''))
+
+    # Input 1, Part 2 of 4
+    txn_3 = bundle[2]
+    self.assertEqual(txn_3.address, self.trytes_2)
+    self.assertEqual(txn_3.value, 0)
+    self.assertEqual(txn_3.signature_message_fragment, Fragment(b''))
+
+    # Input 1, Part 3 of 4
+    txn_4 = bundle[3]
+    self.assertEqual(txn_4.address, self.trytes_2)
+    self.assertEqual(txn_4.value, 0)
+    self.assertEqual(txn_4.signature_message_fragment, Fragment(b''))
+
+    # Input 1, Part 4 of 4
+    txn_5 = bundle[4]
+    self.assertEqual(txn_5.address, self.trytes_2)
+    self.assertEqual(txn_5.value, 0)
+    self.assertEqual(txn_5.signature_message_fragment, Fragment(b''))
+
+    # Change
+    txn_6 = bundle[5]
+    self.assertEqual(txn_6.address, self.trytes_3)
+    self.assertEqual(txn_6.value, 59)
 
   def test_error_zero_iotas_transferred(self):
     """

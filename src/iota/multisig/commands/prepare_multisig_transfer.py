@@ -64,7 +64,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
           # the one from ``PrepareTransferCommand``.
           context = {
             'available_to_spend': multisig_input.balance,
-            'confirmed_inputs':   multisig_input,
+            'confirmed_inputs':   [multisig_input],
             'request':            request,
             'want_to_spend':      want_to_spend,
           },
@@ -75,6 +75,21 @@ class PrepareMultisigTransferCommand(FilterCommand):
       if bundle.balance < 0:
         if change_address:
           bundle.send_unspent_inputs_to(change_address)
+        else:
+          raise with_context(
+            exc =
+              ValueError(
+                'Bundle has unspent inputs, but no change address specified.',
+              ),
+
+            context = {
+              'available_to_spend': multisig_input.balance,
+              'balance':            bundle.balance,
+              'confirmed_inputs':   [multisig_input],
+              'request':            request,
+              'want_to_spend':      want_to_spend,
+            },
+          )
     else:
       raise with_context(
         exc =
@@ -83,7 +98,9 @@ class PrepareMultisigTransferCommand(FilterCommand):
             'to create a bundle without spending IOTAs.',
           ),
 
-        context = request,
+        context = {
+          'request': request,
+        },
       )
 
     bundle.finalize()

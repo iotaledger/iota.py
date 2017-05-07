@@ -711,8 +711,32 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     The multisig input does not contain sufficient IOTAs to cover the
     spends.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response(
+      command = GetBalancesCommand.command,
+
+      response = {
+        'balances': [42],
+        'duration': 86,
+      },
+    )
+
+    with self.assertRaises(ValueError):
+      self.command(
+        transfers = [
+          ProposedTransaction(
+            address = Address(self.trytes_1),
+            value   = 101,
+          ),
+        ],
+
+        multisigInput =
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        changeAddress = Address(self.trytes_3),
+      )
 
   def test_error_unspent_inputs_no_change_address(self):
     """

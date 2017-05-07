@@ -76,6 +76,16 @@ class PrepareMultisigTransferCommand(FilterCommand):
         if change_address:
           bundle.send_unspent_inputs_to(change_address)
         else:
+          #
+          # Unlike :py:meth:`iota.api.Iota.prepare_transfer` where all
+          # of the inputs are owned by the same seed, creating a
+          # multisig transfer usually involves multiple people.
+          #
+          # It would be unfair to the participants of the transaction
+          # if we were to automatically generate a change address using
+          # the seed of whoever happened to invoke the
+          # :py:meth:`MultisigIota.prepare_multisig_transfer` method!
+          #
           raise with_context(
             exc =
               ValueError(

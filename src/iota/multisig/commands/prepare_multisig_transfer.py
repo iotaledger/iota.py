@@ -75,6 +75,16 @@ class PrepareMultisigTransferCommand(FilterCommand):
       if bundle.balance < 0:
         if change_address:
           bundle.send_unspent_inputs_to(change_address)
+    else:
+      raise with_context(
+        exc =
+          ValueError(
+            'Use ``prepare_transfer`` '
+            'to create a bundle without spending IOTAs.',
+          ),
+
+        context = request,
+      )
 
     bundle.finalize()
 

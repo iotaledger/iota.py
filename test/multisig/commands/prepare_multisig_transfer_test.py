@@ -734,8 +734,6 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
             digests = [self.digest_1, self.digest_2],
             trytes  = self.trytes_2,
           ),
-
-        changeAddress = Address(self.trytes_3),
       )
 
   def test_error_unspent_inputs_no_change_address(self):
@@ -751,5 +749,29 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     whoever happened to invoke the
     :py:meth:`MultisigIota.prepare_multisig_transfer` method!
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    self.adapter.seed_response(
+      command = GetBalancesCommand.command,
+
+      response = {
+        'balances': [101],
+        'duration': 86,
+      },
+    )
+
+    with self.assertRaises(ValueError):
+      self.command(
+        transfers = [
+          ProposedTransaction(
+            address = Address(self.trytes_1),
+            value   = 42,
+          ),
+        ],
+
+        multisigInput =
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+
+        # changeAddress = Address(self.trytes_3),
+      )

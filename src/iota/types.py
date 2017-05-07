@@ -707,6 +707,15 @@ class Address(TryteString):
     address.
     """
 
+  def as_json_compatible(self):
+    # type: () -> dict
+    return {
+      'trytes':         self._trytes.decode('ascii'),
+      'balance':        self.balance,
+      'key_index':      self.key_index,
+      'security_level': self.security_level,
+    }
+
   def is_checksum_valid(self):
     # type: () -> bool
     """

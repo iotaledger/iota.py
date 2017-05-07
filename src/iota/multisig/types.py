@@ -35,5 +35,6 @@ class MultisigAddress(Address):
     # type: () -> dict
     return {
       'trytes':   self._trytes.decode('ascii'),
+      'balance':  self.balance,
       'digests':  self.digests,
     }

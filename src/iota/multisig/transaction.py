@@ -76,4 +76,21 @@ class ProposedMultisigBundle(ProposedBundle):
           },
         )
 
+      if not addy.balance:
+        raise with_context(
+          exc =
+            ValueError(
+              'Cannot add input with empty/unknown balance to {type} '
+              '(use ``Iota.get_balances`` to get balance first).'.format(
+                type = type(self).__name__,
+              ),
+            ),
+
+          context = {
+            'actual_input': addy,
+          },
+        )
+
+      self._create_input_transactions(addy)
+
       count += 1

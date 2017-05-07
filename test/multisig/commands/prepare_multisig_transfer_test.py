@@ -690,8 +690,21 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     that doesn't require multisig functionality should be generated
     using :py:meth:`iota.api.Iota.prepare_transfer` instead.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    with self.assertRaises(ValueError):
+      self.command(
+        transfers = [
+          ProposedTransaction(
+            address = Address(self.trytes_1),
+            value   = 0,
+          ),
+        ],
+
+        multisigInput =
+          MultisigAddress(
+            digests = [self.digest_1, self.digest_2],
+            trytes  = self.trytes_2,
+          ),
+      )
 
   def test_error_insufficient_inputs(self):
     """

@@ -133,6 +133,11 @@ class MultisigIota(Iota):
     :param transfers:
       Transaction objects to prepare.
 
+      Important: Must include at least one transaction that spends
+      IOTAs (has a nonzero ``value``).  If you want to prepare a bundle
+      that does not spend any IOTAs, use
+      :py:meth:`iota.api.prepare_transfer` instead.
+
     :param multisig_input:
       The multisig address to use as the input for the transfers.
 

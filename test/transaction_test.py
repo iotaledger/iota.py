@@ -1142,15 +1142,17 @@ They both licked their dry lips.
     """
     Attempting to add inputs to a bundle that is already finalized.
     """
-    self.bundle.add_transaction(ProposedTransaction(
-      address =
-        Address(
-          b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
-          b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
-        ),
+    self.bundle.add_transaction(
+      ProposedTransaction(
+        address =
+          Address(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+            b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+          ),
 
-      value = 0,
-    ))
+        value = 0,
+      ),
+    )
 
     self.bundle.finalize()
 

@@ -929,7 +929,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     """
     Adds inputs to spend in the bundle.
 
-    Note that each input requires two transactions, in order to
+    Note that each input may require multiple transactions, in order to
     hold the entire signature.
 
     :param inputs:

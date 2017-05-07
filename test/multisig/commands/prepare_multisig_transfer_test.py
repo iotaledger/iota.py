@@ -547,7 +547,7 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
       response = {
         'balances': [42],
 
-        # Would it be cheeky to put 7½ million years here?
+        # Would it be cheeky to put "7½ million years" here?
         'duration': 86,
       },
     )

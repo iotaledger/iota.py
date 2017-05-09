@@ -5,7 +5,8 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Dict, Iterable, Optional, Text
 
 from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
-  TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
+  TransactionHash, TransactionTrytes, TryteString, TrytesCompatible, \
+  convert_value_to_standard_unit
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
   discover_commands, extended
@@ -880,3 +881,22 @@ class Iota(StrictIota):
       depth               = depth,
       minWeightMagnitude  = min_weight_magnitude,
     )
+
+
+
+  def convert_units(self, value, symbol='i'):
+    # type: (Text, Text) -> float
+    """
+    Converts between any two standard units of iota
+
+    :param value:
+      Value to convert. For example: '1.618 Mi'.
+
+    :param symbol:
+      Unit symbol of iota to convert to. For example: 'Gi'.
+      Default is 'i'
+
+    :return:
+      float as units of symbol to convert to
+    """
+    return convert_value_to_standard_unit(value, symbol)

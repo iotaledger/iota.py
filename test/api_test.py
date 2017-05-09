@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import InvalidCommand, StrictIota
+from iota import InvalidCommand, Iota, StrictIota
 from iota.adapter import MockAdapter
 from iota.commands import CustomCommand
 from iota.commands.core.get_node_info import GetNodeInfoCommand
@@ -135,3 +135,14 @@ class IotaApiTestCase(TestCase):
 
     self.assertIsInstance(custom_command, CustomCommand)
     self.assertEqual(custom_command.command, 'helloWorld')
+
+  def test_convert_units(self):
+    """
+    Converting between iota standard units.
+    """
+    api = Iota(MockAdapter())
+
+    self.assertEqual(api.convert_units('1.618 Mi', 'i'), 1618000)
+    self.assertEqual(api.convert_units('42 i', 'Ki'), 0.042)
+    with self.assertRaises(ValueError):
+      api.convert_units('3.141596 Xi', 'Pi')

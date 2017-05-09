@@ -9,7 +9,7 @@ from typing import Generator, Iterable, Iterator, List, MutableSequence, \
   Optional, Sequence, Text, Tuple
 
 from iota import Address, Hash, Tag, TryteString, TrytesCompatible, \
-  TrytesDecodeError, int_from_trits, trits_from_int
+  TrytesDecodeError, int_from_trits, trits_from_int, STANDARD_UNITS
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator, \
   validate_signature_fragments
@@ -26,6 +26,7 @@ __all__ = [
   'Transaction',
   'TransactionHash',
   'TransactionTrytes',
+  'convert_value_to_standard_unit'
 ]
 
 
@@ -43,6 +44,49 @@ def get_current_timestamp():
   # way.
   # :see: http://stackoverflow.com/q/2775864/
   return unix_timestamp(datetime.utcnow().timetuple())
+
+
+def convert_value_to_standard_unit(value, symbol='i'):
+  # type: (Text, Text -> float)
+  """
+    Converts between any two standard units of iota.
+
+    :param value:
+      Value (affixed) to convert. For example: '1.618 Mi'.
+
+    :param symbol:
+      Unit symbol of iota to convert to. For example: 'Gi'.
+
+    :return:
+      float as units of symbol to convert to
+  """
+  value_tuple = value.split()
+
+  try:
+    # Get input value
+    amount = float(value_tuple[0])
+  except (ValueError, IndexError) as e:
+    raise with_context(ValueError("Value to convert is not valid."),
+      context = {
+        'value': value
+      }
+    )
+
+  try:
+    # Set unit symbols and find factor/multiplier.
+    unit_symbol_from = value_tuple[1]
+    unit_factor_from = float(STANDARD_UNITS[unit_symbol_from])
+    unit_factor_to = float(STANDARD_UNITS[symbol])
+  except (KeyError, IndexError):
+    # if invalid symbol or no factor, raise error
+    raise with_context(ValueError("Invalid IOTA unit."),
+      context = {
+        'value': value,
+        'symbol': symbol
+      }
+    )
+
+  return amount * (unit_factor_from /  unit_factor_to)
 
 
 class BundleHash(Hash):
@@ -426,7 +470,6 @@ class ProposedTransaction(Transaction):
       )
 
     return super(ProposedTransaction, self).as_tryte_string()
-
 
 class Bundle(JsonSerializable, Sequence[Transaction]):
   """

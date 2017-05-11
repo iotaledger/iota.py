@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import InvalidCommand, StrictIota
+from iota import InvalidCommand, Iota, StrictIota
 from iota.adapter import MockAdapter
 from iota.commands import CustomCommand
 from iota.commands.core.get_node_info import GetNodeInfoCommand

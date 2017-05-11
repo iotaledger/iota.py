@@ -18,7 +18,7 @@ In that way, it's kind of like toxic waste in a superhero story.
 """
 
 STANDARD_UNITS = {
-    # Valid IOTA unit prefixes. Example value '25.2 Mi'
+    # Valid IOTA unit suffixes. Example value '-273.15 Ki'
     'i': 1,
     'Ki': 1000,
     'Mi': 1000000,

@@ -17,6 +17,17 @@ could create a sexy new altcoin instead.
 In that way, it's kind of like toxic waste in a superhero story.
 """
 
+STANDARD_UNITS = {
+    # Valid IOTA unit suffixes. Example value '-273.15 Ki'
+    'i': 1,
+    'Ki': 1000,
+    'Mi': 1000000,
+    'Gi': 1000000000,
+    'Ti': 1000000000000,
+    'Pi': 1000000000000000
+}
+
+
 # Activate TrytesCodec.
 from .codecs import *
 

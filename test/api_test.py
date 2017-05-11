@@ -135,14 +135,3 @@ class IotaApiTestCase(TestCase):
 
     self.assertIsInstance(custom_command, CustomCommand)
     self.assertEqual(custom_command.command, 'helloWorld')
-
-  def test_convert_units(self):
-    """
-    Converting between iota standard units.
-    """
-    api = Iota(MockAdapter())
-
-    self.assertEqual(api.convert_units('1.618 Mi', 'i'), 1618000)
-    self.assertEqual(api.convert_units('42 i', 'Ki'), 0.042)
-    with self.assertRaises(ValueError):
-      api.convert_units('3.141596 Xi', 'Pi')

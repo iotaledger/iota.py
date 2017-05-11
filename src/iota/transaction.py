@@ -47,7 +47,7 @@ def get_current_timestamp():
 
 
 def convert_value_to_standard_unit(value, symbol='i'):
-  # type: (Text, Text -> float)
+  # type: (Text, Text) -> float
   """
     Converts between any two standard units of iota.
 
@@ -58,14 +58,13 @@ def convert_value_to_standard_unit(value, symbol='i'):
       Unit symbol of iota to convert to. For example: 'Gi'.
 
     :return:
-      float as units of symbol to convert to
+      Float as units of given symbol to convert to.
   """
-  value_tuple = value.split()
-
   try:
     # Get input value
+    value_tuple = value.split()
     amount = float(value_tuple[0])
-  except (ValueError, IndexError) as e:
+  except (ValueError, IndexError, AttributeError):
     raise with_context(ValueError("Value to convert is not valid."),
       context = {
         'value': value
@@ -78,7 +77,7 @@ def convert_value_to_standard_unit(value, symbol='i'):
     unit_factor_from = float(STANDARD_UNITS[unit_symbol_from])
     unit_factor_to = float(STANDARD_UNITS[symbol])
   except (KeyError, IndexError):
-    # if invalid symbol or no factor, raise error
+    # Invalid symbol or no factor
     raise with_context(ValueError("Invalid IOTA unit."),
       context = {
         'value': value,

@@ -16,8 +16,11 @@ with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
 
 
 ##
-# Certain dependencies are optional depending on Python version.
-dependencies = [
+# For compatibility with versions of pip < 9, we will determine
+# dependencies at runtime.
+# Maybe once Travis upgrades their containers to use a newer version,
+# we'll switch to the newer syntax (:
+install_dependencies = [
   'filters',
   'six',
 
@@ -26,9 +29,17 @@ dependencies = [
   'requests[security] >= 2.4.1',
 ]
 
+unit_test_dependencies = [
+    'nose',
+  ]
+
 if version_info[0] < 3:
-  dependencies.extend([
+  install_dependencies.extend([
     'typing',
+  ])
+
+  unit_test_dependencies.extend([
+    'mock', # 'mock; python_version < "3.0"',
   ])
 
 
@@ -45,7 +56,7 @@ setup(
 
   long_description = long_description,
 
-  install_requires = dependencies,
+  install_requires = install_dependencies,
 
   extras_require = {
     'ccurl': ['pyota-ccurl'],
@@ -53,10 +64,7 @@ setup(
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',
-  tests_require = [
-    'mock; python_version < "3.0"',
-    'nose',
-  ],
+  tests_require = unit_test_dependencies,
 
   license = 'MIT',
 

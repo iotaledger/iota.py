@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock, patch
 from six import binary_type, text_type
 
 from iota import Address, Bundle, Iota, ProposedTransaction, \
@@ -15,6 +14,7 @@ from iota.adapter import MockAdapter
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from test import mock
 
 
 class SendTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -639,19 +639,21 @@ class SendTransferCommandTestCase(TestCase):
           b'999999999999999999999999999999999'
         )
 
-    mock_prepare_transfer = Mock(return_value={
-      'trytes': [transaction1],
-    })
+    mock_prepare_transfer =\
+      mock.Mock(return_value={
+        'trytes': [transaction1],
+      })
 
-    mock_send_trytes = Mock(return_value={
-      'trytes': [transaction1],
-    })
+    mock_send_trytes =\
+      mock.Mock(return_value={
+        'trytes': [transaction1],
+      })
 
-    with patch(
+    with mock.patch(
         'iota.commands.extended.prepare_transfer.PrepareTransferCommand._execute',
         mock_prepare_transfer,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.send_trytes.SendTrytesCommand._execute',
           mock_send_trytes,
       ):

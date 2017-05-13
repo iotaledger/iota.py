@@ -10,7 +10,7 @@ from iota import Address
 from iota.crypto.addresses import AddressGenerator, MemoryAddressCache
 from iota.crypto.signing import KeyIterator
 from iota.crypto.types import Seed
-from mock import patch
+from test import mock
 
 
 class AddressGeneratorTestCase(TestCase):
@@ -475,7 +475,7 @@ class MemoryAddressCacheTestCase(TestCase):
         trytes          = self.addy_1,
       )
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator._generate_address',
         mock_generate_address,
     ):

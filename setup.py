@@ -54,7 +54,7 @@ setup(
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',
   tests_require = [
-    'mock',
+    'mock; python_version < "3.0"',
     'nose',
   ],
 

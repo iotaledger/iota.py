@@ -13,8 +13,8 @@ from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetDigestsCommand
-from mock import MagicMock, Mock, patch
 from six import binary_type, text_type
+from test import mock
 
 
 class GetDigestsCommandTestCase(TestCase):
@@ -47,14 +47,14 @@ class GetDigestsCommandTestCase(TestCase):
     """
     seed = Seed.random()
 
-    mock_get_private_keys = Mock(return_value={'keys': [self.key1]})
+    mock_get_private_keys = mock.Mock(return_value={'keys': [self.key1]})
 
-    with patch(
+    with mock.patch(
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
         mock_get_private_keys
     ):
       # noinspection PyUnresolvedReferences
-      with patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: MagicMock
+      with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
         result = self.command(seed=seed, index=0, count=1)
@@ -73,18 +73,18 @@ class GetDigestsCommandTestCase(TestCase):
     """
     seed = Seed.random()
 
-    mock_get_private_keys = Mock(return_value={'keys': [self.key1, self.key2]})
+    mock_get_private_keys = mock.Mock(return_value={'keys': [self.key1, self.key2]})
 
-    with patch(
+    with mock.patch(
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
         mock_get_private_keys
     ):
       # noinspection PyUnresolvedReferences
-      with patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: MagicMock
+      with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
         # noinspection PyUnresolvedReferences
-        with patch.object(self.key2, 'get_digest') as mock_get_digest_2: # type: MagicMock
+        with mock.patch.object(self.key2, 'get_digest') as mock_get_digest_2: # type: mock.MagicMock
           mock_get_digest_2.return_value = self.digest2
 
           result = self.command(seed=seed, index=0, count=2)

@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock, patch
 from six import binary_type, text_type
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, Tag, \
@@ -14,6 +13,7 @@ from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, Tag, \
 from iota.adapter import MockAdapter
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
 from iota.filters import Trytes
+from test import mock
 
 
 class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
@@ -579,21 +579,22 @@ class ReplayBundleCommandTestCase(TestCase):
       ),
     ])
 
-    mock_get_bundles = Mock(return_value={
-      'bundles': [bundle],
-    })
+    mock_get_bundles =\
+      mock.Mock(return_value={
+        'bundles': [bundle],
+      })
 
     send_trytes_response = {
       'trytes': bundle.as_tryte_strings(head_to_tail=True),
     }
 
-    mock_send_trytes = Mock(return_value=send_trytes_response)
+    mock_send_trytes = mock.Mock(return_value=send_trytes_response)
 
-    with patch(
+    with mock.patch(
         'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
         mock_get_bundles,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.send_trytes.SendTrytesCommand._execute',
           mock_send_trytes,
       ):

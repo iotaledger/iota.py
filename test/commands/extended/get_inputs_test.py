@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock, patch
 from six import binary_type, text_type
 
 from iota import Address, BadApiResponse, Iota, TransactionHash
@@ -15,6 +14,7 @@ from iota.commands.extended.get_inputs import GetInputsCommand, \
   GetInputsRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from test import mock
 
 
 class GetInputsRequestFilterTestCase(BaseFilterTestCase):
@@ -408,9 +408,9 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+    mock_address_generator = mock.Mock(return_value=[self.addy0, self.addy1])
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
@@ -448,9 +448,9 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+    mock_address_generator = mock.Mock(return_value=[self.addy0, self.addy1])
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
@@ -473,9 +473,9 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+    mock_address_generator = mock.Mock(return_value=[self.addy0, self.addy1])
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
@@ -507,9 +507,9 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    mock_address_generator = Mock(return_value=[self.addy0, self.addy1])
+    mock_address_generator = mock.Mock(return_value=[self.addy0, self.addy1])
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
@@ -579,7 +579,7 @@ class GetInputsCommandTestCase(TestCase):
         yield addy
 
     # When ``stop`` is None, the command uses a generator internally.
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
@@ -622,7 +622,7 @@ class GetInputsCommandTestCase(TestCase):
         yield addy
 
     # When ``stop`` is None, the command uses a generator internally.
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
@@ -676,7 +676,7 @@ class GetInputsCommandTestCase(TestCase):
         yield addy
 
     # When ``stop`` is None, the command uses a generator internally.
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
@@ -739,7 +739,7 @@ class GetInputsCommandTestCase(TestCase):
         yield addy
 
     # When ``stop`` is None, the command uses a generator internally.
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
@@ -799,7 +799,7 @@ class GetInputsCommandTestCase(TestCase):
         yield addy
 
     # When ``stop`` is None, the command uses a generator internally.
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):

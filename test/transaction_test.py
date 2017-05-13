@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Tuple
 from unittest import TestCase
 
-from mock import patch
 from six import binary_type
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, ProposedBundle, \
@@ -14,6 +13,7 @@ from iota import Address, Bundle, BundleHash, Fragment, Hash, ProposedBundle, \
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.signing import KeyGenerator
 from iota.transaction import BundleValidator
+from test import mock
 
 
 class BundleTestCase(TestCase):
@@ -1309,7 +1309,7 @@ They both licked their dry lips.
       for i in range(AddressGenerator.DEFAULT_SECURITY_LEVEL):
         yield Fragment.from_trits(trits_from_int(i))
 
-    with patch(
+    with mock.patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
         mock_signature_generator,
     ):
@@ -1722,7 +1722,10 @@ class UnitConverterTestCase(TestCase):
     """
     Converting to unit of same size.
     """
-    self.assertEqual(convert_value_to_standard_unit('299792458 Mi', 'Mi'), 299792458)
+    self.assertEqual(
+      convert_value_to_standard_unit('299792458 Mi', 'Mi'),
+      299792458,
+    )
 
   def test_convert_from_invalid_symbol(self):
     """
@@ -1743,6 +1746,7 @@ class UnitConverterTestCase(TestCase):
     Attempting to convert invalid type: list.
     """
     with self.assertRaises(ValueError):
+      # noinspection PyTypeChecker
       convert_value_to_standard_unit(['3.141592', 'Pi'], 'Gi')
 
   def test_convert_type_float(self):
@@ -1750,6 +1754,7 @@ class UnitConverterTestCase(TestCase):
     Attempting to convert invalid type: float.
     """
     with self.assertRaises(ValueError):
+      # noinspection PyTypeChecker
       convert_value_to_standard_unit(3.141592, 'Pi')
 
   def test_convert_value_no_space(self):

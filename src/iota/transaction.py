@@ -470,6 +470,7 @@ class ProposedTransaction(Transaction):
 
     return super(ProposedTransaction, self).as_tryte_string()
 
+
 class Bundle(JsonSerializable, Sequence[Transaction]):
   """
   A collection of transactions, treated as an atomic unit when

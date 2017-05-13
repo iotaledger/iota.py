@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock, patch
 
 from iota import Address, Bundle, Iota, TransactionHash
 from iota.adapter import MockAdapter
@@ -15,6 +14,7 @@ from iota.commands.extended.get_account_data import GetAccountDataCommand, \
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from six import binary_type, text_type
+from test import mock
 
 
 class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
@@ -379,22 +379,22 @@ class GetAccountDataCommandTestCase(TestCase):
       yield self.addy1, [self.hash1]
       yield self.addy2, [self.hash2]
 
-    mock_get_balances = Mock(return_value={'balances': [42, 0]})
+    mock_get_balances = mock.Mock(return_value={'balances': [42, 0]})
 
     # Not particularly realistic, but good enough to prove that the
     # mocked function was invoked correctly.
     bundles = [Bundle(), Bundle()]
-    mock_get_bundles_from_transaction_hashes = Mock(return_value=bundles)
+    mock_get_bundles_from_transaction_hashes = mock.Mock(return_value=bundles)
 
-    with patch(
+    with mock.patch(
         'iota.commands.extended.get_account_data.iter_used_addresses',
         mock_iter_used_addresses,
     ):
-      with patch(
+      with mock.patch(
         'iota.commands.extended.get_account_data.get_bundles_from_transaction_hashes',
         mock_get_bundles_from_transaction_hashes,
       ):
-        with patch(
+        with mock.patch(
           'iota.commands.core.get_balances.GetBalancesCommand._execute',
           mock_get_balances,
         ):
@@ -414,9 +414,9 @@ class GetAccountDataCommandTestCase(TestCase):
     """
     Loading account data for a seed that hasn't been used yet.
     """
-    with patch(
+    with mock.patch(
         'iota.commands.extended.get_account_data.iter_used_addresses',
-        Mock(return_value=[]),
+        mock.Mock(return_value=[]),
     ):
       response = self.command(seed=Seed.random())
 

@@ -13,8 +13,8 @@ from iota.crypto.types import Seed, PrivateKey
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
-from mock import Mock, patch
 from six import binary_type, text_type
+from test import mock
 
 
 class GetPrivateKeysCommandTestCase(TestCase):
@@ -51,8 +51,8 @@ class GetPrivateKeysCommandTestCase(TestCase):
     """
     keys = [PrivateKey(self.trytes1, 0)]
 
-    mock_get_keys = Mock(return_value=keys)
-    with patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
+    mock_get_keys = mock.Mock(return_value=keys)
+    with mock.patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
       result = self.command(seed=Seed.random())
 
     self.assertDictEqual(result, {'keys': keys})
@@ -64,8 +64,8 @@ class GetPrivateKeysCommandTestCase(TestCase):
     """
     keys = [PrivateKey(self.trytes1, 0), PrivateKey(self.trytes2, 1)]
 
-    mock_get_keys = Mock(return_value=keys)
-    with patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
+    mock_get_keys = mock.Mock(return_value=keys)
+    with mock.patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
       result = self.command(seed=Seed.random(), index=0, count=2)
 
     self.assertDictEqual(result, {'keys': keys})

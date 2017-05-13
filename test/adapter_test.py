@@ -9,8 +9,8 @@ from unittest import TestCase
 import requests
 from iota import BadApiResponse, InvalidUri, TryteString
 from iota.adapter import HttpAdapter, MockAdapter, resolve_adapter
-from mock import Mock, patch
 from six import BytesIO, text_type
+from test import mock
 
 
 class ResolveAdapterTestCase(TestCase):
@@ -145,10 +145,10 @@ class HttpAdapterTestCase(TestCase):
     }
 
     mocked_response = create_http_response(json.dumps(expected_result))
-    mocked_sender   = Mock(return_value=mocked_response)
+    mocked_sender   = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       result = adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(result, expected_result)
@@ -171,10 +171,10 @@ class HttpAdapterTestCase(TestCase):
       }),
     )
 
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -201,10 +201,10 @@ class HttpAdapterTestCase(TestCase):
       }),
     )
 
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -227,10 +227,10 @@ class HttpAdapterTestCase(TestCase):
       content = json.dumps(decoded_response),
     )
 
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -247,10 +247,10 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_response = create_http_response('')
 
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -268,10 +268,10 @@ class HttpAdapterTestCase(TestCase):
     invalid_response  = 'EHLO iotatoken.com' # Erm...
     mocked_response   = create_http_response(invalid_response)
 
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -289,10 +289,10 @@ class HttpAdapterTestCase(TestCase):
     invalid_response  = ['message', 'Hello, IOTA!']
     mocked_response   = create_http_response(json.dumps(invalid_response))
 
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -314,10 +314,10 @@ class HttpAdapterTestCase(TestCase):
 
     # Response is not important for this test; we just need to make
     # sure that the request is converted correctly.
-    mocked_sender = Mock(return_value=create_http_response('{}'))
+    mocked_sender = mock.Mock(return_value=create_http_response('{}'))
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       adapter.send_request({
         'command':  'helloWorld',
         'trytes': [

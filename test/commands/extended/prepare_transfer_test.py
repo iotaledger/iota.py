@@ -7,7 +7,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from mock import Mock, patch
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString
@@ -17,6 +16,7 @@ from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
 from six import PY2, binary_type, text_type
+from test import mock
 
 
 class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -413,7 +413,7 @@ class PrepareTransferCommandTestCase(TestCase):
     def get_current_timestamp():
       return self.timestamp
 
-    with patch(
+    with mock.patch(
         target  = 'iota.transaction.get_current_timestamp',
         new     = get_current_timestamp,
     ):
@@ -720,9 +720,9 @@ class PrepareTransferCommandTestCase(TestCase):
       ),
     ])
 
-    with patch(
+    with mock.patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        Mock(return_value=mock_signature_fragment_generator),
+        mock.Mock(return_value=mock_signature_fragment_generator),
     ):
       response = self.command(
         seed = Seed(
@@ -1096,9 +1096,9 @@ class PrepareTransferCommandTestCase(TestCase):
       ),
     ])
 
-    with patch(
+    with mock.patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        Mock(return_value=mock_signature_fragment_generator),
+        mock.Mock(return_value=mock_signature_fragment_generator),
     ):
       response = self.command(
         seed = Seed(
@@ -1379,7 +1379,7 @@ class PrepareTransferCommandTestCase(TestCase):
     #   References:
     #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-    mock_get_inputs = Mock(return_value={
+    mock_get_inputs = mock.Mock(return_value={
       'inputs': [
         Address(
           trytes =
@@ -1555,11 +1555,11 @@ class PrepareTransferCommandTestCase(TestCase):
       ),
     ])
 
-    with patch(
+    with mock.patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        Mock(return_value=mock_signature_fragment_generator),
+        mock.Mock(return_value=mock_signature_fragment_generator),
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_inputs.GetInputsCommand._execute',
           mock_get_inputs,
       ):
@@ -1829,7 +1829,7 @@ class PrepareTransferCommandTestCase(TestCase):
     #   References:
     #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-    mock_get_inputs = Mock(return_value={
+    mock_get_inputs = mock.Mock(return_value={
       'inputs': [
         Address(
           trytes =
@@ -1921,11 +1921,11 @@ class PrepareTransferCommandTestCase(TestCase):
       ),
     ])
 
-    with patch(
+    with mock.patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        Mock(return_value=mock_signature_fragment_generator),
+        mock.Mock(return_value=mock_signature_fragment_generator),
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_inputs.GetInputsCommand._execute',
           mock_get_inputs,
       ):
@@ -2154,9 +2154,9 @@ class PrepareTransferCommandTestCase(TestCase):
     #   References:
     #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-    mock_get_inputs = Mock(side_effect=BadApiResponse)
+    mock_get_inputs = mock.Mock(side_effect=BadApiResponse)
 
-    with patch(
+    with mock.patch(
         'iota.commands.extended.get_inputs.GetInputsCommand._execute',
         mock_get_inputs,
     ):
@@ -2188,7 +2188,7 @@ class PrepareTransferCommandTestCase(TestCase):
     #   References:
     #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
     #     - :py:class:`iota.commands.extended.get_new_addresses.GetNewAddressesCommand`
-    mock_get_new_addresses_command = Mock(return_value={
+    mock_get_new_addresses_command = mock.Mock(return_value={
       'addresses': [
         Address(
           trytes =
@@ -2286,11 +2286,11 @@ class PrepareTransferCommandTestCase(TestCase):
       ),
     ])
 
-    with patch(
+    with mock.patch(
         'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        Mock(return_value=mock_signature_fragment_generator),
+        mock.Mock(return_value=mock_signature_fragment_generator),
     ):
-      with patch(
+      with mock.patch(
         'iota.commands.extended.get_new_addresses.GetNewAddressesCommand._execute',
         mock_get_new_addresses_command,
       ):

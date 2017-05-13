@@ -12,8 +12,8 @@ from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from mock import Mock, patch
 from six import binary_type, text_type
+from test import mock
 
 
 class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
@@ -414,15 +414,16 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = Mock(return_value={
-      'bundles': [bundle],
-    })
+    mock_get_bundles =\
+      mock.Mock(return_value={
+        'bundles': [bundle],
+      })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
@@ -458,7 +459,7 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
@@ -529,15 +530,15 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value={
       'bundles': [bundle],
     })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
@@ -604,15 +605,15 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value={
       'bundles': [bundle],
     })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
@@ -706,25 +707,25 @@ class GetTransfersCommandTestCase(TestCase):
 
     transaction = Transaction.from_tryte_string(transaction_trytes)
 
-    mock_get_bundles = Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value={
       'bundles': [Bundle([transaction])],
     })
 
-    mock_get_latest_inclusion = Mock(return_value={
+    mock_get_latest_inclusion = mock.Mock(return_value={
       'states': {
         transaction.hash: True,
       },
     })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
-        with patch(
+        with mock.patch(
           'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand._execute',
           mock_get_latest_inclusion,
         ):

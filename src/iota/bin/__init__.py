@@ -29,12 +29,13 @@ class IotaCommandLineApp(with_metaclass(ABCMeta)):
   Whether the command requires the user to provide a seed.
   """
 
-  def __init__(self, stdout=sys.stdout, stderr=sys.stderr):
-    # type: (StringIO, StringIO) -> None
+  def __init__(self, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin):
+    # type: (StringIO, StringIO, StringIO) -> None
     super(IotaCommandLineApp, self).__init__()
 
     self.stdout = stdout
     self.stderr = stderr
+    self.stdin  = stdin
 
   @abstract_method
   def execute(self, api, **arguments):
@@ -113,7 +114,7 @@ class IotaCommandLineApp(with_metaclass(ABCMeta)):
     arguments and options from argv.
     """
     parser = ArgumentParser(
-      description = __doc__,
+      description = self.__doc__,
       epilog      = 'PyOTA v{version}'.format(version=__version__),
     )
 
@@ -138,6 +139,13 @@ class IotaCommandLineApp(with_metaclass(ABCMeta)):
             'If not provided, you will be prompted to enter your seed '
             'via stdin.',
       )
+
+    parser.add_argument(
+      '--testnet',
+        action  = 'store_true',
+        default = False,
+        help    = 'If set, use testnet settings (e.g., for PoW).',
+    )
 
     return parser
 

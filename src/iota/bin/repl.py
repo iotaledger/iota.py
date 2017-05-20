@@ -73,13 +73,6 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
     )
 
     parser.add_argument(
-      '--testnet',
-        action  = 'store_true',
-        default = False,
-        help    = 'If set, use testnet settings (e.g., for PoW).',
-    )
-
-    parser.add_argument(
       '--debug',
         action  = 'store_true',
         default = False,

@@ -88,8 +88,8 @@ class Seed(TryteString):
     alphabet  = list(itervalues(TrytesCodec.alphabet))
     generator = SystemRandom()
 
-    # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6, so for
-    # compatibility, we will continue to use ``choice`` in a loop.
+    # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
+    # for compatibility, we will continue to use ``choice`` in a loop.
     # https://docs.python.org/3/library/random.html#random.choices
     return cls(
       ''.join(chr(generator.choice(alphabet)) for _ in range(length))

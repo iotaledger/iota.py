@@ -27,6 +27,10 @@ class BaseWrapper(with_metaclass(ABCMeta, BaseAdapter)):
 
     self.adapter = adapter # type: BaseAdapter
 
+  def get_uri(self):
+    # type: () -> Text
+    return self.adapter.get_uri()
+
   @abstract_method
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict

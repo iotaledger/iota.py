@@ -2,15 +2,20 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from math import ceil
-from os import urandom
+from typing import MutableSequence, Optional, Tuple
 
-from six import binary_type
-from typing import Callable, MutableSequence, Optional, Tuple
+from six import itervalues
 
-from iota import Hash, TryteString, TrytesCompatible
+from iota import Hash, TryteString, TrytesCodec, TrytesCompatible
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.exceptions import with_context
+
+try:
+  # New in Python 3.6; even ``six`` doesn't know about it yet.
+  # noinspection PyCompatibility
+  from secrets import SystemRandom
+except ImportError:
+  from random import SystemRandom
 
 __all__ = [
   'Digest',
@@ -71,29 +76,25 @@ class Seed(TryteString):
   A TryteString that acts as a seed for crypto functions.
   """
   @classmethod
-  def random(cls, length=Hash.LEN, source=urandom):
-    # type: (int, Optional[Callable[[int], binary_type]]) -> Seed
+  def random(cls, length=Hash.LEN):
+    # type: (int) -> Seed
     """
     Generates a new random seed.
 
     :param length:
       Minimum number of trytes to generate.
       This should be at least 81 (one hash).
-
-    :param source:
-      CSPRNG function or method to use to generate randomness.
-
-      Note:  This parameter must be a function/method that accepts an
-      int and returns random bytes.
-
-      Example::
-
-         from Crypto import Random
-         new_seed = Seed.random(source=Random.new().read)
     """
-    # Encoding bytes -> trytes yields 2 trytes per byte.
-    # Note: int cast for compatibility with Python 2.
-    return cls.from_bytes(source(int(ceil(length / 2))))
+    alphabet  = list(itervalues(TrytesCodec.alphabet))
+    generator = SystemRandom()
+
+    # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6, so for
+    # compatibility, we will continue to use ``choice`` in a loop.
+    # https://docs.python.org/3/library/random.html#random.choices
+    return cls(
+      ''.join(chr(generator.choice(alphabet)) for _ in range(length))
+        .encode('ascii')
+    )
 
 
 class PrivateKey(TryteString):

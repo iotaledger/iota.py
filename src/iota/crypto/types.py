@@ -84,6 +84,11 @@ class Seed(TryteString):
     :param length:
       Minimum number of trytes to generate.
       This should be at least 81 (one hash).
+
+      Note: Seeds longer that 81 trytes do not increase security.
+
+    References:
+      - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278
     """
     alphabet  = list(itervalues(TrytesCodec.alphabet))
     generator = SystemRandom()

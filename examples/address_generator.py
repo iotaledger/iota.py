@@ -34,7 +34,8 @@ def main(uri, index, count):
   print('')
 
   # Here's where all the magic happens!
-  for addy in api.get_new_addresses(index, count):
+  api_response = api.get_new_addresses(index, count)
+  for addy in api_response['addresses']:
     print(binary_type(addy).decode('ascii'))
 
   print('')

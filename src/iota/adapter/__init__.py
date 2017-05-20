@@ -144,6 +144,16 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
     self._logger = None # type: Logger
 
   @abstract_method
+  def get_uri(self):
+    # type: () -> Text
+    """
+    Returns the URI that this adapter will use.
+    """
+    raise NotImplementedError(
+      'Not implemented in {cls}.'.format(cls=type(self).__name__),
+    )
+
+  @abstract_method
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
     """
@@ -246,6 +256,10 @@ class HttpAdapter(BaseAdapter):
     """
     Returns the node URL.
     """
+    return self.uri.geturl()
+
+  def get_uri(self):
+    # type: () -> Text
     return self.uri.geturl()
 
   def send_request(self, payload, **kwargs):
@@ -423,6 +437,9 @@ class MockAdapter(BaseAdapter):
 
     self.responses  = {} # type: Dict[Text, deque]
     self.requests   = [] # type: List[dict]
+
+  def get_uri(self):
+    return 'mock://'
 
   def seed_response(self, command, response):
     # type: (Text, dict) -> MockAdapter

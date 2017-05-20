@@ -51,10 +51,17 @@ setup(
   url         = 'https://github.com/iotaledger/iota.lib.py',
   version     = '1.1.3',
 
+  long_description = long_description,
+
   packages              = find_packages('src'),
   include_package_data  = True,
 
-  long_description = long_description,
+  # http://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
+  entry_points = {
+    'console_scripts': [
+      'iota-cli=iota.bin.repl:main',
+    ],
+  },
 
   install_requires = install_dependencies,
 

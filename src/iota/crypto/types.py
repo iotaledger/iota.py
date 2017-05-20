@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from random import SystemRandom
 from typing import MutableSequence, Optional, Tuple
 
 from six import itervalues
@@ -9,13 +10,6 @@ from six import itervalues
 from iota import Hash, TryteString, TrytesCodec, TrytesCompatible
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.exceptions import with_context
-
-try:
-  # New in Python 3.6; even ``six`` doesn't know about it yet.
-  # noinspection PyCompatibility
-  from secrets import SystemRandom
-except ImportError:
-  from random import SystemRandom
 
 __all__ = [
   'Digest',

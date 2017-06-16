@@ -2,14 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-import hashlib
-from abc import ABCMeta, abstractmethod as abstract_method
-from contextlib import contextmanager as context_manager
-from threading import Lock
-
-from six import binary_type, with_metaclass
-from typing import Dict, Generator, Iterable, List, MutableSequence, \
-  Optional
+from typing import Generator, Iterable, List, MutableSequence
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto import Curl
@@ -19,95 +12,7 @@ from iota.exceptions import with_context
 
 __all__ = [
   'AddressGenerator',
-  'MemoryAddressCache',
 ]
-
-
-class BaseAddressCache(with_metaclass(ABCMeta)):
-  """
-  Base functionality for classes that cache generated addresses.
-  """
-  LockType = Lock
-  """
-  The type of locking mechanism used by :py:meth:`acquire_lock`.
-
-  Defaults to ``threading.Lock``, but you can change it if you want to
-  use a different mechanism (e.g., multithreading or distributed).
-  """
-
-  def __init__(self):
-    super(BaseAddressCache, self).__init__()
-
-    self._lock = self.LockType()
-
-  @abstract_method
-  def get(self, seed, index, security_level):
-    # type: (Seed, int, int) -> Optional[Address]
-    """
-    Retrieves an address from the cache.
-    Returns ``None`` if the address hasn't been cached yet.
-    """
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
-
-  @abstract_method
-  def set(self, seed, index, security_level, address):
-    # type: (Seed, int, int, Address) -> None
-    """
-    Adds an address to the cache, overwriting the existing address if
-    set.
-    """
-    raise NotImplementedError(
-      'Not implemented in {cls}.'.format(cls=type(self).__name__),
-    )
-
-  @context_manager
-  def acquire_lock(self):
-    """
-    Acquires a lock on the cache instance, to prevent invalid cache
-    misses when multiple threads access the cache concurrently.
-
-    Note: Acquire lock before checking the cache, and do not release it
-    until after the cache hit/miss is resolved.
-    """
-    with self._lock:
-      yield
-
-  @staticmethod
-  def _gen_cache_key(seed, index, security_level):
-    # type: (Seed, int, int) -> binary_type
-    """
-    Generates an obfuscated cache key so that we're not storing seeds
-    in cleartext.
-    """
-    h = hashlib.new('sha256')
-
-    h.update(
-        binary_type(seed)
-      + b':' + binary_type(index)
-      + b':' + binary_type(security_level)
-    )
-
-    return h.digest()
-
-
-class MemoryAddressCache(BaseAddressCache):
-  """
-  Caches addresses in memory.
-  """
-  def __init__(self):
-    super(MemoryAddressCache, self).__init__()
-
-    self.cache = {} # type: Dict[binary_type, Address]
-
-  def get(self, seed, index, security_level):
-    # type: (Seed, int, int) -> Optional[Address]
-    return self.cache.get(self._gen_cache_key(seed, index, security_level))
-
-  def set(self, seed, index, security_level, address):
-    # type: (Seed, int, int, Address) -> None
-    self.cache[self._gen_cache_key(seed, index, security_level)] = address
 
 
 class AddressGenerator(Iterable[Address]):
@@ -133,12 +38,6 @@ class AddressGenerator(Iterable[Address]):
   References:
     - :py:meth:`iota.transaction.ProposedBundle.sign_inputs`
     - :py:class:`iota.transaction.BundleValidator`
-  """
-
-  cache = None # type: BaseAddressCache
-  """
-  Set a the instance or class level to inject a cache into the address
-  generation process.
   """
 
   def __init__(self, seed, security_level=DEFAULT_SECURITY_LEVEL):
@@ -248,29 +147,7 @@ class AddressGenerator(Iterable[Address]):
     )
 
     while True:
-      if self.cache:
-        with self.cache.acquire_lock():
-          address =\
-            self.cache.get(
-              seed            = self.seed,
-              index           = key_iterator.current,
-              security_level  = key_iterator.security_level,
-            )
-
-          if address:
-            key_iterator.advance()
-          else:
-            address = self._generate_address(key_iterator)
-            self.cache.set(
-              seed            = self.seed,
-              index           = address.key_index,
-              security_level  = address.security_level,
-              address         = address,
-            )
-      else:
-        address = self._generate_address(key_iterator)
-
-      yield address
+      yield self._generate_address(key_iterator)
 
   @staticmethod
   def address_from_digest(digest):

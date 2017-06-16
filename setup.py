@@ -53,10 +53,11 @@ setup(
 
   long_description = long_description,
 
-  packages = find_packages('.', exclude=(
-    'examples', 'examples.*',
-    'test', 'test.*',
-  )),
+  packages =
+    find_packages('.', exclude=(
+      'examples', 'examples.*',
+      'test', 'test.*',
+    )),
 
   include_package_data  = True,
 

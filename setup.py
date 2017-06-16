@@ -53,7 +53,11 @@ setup(
 
   long_description = long_description,
 
-  packages              = find_packages('src'),
+  packages = find_packages('.', exclude=(
+    'examples', 'examples.*',
+    'test', 'test.*',
+  )),
+
   include_package_data  = True,
 
   # http://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point

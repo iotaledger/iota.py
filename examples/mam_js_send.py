@@ -119,9 +119,9 @@ class IotaMamExample(IotaCommandLineApp):
 
     transaction_trytes = filter_.cleaned_data # type: List[TransactionTrytes]
 
-    if dry_run:
-      bundle = Bundle.from_tryte_strings(transaction_trytes)
+    bundle = Bundle.from_tryte_strings(transaction_trytes)
 
+    if dry_run:
       self.stdout.write('Transactions:\n\n')
       self.stdout.write(json.dumps(bundle, cls=JsonEncoder, indent=2))
     else:
@@ -129,6 +129,13 @@ class IotaMamExample(IotaCommandLineApp):
         depth                 = depth,
         trytes                = transaction_trytes,
         min_weight_magnitude  = min_weight_magnitude,
+      )
+
+      self.stdout.write('Message broadcast successfully!\n')
+      self.stdout.write(
+        'Bundle ID: {bundle_hash}\n'.format(
+          bundle_hash = bundle.hash,
+        ),
       )
 
     return 0

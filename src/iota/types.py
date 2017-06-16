@@ -323,7 +323,9 @@ class TryteString(JsonSerializable):
     Same as :py:meth:`__bytes__`, except this method returns a unicode
     string.
     """
-    return binary_type(self).decode('ascii')
+    # This causes infinite recursion in Python 2.
+    # return binary_type(self).decode('ascii')
+    return binary_type(self._trytes).decode('ascii')
 
   def __bool__(self):
     # type: () -> bool

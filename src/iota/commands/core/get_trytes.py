@@ -34,7 +34,11 @@ class GetTrytesRequestFilter(RequestFilter):
       'hashes': (
           f.Required
         | f.Array
-        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+        | f.FilterRepeater(
+              f.Required
+            | Trytes(result_type=TransactionHash)
+            | f.Unicode(encoding='ascii', normalize=False)
+          )
       ),
     })
 

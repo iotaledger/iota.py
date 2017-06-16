@@ -84,7 +84,7 @@ class GetNewAddressesRequestFilter(RequestFilter):
             | f.Max(self.MAX_SECURITY_LEVEL)
             | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
-        'seed':   f.Required | Trytes(result_type=Seed),
+        'seed': f.Required | Trytes(result_type=Seed),
       },
 
       allow_missing_keys = {

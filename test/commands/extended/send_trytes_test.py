@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import text_type, binary_type
+from six import binary_type, text_type
 
 from iota import Iota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
@@ -313,7 +313,6 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -334,11 +333,10 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes.0': [f.Required.CODE_EMPTY],
         'trytes.1': [f.Type.CODE_WRONG_TYPE],
-        'trytes.2': [f.Type.CODE_WRONG_TYPE],
-        'trytes.3': [f.Required.CODE_EMPTY],
-        'trytes.4': [Trytes.CODE_NOT_TRYTES],
-        'trytes.6': [f.Type.CODE_WRONG_TYPE],
-        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
+        'trytes.2': [f.Required.CODE_EMPTY],
+        'trytes.3': [Trytes.CODE_NOT_TRYTES],
+        'trytes.5': [f.Type.CODE_WRONG_TYPE],
+        'trytes.6': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

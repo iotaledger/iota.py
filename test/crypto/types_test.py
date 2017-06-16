@@ -5,7 +5,20 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import Hash, TryteString
-from iota.crypto.types import Digest, PrivateKey
+from iota.crypto.types import Digest, PrivateKey, Seed
+
+
+class SeedTestCase(TestCase):
+  def test_random(self):
+    """
+    Generating a random seed.
+    """
+    seed = Seed.random()
+
+    # Regression test: ``random`` MUST return a :py:class:`Seed`, NOT a
+    # :py:class:`TryteString`!
+    self.assertIsInstance(seed, Seed)
+    self.assertEqual(len(seed), Hash.LEN)
 
 
 class DigestTestCase(TestCase):

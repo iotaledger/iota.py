@@ -40,25 +40,41 @@ class FindTransactionsRequestFilter(RequestFilter):
       {
         'addresses': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=Address))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=Address)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
           | f.Optional(default=[])
         ),
 
         'approvees': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=TransactionHash)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
           | f.Optional(default=[])
         ),
 
         'bundles': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=TransactionHash)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
           | f.Optional(default=[])
         ),
 
         'tags': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=Tag))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=Tag)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
           | f.Optional(default=[])
         ),
       },

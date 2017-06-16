@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from six import moves as compat
 from typing import Text
 
 import filters as f
+from six import binary_type, moves as compat, text_type
+
 from iota import Address, TryteString, TrytesCompatible
-from six import binary_type, text_type
 
 
 class GeneratedAddress(f.BaseFilter):
@@ -104,7 +104,11 @@ class Trytes(f.BaseFilter):
 
   def _apply(self, value):
     # noinspection PyTypeChecker
-    value = self._filter(value, f.Type((binary_type, bytearray, TryteString))) # type: TrytesCompatible
+    value =\
+      self._filter(
+        filter_chain = f.Type((binary_type, bytearray, text_type, TryteString)),
+        value = value,
+      ) # type: TrytesCompatible
 
     if self._has_errors:
       return None

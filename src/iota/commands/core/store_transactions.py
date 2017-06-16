@@ -33,5 +33,9 @@ class StoreTransactionsRequestFilter(RequestFilter):
       'trytes':
           f.Required
         | f.Array
-        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionTrytes)),
+        | f.FilterRepeater(
+              f.Required
+            | Trytes(result_type=TransactionTrytes)
+            | f.Unicode(encoding='ascii', normalize=False)
+          ),
     })

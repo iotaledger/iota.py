@@ -219,7 +219,7 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.seed, 'ascii'),
+        'seed': 42,
       },
 
       {

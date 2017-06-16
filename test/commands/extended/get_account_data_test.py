@@ -6,6 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import binary_type
 
 from iota import Address, Bundle, Iota, TransactionHash
 from iota.adapter import MockAdapter
@@ -13,7 +14,6 @@ from iota.commands.extended.get_account_data import GetAccountDataCommand, \
   GetAccountDataRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from six import binary_type, text_type
 from test import mock
 
 
@@ -141,7 +141,9 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.seed, 'ascii'),
+        # Even if we did convert this into a seed, it wouldn't be very
+        # secure, now would it?
+        'seed': 42,
       },
 
       {

@@ -6,11 +6,11 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+
 from iota import Address, Iota, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.get_balances import GetBalancesCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
@@ -23,13 +23,13 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
 
     # Define a few valid values that we can reuse across tests.
     self.trytes1 = (
-      b'ORLSCIMM9ZONOUSPYYWLOEMXQZLYEHCBEDQSHZ'
-      b'OGOPZCZCDZYTDPGEEUXWUZ9FQYCT9OGS9PICOOX'
+      'TESTVALUE9DONTUSEINPRODUCTION99999EKJZZT'
+      'SOGJOUNVEWLDPKGTGAOIZIPMGBLHC9LMQNHLGXGYX'
     )
 
     self.trytes2 = (
-      b'HHKUSTHZPUPONLCHXUGFYEHATTMFOSSHEUHYS'
-      b'ZUKBODYHZM99IR9KOXLZXVUOJM9LQKCQJBWMTY'
+      'TESTVALUE9DONTUSEINPRODUCTION99999FDCDTZ'
+      'ZWLL9MYGUTLSYVSIFJ9NGALTRMCQVIIOVEQOITYTE'
     )
 
   def test_pass_happy_path(self):
@@ -37,10 +37,8 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     Typical invocation of ``getBalances``.
     """
     request = {
-      'addresses': [
-        Address(self.trytes1),
-        Address(self.trytes2),
-      ],
+      # Raw trytes are extracted to match the IRI's JSON protocol.
+      'addresses': [self.trytes1, self.trytes2],
 
       'threshold': 80,
     }
@@ -57,8 +55,8 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     """
     request = {
       'addresses': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        Address(self.trytes1),
+        bytearray(self.trytes2.encode('ascii')),
       ],
 
       'threshold': 80,
@@ -71,11 +69,7 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'addresses': [
-          Address(self.trytes1),
-          Address(self.trytes2),
-        ],
-
+        'addresses': [self.trytes1, self.trytes2],
         'threshold': 80,
       },
     )
@@ -167,7 +161,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
       {
         'addresses': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -184,11 +177,10 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
       {
         'addresses.0':  [f.Required.CODE_EMPTY],
         'addresses.1':  [f.Type.CODE_WRONG_TYPE],
-        'addresses.2':  [f.Type.CODE_WRONG_TYPE],
-        'addresses.3':  [f.Required.CODE_EMPTY],
-        'addresses.4':  [Trytes.CODE_NOT_TRYTES],
-        'addresses.6':  [f.Type.CODE_WRONG_TYPE],
-        'addresses.7':  [Trytes.CODE_WRONG_FORMAT],
+        'addresses.2':  [f.Required.CODE_EMPTY],
+        'addresses.3':  [Trytes.CODE_NOT_TRYTES],
+        'addresses.5':  [f.Type.CODE_WRONG_TYPE],
+        'addresses.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

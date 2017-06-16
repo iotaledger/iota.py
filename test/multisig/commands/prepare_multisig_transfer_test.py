@@ -6,6 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+
 from iota import Address, Bundle, Fragment, ProposedTransaction
 from iota.adapter import MockAdapter
 from iota.commands.core import GetBalancesCommand
@@ -13,7 +14,6 @@ from iota.crypto.types import Digest
 from iota.multisig import MultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
 from iota.multisig.types import MultisigAddress
-from six import text_type
 
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -457,8 +457,7 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'changeAddress':
-          text_type(self.trytes_1, 'ascii'),
+        'changeAddress': 42,
 
         'multisigInput':
           MultisigAddress(

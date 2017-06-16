@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
+from six import binary_type
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, Tag, \
   Transaction, TransactionHash
@@ -125,7 +125,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'transaction': text_type(self.trytes1, 'ascii'),
+        'transaction': 42,
 
         'depth':              100,
         'minWeightMagnitude': 18,

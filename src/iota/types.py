@@ -2,13 +2,15 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from codecs import encode, decode
+from codecs import decode, encode
 from itertools import chain
 from math import ceil
-from typing import Generator, Iterable, Iterator, List, MutableSequence, \
-  Optional, Text, Union
+from random import SystemRandom
+from typing import AnyStr, Generator, Iterable, Iterator, List, \
+  MutableSequence, Optional, Text, Union
 
-from six import PY2, binary_type
+from six import PY2, binary_type, itervalues, python_2_unicode_compatible, \
+  text_type
 
 from iota import TRITS_PER_TRYTE, TrytesCodec
 from iota.crypto import Curl, HASH_LENGTH
@@ -28,7 +30,7 @@ __all__ = [
 
 
 # Custom types for type hints and docstrings.
-TrytesCompatible  = Union[binary_type, bytearray, 'TryteString']
+TrytesCompatible  = Union[AnyStr, bytearray, 'TryteString']
 
 
 def trits_from_int(n, pad=None):
@@ -75,6 +77,7 @@ def int_from_trits(trits):
   return sum(base * (3 ** power) for power, base in enumerate(trits))
 
 
+@python_2_unicode_compatible
 class TryteString(JsonSerializable):
   """
   A string representation of a sequence of trytes.
@@ -86,6 +89,26 @@ class TryteString(JsonSerializable):
 
   IMPORTANT: A TryteString does not represent a numeric value!
   """
+  @classmethod
+  def random(cls, length):
+    # type: (int) -> TryteString
+    """
+    Generates a random sequence of trytes.
+
+    :param length:
+      Number of trytes to generate.
+    """
+    alphabet  = list(itervalues(TrytesCodec.alphabet))
+    generator = SystemRandom()
+
+    # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
+    # for compatibility, we will continue to use ``choice`` in a loop.
+    # https://docs.python.org/3/library/random.html#random.choices
+    return cls(
+      ''.join(chr(generator.choice(alphabet)) for _ in range(length))
+        .encode('ascii')
+    )
+
   @classmethod
   def from_bytes(cls, bytes_, *args, **kwargs):
     # type: (Union[binary_type, bytearray], ...) -> TryteString
@@ -244,6 +267,9 @@ class TryteString(JsonSerializable):
         )
 
     else:
+      if isinstance(trytes, text_type):
+        trytes = trytes.encode('ascii')
+
       if not isinstance(trytes, bytearray):
         trytes = bytearray(trytes)
 
@@ -280,14 +306,24 @@ class TryteString(JsonSerializable):
     )
 
   def __bytes__(self):
-    # type: () -> binary_type
     """
-    Converts the TryteString into a bytestring representation.
+    Converts the TryteString into an ASCII representation.
 
-    Note that this method will NOT convert the trytes back into bytes;
-    use :py:meth:`as_bytes` for that.
+    Note: This does not decode the trytes into bytes/characters; it
+    only returns an ASCII representation of the trytes themselves!
+
+    If you want to:
+    - Decode trytes into bytes: use :py:meth:`as_bytes`.
+    - Decode trytes into Unicode: use :py:meth:`as_string`.
     """
     return binary_type(self._trytes)
+
+  def __str__(self):
+    """
+    Same as :py:meth:`__bytes__`, except this method returns a unicode
+    string.
+    """
+    return binary_type(self).decode('ascii')
 
   def __bool__(self):
     # type: () -> bool
@@ -296,7 +332,6 @@ class TryteString(JsonSerializable):
   if PY2:
     # Magic methods have different names in Python 2.
     __nonzero__ = __bool__
-    __str__     = __bytes__
 
   def __len__(self):
     # type: () -> int
@@ -311,6 +346,8 @@ class TryteString(JsonSerializable):
     # type: (TrytesCompatible) -> bool
     if isinstance(other, TryteString):
       return other._trytes in self._trytes
+    elif isinstance(other, text_type):
+      return other.encode('ascii') in self._trytes
     elif isinstance(other, (binary_type, bytearray)):
       return other in self._trytes
     else:
@@ -368,6 +405,8 @@ class TryteString(JsonSerializable):
     # type: (TrytesCompatible) -> TryteString
     if isinstance(other, TryteString):
       return TryteString(self._trytes + other._trytes)
+    elif isinstance(other, text_type):
+      return TryteString(self._trytes + other.encode('ascii'))
     elif isinstance(other, (binary_type, bytearray)):
       return TryteString(self._trytes + other)
     else:
@@ -390,6 +429,8 @@ class TryteString(JsonSerializable):
     # type: (TrytesCompatible) -> bool
     if isinstance(other, TryteString):
       return self._trytes == other._trytes
+    elif isinstance(other, text_type):
+      return self._trytes == other.encode('ascii')
     elif isinstance(other, (binary_type, bytearray)):
       return self._trytes == other
     else:

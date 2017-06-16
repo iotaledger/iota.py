@@ -36,13 +36,21 @@ class GetInclusionStatesRequestFilter(RequestFilter):
         'transactions': (
             f.Required
           | f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=TransactionHash)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
         ),
 
         # Optional parameters.
         'tips': (
             f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=TransactionHash))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=TransactionHash)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
           | f.Optional(default=[])
         ),
       },

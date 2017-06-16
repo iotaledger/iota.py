@@ -35,15 +35,19 @@ To install the latest version::
 Optional C Extension
 ====================
 PyOTA has an optional C extension that improves the performance of its
-cryptography features significantly.
+cryptography features significantly (speedups of **60x** are common!).
 
-To install this **experimental** extension, use the following command::
+To install this extension, use the following command::
 
    pip install pyota[ccurl]
 
-.. DANGER::
-   **THE C EXTENSION IS EXPERIMENTAL AND HAS NOT BEEN VETTED FOR**
-   **STABILITY/SECURITY YET; DO NOT USE IN PRODUCTION CODE!!!**
+
+.. note::
+
+   The C extension is currently only compatible with Python 3.
+
+   If you are familiar with Python 2's C API, we'd love to hear from you!
+   See `<https://github.com/todofixthis/pyota-ccurl/issues/4>`_ for more info.
 
 Installing from Source
 ======================

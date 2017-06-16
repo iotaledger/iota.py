@@ -219,7 +219,6 @@ class CreateMultisigAddressRequestFilterTestCase(BaseFilterTestCase):
       {
         'digests': [
           b'',
-          text_type(binary_type(self.digest_1), 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -235,9 +234,8 @@ class CreateMultisigAddressRequestFilterTestCase(BaseFilterTestCase):
       {
         'digests.0':  [f.Required.CODE_EMPTY],
         'digests.1':  [f.Type.CODE_WRONG_TYPE],
-        'digests.2':  [f.Type.CODE_WRONG_TYPE],
-        'digests.3':  [f.Required.CODE_EMPTY],
-        'digests.4':  [Trytes.CODE_NOT_TRYTES],
-        'digests.6':  [f.Type.CODE_WRONG_TYPE],
+        'digests.2':  [f.Required.CODE_EMPTY],
+        'digests.3':  [Trytes.CODE_NOT_TRYTES],
+        'digests.5':  [f.Type.CODE_WRONG_TYPE],
       },
     )

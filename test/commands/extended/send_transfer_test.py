@@ -235,7 +235,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.trytes1, 'ascii'),
+        'seed': 42,
 
         'depth':              100,
         'minWeightMagnitude': 18,
@@ -334,7 +334,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'changeAddress': text_type(self.trytes3, 'ascii'),
+        'changeAddress': 42,
 
         'depth':              100,
         'minWeightMagnitude': 18,
@@ -394,7 +394,6 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'inputs': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -416,11 +415,10 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'inputs.0':  [f.Required.CODE_EMPTY],
         'inputs.1':  [f.Type.CODE_WRONG_TYPE],
-        'inputs.2':  [f.Type.CODE_WRONG_TYPE],
-        'inputs.3':  [f.Required.CODE_EMPTY],
-        'inputs.4':  [Trytes.CODE_NOT_TRYTES],
-        'inputs.6':  [f.Type.CODE_WRONG_TYPE],
-        'inputs.7':  [Trytes.CODE_WRONG_FORMAT],
+        'inputs.2':  [f.Required.CODE_EMPTY],
+        'inputs.3':  [Trytes.CODE_NOT_TRYTES],
+        'inputs.5':  [f.Type.CODE_WRONG_TYPE],
+        'inputs.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

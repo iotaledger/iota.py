@@ -6,13 +6,13 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+
 from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
@@ -24,7 +24,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     super(GetNewAddressesRequestFilterTestCase, self).setUp()
 
     # Define a few tryte sequences that we can re-use between tests.
-    self.seed = b'HELLOIOTA'
+    self.seed = 'HELLOIOTA'
 
   def test_pass_happy_path(self):
     """
@@ -68,8 +68,8 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     types.
     """
     filter_ = self._filter({
-      # ``seed`` can be any value that is convertible to TryteString.
-      'seed': binary_type(self.seed),
+      # ``seed`` can be any TrytesCompatible value.
+      'seed': bytearray(self.seed.encode('ascii')),
 
       # These values must be integers, however.
       'index':          100,
@@ -141,7 +141,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.seed, 'ascii'),
+        'seed': 42,
       },
 
       {

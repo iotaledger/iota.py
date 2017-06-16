@@ -7,6 +7,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import PY2, binary_type, text_type
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString
@@ -15,7 +16,6 @@ from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
-from six import PY2, binary_type, text_type
 from test import mock
 
 
@@ -209,7 +209,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.trytes1, 'ascii'),
+        'seed': 42,
 
         'transfers': [
           ProposedTransaction(address=Address(self.trytes2), value=42),
@@ -304,7 +304,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'changeAddress':  text_type(self.trytes3, 'ascii'),
+        'changeAddress':  42,
 
         'seed': Seed(self.trytes1),
 

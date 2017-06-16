@@ -6,11 +6,12 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import text_type
+
 from iota import Iota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.store_transactions import StoreTransactionsCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -23,18 +24,19 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
     # Define a few valid values here that we can reuse across multiple
     # tests.
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes1 = 'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+      'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_happy_path(self):
     """
     The incoming request is valid.
     """
     request = {
+      # Raw trytes are extracted to match the IRI's JSON protocol.
       'trytes': [
-        TransactionTrytes(self.trytes1),
-        TransactionTrytes(self.trytes2),
+        text_type(TransactionTrytes(self.trytes1)),
+        text_type(TransactionTrytes(self.trytes2)),
       ],
     }
 
@@ -48,11 +50,12 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
     The incoming request contains values that can be converted into the
     expected types.
     """
-    # Any values that can be converted into TryteStrings are accepted.
     filter_ = self._filter({
+      # Any value that can be converted into an ASCII representation of
+      # a TryteString is allowed here.
       'trytes': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        TransactionTrytes(self.trytes1),
+        bytearray(self.trytes2.encode('ascii')),
       ],
     })
 
@@ -60,12 +63,11 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(
       filter_.cleaned_data,
 
-      # The values are converted into TryteStrings so that they can be
-      # sent to the node.
       {
+        # Raw trytes are extracted to match the IRI's JSON protocol.
         'trytes': [
-          TransactionTrytes(self.trytes1),
-          TransactionTrytes(self.trytes2),
+          text_type(TransactionTrytes(self.trytes1)),
+          text_type(TransactionTrytes(self.trytes2)),
         ],
       },
     )
@@ -151,7 +153,6 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -169,11 +170,10 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes.0': [f.NotEmpty.CODE_EMPTY],
         'trytes.1': [f.Type.CODE_WRONG_TYPE],
-        'trytes.2': [f.Type.CODE_WRONG_TYPE],
-        'trytes.3': [f.Required.CODE_EMPTY],
-        'trytes.4': [Trytes.CODE_NOT_TRYTES],
-        'trytes.6': [f.Type.CODE_WRONG_TYPE],
-        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
+        'trytes.2': [f.Required.CODE_EMPTY],
+        'trytes.3': [Trytes.CODE_NOT_TRYTES],
+        'trytes.5': [f.Type.CODE_WRONG_TYPE],
+        'trytes.6': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

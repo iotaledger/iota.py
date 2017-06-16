@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
 
 from iota import Address, BadApiResponse, Iota, TransactionHash
 from iota.adapter import MockAdapter
@@ -26,14 +25,16 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
     super(GetInputsRequestFilterTestCase, self).setUp()
 
     # Define a few tryte sequences that we can re-use between tests.
-    self.seed = b'HELLOIOTA'
+    self.seed = 'HELLOIOTA'
 
   def test_pass_happy_path(self):
     """
     Request is valid.
     """
     request = {
-      'seed':       Seed(self.seed),
+      # Raw trytes are extracted to match the IRI's JSON protocol.
+      'seed': self.seed,
+
       'start':      0,
       'stop':       10,
       'threshold':  100,
@@ -50,9 +51,9 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
     types.
     """
     filter_ = self._filter({
-      # ``seed`` can be any value that is convertible into a
-      # TryteString.
-      'seed': binary_type(self.seed),
+      # ``seed`` can be any value that is convertible into an ASCII
+      # representation of a TryteString.
+      'seed': bytearray(self.seed.encode('ascii')),
 
       # These values must still be integers, however.
       'start':      42,
@@ -141,7 +142,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.seed, 'ascii'),
+        'seed': 42,
       },
 
       {

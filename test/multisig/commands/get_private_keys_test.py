@@ -6,14 +6,15 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import binary_type, text_type
+
 from iota import TryteString
 from iota.adapter import MockAdapter
 from iota.crypto import FRAGMENT_LENGTH
-from iota.crypto.types import Seed, PrivateKey
+from iota.crypto.types import PrivateKey, Seed
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
-from six import binary_type, text_type
 from test import mock
 
 
@@ -192,7 +193,7 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.seed, 'ascii'),
+        'seed': 42,
       },
 
       {

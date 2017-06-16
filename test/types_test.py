@@ -2,18 +2,39 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from os import urandom
 from unittest import TestCase
 
-from iota import Address, AddressChecksum, Tag, TryteString, TrytesCodec, \
+from six import binary_type, text_type
+
+from iota import Address, AddressChecksum, Hash, Tag, TryteString, TrytesCodec, \
   TrytesDecodeError
-from six import binary_type
 
 
 # noinspection SpellCheckingInspection
 class TryteStringTestCase(TestCase):
+  def test_ascii_bytes(self):
+    """
+    Getting an ASCII representation of a TryteString, as bytes.
+    """
+    self.assertEqual(
+      binary_type(TryteString(b'HELLOIOTA')),
+      b'HELLOIOTA',
+    )
+
+  def test_ascii_str(self):
+    """
+    Getting an ASCII representation of a TryteString, as a unicode
+    string.
+    """
+    self.assertEqual(
+      text_type(TryteString(b'HELLOIOTA')),
+      'HELLOIOTA',
+    )
+
   def test_comparison(self):
-    """Comparing TryteStrings for equality."""
+    """
+    Comparing TryteStrings for equality.
+    """
     trytes1 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
     trytes2 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
     trytes3 = TryteString(
@@ -35,11 +56,16 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes1 is trytes3)
     self.assertTrue(trytes1 is not trytes3)
 
-    # Comparing against byte strings is also allowed.
+    # Comparing against strings is also allowed.
     self.assertTrue(trytes1 == b'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertFalse(trytes1 != b'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertFalse(trytes3 == b'RBTC9D9DCDQAEASBYBCCKBFA')
     self.assertTrue(trytes3 != b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    self.assertTrue(trytes1 == 'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertFalse(trytes1 != 'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertFalse(trytes3 == 'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertTrue(trytes3 != 'RBTC9D9DCDQAEASBYBCCKBFA')
 
     # Ditto for bytearrays.
     self.assertTrue(trytes1 == bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
@@ -56,16 +82,9 @@ class TryteStringTestCase(TestCase):
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
 
     with self.assertRaises(TypeError):
-      # Comparing against unicode strings is not allowed because it is
-      # ambiguous how to encode the unicode string into trits (should
-      # we treat the unicode string as an ASCII representation, or
-      # should we encode the unicode value into bytes and convert the
-      # result into trytes?).
-      trytes == 'RBTC9D9DCDQAEASBYBCCKBFA'
-
-    with self.assertRaises(TypeError):
       # TryteString is not a numeric type, so comparing against a
       # numeric value doesn't make any sense.
+      # noinspection PyStatementEffect
       trytes == 42
 
     # Identity comparison still works though.
@@ -105,9 +124,11 @@ class TryteStringTestCase(TestCase):
 
     # Any TrytesCompatible value will work here.
     self.assertTrue(b'EASBY' in trytes)
+    self.assertTrue('EASBY' in trytes)
     self.assertFalse(b'QQQ' in trytes)
+    self.assertFalse('QQQ' in trytes)
     self.assertTrue(bytearray(b'CCKBF') in trytes)
-    self.assertFalse(b'ZZZ' in trytes)
+    self.assertFalse(bytearray(b'ZZZ') in trytes)
 
   def test_container_error_wrong_type(self):
     """
@@ -117,32 +138,28 @@ class TryteStringTestCase(TestCase):
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
 
     with self.assertRaises(TypeError):
-      # Comparing against unicode strings is not allowed because it is
-      # ambiguous how to encode the unicode string into trits (should
-      # we treat the unicode string as an ASCII representation, or
-      # should we encode the unicode value into bytes and convert the
-      # result into trytes?).
-      'RBTC9D9DCDQAEASBYBCCKBFA' in trytes
-
-    with self.assertRaises(TypeError):
       # TryteString is not a numeric type, so this makes about as much
       # sense as ``16 in b'Hello, world!'``.
+      # noinspection PyStatementEffect,PyTypeChecker
       16 in trytes
 
     with self.assertRaises(TypeError):
       # This is too ambiguous.  Is this a list of trit values that can
       # appar anywhere in the tryte sequence, or does it have to match
       # a tryte exactly?
+      # noinspection PyStatementEffect,PyTypeChecker
       [0, 1, 1, 0, -1, 0] in trytes
 
     with self.assertRaises(TypeError):
       # This makes more sense than the previous example, but for
       # consistency, we will not allow checking for trytes inside
       # of a TryteString.
+      # noinspection PyStatementEffect,PyTypeChecker
       [[0, 0, 0], [1, 1, 0]] in trytes
 
     with self.assertRaises(TypeError):
       # Did I miss something? When did we get to DisneyLand?
+      # noinspection PyStatementEffect,PyTypeChecker
       None in trytes
 
   def test_concatenation(self):
@@ -163,6 +180,11 @@ class TryteStringTestCase(TestCase):
     )
 
     self.assertEqual(
+      binary_type(trytes1 + 'EASBYBCCKBFA'),
+      b'RBTC9D9DCDQAEASBYBCCKBFA',
+    )
+
+    self.assertEqual(
       binary_type(trytes1 + bytearray(b'EASBYBCCKBFA')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
@@ -173,14 +195,6 @@ class TryteStringTestCase(TestCase):
     a TrytesCompatible.
     """
     trytes = TryteString(b'RBTC9D9DCDQA')
-
-    with self.assertRaises(TypeError):
-      # Concatenating unicode strings is not allowed because it is
-      # ambiguous how to encode the unicode string into trits (should
-      # we treat the unicode string as an ASCII representation, or
-      # should we encode the unicode value into bytes and convert the
-      # result into trytes?).
-      trytes += 'EASBYBCCKBFA'
 
     with self.assertRaises(TypeError):
       # TryteString is not a numeric type, so adding a numeric value
@@ -266,6 +280,23 @@ class TryteStringTestCase(TestCase):
         TryteString(b'CCKBFA999'),
       ],
     )
+
+  def test_init_from_unicode_string(self):
+    """
+    Initializing a TryteString from a unicode string.
+    """
+    trytes1 = TryteString('RBTC9D9DCDQAEASBYBCCKBFA')
+    trytes2 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    self.assertEqual(trytes1, trytes2)
+
+  def test_init_from_unicode_string_error_not_ascii(self):
+    """
+    Attempting to initialize a TryteString from a unicode string that
+    contains non-ASCII characters.
+    """
+    with self.assertRaises(UnicodeEncodeError):
+      TryteString('¡Hola, IOTA!')
 
   def test_init_from_tryte_string(self):
     """
@@ -653,6 +684,7 @@ class TryteStringTestCase(TestCase):
     """
     self.assertListEqual(
       TryteString(b'ZJVYUGTDRPDYFGFXMK').as_trits(),
+
       [
         -1,  0,  0,
          1,  0,  1,
@@ -675,6 +707,17 @@ class TryteStringTestCase(TestCase):
       ],
     )
 
+  def test_random(self):
+    """
+    Generating a random sequence of trytes.
+    """
+    trytes = TryteString.random(Hash.LEN)
+
+    # It is (hopefully!) impossible to predict what the actual trytes
+    # will be, but at least we can verify that the correct number were
+    # generated!
+    self.assertEqual(len(trytes), Hash.LEN)
+
   def test_from_bytes(self):
     """
     Converting a sequence of bytes into a TryteString.
@@ -683,18 +726,6 @@ class TryteStringTestCase(TestCase):
       binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
-
-  def test_from_bytes_random(self):
-    """
-    Generating a TryteString from a sequence of random bytes.
-    """
-    bytes_ = urandom(81)
-    trytes = TryteString.from_bytes(bytes_)
-
-    # We can't predict exactly what the result will be, but we can at
-    # least verify that the bytes were correctly interpreted, and no
-    # errors were generated.
-    self.assertEqual(trytes.as_bytes(), bytes_)
 
   def test_from_string(self):
     """

@@ -2,12 +2,9 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from random import SystemRandom
 from typing import MutableSequence, Optional, Tuple
 
-from six import itervalues
-
-from iota import Hash, TryteString, TrytesCodec, TrytesCompatible
+from iota import Hash, TryteString, TrytesCompatible
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.exceptions import with_context
 
@@ -68,32 +65,28 @@ class Digest(TryteString):
 class Seed(TryteString):
   """
   A TryteString that acts as a seed for crypto functions.
+
+  Note: This class is identical to :py:class:`TryteString`, but it has
+  a distinct type so that seeds can be identified in Python code.
+
+  IMPORTANT: For maximum security, a seed must be EXACTLY 81 trytes!
+
+  References:
+    - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278
   """
   @classmethod
   def random(cls, length=Hash.LEN):
-    # type: (int) -> Seed
     """
-    Generates a new random seed.
+    Generates a random seed using a CSPRNG.
 
     :param length:
-      Minimum number of trytes to generate.
-      This should be at least 81 (one hash).
-
-      Note: Seeds longer that 81 trytes do not increase security.
+      Length of seed, in trytes.
+      For maximum security, this should always be set to 81.
 
     References:
       - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278
     """
-    alphabet  = list(itervalues(TrytesCodec.alphabet))
-    generator = SystemRandom()
-
-    # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
-    # for compatibility, we will continue to use ``choice`` in a loop.
-    # https://docs.python.org/3/library/random.html#random.choices
-    return cls(
-      ''.join(chr(generator.choice(alphabet)) for _ in range(length))
-        .encode('ascii')
-    )
+    return super(Seed, cls).random(length)
 
 
 class PrivateKey(TryteString):

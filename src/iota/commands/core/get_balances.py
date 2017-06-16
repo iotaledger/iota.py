@@ -35,7 +35,11 @@ class GetBalancesRequestFilter(RequestFilter):
         'addresses': (
             f.Required
           | f.Array
-          | f.FilterRepeater(f.Required | Trytes(result_type=Address))
+          | f.FilterRepeater(
+                f.Required
+              | Trytes(result_type=Address)
+              | f.Unicode(encoding='ascii', normalize=False)
+            )
         ),
 
         'threshold': (

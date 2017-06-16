@@ -76,7 +76,7 @@ For the full documentation of this library, please refer to the
 
 .. _Create virtualenv: https://virtualenvwrapper.readthedocs.io/
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
-.. _Slack: http://slack.iota.org/
+.. _Slack: https://slack.iota.org/
 .. _dedicated forum: https://forum.iota.org/
 .. _official API: https://iota.readme.io/
 .. _tox: https://tox.readthedocs.io/

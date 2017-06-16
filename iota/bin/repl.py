@@ -19,7 +19,6 @@ from iota import *
 from iota.adapter import resolve_adapter
 from iota.adapter.wrappers import RoutingWrapper
 from iota.bin import IotaCommandLineApp
-from iota.crypto.addresses import AddressGenerator, MemoryAddressCache
 
 
 class IotaReplCommandLineApp(IotaCommandLineApp):
@@ -49,9 +48,6 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
       logger.setLevel(DEBUG)
 
       api.adapter.set_logger(logger)
-
-    # To speed up certain operations, install an address cache.
-    AddressGenerator.cache = MemoryAddressCache()
 
     try:
       self._start_repl(api)

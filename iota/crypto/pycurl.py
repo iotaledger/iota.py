@@ -4,8 +4,6 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import List, MutableSequence, Optional, Sequence
 
-from six import PY2
-
 __all__ = [
   'Curl',
   'HASH_LENGTH',
@@ -128,31 +126,24 @@ class Curl(object):
     """
     # Copy some values locally so we can avoid global lookups in the
     # inner loop.
-    # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Local_Variables
+    #
+    # References:
+    # - https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Local_Variables
     state_length  = STATE_LENGTH
     truth_table   = TRUTH_TABLE
 
-    # Optimization: Ensure that we use a generator to create ranges.
-    if PY2:
-      # In Python 2, ``range`` returns a list, while ``xrange`` returns
-      # a generator.
-      # noinspection PyUnresolvedReferences
-      range_ = xrange
-    else:
-      # In Python 3, ``range`` returns a generator, and ``xrange`` is
-      # baleeted.
-      range_ = range
-
     # Operate on a copy of ``self._state`` to eliminate dot lookups in
     # the inner loop.
-    # :see: https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
-    # :see: http://stackoverflow.com/a/2612990/
+    #
+    # References:
+    # - https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
+    # - http://stackoverflow.com/a/2612990/
     prev_state  = self._state[:]
     new_state   = prev_state[:]
 
     index = 0
-    for _ in range_(NUMBER_OF_ROUNDS):
-      for pos in range_(state_length):
+    for _ in range(NUMBER_OF_ROUNDS):
+      for pos in range(state_length):
         prev_index = index
         index += (364 if index < 365 else -365)
 

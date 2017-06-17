@@ -141,19 +141,21 @@ class Curl(object):
     prev_state  = self._state[:]
     new_state   = prev_state[:]
 
+    # Note: This code looks significantly different from the C
+    # implementation because it has been optimized to limit the number
+    # of list item lookups (these are relatively slow in Python).
     index = 0
     for _ in range(NUMBER_OF_ROUNDS):
+      prev_trit = prev_state[index]
+
       for pos in range(state_length):
-        prev_index = index
         index += (364 if index < 365 else -365)
 
-        new_state[pos] = (
-            truth_table[
-                prev_state[prev_index]
-              + (3 * prev_state[index])
-              + 4
-            ]
-        )
+        new_trit = prev_state[index]
+
+        new_state[pos] = truth_table[prev_trit + (3 * new_trit) + 4]
+
+        prev_trit = new_trit
 
       prev_state  = new_state
       new_state   = new_state[:]

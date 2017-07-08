@@ -9,18 +9,17 @@ from six import binary_type
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, ProposedBundle, \
   ProposedTransaction, Tag, Transaction, TransactionHash, TransactionTrytes, \
-  TryteString, trits_from_int, convert_value_to_standard_unit
-from iota.crypto.addresses import AddressGenerator
+  TryteString, convert_value_to_standard_unit
 from iota.crypto.signing import KeyGenerator
+from iota.crypto.types import Seed
 from iota.transaction import BundleValidator
-from test import mock
 
 
 class BundleTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(BundleTestCase, self).setUp()
 
+    # noinspection SpellCheckingInspection
     self.bundle = Bundle([
       # This transaction does not have a message.
       Transaction(
@@ -867,10 +866,70 @@ class BundleValidatorTestCase(TestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class ProposedBundleTestCase(TestCase):
   def setUp(self):
     super(ProposedBundleTestCase, self).setUp()
+
+    # We will use a seed to generate addresses and private keys, to
+    # ensure a realistic scenario (and because the alternative is to
+    # inject mocks all over the place!).
+    # noinspection SpellCheckingInspection
+    self.seed =\
+      Seed(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999RLC9CS'
+        b'ZUILGDTLJMRCJSDVEEJO9A9LHAEHMNAMVXRMOXTBN'
+      )
+
+    # To speed things up a little bit, though, we can pre-generate a
+    # few addresses to use as inputs.
+
+    # noinspection SpellCheckingInspection
+    self.input_0_bal_eq_42 =\
+      Address(
+        balance         = 42,
+        key_index       = 0,
+        security_level  = 1,
+
+        trytes =
+          b'JBLDCCSI9VKU9ZHNZCUTC9NLQIIJX9SIKUJNKNKE'
+          b'9KKMHXFMIXHLKQQAVTTNPRCZENGLIPALHKLNKTXCU',
+      )
+
+    # noinspection SpellCheckingInspection
+    self.input_1_bal_eq_40 =\
+      Address(
+        balance         = 40,
+        key_index       = 1,
+        security_level  = 1,
+
+        trytes =
+          b'KHWHSTISMVVSDCOMHVFIFCTINWZT9EHJUATYSMCX'
+          b'DSMZXPL9KXREBBYHJGRBCYVGPJQEHEDPXLBDJNQNX',
+      )
+
+    # noinspection SpellCheckingInspection
+    self.input_2_bal_eq_2 =\
+      Address(
+        balance         = 2,
+        key_index       = 2,
+        security_level  = 1,
+
+        trytes =
+          b'GOAAMRU9EALPO9GKBOWUVZVQEJMB9CSGIZJATHRB'
+          b'TRRJPNTSQRZTASRBTQCRFAIDOGTWSHIDGOUUULQIG',
+      )
+
+    # noinspection SpellCheckingInspection
+    self.input_3_bal_eq_100 =\
+      Address(
+        balance         = 100,
+        key_index       = 3,
+        security_level  = 1,
+
+        trytes =
+          b'9LPQCSJGYUJMLWKMLJ9KYUYJ9RMDBZZWPHXMGKRG'
+          b'YLOAZNKJR9VDYSONVAJRIPVWCOZKFMEKUSWHPSDDZ',
+      )
 
     self.bundle = ProposedBundle()
 
@@ -879,6 +938,7 @@ class ProposedBundleTestCase(TestCase):
     Adding a transaction to a bundle, with a message short enough to
     fit inside a single transaction.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -899,6 +959,7 @@ class ProposedBundleTestCase(TestCase):
     Adding a transaction to a bundle, with a message so long that it
     has to be split into multiple transactions.
     """
+    # noinspection SpellCheckingInspection
     address = Address(
       b'TESTVALUE9DONTUSEINPRODUCTION99999N9GIUF'
       b'HCFIUGLBSCKELC9IYENFPHCEWHIDCHCGGEH9OFZBN'
@@ -948,7 +1009,8 @@ They both licked their dry lips.
         '''
       ),
 
-      # Now you know...
+      # Now you know....
+      # Eh, who am I kidding?  You probably knew before I did (:
       value = 42,
     ))
 
@@ -972,6 +1034,7 @@ They both licked their dry lips.
     Attempting to add a transaction to a bundle that is already
     finalized.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1005,6 +1068,7 @@ They both licked their dry lips.
     """
     Adding inputs to cover the exact amount of the bundle spend.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1015,6 +1079,7 @@ They both licked their dry lips.
         value = 29,
     ))
 
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1026,44 +1091,29 @@ They both licked their dry lips.
     ))
 
     self.bundle.add_inputs([
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999VAFFMC'
-          b'X9AABIH9AEEGJHKFSHTGYHSFR9DEH9MEDAGGIGK9E',
-
-        balance         = 40,
-        key_index       = 0,
-        security_level  = 2,
-      ),
-
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999VDR9AD'
-          b'OEH9YGGHGDVBCAREVBDHOFAGNDZCPBBAAIUCDGQ9Z',
-
-        balance         = 2,
-        key_index       = 1,
-        security_level  = 2,
-      ),
+      self.input_1_bal_eq_40,
+      self.input_2_bal_eq_2,
     ])
 
-    # Because transaction signatures are so large, each input
-    # transaction must be split into multiple parts.
-    expected_length = 2 + (2 * AddressGenerator.DEFAULT_SECURITY_LEVEL)
-
-    self.assertEqual(len(self.bundle), expected_length)
-
+    # Just to be tricky, add an unnecessary change address, just to
+    # make sure the bundle ignores it.
+    # noinspection SpellCheckingInspection
     self.bundle.send_unspent_inputs_to(
       Address(
         b'TESTVALUE9DONTUSEINPRODUCTION99999FDCDFD'
         b'VAF9NFLCSCSFFCLCW9KFL9TCAAO9IIHATCREAHGEA'
       ),
     )
+
     self.bundle.finalize()
 
-    # Because the transaction is already balanced, no change
+    # All of the addresses that we generate for this test case have
+    # security level set to 1, so we only need 1 transaction per
+    # input (4 total, including the spends).
+    #
+    # Also note: because the transaction is already balanced, no change
     # transaction is necessary.
-    self.assertEqual(len(self.bundle), expected_length)
+    self.assertEqual(len(self.bundle), 4)
 
 
   def test_add_inputs_with_change(self):
@@ -1072,6 +1122,7 @@ They both licked their dry lips.
     """
     tag = Tag(b'CHANGE9TXN')
 
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1082,6 +1133,7 @@ They both licked their dry lips.
         value = 29,
     ))
 
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1093,28 +1145,9 @@ They both licked their dry lips.
       value = 13,
     ))
 
-    self.bundle.add_inputs([
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999VAFFMC'
-          b'X9AABIH9AEEGJHKFSHTGYHSFR9DEH9MEDAGGIGK9E',
+    self.bundle.add_inputs([self.input_3_bal_eq_100])
 
-        balance         = 40,
-        key_index       = 0,
-        security_level  = 2,
-      ),
-
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999VDR9AD'
-          b'OEH9YGGHGDVBCAREVBDHOFAGNDZCPBBAAIUCDGQ9Z',
-
-        balance         = 20,
-        key_index       = 1,
-        security_level  = 2,
-      ),
-    ])
-
+    # noinspection SpellCheckingInspection
     change_address =\
       Address(
         b'TESTVALUE9DONTUSEINPRODUCTION99999KAFGVC'
@@ -1123,25 +1156,30 @@ They both licked their dry lips.
 
     self.bundle.send_unspent_inputs_to(change_address)
 
-    # The change transaction is not created until the bundle is
-    # finalized.
-    expected_length = 2 + (2 * AddressGenerator.DEFAULT_SECURITY_LEVEL)
-
-    self.assertEqual(len(self.bundle), expected_length)
-
     self.bundle.finalize()
 
-    self.assertEqual(len(self.bundle), expected_length + 1)
+    # 2 spends + 1 input (with security level 1) + 1 change
+    self.assertEqual(len(self.bundle), 4)
 
     change_txn = self.bundle[-1]
     self.assertEqual(change_txn.address, change_address)
-    self.assertEqual(change_txn.value, 18)
+    self.assertEqual(change_txn.value, 58)
     self.assertEqual(change_txn.tag, tag)
+
+  def test_add_inputs_security_level(self):
+    """
+    Each input's security level determines the number of transactions
+    we will need in order to store the entire signature.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
 
   def test_add_inputs_error_already_finalized(self):
     """
     Attempting to add inputs to a bundle that is already finalized.
     """
+    # Add 1 transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(
       ProposedTransaction(
         address =
@@ -1157,6 +1195,9 @@ They both licked their dry lips.
     self.bundle.finalize()
 
     with self.assertRaises(RuntimeError):
+      # Even though no inputs are provided, it's still an error; you
+      # shouldn't even be calling ``add_inputs`` once the bundle is
+      # finalized!
       self.bundle.add_inputs([])
 
   def test_send_unspent_inputs_to_error_already_finalized(self):
@@ -1164,6 +1205,8 @@ They both licked their dry lips.
     Invoking ``send_unspent_inputs_to`` on a bundle that is already
     finalized.
     """
+    # Add 1 transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1183,6 +1226,8 @@ They both licked their dry lips.
     """
     Attempting to finalize a bundle that is already finalized.
     """
+    # Add 1 transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1209,6 +1254,7 @@ They both licked their dry lips.
     """
     Attempting to finalize a bundle with unspent inputs.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1219,23 +1265,13 @@ They both licked their dry lips.
       value = 42,
     ))
 
-    self.bundle.add_inputs([
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999LAHFJ9'
-          b'Z9QEHGIHTAQFWFAHYEKFDBXHSBM9K9T9S9SBTF99W',
+    self.bundle.add_inputs([self.input_0_bal_eq_42, self.input_2_bal_eq_2])
 
-        balance         = 43,
-        key_index       = 0,
-        security_level  = 2,
-      ),
-    ])
+    # Bundle spends 42 IOTAs, but inputs total 44 IOTAs.
+    self.assertEqual(self.bundle.balance, -2)
 
-    # Bundle spends 42 IOTAs, but inputs total 43 IOTAs.
-    self.assertEqual(self.bundle.balance, -1)
-
-    # In order to finalize this bundle, we would need to specify a
-    # change address.
+    # In order to finalize this bundle, we need to specify a change
+    # address.
     with self.assertRaises(ValueError):
       self.bundle.finalize()
 
@@ -1243,6 +1279,7 @@ They both licked their dry lips.
     """
     Attempting to finalize a bundle with insufficient inputs.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1253,30 +1290,21 @@ They both licked their dry lips.
       value = 42,
     ))
 
-    self.bundle.add_inputs([
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999LAHFJ9'
-          b'Z9QEHGIHTAQFWFAHYEKFDBXHSBM9K9T9S9SBTF99W',
+    self.bundle.add_inputs([self.input_1_bal_eq_40])
 
-        balance         = 41,
-        key_index       = 0,
-        security_level  = 2,
-      ),
-    ])
+    # Bundle spends 42 IOTAs, but inputs total only 40 IOTAs.
+    self.assertEqual(self.bundle.balance, 2)
 
-    # Bundle spends 42 IOTAs, but inputs total only 41 IOTAs.
-    self.assertEqual(self.bundle.balance, 1)
-
-    # In order to finalize this bundle, we would need to specify
-    # additional inputs.
+    # In order to finalize this bundle, we need to provide additional
+    # inputs.
     with self.assertRaises(ValueError):
       self.bundle.finalize()
 
   def test_sign_inputs(self):
     """
-    Signing inputs in a finalized bundle.
+    Signing inputs in a finalized bundle, using a key generator.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1287,40 +1315,18 @@ They both licked their dry lips.
       value = 42,
     ))
 
-    self.bundle.add_inputs([
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999UGYFU9'
-          b'TGMHNEN9S9CAIDUBGETHJHFHRAHGRGVF9GTDYHXCE',
-
-        balance         = 42,
-        key_index       = 0,
-        security_level  = 2,
-      )
-    ])
-
+    self.bundle.add_inputs([self.input_1_bal_eq_40, self.input_2_bal_eq_2])
     self.bundle.finalize()
 
-    # Mock the signature generator to improve test performance.
-    # We already have unit tests for signature generation; all we need
-    # to do here is verify that the method is invoked correctly.
-    # noinspection PyUnusedLocal
-    def mock_signature_generator(bundle, key_generator, txn):
-      for i in range(AddressGenerator.DEFAULT_SECURITY_LEVEL):
-        yield Fragment.from_trits(trits_from_int(i))
+    self.bundle.sign_inputs(KeyGenerator(self.seed))
 
-    with mock.patch(
-        'iota.transaction.ProposedBundle._create_signature_fragment_generator',
-        mock_signature_generator,
-    ):
-      self.bundle.sign_inputs(KeyGenerator(b''))
-
-    self.assertEqual(
-      len(self.bundle),
-
-      # Spend txn + input fragments
-      1 + AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    )
+    # 1 spend + 2 inputs (security level 1) = 3 transactions.
+    # Applying signatures should not introduce any new transactions
+    # into the bundle.
+    #
+    # Note: we will see what happens when we use inputs with different
+    # security levels in the next test.
+    self.assertEqual(len(self.bundle), 3)
 
     # The spending transaction does not have a signature.
     self.assertEqual(
@@ -1328,17 +1334,37 @@ They both licked their dry lips.
       Fragment(b''),
     )
 
-    for j in range(AddressGenerator.DEFAULT_SECURITY_LEVEL):
-      self.assertEqual(
-        self.bundle[j+1].signature_message_fragment,
-        Fragment.from_trits(trits_from_int(j)),
-      )
+    # The signature fragments are really long, and we already have unit
+    # tests for the signature fragment generator, so to keep this test
+    # focused, we are only interested in whether a signature fragment
+    # gets applied.
+    #
+    # References:
+    #   - :py:class:`test.crypto.signing_test.SignatureFragmentGeneratorTestCase`
+    self.assertNotEqual(
+      self.bundle[1].signature_message_fragment,
+      Fragment(b''),
+    )
+
+    self.assertNotEqual(
+      self.bundle[2].signature_message_fragment,
+      Fragment(b''),
+    )
+
+  def test_sign_inputs_security_level(self):
+    """
+    You may include inputs with different security levels in the same
+    bundle.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
 
   def test_sign_inputs_error_not_finalized(self):
     """
     Attempting to sign inputs in a bundle that hasn't been finalized
     yet.
     """
+    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -1349,33 +1375,88 @@ They both licked their dry lips.
       value = 42,
     ))
 
-    self.bundle.add_inputs([
-      Address(
-        trytes =
-          b'TESTVALUE9DONTUSEINPRODUCTION99999UGYFU9'
-          b'TGMHNEN9S9CAIDUBGETHJHFHRAHGRGVF9GTDYHXCE',
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
 
-        balance         = 42,
-        key_index       = 0,
-        security_level  = 2,
-      )
-    ])
+    # Oops; did we forget something?
+    # self.bundle.finalize()
 
     with self.assertRaises(RuntimeError):
       self.bundle.sign_inputs(KeyGenerator(b''))
 
+  def test_sign_input_at_single_fragment(self):
+    """
+    Signing an input at the specified index, only 1 fragment needed.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
 
-# noinspection SpellCheckingInspection
+  def test_sign_input_at_multiple_fragments(self):
+    """
+    Signing an input at the specified index, multiple fragments needed.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_sign_input_at_error_not_finalized(self):
+    """
+    Cannot sign inputs because the bundle isn't finalized yet.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_sign_input_at_error_index_invalid(self):
+    """
+    The specified index doesn't exist in the bundle.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_sign_input_at_error_index_not_input(self):
+    """
+    The specified index references a transaction that is not an input.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_sign_input_at_error_index_wrong_address(self):
+    """
+    The specified index references a transaction associated with the
+    wrong address.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_sign_input_at_error_already_signed(self):
+    """
+    Attempting to sign an input that is already signed.
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+  def test_sign_input_at_error_security_level_wrong(self):
+    """
+    The private key's security level doesn't match that of the input's
+    address.
+
+    This is exceptionally unlikely to occur outside the context of a
+    paranoid unit test, but you know how I roll....
+    """
+    # :todo: Implement test.
+    self.skipTest('Not implemented yet.')
+
+
 class TransactionHashTestCase(TestCase):
   def test_init_automatic_pad(self):
     """
     Transaction hashes are automatically padded to 81 trytes.
     """
+    # noinspection SpellCheckingInspection
     txn = TransactionHash(
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
       b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC'
     )
 
+    # noinspection SpellCheckingInspection
     self.assertEqual(
       binary_type(txn),
 
@@ -1389,6 +1470,7 @@ class TransactionHashTestCase(TestCase):
     Attempting to create a transaction hash longer than 81 trytes.
     """
     with self.assertRaises(ValueError):
+      # noinspection SpellCheckingInspection
       TransactionHash(
         b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
         b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC99999'

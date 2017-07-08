@@ -931,6 +931,30 @@ class ProposedBundleTestCase(TestCase):
           b'YLOAZNKJR9VDYSONVAJRIPVWCOZKFMEKUSWHPSDDZ',
       )
 
+    # noinspection SpellCheckingInspection
+    self.input_4_bal_eq_42_sl_2 =\
+      Address(
+        balance         = 42,
+        key_index       = 4,
+        security_level  = 2,
+
+        trytes =
+          b'NVGLHFZWLEQAWBDJXCWJBMVBVNXEG9DALNBTAYMK'
+          b'EMMJ9BCDVVHJJLSTQW9JEJXUUX9JNFGALBNASRDUD',
+      )
+
+    # noinspection SpellCheckingInspection
+    self.input_5_bal_eq_42_sl_3 =\
+      Address(
+        balance         = 42,
+        key_index       = 5,
+        security_level  = 3,
+
+        trytes =
+          b'XXYRPQ9BDZGKZZQLYNSBDD9HZLI9OFRK9TZCTU9P'
+          b'FAJYXZIZGO9BWLOCNGVMTLFQFMGJWYRMLXSCW9UTQ',
+      )
+
     self.bundle = ProposedBundle()
 
   def test_add_transaction_short_message(self):
@@ -1115,7 +1139,6 @@ They both licked their dry lips.
     # transaction is necessary.
     self.assertEqual(len(self.bundle), 4)
 
-
   def test_add_inputs_with_change(self):
     """
     Adding inputs to a bundle results in unspent inputs.
@@ -1171,8 +1194,30 @@ They both licked their dry lips.
     Each input's security level determines the number of transactions
     we will need in order to store the entire signature.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(
+      ProposedTransaction(
+        address =
+          Address(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+            b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH',
+          ),
+
+        value = 84,
+      ),
+    )
+
+    self.bundle.add_inputs([
+      self.input_4_bal_eq_42_sl_2,
+      self.input_5_bal_eq_42_sl_3,
+    ])
+
+    self.bundle.finalize()
+
+    # Each input's security level determines how many transactions will
+    # be needed to hold all of its signature fragments:
+    # 1 spend + 2 fragments for input 0 + 3 fragments for input 1
+    self.assertEqual(len(self.bundle), 6)
 
   def test_add_inputs_error_already_finalized(self):
     """
@@ -1185,7 +1230,7 @@ They both licked their dry lips.
         address =
           Address(
             b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
-            b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+            b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH',
           ),
 
         value = 0,
@@ -1320,6 +1365,7 @@ They both licked their dry lips.
 
     self.bundle.sign_inputs(KeyGenerator(self.seed))
 
+    # Quick sanity check:
     # 1 spend + 2 inputs (security level 1) = 3 transactions.
     # Applying signatures should not introduce any new transactions
     # into the bundle.
@@ -1341,29 +1387,71 @@ They both licked their dry lips.
     #
     # References:
     #   - :py:class:`test.crypto.signing_test.SignatureFragmentGeneratorTestCase`
-    self.assertNotEqual(
-      self.bundle[1].signature_message_fragment,
-      Fragment(b''),
-    )
-
-    self.assertNotEqual(
-      self.bundle[2].signature_message_fragment,
-      Fragment(b''),
-    )
+    for i in range(1, len(self.bundle)):
+      if self.bundle[i].signature_message_fragment == Fragment(b''):
+        self.fail(
+          "Transaction {i}'s signature fragment is unexpectedly empty!".format(
+            i = i,
+          ),
+        )
 
   def test_sign_inputs_security_level(self):
     """
     You may include inputs with different security levels in the same
     bundle.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(
+      ProposedTransaction(
+        address =
+          Address(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+            b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH',
+          ),
+
+        value = 84,
+      ),
+    )
+
+    self.bundle.add_inputs([
+      self.input_4_bal_eq_42_sl_2,
+      self.input_5_bal_eq_42_sl_3,
+    ])
+
+    self.bundle.finalize()
+
+    self.bundle.sign_inputs(KeyGenerator(self.seed))
+
+    # Quick sanity check.
+    self.assertEqual(len(self.bundle), 6)
+
+    # The spending transaction does not have a signature.
+    self.assertEqual(
+      self.bundle[0].signature_message_fragment,
+      Fragment(b''),
+    )
+
+    # The signature fragments are really long, and we already have unit
+    # tests for the signature fragment generator, so to keep this test
+    # focused, we are only interested in whether a signature fragment
+    # gets applied.
+    #
+    # References:
+    #   - :py:class:`test.crypto.signing_test.SignatureFragmentGeneratorTestCase`
+    for i in range(1, len(self.bundle)):
+      if self.bundle[i].signature_message_fragment == Fragment(b''):
+        self.fail(
+          "Transaction {i}'s signature fragment is unexpectedly empty!".format(
+            i = i,
+          ),
+        )
 
   def test_sign_inputs_error_not_finalized(self):
     """
     Attempting to sign inputs in a bundle that hasn't been finalized
     yet.
     """
+    # Add a transaction so that we can finalize the bundle.
     # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
@@ -1401,8 +1489,28 @@ They both licked their dry lips.
     """
     Cannot sign inputs because the bundle isn't finalized yet.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
+
+    # Oops; did we forget something?
+    # self.bundle.finalize()
+
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_0_bal_eq_42)
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.sign_input_at(1, private_key)
 
   def test_sign_input_at_error_index_invalid(self):
     """

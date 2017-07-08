@@ -94,8 +94,8 @@ class PrivateKey(TryteString):
   A TryteString that acts as a private key, e.g., for generating
   message signatures, new addresses, etc.
   """
-  def __init__(self, trytes, key_index=None):
-    # type: (TrytesCompatible, Optional[int]) -> None
+  def __init__(self, trytes, key_index=None, security_level=None):
+    # type: (TrytesCompatible, Optional[int], Optional[int]) -> None
     super(PrivateKey, self).__init__(trytes)
 
     if len(self._trytes) % FRAGMENT_LENGTH:
@@ -112,13 +112,15 @@ class PrivateKey(TryteString):
         },
       )
 
-    self.key_index = key_index
+    self.key_index      = key_index
+    self.security_level = security_level
 
   def as_json_compatible(self):
     # type: () -> dict
     return {
-      'trytes':     self._trytes.decode('ascii'),
-      'key_index':  self.key_index,
+      'trytes':         self._trytes.decode('ascii'),
+      'key_index':      self.key_index,
+      'security_level': self.security_level,
     }
 
   def get_digest(self):

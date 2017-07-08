@@ -6,11 +6,12 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
+from six import binary_type
 
 from iota import TryteString
 from iota.adapter import MockAdapter
 from iota.crypto import FRAGMENT_LENGTH
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import PrivateKey, Seed
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
@@ -54,10 +55,14 @@ class GetPrivateKeysCommandTestCase(TestCase):
 
     mock_get_keys = mock.Mock(return_value=keys)
     with mock.patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
-      result = self.command(seed=Seed.random())
+      result = self.command(seed=Seed.random(), securityLevel=2)
 
     self.assertDictEqual(result, {'keys': keys})
-    mock_get_keys.assert_called_once_with(start=0, count=1)
+    mock_get_keys.assert_called_once_with(
+      count       = 1,
+      iterations  = 2,
+      start       = 0,
+    )
 
   def test_generate_multiple_keys(self):
     """
@@ -67,10 +72,20 @@ class GetPrivateKeysCommandTestCase(TestCase):
 
     mock_get_keys = mock.Mock(return_value=keys)
     with mock.patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
-      result = self.command(seed=Seed.random(), index=0, count=2)
+      result =\
+        self.command(
+          count         = 2,
+          index         = 0,
+          securityLevel = 1,
+          seed          = Seed.random(),
+        )
 
     self.assertDictEqual(result, {'keys': keys})
-    mock_get_keys.assert_called_once_with(start=0, count=2)
+    mock_get_keys.assert_called_once_with(
+      count       = 2,
+      iterations  = 1,
+      start       = 0,
+    )
 
 
 class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
@@ -88,9 +103,10 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'seed':   Seed(self.seed),
-      'index':  1,
-      'count':  1,
+      'seed':           Seed(self.seed),
+      'index':          1,
+      'count':          1,
+      'securityLevel':  1,
     }
 
     filter_ = self._filter(request)
@@ -100,7 +116,7 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_optional_parameters_excluded(self):
     """
-    Request omits ``index`` and ``count``.
+    Request omits optional parameters.
     """
     filter_ = self._filter({
       'seed': Seed(self.seed),
@@ -111,9 +127,10 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   Seed(self.seed),
-        'index':  0,
-        'count':  1,
+        'seed':           Seed(self.seed),
+        'index':          0,
+        'count':          1,
+        'securityLevel':  AddressGenerator.DEFAULT_SECURITY_LEVEL,
       },
     )
 
@@ -127,8 +144,9 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
       'seed': binary_type(self.seed),
 
       # These values must be integers, however.
-      'index': 100,
-      'count': 8,
+      'index':          100,
+      'count':          8,
+      'securityLevel':  1,
     })
 
     self.assertFilterPasses(filter_)
@@ -136,9 +154,10 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   Seed(self.seed),
-        'index':  100,
-        'count':  8,
+        'seed':           Seed(self.seed),
+        'index':          100,
+        'count':          8,
+        'securityLevel':  1,
       },
     )
 
@@ -310,5 +329,50 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'index': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_securityLevel_string(self):
+    """
+    ``securityLevel`` is a string value.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  '1',
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_securityLevel_float(self):
+    """
+    ``securityLevel`` is a float value.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  1.0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_securityLevel_too_small(self):
+    """
+    ``securityLevel`` is less than 1.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
       },
     )

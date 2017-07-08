@@ -6,6 +6,7 @@ from typing import Iterable, Optional
 
 from iota import Address, Iota, ProposedTransaction
 from iota.commands import discover_commands
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest
 from iota.multisig import commands
 from iota.multisig.types import MultisigAddress
@@ -22,7 +23,7 @@ class MultisigIota(Iota):
   **CAUTION:** Make sure you understand how multisig works before
   attempting to use it.  If you are not careful, you could easily
   compromise the security of your private keys, send IOTAs to
-  inaccessible addresses, etc.
+  unspendable addresses, etc.
 
   References:
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
@@ -53,8 +54,13 @@ class MultisigIota(Iota):
       digests = digests,
     )
 
-  def get_digests(self, index=0, count=1):
-    # type: (int, int) -> dict
+  def get_digests(
+      self,
+      index = 0,
+      count = 1,
+      security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+  ):
+    # type: (int, int, int) -> dict
     """
     Generates one or more key digests from the seed.
 
@@ -66,6 +72,14 @@ class MultisigIota(Iota):
     :param count:
       Number of digests to generate.
 
+    :param security_level:
+      Number of iterations to use when generating new addresses.
+
+      Larger values take longer, but the resulting signatures are more
+      secure.
+
+      This value must be between 1 and 3, inclusive.
+
     :return:
       Dict with the following items::
 
@@ -76,13 +90,19 @@ class MultisigIota(Iota):
          }
     """
     return commands.GetDigestsCommand(self.adapter)(
-      seed  = self.seed,
-      index = index,
-      count = count,
+      seed          = self.seed,
+      index         = index,
+      count         = count,
+      securityLevel = security_level,
     )
 
-  def get_private_keys(self, index=0, count=1):
-    # type: (int, int) -> dict
+  def get_private_keys(
+      self,
+      index = 0,
+      count = 1,
+      security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+  ):
+    # type: (int, int, int) -> dict
     """
     Generates one or more private keys from the seed.
 
@@ -94,6 +114,14 @@ class MultisigIota(Iota):
 
     :param count:
       Number of keys to generate.
+
+    :param security_level:
+      Number of iterations to use when generating new keys.
+
+      Larger values take longer, but the resulting signatures are more
+      secure.
+
+      This value must be between 1 and 3, inclusive.
 
     :return:
       Dict with the following items::
@@ -109,16 +137,17 @@ class MultisigIota(Iota):
       - https://github.com/iotaledger/wiki/blob/master/multisigs.md#how-m-of-n-works
     """
     return commands.GetPrivateKeysCommand(self.adapter)(
-      seed  = self.seed,
-      index = index,
-      count = count,
+      seed          = self.seed,
+      index         = index,
+      count         = count,
+      securityLevel = security_level,
     )
 
   def prepare_multisig_transfer(
       self,
       transfers,
       multisig_input,
-      change_address=None,
+      change_address = None,
   ):
     # type: (Iterable[ProposedTransaction], MultisigAddress, Optional[Address]) -> dict
     """

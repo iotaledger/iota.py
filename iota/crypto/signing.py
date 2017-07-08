@@ -272,8 +272,12 @@ class KeyIterator(Iterator[PrivateKey]):
 
           key[key_start:key_stop] = buffer
 
-      private_key = PrivateKey.from_trits(key)
-      private_key.key_index = self.current
+      private_key =\
+        PrivateKey.from_trits(
+          key_index       = self.current,
+          security_level  = self.security_level,
+          trits           = key,
+        ) # type: PrivateKey
 
       self.advance()
 

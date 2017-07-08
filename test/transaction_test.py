@@ -1516,30 +1516,114 @@ They both licked their dry lips.
     """
     The specified index doesn't exist in the bundle.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
+    self.bundle.finalize()
+
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_0_bal_eq_42)
+
+    with self.assertRaises(IndexError):
+      self.bundle.sign_input_at(2, private_key)
 
   def test_sign_input_at_error_index_not_input(self):
     """
     The specified index references a transaction that is not an input.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
+    self.bundle.finalize()
+
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_0_bal_eq_42)
+
+    with self.assertRaises(ValueError):
+      # You can't sign the spend transaction, silly!
+      self.bundle.sign_input_at(0, private_key)
 
   def test_sign_input_at_error_index_wrong_address(self):
     """
     The specified index references a transaction associated with the
     wrong address.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([
+      self.input_1_bal_eq_40,
+      self.input_2_bal_eq_2,
+    ])
+
+    self.bundle.finalize()
+
+    # We generate a private key for input with ``key_index=1``...
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_1_bal_eq_40)
+
+    with self.assertRaises(ValueError):
+      # ... but we try to sign the transaction for input with
+      # ``key_index=2``!
+      self.bundle.sign_input_at(2, private_key)
 
   def test_sign_input_at_error_already_signed(self):
     """
     Attempting to sign an input that is already signed.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
+    self.bundle.finalize()
+
+    # The existing signature fragment doesn't have to be valid; it just
+    # has to be not empty.
+    self.bundle[1].signature_message_fragment = Fragment(b'A')
+
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_0_bal_eq_42)
+
+    with self.assertRaises(ValueError):
+      self.bundle.sign_input_at(1, private_key)
 
   def test_sign_input_at_error_security_level_wrong(self):
     """
@@ -1549,8 +1633,30 @@ They both licked their dry lips.
     This is exceptionally unlikely to occur outside the context of a
     paranoid unit test, but you know how I roll....
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
+    self.bundle.finalize()
+
+    # Note that the private key has the same key index as the input we
+    # want to sign, but it uses a different security level.
+    private_key = (
+      KeyGenerator(self.seed)
+        .get_key(index=self.input_0_bal_eq_42.key_index, iterations=2)
+    )
+
+    with self.assertRaises(ValueError):
+      self.bundle.sign_input_at(1, private_key)
 
 
 class TransactionHashTestCase(TestCase):

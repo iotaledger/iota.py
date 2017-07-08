@@ -1143,11 +1143,116 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     # type: (int, PrivateKey) -> None
     """
     Signs the input at the specified index.
+
+    :param start_index:
+      The index of the first input transaction.
+
+      If necessary, the resulting signature will be split across
+      multiple transactions automatically (i.e., if an input has
+      ``security_level=2``, you still only need to call
+      :py:meth:`sign_input_at` once).
+
+    :param private_key:
+      The private key that will be used to generate the signature.
+
+      Important: be sure that the private key was generated using the
+      correct seed, or the resulting signature will be invalid!
     """
     if not self.hash:
       raise RuntimeError('Cannot sign inputs until bundle is finalized.')
 
-    txn = self[start_index]
+    # Do lots of validation before we attempt to sign the transaction,
+    # and attach lots of context info to any exception.
+    # This method is likely to be invoked at a very low level in the
+    # application, so if anything goes wrong, we want to make sure it's
+    # as easy to troubleshoot as possible!
+
+    try:
+      txn = self[start_index]
+    except IndexError as e:
+      raise with_context(
+        exc = e,
+
+        context = {
+          'bundle':       self,
+          'key_index':    private_key.key_index,
+          'start_index':  start_index,
+        },
+      )
+
+    # Only inputs can be signed.
+    if txn.value >= 0:
+      raise with_context(
+        exc =
+          ValueError(
+            'Attempting to sign non-input transaction #{i} '
+            '(value={value}).'.format(
+              i     = txn.current_index,
+              value = txn.value,
+            ),
+          ),
+
+        context = {
+          'bundle':       self,
+          'key_index':    private_key.key_index,
+          'start_index':  start_index,
+        },
+      )
+
+    if txn.address.key_index != private_key.key_index:
+      raise with_context(
+        exc =
+          ValueError(
+            'Attempting to sign input transaction #{i} with wrong private key '
+            '(key index: expected={expected}, actual={actual}).'.format(
+              actual    = private_key.key_index,
+              expected  = txn.address.key_index,
+              i         = txn.current_index,
+            ),
+          ),
+
+        context = {
+          'bundle':       self,
+          'key_index':    private_key.key_index,
+          'start_index':  start_index,
+        },
+      )
+
+    if txn.address.security_level != private_key.security_level:
+      raise with_context(
+        exc =
+          ValueError(
+            'Attempting to sign input transaction #{i} with wrong private key '
+            '(security level: expected={expected}, actual={actual}).'.format(
+              actual    = private_key.security_level,
+              expected  = txn.address.security_level,
+              i         = txn.current_index,
+            ),
+          ),
+
+        context = {
+          'bundle':       self,
+          'key_index':    private_key.key_index,
+          'start_index':  start_index,
+        },
+      )
+
+    if txn.signature_message_fragment:
+      raise with_context(
+        exc =
+          ValueError(
+            'Attempting to sign input transaction #{i}, '
+            'but it has a non-empty fragment (is it already signed?).'.format(
+              i = txn.current_index,
+            ),
+          ),
+
+        context = {
+          'bundle':       self,
+          'key_index':    private_key.key_index,
+          'start_index':  start_index,
+        },
+      )
 
     signature_fragment_generator =\
       SignatureFragmentGenerator(

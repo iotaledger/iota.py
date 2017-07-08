@@ -69,6 +69,36 @@ class KeyGenerator(object):
 
     self.seed = Seed(seed)
 
+  def get_key(self, index, iterations):
+    # type: (int, int) -> PrivateKey
+    """
+    Generates a single key.
+
+    :param index:
+      The key index.
+
+    :param iterations:
+      Number of transform iterations to apply to the key, also known
+      as security level.
+      Must be >= 1.
+
+      Increasing this value makes key generation slower, but more
+      resistant to brute-forcing.
+    """
+    return self.get_keys(start=index, count=1, step=1, iterations=iterations)[0]
+
+  def get_key_for(self, address):
+    """
+    Generates the key associated with the specified address.
+
+    Note that this method will generate the wrong key if the input
+    address was generated from a different key!
+    """
+    return self.get_key(
+      index       = address.key_index,
+      iterations  = address.security_level,
+    )
+
   def get_keys(self, start, count=1, step=1, iterations=1):
     # type: (int, int, int, int) -> List[PrivateKey]
     """
@@ -95,7 +125,8 @@ class KeyGenerator(object):
       This may be any non-zero (positive or negative) integer.
 
     :param iterations:
-      Number of _transform iterations to apply to each key.
+      Number of transform iterations to apply to each key, also known
+      as security level.
       Must be >= 1.
 
       Increasing this value makes key generation slower, but more

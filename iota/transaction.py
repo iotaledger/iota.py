@@ -1131,13 +1131,7 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
             },
           )
 
-        private_key =\
-          key_generator.get_keys(
-            start       = txn.address.key_index,
-            iterations  = txn.address.security_level,
-          )[0]
-
-        self.sign_input_at(i, private_key)
+        self.sign_input_at(i, key_generator.get_key_for(txn.address))
 
         i += txn.address.security_level
       else:
@@ -1150,6 +1144,9 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
     """
     Signs the input at the specified index.
     """
+    if not self.hash:
+      raise RuntimeError('Cannot sign inputs until bundle is finalized.')
+
     txn = self[start_index]
 
     signature_fragment_generator =\

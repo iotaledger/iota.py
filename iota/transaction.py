@@ -13,6 +13,7 @@ from iota import Address, Hash, Tag, TryteString, TrytesCompatible, \
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator, \
   validate_signature_fragments
+from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 from iota.json import JsonSerializable
 from six import PY2
@@ -1130,22 +1131,40 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
             },
           )
 
-        signature_fragment_generator =\
-          self._create_signature_fragment_generator(key_generator, txn)
+        private_key =\
+          key_generator.get_keys(
+            start       = txn.address.key_index,
+            iterations  = txn.address.security_level,
+          )[0]
 
-        # We can only fit one signature fragment into each transaction,
-        # so we have to split the entire signature among the extra
-        # transactions we created for this input in
-        # :py:meth:`add_inputs`.
-        for j in range(txn.address.security_level):
-          self[i+j].signature_message_fragment =\
-            next(signature_fragment_generator)
+        self.sign_input_at(i, private_key)
 
         i += txn.address.security_level
       else:
         # No signature needed (nor even possible, in some cases); skip
         # this transaction.
         i += 1
+
+  def sign_input_at(self, start_index, private_key):
+    # type: (int, PrivateKey) -> None
+    """
+    Signs the input at the specified index.
+    """
+    txn = self[start_index]
+
+    signature_fragment_generator =\
+      SignatureFragmentGenerator(
+        private_key = private_key,
+        hash_= txn.bundle_hash,
+      )
+
+    # We can only fit one signature fragment into each transaction,
+    # so we have to split the entire signature among the extra
+    # transactions we created for this input in
+    # :py:meth:`add_inputs`.
+    for j in range(txn.address.security_level):
+      self[txn.current_index+j].signature_message_fragment =\
+        next(signature_fragment_generator)
 
   def _create_input_transactions(self, addy):
     # type: (Address) -> None
@@ -1172,21 +1191,3 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
         # Note zero value; this is a meta transaction.
         value = 0,
       ))
-
-  @staticmethod
-  def _create_signature_fragment_generator(key_generator, txn):
-    # type: (KeyGenerator, ProposedTransaction) -> SignatureFragmentGenerator
-    """
-    Creates the SignatureFragmentGenerator to sign inputs.
-
-    Split into a separate method so that it can be mocked for unit
-    tests.
-    """
-    return SignatureFragmentGenerator(
-      private_key = key_generator.get_keys(
-        start       = txn.address.key_index,
-        iterations  = txn.address.security_level,
-      )[0],
-
-      hash_= txn.bundle_hash,
-    )

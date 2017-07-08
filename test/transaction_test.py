@@ -1475,15 +1475,98 @@ They both licked their dry lips.
     """
     Signing an input at the specified index, only 1 fragment needed.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_0_bal_eq_42])
+    self.bundle.finalize()
+
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_0_bal_eq_42)
+
+    self.bundle.sign_input_at(1, private_key)
+
+    # Only 2 transactions are needed for this bundle:
+    # 1 spend + 1 input (security level = 1).
+    self.assertEqual(len(self.bundle), 2)
+
+    # The spending transaction does not have a signature.
+    self.assertEqual(
+      self.bundle[0].signature_message_fragment,
+      Fragment(b''),
+    )
+
+    # The signature fragments are really long, and we already have unit
+    # tests for the signature fragment generator, so to keep this test
+    # focused, we are only interested in whether a signature fragment
+    # gets applied.
+    #
+    # References:
+    #   - :py:class:`test.crypto.signing_test.SignatureFragmentGeneratorTestCase`
+    for i in range(1, len(self.bundle)):
+      if self.bundle[i].signature_message_fragment == Fragment(b''):
+        self.fail(
+          "Transaction {i}'s signature fragment is unexpectedly empty!".format(
+            i = i,
+          ),
+        )
 
   def test_sign_input_at_multiple_fragments(self):
     """
     Signing an input at the specified index, multiple fragments needed.
     """
-    # :todo: Implement test.
-    self.skipTest('Not implemented yet.')
+    # Add a transaction so that we can finalize the bundle.
+    # noinspection SpellCheckingInspection
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+
+      value = 42,
+    ))
+
+    self.bundle.add_inputs([self.input_5_bal_eq_42_sl_3])
+    self.bundle.finalize()
+
+    private_key =\
+      KeyGenerator(self.seed).get_key_for(self.input_5_bal_eq_42_sl_3)
+
+    self.bundle.sign_input_at(1, private_key)
+
+    # 1 spend + 3 inputs (security level = 3).
+    self.assertEqual(len(self.bundle), 4)
+
+    # The spending transaction does not have a signature.
+    self.assertEqual(
+      self.bundle[0].signature_message_fragment,
+      Fragment(b''),
+    )
+
+    # The signature fragments are really long, and we already have unit
+    # tests for the signature fragment generator, so to keep this test
+    # focused, we are only interested in whether a signature fragment
+    # gets applied.
+    #
+    # References:
+    #   - :py:class:`test.crypto.signing_test.SignatureFragmentGeneratorTestCase`
+    for i in range(1, len(self.bundle)):
+      if self.bundle[i].signature_message_fragment == Fragment(b''):
+        self.fail(
+          "Transaction {i}'s signature fragment is unexpectedly empty!".format(
+            i = i,
+          ),
+        )
 
   def test_sign_input_at_error_not_finalized(self):
     """

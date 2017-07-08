@@ -6,14 +6,16 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import binary_type
+
 from iota import Hash, TryteString
 from iota.adapter import MockAdapter
 from iota.crypto import FRAGMENT_LENGTH
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetDigestsCommand
-from six import binary_type, text_type
 from test import mock
 
 
@@ -57,14 +59,15 @@ class GetDigestsCommandTestCase(TestCase):
       with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
-        result = self.command(seed=seed, index=0, count=1)
+        result = self.command(seed=seed, index=0, count=1, securityLevel=1)
 
     self.assertDictEqual(result, {'digests': [self.digest1]})
 
     mock_get_private_keys.assert_called_once_with({
-      'count':  1,
-      'index':  0,
-      'seed':   seed,
+      'count':          1,
+      'index':          0,
+      'securityLevel':  1,
+      'seed':           seed,
     })
 
   def test_generate_multiple_digests(self):
@@ -73,7 +76,8 @@ class GetDigestsCommandTestCase(TestCase):
     """
     seed = Seed.random()
 
-    mock_get_private_keys = mock.Mock(return_value={'keys': [self.key1, self.key2]})
+    mock_get_private_keys =\
+      mock.Mock(return_value={'keys': [self.key1, self.key2]})
 
     with mock.patch(
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
@@ -87,14 +91,15 @@ class GetDigestsCommandTestCase(TestCase):
         with mock.patch.object(self.key2, 'get_digest') as mock_get_digest_2: # type: mock.MagicMock
           mock_get_digest_2.return_value = self.digest2
 
-          result = self.command(seed=seed, index=0, count=2)
+          result = self.command(seed=seed, index=0, count=2, securityLevel=1)
 
     self.assertDictEqual(result, {'digests': [self.digest1, self.digest2]})
 
     mock_get_private_keys.assert_called_once_with({
-      'count':  2,
-      'index':  0,
-      'seed':   seed,
+      'count':          2,
+      'index':          0,
+      'securityLevel':  1,
+      'seed':           seed,
     })
 
 
@@ -114,9 +119,10 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'seed':   Seed(self.seed),
-      'index':  1,
-      'count':  1,
+      'seed':           Seed(self.seed),
+      'index':          1,
+      'count':          1,
+      'securityLevel':  1,
     }
 
     filter_ = self._filter(request)
@@ -126,7 +132,7 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_optional_parameters_excluded(self):
     """
-    Request omits ``index`` and ``count``.
+    Request omits optional parameters.
     """
     filter_ = self._filter({
       'seed': Seed(self.seed),
@@ -137,9 +143,10 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   Seed(self.seed),
-        'index':  0,
-        'count':  1,
+        'seed':           Seed(self.seed),
+        'index':          0,
+        'count':          1,
+        'securityLevel':  AddressGenerator.DEFAULT_SECURITY_LEVEL,
       },
     )
 
@@ -153,8 +160,9 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
       'seed': binary_type(self.seed),
 
       # These values must be integers, however.
-      'index': 100,
-      'count': 8,
+      'index':          100,
+      'count':          8,
+      'securityLevel':  1,
     })
 
     self.assertFilterPasses(filter_)
@@ -162,9 +170,10 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'seed':   Seed(self.seed),
-        'index':  100,
-        'count':  8,
+        'seed':           Seed(self.seed),
+        'index':          100,
+        'count':          8,
+        'securityLevel':  1,
       },
     )
 
@@ -186,9 +195,10 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed':   Seed(self.seed),
-        'index':  None,
-        'count':  1,
+        'seed':           Seed(self.seed),
+        'index':          None,
+        'count':          1,
+        'securityLevel':  1,
 
         # Some men just want to watch the world burn.
         'foo': 'bar',
@@ -336,5 +346,50 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'index': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_securityLevel_string(self):
+    """
+    ``securityLevel`` is a string value.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  '1',
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_securityLevel_float(self):
+    """
+    ``securityLevel`` is a float value.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  1.0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_securityLevel_too_small(self):
+    """
+    ``securityLevel`` is less than 1.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
       },
     )

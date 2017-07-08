@@ -171,10 +171,9 @@ class MultisigIota(Iota):
          }
 
       In order to authorize the spending of IOTAs from the multisig
-      input, you must generate the correct private keys and invoke
-      their :py:meth:`iota.crypto.types.PrivateKey.sign_bundle` methods
-      in the correct order (same order that was used to generate the
-      multisig address in the first place).
+      input, you must generate the correct private keys and invoke the
+      bundle's :py:meth:`iota.transaction.ProposedBundle.sign_input_at`
+      method for each key.
 
       Once the correct signatures are applied, you can then perform
       proof of work (``attachToTangle``) and broadcast the bundle using

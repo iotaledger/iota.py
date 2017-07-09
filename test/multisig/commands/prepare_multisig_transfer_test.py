@@ -564,7 +564,14 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
           ),
       )
 
-    bundle = pmt_result['bundle'] # type: Bundle
+    # The command returns the raw trytes.  This is useful in a
+    # real-world scenario because trytes are easier to transfer between
+    # each entity that needs to apply their signature.
+    #
+    # However, for purposes of this test, we will convert the trytes
+    # back into a bundle so that we can inspect the end result more
+    # easily.
+    bundle = Bundle.from_tryte_strings(pmt_result['trytes'])
 
     #
     # This bundle looks almost identical to what you would expect from
@@ -635,14 +642,8 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
         changeAddress = Address(self.trytes_3),
       )
 
-    bundle = pmt_result['bundle'] # type: Bundle
+    bundle = Bundle.from_tryte_strings(pmt_result['trytes'])
 
-    #
-    # This bundle looks almost identical to what you would expect from
-    # :py:meth:`iota.api.Iota.prepare_transfer`, except:
-    # - There are 4 inputs (to hold all of the signature fragments).
-    # - The inputs are unsigned.
-    #
     self.assertEqual(len(bundle), 6)
 
     # Spend Transaction

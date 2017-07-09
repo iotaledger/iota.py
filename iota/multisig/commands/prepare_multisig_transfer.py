@@ -117,7 +117,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
 
     # Return the bundle with inputs unsigned.
     return {
-      'bundle': bundle,
+      'trytes': bundle.as_tryte_strings(),
     }
 
 

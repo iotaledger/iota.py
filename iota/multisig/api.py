@@ -195,14 +195,15 @@ class MultisigIota(Iota):
       Dict containing the following values::
 
          {
-           'bundle': ProposedBundle,
-             Finalized bundle.  The input transactions are not signed.
+           'trytes': List[TransactionTrytes],
+             Finalized bundle, as trytes.
+             The input transactions are not signed.
          }
 
       In order to authorize the spending of IOTAs from the multisig
       input, you must generate the correct private keys and invoke the
-      bundle's :py:meth:`iota.transaction.ProposedBundle.sign_input_at`
-      method for each key.
+      :py:meth:`iota.crypto.types.PrivateKey.sign_input_at` method for
+      each key, in the correct order.
 
       Once the correct signatures are applied, you can then perform
       proof of work (``attachToTangle``) and broadcast the bundle using

@@ -412,7 +412,7 @@ class PrepareTransferCommandTestCase(TestCase):
       return self.timestamp
 
     with mock.patch(
-        target  = 'iota.transaction.get_current_timestamp',
+        target  = 'iota.transaction.write.get_current_timestamp',
         new     = get_current_timestamp,
     ):
       return super(PrepareTransferCommandTestCase, self).run(result)

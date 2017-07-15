@@ -790,39 +790,6 @@ They both licked their dry lips.
       # You can't sign the spend transaction, silly!
       self.bundle.sign_input_at(0, private_key)
 
-  def test_sign_input_at_error_index_wrong_address(self):
-    """
-    The specified index references a transaction associated with the
-    wrong address.
-    """
-    # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
-    self.bundle.add_transaction(ProposedTransaction(
-      address =
-        Address(
-          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
-          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
-        ),
-
-      value = 42,
-    ))
-
-    self.bundle.add_inputs([
-      self.input_1_bal_eq_40,
-      self.input_2_bal_eq_2,
-    ])
-
-    self.bundle.finalize()
-
-    # We generate a private key for input with ``key_index=1``...
-    private_key =\
-      KeyGenerator(self.seed).get_key_for(self.input_1_bal_eq_40)
-
-    with self.assertRaises(ValueError):
-      # ... but we try to sign the transaction for input with
-      # ``key_index=2``!
-      self.bundle.sign_input_at(2, private_key)
-
   def test_sign_input_at_error_already_signed(self):
     """
     Attempting to sign an input that is already signed.
@@ -848,39 +815,6 @@ They both licked their dry lips.
 
     private_key =\
       KeyGenerator(self.seed).get_key_for(self.input_0_bal_eq_42)
-
-    with self.assertRaises(ValueError):
-      self.bundle.sign_input_at(1, private_key)
-
-  def test_sign_input_at_error_security_level_wrong(self):
-    """
-    The private key's security level doesn't match that of the input's
-    address.
-
-    This is exceptionally unlikely to occur outside the context of a
-    paranoid unit test, but you know how I roll....
-    """
-    # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
-    self.bundle.add_transaction(ProposedTransaction(
-      address =
-        Address(
-          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
-          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
-        ),
-
-      value = 42,
-    ))
-
-    self.bundle.add_inputs([self.input_0_bal_eq_42])
-    self.bundle.finalize()
-
-    # Note that the private key has the same key index as the input we
-    # want to sign, but it uses a different security level.
-    private_key = (
-      KeyGenerator(self.seed)
-        .get_key(index=self.input_0_bal_eq_42.key_index, iterations=2)
-    )
 
     with self.assertRaises(ValueError):
       self.bundle.sign_input_at(1, private_key)

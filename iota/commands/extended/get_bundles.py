@@ -11,7 +11,7 @@ from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.exceptions import with_context
 from iota.filters import Trytes
-from iota.transaction import BundleValidator
+from iota.transaction.validator import BundleValidator
 
 __all__ = [
   'GetBundlesCommand',

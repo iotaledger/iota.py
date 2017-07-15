@@ -4,9 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import MutableSequence, Optional, Tuple
 
-from iota import Hash, TryteString, TrytesCompatible
 from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
 from iota.exceptions import with_context
+from iota.transaction.base import Bundle
+from iota.types import Hash, TryteString, TrytesCompatible
 
 __all__ = [
   'Digest',
@@ -179,3 +180,88 @@ class PrivateKey(TryteString):
       digest[fragment_start:fragment_end] = hash_trits
 
     return Digest(TryteString.from_trits(digest), self.key_index)
+
+  def sign_bundle_at(self, bundle, start_index):
+    # type: (Bundle, int) -> None
+    """
+    Signs the input at the specified index.
+
+    :param start_index:
+      The index of the first input transaction.
+
+      If necessary, the resulting signature will be split across
+      subsequent transactions automatically.
+    """
+
+    if not bundle.hash:
+      raise with_context(
+        exc = ValueError('Cannot sign inputs without a bundle hash!'),
+
+        context = {
+          'bundle':       bundle,
+          'key_index':    self.key_index,
+          'start_index':  start_index,
+        },
+      )
+
+    from iota.crypto.signing import SignatureFragmentGenerator
+    signature_fragment_generator = SignatureFragmentGenerator(self, bundle.hash)
+
+    # We can only fit one signature fragment into each transaction,
+    # so we have to split the entire signature.
+    for j in range(self.security_level):
+      # Do lots of validation before we attempt to sign the
+      # transaction, and attach lots of context info to any exception.
+      # This method is likely to be invoked at a very low level in the
+      # application, so if anything goes wrong, we want to make sure
+      # it's as easy to troubleshoot as possible!
+      try:
+        txn = bundle[start_index+j]
+      except IndexError as e:
+        raise with_context(
+          exc = e,
+
+          context = {
+            'bundle':         bundle,
+            'key_index':      self.key_index,
+            'current_index':  start_index + j,
+          },
+        )
+
+      # Only inputs can be signed.
+      if txn.value > 0:
+        raise with_context(
+          exc =
+            ValueError(
+              'Attempting to sign non-input transaction #{i} '
+              '(value={value}).'.format(
+                i     = txn.current_index,
+                value = txn.value,
+              ),
+            ),
+
+          context = {
+            'bundle':       bundle,
+            'key_index':    self.key_index,
+            'start_index':  start_index,
+          },
+        )
+
+      if txn.signature_message_fragment:
+        raise with_context(
+          exc =
+            ValueError(
+              'Attempting to sign input transaction #{i}, '
+              'but it has a non-empty fragment (is it already signed?).'.format(
+                i = txn.current_index,
+              ),
+            ),
+
+          context = {
+            'bundle':       bundle,
+            'key_index':    self.key_index,
+            'start_index':  start_index,
+          },
+        )
+
+      txn.signature_message_fragment = next(signature_fragment_generator)

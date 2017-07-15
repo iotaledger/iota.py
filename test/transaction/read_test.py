@@ -6,8 +6,9 @@ from unittest import TestCase
 
 from typing import Tuple
 
-from iota import Address, Bundle, BundleHash, BundleValidator, Fragment, Hash, \
+from iota import Address, Bundle, BundleHash, Fragment, Hash, \
   Tag, Transaction, TransactionHash, TransactionTrytes
+from iota.transaction.validator import BundleValidator
 
 
 class BundleTestCase(TestCase):

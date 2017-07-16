@@ -427,7 +427,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
 
     return messages
 
-  def as_tryte_strings(self, head_to_tail=True):
+  def as_tryte_strings(self, head_to_tail=False):
     # type: (bool) -> List[TransactionTrytes]
     """
     Returns TryteString representations of the transactions in this
@@ -436,10 +436,13 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     :param head_to_tail:
       Determines the order of the transactions:
 
-      - ``True`` (default): head txn first, tail txn last.
-      - ``False``: tail txn first, head txn last.
+      - ``True``: head txn first, tail txn last.
+      - ``False`` (default): tail txn first, head txn last.
+
+      Note that the order is reversed by default, as this is the way
+      bundles are typically broadcast to the Tangle.
     """
-    transactions = reversed(self) if head_to_tail else self
+    transactions = self if head_to_tail else reversed(self)
     return [t.as_tryte_string() for t in transactions]
 
   def as_json_compatible(self):

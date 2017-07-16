@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
+
 from iota import Address, ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core import GetBalancesCommand

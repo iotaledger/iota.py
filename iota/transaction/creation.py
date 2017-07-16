@@ -404,7 +404,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
     if not self.hash:
       raise RuntimeError('Cannot sign inputs until bundle is finalized.')
 
-    private_key.sign_bundle_at(self, start_index)
+    private_key.sign_input_transactions(self, start_index)
 
   def _create_input_transactions(self, addy):
     # type: (Address) -> None

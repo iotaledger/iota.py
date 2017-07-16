@@ -181,10 +181,13 @@ class PrivateKey(TryteString):
 
     return Digest(TryteString.from_trits(digest), self.key_index)
 
-  def sign_bundle_at(self, bundle, start_index):
+  def sign_input_transactions(self, bundle, start_index):
     # type: (Bundle, int) -> None
     """
-    Signs the input at the specified index.
+    Signs the inputs starting at the specified index.
+
+    :param bundle:
+      The bundle that contains the input transactions to sign.
 
     :param start_index:
       The index of the first input transaction.

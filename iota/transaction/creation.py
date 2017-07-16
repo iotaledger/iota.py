@@ -11,9 +11,8 @@ from iota.crypto import Curl, HASH_LENGTH
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
-from iota.json import JsonSerializable
-from iota.transaction.base import Transaction
-from iota.transaction.types import Fragment, TransactionHash
+from iota.transaction.base import Bundle, Transaction
+from iota.transaction.types import BundleHash, Fragment, TransactionHash
 from iota.transaction.utils import get_current_timestamp
 from iota.types import Address, Hash, Tag, TryteString
 
@@ -80,7 +79,7 @@ class ProposedTransaction(Transaction):
     return super(ProposedTransaction, self).as_tryte_string()
 
 
-class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
+class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
   """
   A collection of proposed transactions, to be treated as an atomic
   unit when attached to the Tangle.
@@ -88,8 +87,6 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
   def __init__(self, transactions=None, inputs=None, change_address=None):
     # type: (Optional[Iterable[ProposedTransaction]], Optional[Iterable[Address]], Optional[Address]) -> None
     super(ProposedBundle, self).__init__()
-
-    self.hash = None # type: Optional[Hash]
 
     self._transactions = [] # type: List[ProposedTransaction]
 
@@ -176,17 +173,6 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
       - :py:class:`iota.json.JsonEncoder`.
     """
     return [txn.as_json_compatible() for txn in self]
-
-  def as_tryte_strings(self):
-    # type: () -> List[TryteString]
-    """
-    Returns the bundle as a list of TryteStrings, suitable as inputs
-    for :py:meth:`iota.api.Iota.send_trytes`.
-    """
-    # Return the transaction trytes in reverse order, so that the tail
-    # transaction is last.  This will allow the node to link the
-    # transactions properly when it performs PoW.
-    return [t.as_tryte_string() for t in reversed(self)]
 
   def add_transaction(self, transaction):
     # type: (ProposedTransaction) -> None
@@ -333,13 +319,13 @@ class ProposedBundle(JsonSerializable, Sequence[ProposedTransaction]):
 
       sponge.absorb(txn.get_signature_validation_trytes().as_trits())
 
-    bundle_hash = [0] * HASH_LENGTH # type: MutableSequence[int]
-    sponge.squeeze(bundle_hash)
-    self.hash = Hash.from_trits(bundle_hash)
+    bundle_hash_trits = [0] * HASH_LENGTH # type: MutableSequence[int]
+    sponge.squeeze(bundle_hash_trits)
 
     # Copy bundle hash to individual transactions.
+    bundle_hash = BundleHash.from_trits(bundle_hash_trits)
     for txn in self:
-      txn.bundle_hash = self.hash
+      txn.bundle_hash = bundle_hash
 
       # Initialize signature/message fragment.
       txn.signature_message_fragment = Fragment(txn.message or b'')

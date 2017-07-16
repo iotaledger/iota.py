@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
 
 from iota import Iota, TransactionHash, TryteString
 from iota.adapter import MockAdapter
@@ -24,13 +23,13 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
     super(GetLatestInclusionRequestFilterTestCase, self).setUp()
 
     self.hash1 = (
-      b'UBMJSEJDJLPDDJ99PISPI9VZSWBWBPZWVVFED9ED'
-      b'XSU9BHQHKMBMVURSZOSBIXJ9MBEOHVDPV9CWV9ECF'
+      'TESTVALUE9DONTUSEINPRODUCTION99999DXSCAD'
+      'YBVDCTTBLHFYQATFZPYPCBG9FOUKIGMYIGLHM9NEZ'
     )
 
     self.hash2 = (
-      b'WGXG9AGGIVSE9NUEEVVFNJARM9ZWDDATZKPBBXFJ'
-      b'HFPGFPTQPHBCVIEYQWENDK9NMREIIBIWLZHRWRIPU'
+      'TESTVALUE9DONTUSEINPRODUCTION99999EMFYSM'
+      'HWODIAPUTTFDLQRLYIDAUIPJXXEXZZSBVKZEBWGAN'
     )
 
   def test_pass_happy_path(self):
@@ -38,7 +37,8 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'hashes': [TransactionHash(self.hash1), TransactionHash(self.hash2)],
+      # Raw trytes are extracted to match the IRI's JSON protocol.
+      'hashes': [self.hash1, self.hash2],
     }
 
     filter_ = self._filter(request)
@@ -54,8 +54,8 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       'hashes': [
         # Any TrytesCompatible value can be used here.
-        binary_type(self.hash1),
-        bytearray(self.hash2),
+        TransactionHash(self.hash1),
+        bytearray(self.hash2.encode('ascii')),
       ],
     })
 
@@ -64,10 +64,8 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'hashes': [
-          TransactionHash(self.hash1),
-          TransactionHash(self.hash2),
-        ],
+        # Raw trytes are extracted to match the IRI's JSON protocol.
+        'hashes': [self.hash1, self.hash2],
       },
     )
 
@@ -152,7 +150,6 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
       {
         'hashes': [
           b'',
-          text_type(self.hash1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -169,11 +166,10 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
       {
         'hashes.0':  [f.Required.CODE_EMPTY],
         'hashes.1':  [f.Type.CODE_WRONG_TYPE],
-        'hashes.2':  [f.Type.CODE_WRONG_TYPE],
-        'hashes.3':  [f.Required.CODE_EMPTY],
-        'hashes.4':  [Trytes.CODE_NOT_TRYTES],
-        'hashes.6':  [f.Type.CODE_WRONG_TYPE],
-        'hashes.7':  [Trytes.CODE_WRONG_FORMAT],
+        'hashes.2':  [f.Required.CODE_EMPTY],
+        'hashes.3':  [Trytes.CODE_NOT_TRYTES],
+        'hashes.5':  [f.Type.CODE_WRONG_TYPE],
+        'hashes.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

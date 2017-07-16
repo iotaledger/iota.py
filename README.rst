@@ -32,6 +32,23 @@ To install the latest version::
 
   pip install pyota
 
+Optional C Extension
+====================
+PyOTA has an optional C extension that improves the performance of its
+cryptography features significantly (speedups of **60x** are common!).
+
+To install this extension, use the following command::
+
+   pip install pyota[ccurl]
+
+
+.. note::
+
+   The C extension is currently only compatible with Python 3.
+
+   If you are familiar with Python 2's C API, we'd love to hear from you!
+   See `<https://github.com/todofixthis/pyota-ccurl/issues/4>`_ for more info.
+
 Installing from Source
 ======================
 
@@ -58,9 +75,8 @@ For the full documentation of this library, please refer to the
 
 
 .. _Create virtualenv: https://virtualenvwrapper.readthedocs.io/
-.. _SWIG: http://www.swig.org/download.html
-.. _Slack: http://slack.iotatoken.com/
-.. _dedicated forum: https://forum.iotatoken.com/
-.. _official API: https://iota.readme.io/
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
+.. _Slack: https://slack.iota.org/
+.. _dedicated forum: https://forum.iota.org/
+.. _official API: https://iota.readme.io/
 .. _tox: https://tox.readthedocs.io/

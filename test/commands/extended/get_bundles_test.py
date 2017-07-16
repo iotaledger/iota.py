@@ -6,12 +6,12 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+
 from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
   Iota, Tag, Transaction, TransactionHash, TransactionTrytes
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
@@ -23,16 +23,17 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
 
     # noinspection SpellCheckingInspection
     self.transaction = (
-      b'ORLSCIMM9ZONOUSPYYWLOEMXQZLYEHCBEDQSHZOG'
-      b'OPZCZCDZYTDPGEEUXWUZ9FQYCT9OGS9PICOOX9999'
+      'TESTVALUE9DONTUSEINPRODUCTION99999KPZOTR'
+      'VDB9GZDJGZSSDCBIX9QOK9PAV9RMDBGDXLDTIZTWQ'
     )
 
   def test_pass_happy_path(self):
     """
     Request is valid.
     """
+    # Raw trytes are extracted to match the IRI's JSON protocol.
     request = {
-      'transaction': TransactionHash(self.transaction)
+      'transaction': self.transaction,
     }
 
     filter_ = self._filter(request)
@@ -47,7 +48,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # Any TrytesCompatible value will work here.
-      'transaction': binary_type(self.transaction),
+      'transaction': TransactionHash(self.transaction),
     })
 
     self.assertFilterPasses(filter_)
@@ -55,7 +56,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'transaction': TransactionHash(self.transaction),
+        'transaction': self.transaction,
       },
     )
 
@@ -94,7 +95,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'transaction': text_type(self.transaction, 'ascii'),
+        'transaction': 42,
       },
 
       {

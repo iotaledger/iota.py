@@ -22,13 +22,13 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     super(GetInclusionStatesRequestFilterTestCase, self).setUp()
 
     self.trytes1 = (
-      b'QHBYXQWRAHQJZEIARWSQGZJTAIITOZRMBFICIPAV'
-      b'D9YRJMXFXBDPFDTRAHHHP9YPDUVTNOFWZGFGWMYHE'
+      'TESTVALUE9DONTUSEINPRODUCTION99999GCXWZZ'
+      'ZKNRIZENRRXGPAGJOSSWQQOJDD9VGQRMEFCOIFLQB'
     )
 
     self.trytes2 = (
-      b'ZIJGAJ9AADLRPWNCYNNHUHRRAC9QOUDATEDQUMTN'
-      b'OTABUVRPTSTFQDGZKFYUUIE9ZEBIVCCXXXLKX9999'
+      'TESTVALUE9DONTUSEINPRODUCTION99999KGTGVN'
+      'GEDAJAXCTEPOJKF9FCJXXDHISFANKOPFXY9IDPMKC'
     )
 
   def test_pass_happy_path(self):
@@ -36,18 +36,13 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     Typical ``getInclusionStates`` request.
     """
     request = {
-      'transactions': [
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes2),
-      ],
+      # Raw trytes are extracted to match the IRI's JSON protocol.
+      'transactions': [self.trytes1, self.trytes2],
 
-      'tips': [
-        # These values would normally be different from
-        # ``transactions``, but for purposes of this unit test, we just
-        # need to make sure the format is correct.
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes2),
-      ],
+      # These values would normally be different from
+      # ``transactions``, but for purposes of this unit test, we just
+      # need to make sure the format is correct.
+      'tips': [self.trytes1, self.trytes2],
     }
 
     filter_ = self._filter(request)
@@ -60,10 +55,7 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     The request omits optional parameters.
     """
     filter_ = self._filter({
-      'transactions': [
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes2),
-      ],
+      'transactions': [self.trytes1, self.trytes2],
     })
 
     self.assertFilterPasses(filter_)
@@ -71,12 +63,8 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'tips': [],
-
-        'transactions': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes2),
-        ],
+        'tips':         [],
+        'transactions': [self.trytes1, self.trytes2],
       },
     )
 
@@ -87,13 +75,13 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       'transactions': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        TransactionHash(self.trytes1),
+        bytearray(self.trytes2.encode('ascii')),
       ],
 
       'tips': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        TransactionHash(self.trytes1),
+        bytearray(self.trytes2.encode('ascii')),
       ],
     })
 
@@ -102,15 +90,8 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'transactions': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes2),
-        ],
-
-        'tips': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes2),
-        ],
+        'tips':         [self.trytes1, self.trytes2],
+        'transactions': [self.trytes1, self.trytes2],
       },
     )
 
@@ -196,7 +177,6 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'transactions': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -213,11 +193,10 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'transactions.0':  [f.Required.CODE_EMPTY],
         'transactions.1':  [f.Type.CODE_WRONG_TYPE],
-        'transactions.2':  [f.Type.CODE_WRONG_TYPE],
-        'transactions.3':  [f.Required.CODE_EMPTY],
-        'transactions.4':  [Trytes.CODE_NOT_TRYTES],
-        'transactions.6':  [f.Type.CODE_WRONG_TYPE],
-        'transactions.7':  [Trytes.CODE_WRONG_FORMAT],
+        'transactions.2':  [f.Required.CODE_EMPTY],
+        'transactions.3':  [Trytes.CODE_NOT_TRYTES],
+        'transactions.5':  [f.Type.CODE_WRONG_TYPE],
+        'transactions.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -245,7 +224,6 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'tips': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -264,11 +242,10 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'tips.0':  [f.Required.CODE_EMPTY],
         'tips.1':  [f.Type.CODE_WRONG_TYPE],
-        'tips.2':  [f.Type.CODE_WRONG_TYPE],
-        'tips.3':  [f.Required.CODE_EMPTY],
-        'tips.4':  [Trytes.CODE_NOT_TRYTES],
-        'tips.6':  [f.Type.CODE_WRONG_TYPE],
-        'tips.7':  [Trytes.CODE_WRONG_FORMAT],
+        'tips.2':  [f.Required.CODE_EMPTY],
+        'tips.3':  [Trytes.CODE_NOT_TRYTES],
+        'tips.5':  [f.Type.CODE_WRONG_TYPE],
+        'tips.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

@@ -9,7 +9,7 @@ deploy:
   on:
     branch: master
   provider: pypi
-  distribution: sdist bdist_wheel
+  distribution: bdist_wheel sdist
   skip_upload_docs: true
   user: phx
   password:

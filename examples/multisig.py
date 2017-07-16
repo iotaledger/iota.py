@@ -15,9 +15,9 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import List
 
-from iota import Address, ProposedTransaction, Tag, TransactionTrytes, \
-  TryteString
-from iota.crypto.types import Digest, Seed
+from iota import Address, Bundle, BundleValidator, ProposedTransaction, Tag, \
+  TransactionTrytes, TryteString
+from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.multisig import MultisigIota
 from iota.multisig.types import MultisigAddress
 
@@ -181,10 +181,59 @@ Step 4:  Sign the inputs.
 
 Note that we must apply signatures in the same order as when we created
 the multisig address!
-"""
-# :todo:
-signed_trytes = None # type: List[TransactionTrytes]
 
+This step normally happens on separate computers, so that participants
+don't have to share their private keys (except when doing m-of-n).
+
+https://github.com/iotaledger/wiki/blob/master/multisigs.md#how-m-of-n-works
+
+For this example, the structure of the bundle looks like this:
+
+- Transaction 0:  Spend IOTAs.
+- Transactions 1-8:  Transactions that will hold the signature
+  fragments for the multisig input:
+  - 1-3:  Generated from ``digest_1`` (security level 3).
+  - 4-6:  Generated from ``digest_2`` (security level 3).
+  - 7-8:  Generated from ``digest_3`` (security level 2).
+
+Note that transactions 1-8 don't have signatures yet; we need the
+corresponding private keys in order to create those!
+"""
+bundle = Bundle.from_tryte_strings(prepared_trytes)
+
+# Note that we must use the same parameters that we provided to the
+# ``get_digests`` method, in order to generate the correct value to
+# sign the input!
+gpk_result = api_1.get_private_keys(index=0, count=1, security_level=3)
+private_key_1 = gpk_result['keys'][0] # type: PrivateKey
+private_key_1.sign_input_transactions(bundle, 1)
+
+gpk_result = api_2.get_private_keys(index=42, count=1, security_level=3)
+private_key_2 = gpk_result['keys'][0] # type: PrivateKey
+private_key_2.sign_input_transactions(bundle, 4)
+
+gpk_result = api_3.get_private_keys(index=8, count=1, security_level=2)
+private_key_3 = gpk_result['keys'][0] # type: PrivateKey
+private_key_3.sign_input_transactions(bundle, 7)
+
+# Once we've applied the signatures, convert the Bundle back into tryte
+# sequences so that we can broadcast them to the tangle.
+signed_trytes = bundle.as_tryte_strings()
+
+"""
+Step 4.5 (Optional):  Validate the signatures.
+
+This step is purely optional.  We are including it in this example
+script so that you can see that the resulting signature fragments are
+valid.
+"""
+validator = BundleValidator(bundle)
+if not validator.is_valid():
+  raise ValueError(
+    'Bundle failed validation:\n{errors}'.format(
+      errors = '\n'.join(('  - ' + e) for e in validator.errors),
+    ),
+  )
 
 """
 Step 5:  Broadcast the bundle.

@@ -6,11 +6,11 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+
 from iota import Iota, TransactionHash, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
@@ -24,13 +24,13 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     # Define some valid tryte sequences that we can re-use between
     # tests.
     self.trytes1 = (
-      b'OAATQS9VQLSXCLDJVJJVYUGONXAXOFMJOZNSYWRZ'
-      b'SWECMXAQQURHQBJNLD9IOFEPGZEPEMPXCIVRX9999'
+      'TESTVALUE9DONTUSEINPRODUCTION99999DLPDTB'
+      'XBXYOMQ9IWPKCDPNWBENBGHCSZDLRLZZ9VZEOHPLC'
     )
 
     self.trytes2 = (
-      b'ZIJGAJ9AADLRPWNCYNNHUHRRAC9QOUDATEDQUMTN'
-      b'OTABUVRPTSTFQDGZKFYUUIE9ZEBIVCCXXXLKX9999'
+      'TESTVALUE9DONTUSEINPRODUCTION99999HEXCAN'
+      'LFTVWRDZJHDWJGVOOUWBXAHKVWDNNOCICGXXBKAEN'
     )
 
   def test_pass_happy_path(self):
@@ -38,10 +38,8 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     The request is valid.
     """
     request = {
-      'hashes': [
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes2),
-      ],
+      # Raw trytes are extracted to match the IRI's JSON protocol.
+      'hashes': [self.trytes1, self.trytes2],
     }
 
     filter_ = self._filter(request)
@@ -55,11 +53,11 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
     types.
     """
     filter_ = self._filter({
+      # Any sequence that can be converted into an ASCII representation
+      # of a TransactionHash is valid.
       'hashes': [
-        # Any sequence that can be converted into a TransactionHash is
-        # valid.
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        TransactionHash(self.trytes1),
+        bytearray(self.trytes2.encode('ascii')),
       ],
     })
 
@@ -68,10 +66,7 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'hashes': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes2),
-        ],
+        'hashes': [self.trytes1, self.trytes2],
       },
     )
 
@@ -156,7 +151,6 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'hashes': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -173,11 +167,10 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'hashes.0': [f.Required.CODE_EMPTY],
         'hashes.1': [f.Type.CODE_WRONG_TYPE],
-        'hashes.2': [f.Type.CODE_WRONG_TYPE],
-        'hashes.3': [f.Required.CODE_EMPTY],
-        'hashes.4': [Trytes.CODE_NOT_TRYTES],
-        'hashes.6': [f.Type.CODE_WRONG_TYPE],
-        'hashes.7': [Trytes.CODE_WRONG_FORMAT],
+        'hashes.2': [f.Required.CODE_EMPTY],
+        'hashes.3': [Trytes.CODE_NOT_TRYTES],
+        'hashes.5': [f.Type.CODE_WRONG_TYPE],
+        'hashes.6': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -192,9 +185,9 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
 
     # Define some valid tryte sequences that we can re-use between
     # tests.
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes1 = 'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+      'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_transactions(self):
     """
@@ -204,8 +197,8 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
       'trytes': [
         # In real life, these values would be a lot longer, but for the
         # purposes of this test, any sequence of trytes will do.
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
+        self.trytes1,
+        self.trytes2,
       ],
 
       'duration': 42,

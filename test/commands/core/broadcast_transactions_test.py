@@ -6,12 +6,13 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import binary_type, text_type
+
 from iota import Iota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -23,9 +24,11 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     super(BroadcastTransactionsRequestFilterTestCase, self).setUp()
 
     # Define a few valid values that we can reuse across tests.
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes1 = TransactionTrytes('RBTC9D9DCDQAEASBYBCCKBFA')
     self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+      TransactionTrytes(
+        'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+      )
 
   def test_pass_happy_path(self):
     """
@@ -33,8 +36,8 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """
     request = {
       'trytes': [
-        TransactionTrytes(self.trytes1),
-        TransactionTrytes(self.trytes2),
+        text_type(self.trytes1),
+        text_type(self.trytes2),
       ],
     }
 
@@ -52,7 +55,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       'trytes': [
         binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        self.trytes2,
       ],
     })
 
@@ -60,12 +63,11 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(
       filter_.cleaned_data,
 
-      # The values are converted into TryteStrings so that they can be
-      # sent to the node.
       {
         'trytes': [
-          TransactionTrytes(self.trytes1),
-          TransactionTrytes(self.trytes2),
+          # Raw trytes are extracted to match the IRI's JSON protocol.
+          text_type(self.trytes1),
+          text_type(self.trytes2),
         ],
       },
     )
@@ -151,7 +153,6 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -169,11 +170,10 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes.0': [f.NotEmpty.CODE_EMPTY],
         'trytes.1': [f.Type.CODE_WRONG_TYPE],
-        'trytes.2': [f.Type.CODE_WRONG_TYPE],
-        'trytes.3': [f.Required.CODE_EMPTY],
-        'trytes.4': [Trytes.CODE_NOT_TRYTES],
-        'trytes.6': [f.Type.CODE_WRONG_TYPE],
-        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
+        'trytes.2': [f.Required.CODE_EMPTY],
+        'trytes.3': [Trytes.CODE_NOT_TRYTES],
+        'trytes.5': [f.Type.CODE_WRONG_TYPE],
+        'trytes.6': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

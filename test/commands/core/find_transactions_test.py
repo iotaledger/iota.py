@@ -6,12 +6,13 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import text_type
+
 from iota import Address, Iota, Tag, TransactionHash, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.find_transactions import FindTransactionsCommand, \
   FindTransactionsRequestFilter
 from iota.filters import Trytes
-from six import binary_type, text_type
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -23,34 +24,35 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     super(FindTransactionsRequestFilterTestCase, self).setUp()
 
     # Define a few valid values that we can reuse across tests.
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes1 = 'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
-    self.trytes3 = b'999999999999999999999999999'
+      'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+    self.trytes3 = '999999999999999999999999999'
 
   def test_pass_all_parameters(self):
     """
     The request contains valid values for all parameters.
     """
+    # Raw trytes are extracted to match the IRI's JSON protocol.
     request = {
       'bundles': [
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes2),
+        text_type(TransactionHash(self.trytes1)),
+        text_type(TransactionHash(self.trytes2)),
       ],
 
       'addresses': [
-        Address(self.trytes1),
-        Address(self.trytes2),
+        text_type(Address(self.trytes1)),
+        text_type(Address(self.trytes2)),
       ],
 
       'tags': [
-        Tag(self.trytes1),
-        Tag(self.trytes3),
+        text_type(Tag(self.trytes1)),
+        text_type(Tag(self.trytes3)),
       ],
 
       'approvees': [
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes3),
+        text_type(TransactionHash(self.trytes1)),
+        text_type(TransactionHash(self.trytes3)),
       ],
     }
 
@@ -66,23 +68,23 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       'bundles': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        self.trytes1.encode('ascii'),
+        TransactionHash(self.trytes2),
       ],
 
       'addresses': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes2),
+        self.trytes1.encode('ascii'),
+        Address(self.trytes2),
       ],
 
       'tags': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes3),
+        self.trytes1.encode('ascii'),
+        Tag(self.trytes3),
       ],
 
       'approvees': [
-        binary_type(self.trytes1),
-        bytearray(self.trytes3),
+        self.trytes1.encode('ascii'),
+        TransactionHash(self.trytes3),
       ],
     })
 
@@ -91,24 +93,25 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
+        # Raw trytes are extracted to match the IRI's JSON protocol.
         'bundles': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes2),
+          text_type(TransactionHash(self.trytes1)),
+          text_type(TransactionHash(self.trytes2)),
         ],
 
         'addresses': [
-          Address(self.trytes1),
-          Address(self.trytes2),
+          text_type(Address(self.trytes1)),
+          text_type(Address(self.trytes2)),
         ],
 
         'tags': [
-          Tag(self.trytes1),
-          Tag(self.trytes3),
+          text_type(Tag(self.trytes1)),
+          text_type(Tag(self.trytes3)),
         ],
 
         'approvees': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes3),
+          text_type(TransactionHash(self.trytes1)),
+          text_type(TransactionHash(self.trytes3)),
         ],
       },
     )
@@ -132,8 +135,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'bundles': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes2),
+          text_type(TransactionHash(self.trytes1)),
+          text_type(TransactionHash(self.trytes2)),
         ],
 
         'addresses':  [],
@@ -161,8 +164,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'addresses': [
-          Address(self.trytes1),
-          Address(self.trytes2),
+          text_type(Address(self.trytes1)),
+          text_type(Address(self.trytes2)),
         ],
 
         'approvees':  [],
@@ -190,8 +193,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'tags': [
-          Tag(self.trytes1),
-          Tag(self.trytes3),
+          text_type(Tag(self.trytes1)),
+          text_type(Tag(self.trytes3)),
         ],
 
         'addresses':  [],
@@ -219,8 +222,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'approvees': [
-          TransactionHash(self.trytes1),
-          TransactionHash(self.trytes3),
+          text_type(TransactionHash(self.trytes1)),
+          text_type(TransactionHash(self.trytes3)),
         ],
 
         'addresses':  [],
@@ -300,7 +303,6 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'bundles': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -317,11 +319,10 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'bundles.0':  [f.Required.CODE_EMPTY],
         'bundles.1':  [f.Type.CODE_WRONG_TYPE],
-        'bundles.2':  [f.Type.CODE_WRONG_TYPE],
-        'bundles.3':  [f.Required.CODE_EMPTY],
-        'bundles.4':  [Trytes.CODE_NOT_TRYTES],
-        'bundles.6':  [f.Type.CODE_WRONG_TYPE],
-        'bundles.7':  [Trytes.CODE_WRONG_FORMAT],
+        'bundles.2':  [f.Required.CODE_EMPTY],
+        'bundles.3':  [Trytes.CODE_NOT_TRYTES],
+        'bundles.5':  [f.Type.CODE_WRONG_TYPE],
+        'bundles.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -347,7 +348,6 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'addresses': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -364,11 +364,10 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'addresses.0':  [f.Required.CODE_EMPTY],
         'addresses.1':  [f.Type.CODE_WRONG_TYPE],
-        'addresses.2':  [f.Type.CODE_WRONG_TYPE],
-        'addresses.3':  [f.Required.CODE_EMPTY],
-        'addresses.4':  [Trytes.CODE_NOT_TRYTES],
-        'addresses.6':  [f.Type.CODE_WRONG_TYPE],
-        'addresses.7':  [Trytes.CODE_WRONG_FORMAT],
+        'addresses.2':  [f.Required.CODE_EMPTY],
+        'addresses.3':  [Trytes.CODE_NOT_TRYTES],
+        'addresses.5':  [f.Type.CODE_WRONG_TYPE],
+        'addresses.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -394,7 +393,6 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'tags': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -411,11 +409,10 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'tags.0':  [f.Required.CODE_EMPTY],
         'tags.1':  [f.Type.CODE_WRONG_TYPE],
-        'tags.2':  [f.Type.CODE_WRONG_TYPE],
-        'tags.3':  [f.Required.CODE_EMPTY],
-        'tags.4':  [Trytes.CODE_NOT_TRYTES],
-        'tags.6':  [f.Type.CODE_WRONG_TYPE],
-        'tags.7':  [Trytes.CODE_WRONG_FORMAT],
+        'tags.2':  [f.Required.CODE_EMPTY],
+        'tags.3':  [Trytes.CODE_NOT_TRYTES],
+        'tags.5':  [f.Type.CODE_WRONG_TYPE],
+        'tags.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -441,7 +438,6 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'approvees': [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -458,11 +454,10 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'approvees.0':  [f.Required.CODE_EMPTY],
         'approvees.1':  [f.Type.CODE_WRONG_TYPE],
-        'approvees.2':  [f.Type.CODE_WRONG_TYPE],
-        'approvees.3':  [f.Required.CODE_EMPTY],
-        'approvees.4':  [Trytes.CODE_NOT_TRYTES],
-        'approvees.6':  [f.Type.CODE_WRONG_TYPE],
-        'approvees.7':  [Trytes.CODE_WRONG_FORMAT],
+        'approvees.2':  [f.Required.CODE_EMPTY],
+        'approvees.3':  [Trytes.CODE_NOT_TRYTES],
+        'approvees.5':  [f.Type.CODE_WRONG_TYPE],
+        'approvees.6':  [Trytes.CODE_WRONG_FORMAT],
       },
     )
 

@@ -24,26 +24,27 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     # Define a few valid values here that we can reuse across multiple
     # tests.
     self.txn_id = (
-      b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
-      b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
+      'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
+      'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999'
     )
 
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes1 = 'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+      'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_happy_path(self):
     """
     The incoming request is valid.
     """
     request = {
-      'trunkTransaction':   TransactionHash(self.txn_id),
-      'branchTransaction':  TransactionHash(self.txn_id),
+      'trunkTransaction':   text_type(TransactionHash(self.txn_id)),
+      'branchTransaction':  text_type(TransactionHash(self.txn_id)),
       'minWeightMagnitude': 20,
 
-      'trytes':               [
-        TransactionTrytes(self.trytes1),
-        TransactionTrytes(self.trytes2),
+      'trytes': [
+        # Raw trytes are extracted to match the IRI's JSON protocol.
+        text_type(TransactionTrytes(self.trytes1)),
+        text_type(TransactionTrytes(self.trytes2)),
       ],
     }
 
@@ -58,17 +59,18 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     Incoming values can be converted into the expected types.
     """
     filter_ = self._filter({
-      # Any value that can be converted into a TransactionHash is valid
-      # here.
-      'trunkTransaction':   binary_type(self.txn_id),
-      'branchTransaction':  bytearray(self.txn_id),
+      # Any value that can be converted into an ASCII representation of
+      # a TransactionHash is valid here.
+      'trunkTransaction':   TransactionHash(self.txn_id),
+      'branchTransaction':  bytearray(self.txn_id.encode('ascii')),
 
       'trytes': [
         # ``trytes`` can contain any value that can be converted into a
         # TryteString.
-        binary_type(self.trytes1),
+        binary_type(TransactionTrytes(self.trytes1)),
 
-        # This is probably wrong, but technically it's valid.
+        # This is probably wrong (s/b :py:class:`TransactionTrytes`),
+        # but technically it's valid.
         TransactionHash(
           b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA',
         ),
@@ -85,17 +87,17 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       # After running through the filter, all of the values have been
       # converted to the correct types.
       {
-        'trunkTransaction':   TransactionHash(self.txn_id),
-        'branchTransaction':  TransactionHash(self.txn_id),
+        'trunkTransaction':   self.txn_id,
+        'branchTransaction':  self.txn_id,
         'minWeightMagnitude': 30,
 
         'trytes':               [
-          TransactionTrytes(self.trytes1),
+          text_type(TransactionTrytes(self.trytes1)),
 
-          TransactionTrytes(
+          text_type(TransactionTrytes(
             b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHD'
             b'WCTCEAKDCDFD9DSCSA99999999999999999999999',
-          ),
+          )),
         ],
       }
     )
@@ -159,8 +161,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        # Unicode strings are not valid tryte sequences.
-        'trunkTransaction':  text_type(self.txn_id, 'ascii'),
+        # What do you get when you multiply 0-+ by 00+?
+        'trunkTransaction': 42,
 
         'branchTransaction':  TransactionHash(self.txn_id),
         'minWeightMagnitude': 13,
@@ -196,8 +198,8 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        # Strings are not valid tryte sequences.
-        'branchTransaction': text_type(self.txn_id, 'ascii'),
+        # What do you get when you multiply 0-+ by 00+?
+        'branchTransaction': 42,
 
         'minWeightMagnitude': 13,
         'trunkTransaction':   TransactionHash(self.txn_id),
@@ -349,7 +351,6 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes':             [
           b'',
-          text_type(self.trytes1, 'ascii'),
           True,
           None,
           b'not valid trytes',
@@ -371,11 +372,10 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes.0': [f.NotEmpty.CODE_EMPTY],
         'trytes.1': [f.Type.CODE_WRONG_TYPE],
-        'trytes.2': [f.Type.CODE_WRONG_TYPE],
-        'trytes.3': [f.Required.CODE_EMPTY],
-        'trytes.4': [Trytes.CODE_NOT_TRYTES],
-        'trytes.6': [f.Type.CODE_WRONG_TYPE],
-        'trytes.7': [Trytes.CODE_WRONG_FORMAT],
+        'trytes.2': [f.Required.CODE_EMPTY],
+        'trytes.3': [Trytes.CODE_NOT_TRYTES],
+        'trytes.5': [f.Type.CODE_WRONG_TYPE],
+        'trytes.6': [Trytes.CODE_WRONG_FORMAT],
       },
     )
 
@@ -390,17 +390,19 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
 
     # Define a few valid values here that we can reuse across multiple
     #   tests.
-    self.trytes1 = b'RBTC9D9DCDQAEASBYBCCKBFA'
+    self.trytes1 = 'RBTC9D9DCDQAEASBYBCCKBFA'
     self.trytes2 =\
-      b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
+      'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHDWCTCEAKDCDFD9DSCSA'
 
   def test_pass_happy_path(self):
-    """The incoming response contains valid values."""
+    """
+    The incoming response contains valid values.
+    """
     filter_ = self._filter({
       # Trytes arrive from the node as strings.
       'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
+        self.trytes1,
+        self.trytes2,
       ],
 
       'duration': 42,

@@ -6,14 +6,15 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Address, Iota, Bundle, Tag, Transaction, TryteString
+from six import binary_type
+
+from iota import Address, Bundle, Iota, Tag, Transaction, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from mock import Mock, patch
-from six import binary_type, text_type
+from test import mock
 
 
 class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
@@ -25,7 +26,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     super(GetTransfersRequestFilterTestCase, self).setUp()
 
     # Define a few tryte sequences that we can re-use between tests.
-    self.seed = b'HELLOIOTA'
+    self.seed = 'HELLOIOTA'
 
   def test_pass_happy_path(self):
     """
@@ -49,9 +50,8 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     types.
     """
     filter_ = self._filter({
-      # ``seed`` can be any value that is convertible into a
-      # TryteString.
-      'seed': binary_type(self.seed),
+      # ``seed`` can be any TrytesCompatible value.
+      'seed': bytearray(self.seed.encode('ascii')),
 
       # These values must still be integers/bools, however.
       'start':            42,
@@ -140,7 +140,7 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'seed': text_type(self.seed, 'ascii'),
+        'seed': 42,
       },
 
       {
@@ -414,15 +414,16 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = Mock(return_value={
-      'bundles': [bundle],
-    })
+    mock_get_bundles =\
+      mock.Mock(return_value={
+        'bundles': [bundle],
+      })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
@@ -458,7 +459,7 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
@@ -529,15 +530,15 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value={
       'bundles': [bundle],
     })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
@@ -604,15 +605,15 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value={
       'bundles': [bundle],
     })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
@@ -706,25 +707,25 @@ class GetTransfersCommandTestCase(TestCase):
 
     transaction = Transaction.from_tryte_string(transaction_trytes)
 
-    mock_get_bundles = Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value={
       'bundles': [Bundle([transaction])],
     })
 
-    mock_get_latest_inclusion = Mock(return_value={
+    mock_get_latest_inclusion = mock.Mock(return_value={
       'states': {
         transaction.hash: True,
       },
     })
 
-    with patch(
+    with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      with patch(
+      with mock.patch(
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
-        with patch(
+        with mock.patch(
           'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand._execute',
           mock_get_latest_inclusion,
         ):

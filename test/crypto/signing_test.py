@@ -177,6 +177,11 @@ class KeyGeneratorTestCase(TestCase):
     This catches a regression caused by
     :py:meth:`iota.crypto.pycurl.Curl.squeeze` processing the wrong
     number of trits.
+
+    Note that seeds longer than 1 hash are not more secure.
+
+    References:
+      - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278/4
     """
     kg = KeyGenerator(
       b'TESTSEED9DONTUSEINPRODUCTION99999ZTRFNBTRBSDIHWKOWCFBOQYQTENWLTG9S'
@@ -722,9 +727,9 @@ class KeyGeneratorTestCase(TestCase):
       ),
     )
 
-  def test_generator_with_iterations(self):
+  def test_generator_with_security_level(self):
     """
-    Creating a generator that uses multiple iterations in order to
+    Creating a generator that uses higher security level in order to
     create longer keys.
     """
     kg = KeyGenerator(
@@ -733,7 +738,7 @@ class KeyGeneratorTestCase(TestCase):
       seed = b'TESTSEED9DONTUSEINPRODUCTION99999FFRFYAMRNWLGSGZNYUJNEBNWJQNYF',
     )
 
-    iterator = kg.create_iterator(start=3, iterations=2)
+    iterator = kg.create_iterator(start=3, security_level=2)
 
     self.assertEqual(
       next(iterator),

@@ -6,11 +6,11 @@ import json
 from collections import deque
 from unittest import TestCase
 
-from mock import Mock, patch
 from six import text_type
 
 from iota import BadApiResponse
 from iota.adapter.sandbox import SandboxAdapter
+from test import mock
 from test.adapter_test import create_http_response
 
 
@@ -26,12 +26,12 @@ class SandboxAdapterTestCase(TestCase):
     }
 
     mocked_response = create_http_response(json.dumps(expected_result))
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     payload = {'command': 'helloWorld'}
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       result = adapter.send_request(payload)
 
     self.assertEqual(result, expected_result)
@@ -110,15 +110,15 @@ class SandboxAdapterTestCase(TestCase):
     def _send_http_request(*args, **kwargs):
       return responses.popleft()
 
-    mocked_sender = Mock(wraps=_send_http_request)
-    mocked_waiter = Mock()
+    mocked_sender = mock.Mock(wraps=_send_http_request)
+    mocked_waiter = mock.Mock()
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
-      # Mock ``_wait_to_poll`` so that it returns immediately, instead
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
+      # mock.Mock ``_wait_to_poll`` so that it returns immediately, instead
       # of waiting for 15 seconds.  Bad for production, good for tests.
       # noinspection PyUnresolvedReferences
-      with patch.object(adapter, '_wait_to_poll', mocked_waiter):
+      with mock.patch.object(adapter, '_wait_to_poll', mocked_waiter):
         result = adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(result, expected_result)
@@ -186,15 +186,15 @@ class SandboxAdapterTestCase(TestCase):
     def _send_http_request(*args, **kwargs):
       return responses.popleft()
 
-    mocked_sender = Mock(wraps=_send_http_request)
-    mocked_waiter = Mock()
+    mocked_sender = mock.Mock(wraps=_send_http_request)
+    mocked_waiter = mock.Mock()
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
-      # Mock ``_wait_to_poll`` so that it returns immediately, instead
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
+      # mock.Mock ``_wait_to_poll`` so that it returns immediately, instead
       # of waiting for 15 seconds.  Bad for production, good for tests.
       # noinspection PyUnresolvedReferences
-      with patch.object(adapter, '_wait_to_poll', mocked_waiter):
+      with mock.patch.object(adapter, '_wait_to_poll', mocked_waiter):
         with self.assertRaises(BadApiResponse) as context:
           adapter.send_request({'command': 'helloWorld'})
 
@@ -216,12 +216,12 @@ class SandboxAdapterTestCase(TestCase):
     }
 
     mocked_response = create_http_response(json.dumps(expected_result))
-    mocked_sender = Mock(return_value=mocked_response)
+    mocked_sender = mock.Mock(return_value=mocked_response)
 
     payload = {'command': 'helloWorld'}
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       result = adapter.send_request(payload)
 
     self.assertEqual(result, expected_result)
@@ -297,15 +297,15 @@ class SandboxAdapterTestCase(TestCase):
     def _send_http_request(*args, **kwargs):
       return responses.popleft()
 
-    mocked_sender = Mock(wraps=_send_http_request)
-    mocked_waiter = Mock()
+    mocked_sender = mock.Mock(wraps=_send_http_request)
+    mocked_waiter = mock.Mock()
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
-      # Mock ``_wait_to_poll`` so that it returns immediately, instead
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
+      # mock.Mock ``_wait_to_poll`` so that it returns immediately, instead
       # of waiting for 15 seconds.  Bad for production, good for tests.
       # noinspection PyUnresolvedReferences
-      with patch.object(adapter, '_wait_to_poll', mocked_waiter):
+      with mock.patch.object(adapter, '_wait_to_poll', mocked_waiter):
         with self.assertRaises(BadApiResponse) as context:
           adapter.send_request({'command': 'helloWorld'})
 
@@ -326,13 +326,13 @@ class SandboxAdapterTestCase(TestCase):
       'message': 'You have reached maximum request limit.',
     }
 
-    mocked_sender = Mock(return_value=create_http_response(
+    mocked_sender = mock.Mock(return_value=create_http_response(
       status  = 429,
       content = json.dumps(decoded_response),
     ))
 
     # noinspection PyUnresolvedReferences
-    with patch.object(adapter, '_send_http_request', mocked_sender):
+    with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         adapter.send_request({'command': 'helloWorld'})
 
@@ -347,6 +347,7 @@ class SandboxAdapterTestCase(TestCase):
     """
     with self.assertRaises(TypeError):
       # Nope; it has to be a unicode string.
+      # noinspection PyTypeChecker
       SandboxAdapter('https://localhost', b'not valid')
 
   def test_error_auth_token_empty(self):

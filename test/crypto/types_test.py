@@ -4,8 +4,43 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import TryteString
-from iota.crypto.types import PrivateKey
+from iota import Hash, TryteString
+from iota.crypto.types import Digest, PrivateKey, Seed
+
+
+class SeedTestCase(TestCase):
+  def test_random(self):
+    """
+    Generating a random seed.
+    """
+    seed = Seed.random()
+
+    # Regression test: ``random`` MUST return a :py:class:`Seed`, NOT a
+    # :py:class:`TryteString`!
+    self.assertIsInstance(seed, Seed)
+    self.assertEqual(len(seed), Hash.LEN)
+
+
+class DigestTestCase(TestCase):
+  def test_init_error_too_long(self):
+    """
+    A digest's length must be a multiple of :py:attr:`Hash.LEN` trytes.
+    """
+    with self.assertRaises(ValueError):
+      Digest(b'9' * (Hash.LEN + 1))
+
+    with self.assertRaises(ValueError):
+      Digest(b'9' * (2 * Hash.LEN + 1))
+
+  def test_init_error_too_short(self):
+    """
+    A digest's length must be a multiple of :py:attr:`Hash.LEN` trytes.
+    """
+    with self.assertRaises(ValueError):
+      Digest(b'9' * (Hash.LEN - 1))
+
+    with self.assertRaises(ValueError):
+      Digest(b'9' * (2 * Hash.LEN - 1))
 
 
 # noinspection SpellCheckingInspection

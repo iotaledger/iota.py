@@ -42,13 +42,6 @@ To install this extension, use the following command::
    pip install pyota[ccurl]
 
 
-.. note::
-
-   The C extension is currently only compatible with Python 3.
-
-   If you are familiar with Python 2's C API, we'd love to hear from you!
-   See `<https://github.com/todofixthis/pyota-ccurl/issues/4>`_ for more info.
-
 Installing from Source
 ======================
 

@@ -50,7 +50,7 @@ class GetInputsCommand(FilterCommand):
       # Load balances for the addresses that we generated.
       gb_response = GetBalancesCommand(self.adapter)(addresses=addresses)
     else:
-      gb_response = {'balances': []}
+      gb_response = {'Balances': []}
 
     result = {
       'inputs': [],
@@ -59,7 +59,7 @@ class GetInputsCommand(FilterCommand):
 
     threshold_met = threshold is None
 
-    for i, balance in enumerate(gb_response['balances']):
+    for i, balance in enumerate(gb_response['Balances']):
       addresses[i].balance = balance
 
       if balance:

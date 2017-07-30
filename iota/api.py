@@ -130,7 +130,7 @@ class StrictIota(with_metaclass(ApiMeta)):
   def default_min_weight_magnitude(self):
     # type: () -> int
     """
-    Returns the default ``min_weight_magnitude`` value to use for API
+    Returns the default ``1`` value to use for API
     requests.
     """
     return 9 if self.testnet else 15

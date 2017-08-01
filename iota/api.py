@@ -133,7 +133,7 @@ class StrictIota(with_metaclass(ApiMeta)):
     Returns the default ``min_weight_magnitude`` value to use for API
     requests.
     """
-    return 13 if self.testnet else 18
+    return 9 if self.testnet else 15
 
   def add_neighbors(self, uris):
     # type: (Iterable[Text]) -> dict

@@ -9,9 +9,9 @@ from unittest import TestCase
 
 from sha3 import keccak_384
 
+from iota.crypto.kerl import Kerl
 from iota.crypto.kerl.conv import convertToBytes, convertToTrits, \
   trits_to_trytes, trytes_to_trits
-from iota.crypto.kerl import pykerl
 
 
 class TestKerl(TestCase):
@@ -35,7 +35,7 @@ class TestKerl(TestCase):
 
         trits = trytes_to_trits(inp)
 
-        kerl = pykerl.Kerl()
+        kerl = Kerl()
         kerl.absorb(trits)
         trits_out = []
         kerl.squeeze(trits_out)
@@ -59,7 +59,7 @@ class TestKerl(TestCase):
 
         trits = trytes_to_trits(inp)
 
-        kerl = pykerl.Kerl()
+        kerl = Kerl()
         kerl.absorb(trits)
         trits_out = []
         kerl.squeeze(trits_out, length=486)
@@ -85,7 +85,7 @@ class TestKerl(TestCase):
 
         trits = trytes_to_trits(inp)
 
-        kerl = pykerl.Kerl()
+        kerl = Kerl()
         kerl.absorb(trits)
         trits_out = []
         kerl.squeeze(trits_out, length=486)
@@ -133,7 +133,7 @@ class TestKerl(TestCase):
 
                 trits = trytes_to_trits(trytes)
 
-                kerl = pykerl.Kerl()
+                kerl = Kerl()
                 kerl.absorb(trits)
                 trits_out = []
                 kerl.squeeze(trits_out)
@@ -167,7 +167,7 @@ class TestKerl(TestCase):
 
                 trits = trytes_to_trits(trytes)
 
-                kerl = pykerl.Kerl()
+                kerl = Kerl()
                 kerl.absorb(trits)
                 trits_out = []
                 kerl.squeeze(trits_out)
@@ -203,7 +203,7 @@ class TestKerl(TestCase):
 
                 trits = trytes_to_trits(trytes)
 
-                kerl = pykerl.Kerl()
+                kerl = Kerl()
                 kerl.absorb(trits)
 
                 trits_out = []

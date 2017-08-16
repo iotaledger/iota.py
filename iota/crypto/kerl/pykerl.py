@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from sha3 import keccak_384
-from six import binary_type
+from six import PY2
 
 from iota.crypto.kerl import conv
 from iota.exceptions import with_context
@@ -17,7 +17,7 @@ TRIT_HASH_LENGTH = 243
 
 class Kerl(object):
   def __init__(self):
-    self._reset()
+    self.reset()
 
   def absorb(self, trits, offset=0, length=None):
     if length is None:
@@ -43,8 +43,7 @@ class Kerl(object):
 
       # Convert signed bytes into their equivalent unsigned representation
       # In order to use Python's built-in bytes type
-      unsigned_bytes =\
-        binary_type([conv.convert_sign(b) for b in signed_nums])
+      unsigned_bytes = bytearray(conv.convert_sign(b) for b in signed_nums)
 
       self.k.update(unsigned_bytes)
 
@@ -63,6 +62,9 @@ class Kerl(object):
     while offset < length:
       unsigned_hash = self.k.digest()
 
+      if PY2:
+        unsigned_hash = map(ord, unsigned_hash) # type: ignore
+
       signed_hash = [conv.convert_sign(b) for b in unsigned_hash]
 
       trits_from_hash = conv.convertToTrits(signed_hash)
@@ -71,14 +73,13 @@ class Kerl(object):
       stop = min(TRIT_HASH_LENGTH, length)
       trits[offset:stop] = trits_from_hash[0:stop]
 
-      flipped_bytes =\
-        binary_type([conv.convert_sign(~b) for b in unsigned_hash])
+      flipped_bytes = bytearray(conv.convert_sign(~b) for b in unsigned_hash)
 
       # Reset internal state before feeding back in
-      self._reset()
+      self.reset()
       self.k.update(flipped_bytes)
 
       offset += TRIT_HASH_LENGTH
 
-  def _reset(self):
+  def reset(self):
     self.k = keccak_384()

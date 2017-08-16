@@ -16,11 +16,12 @@ with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
 
 ##
 # Off we go!
+# noinspection SpellCheckingInspection
 setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '1.2.0b1',
+  version     = '2.0.0a1',
 
   long_description = long_description,
 
@@ -41,12 +42,13 @@ setup(
 
   install_requires = [
     'filters',
-    'six',
+    'pysha3',
 
     # ``security`` extra wasn't introduced until 2.4.1
     # http://docs.python-requests.org/en/latest/community/updates/#id35
     'requests[security] >= 2.4.1',
 
+    'six',
     'typing; python_version < "3.0"',
   ],
 

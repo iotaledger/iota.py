@@ -5,7 +5,6 @@
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
-from sys import version_info
 
 from setuptools import find_packages, setup
 
@@ -13,34 +12,6 @@ from setuptools import find_packages, setup
 # Load long description for PyPi.
 with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
   long_description = f.read()
-
-
-##
-# For compatibility with versions of pip < 9, we will determine
-# dependencies at runtime.
-# Maybe once Travis upgrades their containers to use a newer version,
-# we'll switch to the newer syntax (:
-install_dependencies = [
-  'filters',
-  'six',
-
-  # ``security`` extra wasn't introduced until 2.4.1
-  # http://docs.python-requests.org/en/latest/community/updates/#id35
-  'requests[security] >= 2.4.1',
-]
-
-unit_test_dependencies = [
-    'nose',
-  ]
-
-if version_info[0] < 3:
-  install_dependencies.extend([
-    'typing',
-  ])
-
-  unit_test_dependencies.extend([
-    'mock', # 'mock; python_version < "3.0"',
-  ])
 
 
 ##
@@ -68,7 +39,16 @@ setup(
     ],
   },
 
-  install_requires = install_dependencies,
+  install_requires = [
+    'filters',
+    'six',
+
+    # ``security`` extra wasn't introduced until 2.4.1
+    # http://docs.python-requests.org/en/latest/community/updates/#id35
+    'requests[security] >= 2.4.1',
+
+    'typing; python_version < "3.0"',
+  ],
 
   extras_require = {
     'ccurl': ['pyota-ccurl'],
@@ -76,7 +56,10 @@ setup(
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',
-  tests_require = unit_test_dependencies,
+  tests_require = [
+    'mock; python_version < "3.0"',
+    'nose',
+  ],
 
   license = 'MIT',
 

@@ -6,8 +6,9 @@ from typing import Iterator, List, MutableSequence, Sequence, Tuple
 
 from six import PY2
 
-from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
-from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
+from iota import Hash, TRITS_PER_TRYTE, TryteString, TrytesCompatible
+from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
+from iota.crypto.kerl import Kerl
 from iota.crypto.types import PrivateKey, Seed
 from iota.exceptions import with_context
 
@@ -293,7 +294,7 @@ class KeyIterator(Iterator[PrivateKey]):
     self.current += self.step
 
   def _create_sponge(self, index):
-    # type: (int) -> Curl
+    # type: (int) -> Kerl
     """
     Prepares the Curl sponge for the generator.
     """
@@ -311,7 +312,7 @@ class KeyIterator(Iterator[PrivateKey]):
         else:
           break
 
-    sponge = Curl()
+    sponge = Kerl()
     sponge.absorb(seed)
 
     # Squeeze all of the trits out of the sponge and re-absorb them.
@@ -338,7 +339,7 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
     self._key_chunks      = private_key.iter_chunks(FRAGMENT_LENGTH)
     self._iteration       = -1
     self._normalized_hash = normalize(hash_)
-    self._sponge          = Curl()
+    self._sponge          = Kerl()
 
   def __iter__(self):
     # type: () -> SignatureFragmentGenerator
@@ -409,7 +410,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
   normalized_hash = normalize(hash_)
 
   for (i, fragment) in enumerate(fragments): # type: Tuple[int, TryteString]
-    outer_sponge = Curl()
+    outer_sponge = Kerl()
 
     # If there are more than 3 iterations, loop back around to the
     # start.
@@ -418,7 +419,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
     buffer = []
     for (j, hash_trytes) in enumerate(fragment.iter_chunks(Hash.LEN)): # type: Tuple[int, TryteString]
       buffer        = hash_trytes.as_trits() # type: MutableSequence[int]
-      inner_sponge  = Curl()
+      inner_sponge  = Kerl()
 
       # Note the sign flip compared to ``SignatureFragmentGenerator``.
       for _ in range(13 + normalized_chunk[j]):
@@ -432,7 +433,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
     checksum[i*HASH_LENGTH:(i+1)*HASH_LENGTH] = buffer
 
   actual_public_key = [0] * HASH_LENGTH # type: MutableSequence[int]
-  addy_sponge = Curl()
+  addy_sponge = Kerl()
   addy_sponge.absorb(checksum)
   addy_sponge.squeeze(actual_public_key)
 

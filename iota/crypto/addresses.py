@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Generator, Iterable, List, MutableSequence
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
-from iota.crypto import Curl
+from iota.crypto.kerl import Kerl
 from iota.crypto.signing import KeyGenerator, KeyIterator
 from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.exceptions import with_context
@@ -157,7 +157,7 @@ class AddressGenerator(Iterable[Address]):
     """
     address_trits = [0] * (Address.LEN * TRITS_PER_TRYTE) # type: MutableSequence[int]
 
-    sponge = Curl()
+    sponge = Kerl()
     sponge.absorb(digest.as_trits())
     sponge.squeeze(address_trits)
 

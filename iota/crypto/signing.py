@@ -296,7 +296,7 @@ class KeyIterator(Iterator[PrivateKey]):
   def _create_sponge(self, index):
     # type: (int) -> Kerl
     """
-    Prepares the Curl sponge for the generator.
+    Prepares the hash sponge for the generator.
     """
     seed = self.seed.as_trits() # type: MutableSequence[int]
 
@@ -316,8 +316,8 @@ class KeyIterator(Iterator[PrivateKey]):
     sponge.absorb(seed)
 
     # Squeeze all of the trits out of the sponge and re-absorb them.
-    # Note that Curl transforms several times per operation, so this
-    # sequence is not as redundant as it looks at first glance.
+    # Note that the sponge transforms several times per operation, so
+    # this sequence is not as redundant as it looks at first glance.
     sponge.squeeze(seed)
     sponge.reset()
     sponge.absorb(seed)

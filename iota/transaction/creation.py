@@ -7,7 +7,8 @@ from typing import Iterable, Iterator, List, MutableSequence, Optional, \
 
 from six import PY2
 
-from iota.crypto import Curl, HASH_LENGTH
+from iota.crypto import HASH_LENGTH
+from iota.crypto.kerl import Kerl
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
@@ -310,7 +311,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
       )
 
     # Generate bundle hash.
-    sponge      = Curl()
+    sponge      = Kerl()
     last_index  = len(self) - 1
 
     for (i, txn) in enumerate(self): # type: Tuple[int, ProposedTransaction]

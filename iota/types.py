@@ -797,7 +797,7 @@ class Address(TryteString):
 
     checksum_length = AddressChecksum.LEN * TRITS_PER_TRYTE
 
-    return TryteString.from_trits(checksum_trits[:checksum_length])
+    return TryteString.from_trits(checksum_trits[-checksum_length:])
 
 
 class AddressChecksum(TryteString):

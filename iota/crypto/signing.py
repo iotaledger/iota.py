@@ -238,8 +238,12 @@ class KeyIterator(Iterator[PrivateKey]):
         },
       )
 
+    # In order to work correctly, the seed must be padded so that it is
+    # a multiple of 81 trytes.
+    pad = (len(seed) % Hash.LEN) or Hash.LEN
+    self.seed = seed + b'9' * (Hash.LEN - pad)
+
     self.security_level = security_level
-    self.seed           = seed
     self.start          = start
     self.step           = step
 

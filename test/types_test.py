@@ -917,7 +917,7 @@ class AddressTestCase(TestCase):
     """
     addy = Address(
       b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
-      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAITCOXAQSD',
     )
 
     self.assertTrue(addy.is_checksum_valid())
@@ -926,7 +926,7 @@ class AddressTestCase(TestCase):
       binary_type(addy.with_valid_checksum()),
 
       b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
-      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX'
+      b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAITCOXAQSD',
     )
 
   def test_checksum_invalid(self):
@@ -939,7 +939,7 @@ class AddressTestCase(TestCase):
     )
 
     addy = Address(
-      trytes + b'IGUKNUNAX' # <- Last tryte s/b 'W'.
+      trytes + b'XYYNAFRMB' # <- Last tryte s/b 'A'.
     )
 
     self.assertFalse(addy.is_checksum_valid())
@@ -948,7 +948,7 @@ class AddressTestCase(TestCase):
       binary_type(addy.with_valid_checksum()),
 
       b'IGKUOZGEFNSVJXETLIBKRSUZAWMYSVDPMHGQPCETEFNZP'
-      b'XSJLZMBLAWDRLUBWPIPKFNEPADIWMXMYYRKQIGUKNUNAW',
+      b'XSJLZMBLAWDRLUBWPIPKFNEPADIWMXMYYRKQXYYNAFRMA',
     )
 
   def test_checksum_null(self):
@@ -968,7 +968,7 @@ class AddressTestCase(TestCase):
       binary_type(addy.with_valid_checksum()),
 
       b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
-      b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVSDPEKQPMM',
+      b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVJJJGBARPB',
     )
 
   def test_with_checksum_attributes(self):

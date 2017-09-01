@@ -20,14 +20,21 @@ class Kerl(object):
     self.reset()
 
   def absorb(self, trits, offset=0, length=None):
+    # Pad input if necessary, so that it can be divided evenly into
+    # hashes.
+    pad = ((len(trits) % TRIT_HASH_LENGTH) or TRIT_HASH_LENGTH)
+    trits += [0] * (TRIT_HASH_LENGTH - pad)
+
     if length is None:
       length = len(trits)
 
-    if length % 243:
+    if length < 1:
       raise with_context(
-        exc = ValueError('Illegal length (s/b divisible by 243).'),
+        exc = ValueError('Invalid length passed to ``absorb``.'),
 
         context = {
+          'trits': trits,
+          'offset': offset,
           'length': length,
         },
       )
@@ -49,12 +56,24 @@ class Kerl(object):
 
       offset += TRIT_HASH_LENGTH
 
-  def squeeze(self, trits, offset=0, length=TRIT_HASH_LENGTH):
-    if length % 243:
+  def squeeze(self, trits, offset=0, length=None):
+    # Pad input if necessary, so that it can be divided evenly into
+    # hashes.
+    pad = ((len(trits) % TRIT_HASH_LENGTH) or TRIT_HASH_LENGTH)
+    trits += [0] * (TRIT_HASH_LENGTH - pad)
+
+    if length is None:
+      # By default, we will try to squeeze one hash.
+      # Note that this is different than ``absorb``.
+      length = len(trits) or TRIT_HASH_LENGTH
+
+    if length < 1:
       raise with_context(
-        exc = ValueError('Illegal length (s/b divisible by 243).'),
+        exc = ValueError('Invalid length passed to ``squeeze``.'),
 
         context = {
+          'trits': trits,
+          'offset': offset,
           'length': length,
         },
       )

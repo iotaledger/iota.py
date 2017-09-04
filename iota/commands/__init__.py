@@ -49,10 +49,14 @@ def discover_commands(package, recursively=True):
 
   commands = {}
 
-  for _, name, is_package in walk_packages(package.__path__):
+  for _, name, is_package in walk_packages(package.__path__, package.__name__ + '.'):
     # Loading the module is good enough; the CommandMeta metaclass will
     # ensure that any commands in the module get registered.
-    sub_package = import_module(package.__name__ + '.' + name)
+
+    # Prefix in name module move to function "walk_packages" for fix
+    # conflict with names importing packages
+    # Bug https://github.com/iotaledger/iota.lib.py/issues/63
+    sub_package = import_module(name)
 
     # Index any command classes that we find.
     for (_, obj) in get_members(sub_package):

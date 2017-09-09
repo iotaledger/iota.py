@@ -9,10 +9,16 @@ from iota import Address, Bundle, BundleHash, BundleValidator, Fragment, Hash, \
   Tag, Transaction, TransactionHash, TransactionTrytes
 
 
-class BundleValidatorTestCase(TestCase):
+class BundleValidator_CurlTestCase(TestCase):
+  """
+  Tests bundle validation using the old Curl hash algorithm.
+
+  References:
+    - https://github.com/iotaledger/kerl#kerl-integration-in-iota
+  """
   # noinspection SpellCheckingInspection
   def setUp(self):
-    super(BundleValidatorTestCase, self).setUp()
+    super(BundleValidator_CurlTestCase, self).setUp()
 
     # Define a valid bundle that will serve as the happy path.
     # We will mangle it in various ways to trigger validation errors.
@@ -516,13 +522,16 @@ class BundleValidatorTestCase(TestCase):
     )
 
 
-class BundleValidatorMultisigTestCase(TestCase):
+class BundleValidatorMultisig_CurlTestCase(TestCase):
   """
   Tests how :py:class:`BundleValidator` handles a bundle with a
-  multisig input.
+  multisig input, using the old Curl hash algorithm.
+
+  References:
+    - https://github.com/iotaledger/kerl#kerl-integration-in-iota
   """
   def setUp(self):
-    super(BundleValidatorMultisigTestCase, self).setUp()
+    super(BundleValidatorMultisig_CurlTestCase, self).setUp()
 
     # This is the result from ``examples/multisig.py``.
     # noinspection SpellCheckingInspection

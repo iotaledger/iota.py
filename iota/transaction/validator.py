@@ -116,13 +116,14 @@ class BundleValidator(object):
     # Signature validation is only meaningful if the transactions are
     # otherwise valid.
     if not self._errors:
+      signature_validation_queue = [] # type: List[List[Transaction]]
+
       for group in grouped_transactions:
         # Signature validation only applies to inputs.
         if group[0].value >= 0:
           continue
 
-        signature_valid = True
-        signature_fragments = []
+        validate_group_signature = True
         for j, txn in enumerate(group): # type: Tuple[int, Transaction]
           if (j > 0) and (txn.value != 0):
             # Input is malformed; signature fragments after the first
@@ -142,44 +143,98 @@ class BundleValidator(object):
             # We won't be able to validate the signature, but continue
             # anyway, so that we can check that the other transactions
             # in the group have the correct ``value``.
-            signature_valid = False
+            validate_group_signature = False
             continue
 
-          signature_fragments.append(txn.signature_message_fragment)
-
         # After collecting the signature fragment from each transaction
-        # in the group, run it through the validator.
-        # Note that we will try two different hashing algorithms, for
-        # compatibility with snapshot bundles.
-        if signature_valid:
-          signature_valid =\
-            validate_signature_fragments(
-              fragments   = signature_fragments,
-              hash_       = txn.bundle_hash,
-              public_key  = txn.address,
-              sponge_type = Kerl,
-            )
+        # in the group, queue them up to run through the validator.
+        #
+        # We have to perform signature validation separately so that we
+        # can try different algorithms (for backwards-compatibility).
+        #
+        # References:
+        #   - https://github.com/iotaledger/kerl#kerl-integration-in-iota
+        if validate_group_signature:
+          signature_validation_queue.append(group)
 
-          if not signature_valid:
-            # As a fallback, try validating using the old Curl algo.
-            # https://github.com/iotaledger/iota.lib.py/issues/61
-            signature_valid =\
-              validate_signature_fragments(
-                fragments   = signature_fragments,
-                hash_       = txn.bundle_hash,
-                public_key  = txn.address,
-                sponge_type = Curl,
-              )
+      # Once we've finished checking the attributes from each
+      # transaction in the bundle, go back and validate signatures.
+      if signature_validation_queue:
+        for error in self._get_bundle_signature_errors(signature_validation_queue):
+          yield error
 
-            if not signature_valid:
-              yield (
-                'Transaction {i} has invalid signature '
-                '(using {fragments} fragments).'.format(
-                  fragments = len(signature_fragments),
+  def _get_bundle_signature_errors(self, groups):
+    # type: (List[List[Transaction]]) -> List[Text]
+    """
+    Validates the signature fragments in the bundle.
 
-                  # If we get to this point, we know that the
-                  # ``current_index`` value for each transaction can be
-                  # trusted.
-                  i = group[0].current_index,
-                )
-              )
+    :return:
+      List of error messages.  If empty, signature fragments are valid.
+    """
+    # Start with Kerl.  If we encounter any errors, we'll go back and
+    # try again with Curl instead.
+    # Note that we keep track of how far we got with Kerl; this will be
+    # important later.
+    kerl_pos = None
+    kerl_errors = []
+
+    for kerl_pos, group in enumerate(groups): # type: Tuple[int, List[Transaction]]
+      error = self._get_group_signature_error(group, Kerl)
+      if error:
+        kerl_errors.append(error)
+        break
+
+    # If Kerl failed, then go back and try with Curl.
+    if kerl_errors:
+      for group in groups:
+        if self._get_group_signature_error(group, Curl):
+          # Curl doesn't work, either; no point in continuing.
+          break
+      else:
+        # If we get here, then we were able to validate the signature
+        # fragments successfully using Curl.
+        return []
+
+    # If we get here, then Curl validation failed.
+    # We know that the bundle is invalid, but we will continue
+    # validating with Kerl, so that we can return an error message for
+    # each invalid input.
+    kerl_errors.extend(filter(None, (
+      self._get_group_signature_error(group, Kerl)
+        for group in groups[kerl_pos+1:]
+    )))
+
+    return kerl_errors
+
+  @staticmethod
+  def _get_group_signature_error(group, sponge_type):
+    # type: (List[Transaction], type) -> Optional[Text]
+    """
+    Validates the signature fragments for a group of transactions using
+    the specified sponge type.
+
+    Note: this method assumes that the transactions in the group have
+    already passed basic validation (see :py:meth:`_create_validator`).
+
+    :return:
+      - ``None``:  Indicates that the signature fragments are valid.
+      - ``Text``:  Error message indicating the fragments are invalid.
+    """
+    validate_group_signature =\
+      validate_signature_fragments(
+        fragments   = [txn.signature_message_fragment for txn in group],
+        hash_       = group[0].bundle_hash,
+        public_key  = group[0].address,
+        sponge_type = sponge_type,
+      )
+
+    if validate_group_signature:
+      return None
+
+    return (
+      'Transaction {i} has invalid signature '
+        '(using {fragments} fragments).'.format(
+          fragments   = len(group),
+          i           = group[0].current_index,
+        )
+    )

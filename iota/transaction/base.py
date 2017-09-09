@@ -7,8 +7,7 @@ from typing import Iterable, Iterator, List, MutableSequence, \
   Optional, Sequence, Text
 
 from iota.codecs import TrytesDecodeError
-from iota.crypto import HASH_LENGTH
-from iota.crypto.kerl import Kerl
+from iota.crypto import Curl, HASH_LENGTH
 from iota.json import JsonSerializable
 from iota.transaction.types import BundleHash, Fragment, TransactionHash, \
   TransactionTrytes
@@ -43,7 +42,7 @@ class Transaction(JsonSerializable):
     if not hash_:
       hash_trits = [0] * HASH_LENGTH # type: MutableSequence[int]
 
-      sponge = Kerl()
+      sponge = Curl()
       sponge.absorb(tryte_string.as_trits())
       sponge.squeeze(hash_trits)
 

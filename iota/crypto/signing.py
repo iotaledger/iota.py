@@ -393,8 +393,13 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
     next = __next__
 
 
-def validate_signature_fragments(fragments, hash_, public_key):
-  # type: (Sequence[TryteString], Hash, TryteString) -> bool
+def validate_signature_fragments(
+    fragments,
+    hash_,
+    public_key,
+    sponge_type = Kerl,
+):
+  # type: (Sequence[TryteString], Hash, TryteString, type) -> bool
   """
   Returns whether a sequence of signature fragments is valid.
 
@@ -409,12 +414,15 @@ def validate_signature_fragments(fragments, hash_, public_key):
   :param public_key:
     The public key value used to verify the signature digest (usually a
     :py:class:`iota.types.Address` instance).
+
+  :param sponge_type:
+    The class used to create the cryptographic sponge (i.e., Curl or Kerl).
   """
   checksum        = [0] * (HASH_LENGTH * len(fragments))
   normalized_hash = normalize(hash_)
 
   for (i, fragment) in enumerate(fragments): # type: Tuple[int, TryteString]
-    outer_sponge = Kerl()
+    outer_sponge = sponge_type()
 
     # If there are more than 3 iterations, loop back around to the
     # start.
@@ -423,7 +431,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
     buffer = []
     for (j, hash_trytes) in enumerate(fragment.iter_chunks(Hash.LEN)): # type: Tuple[int, TryteString]
       buffer        = hash_trytes.as_trits() # type: MutableSequence[int]
-      inner_sponge  = Kerl()
+      inner_sponge  = sponge_type()
 
       # Note the sign flip compared to ``SignatureFragmentGenerator``.
       for _ in range(13 + normalized_chunk[j]):
@@ -437,7 +445,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
     checksum[i*HASH_LENGTH:(i+1)*HASH_LENGTH] = buffer
 
   actual_public_key = [0] * HASH_LENGTH # type: MutableSequence[int]
-  addy_sponge = Kerl()
+  addy_sponge = sponge_type()
   addy_sponge.absorb(checksum)
   addy_sponge.squeeze(actual_public_key)
 

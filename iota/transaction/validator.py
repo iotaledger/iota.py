@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, List, Optional, Text, Tuple
 
+from iota.crypto import Curl
+from iota.crypto.kerl import Kerl
 from iota.crypto.signing import validate_signature_fragments
 from iota.transaction.base import Bundle, Transaction
 
@@ -147,22 +149,37 @@ class BundleValidator(object):
 
         # After collecting the signature fragment from each transaction
         # in the group, run it through the validator.
+        # Note that we will try two different hashing algorithms, for
+        # compatibility with snapshot bundles.
         if signature_valid:
-          signature_valid = validate_signature_fragments(
-            fragments   = signature_fragments,
-            hash_       = txn.bundle_hash,
-            public_key  = txn.address,
-          )
+          signature_valid =\
+            validate_signature_fragments(
+              fragments   = signature_fragments,
+              hash_       = txn.bundle_hash,
+              public_key  = txn.address,
+              sponge_type = Kerl,
+            )
 
           if not signature_valid:
-            yield (
-              'Transaction {i} has invalid signature '
-              '(using {fragments} fragments).'.format(
-                fragments = len(signature_fragments),
-
-                # If we get to this point, we know that the
-                # ``current_index`` value for each transaction can be
-                # trusted.
-                i = group[0].current_index,
+            # As a fallback, try validating using the old Curl algo.
+            # https://github.com/iotaledger/iota.lib.py/issues/61
+            signature_valid =\
+              validate_signature_fragments(
+                fragments   = signature_fragments,
+                hash_       = txn.bundle_hash,
+                public_key  = txn.address,
+                sponge_type = Curl,
               )
-            )
+
+            if not signature_valid:
+              yield (
+                'Transaction {i} has invalid signature '
+                '(using {fragments} fragments).'.format(
+                  fragments = len(signature_fragments),
+
+                  # If we get to this point, we know that the
+                  # ``current_index`` value for each transaction can be
+                  # trusted.
+                  i = group[0].current_index,
+                )
+              )

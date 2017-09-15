@@ -2,11 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Optional, List
+from typing import List, Optional
 
 import filters as f
-from iota import Address
 
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.crypto.addresses import AddressGenerator

@@ -4,17 +4,17 @@ from __future__ import absolute_import, division, print_function, \
 
 from abc import ABCMeta, abstractmethod as abstract_method
 from importlib import import_module
-from inspect import isabstract as is_abstract, isclass as is_class, \
-  getmembers as get_members
+from inspect import getmembers as get_members, isabstract as is_abstract, \
+  isclass as is_class
 from pkgutil import walk_packages
 from types import ModuleType
-from typing import Dict, Mapping, Optional, Text, Union
+from typing import Any, Dict, Mapping, Optional, Text, Union
 
 import filters as f
-from iota.exceptions import with_context
-from six import with_metaclass, string_types
+from six import string_types, with_metaclass
 
 from iota.adapter import BaseAdapter
+from iota.exceptions import with_context
 
 __all__ = [
   'BaseCommand',
@@ -99,7 +99,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
     self.response = None # type: dict
 
   def __call__(self, **kwargs):
-    # type: (dict) -> dict
+    # type: (**Any) -> dict
     """
     Sends the command to the node.
     """

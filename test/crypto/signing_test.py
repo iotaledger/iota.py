@@ -817,6 +817,27 @@ class KeyGeneratorTestCase(TestCase):
 
 # noinspection SpellCheckingInspection
 class SignatureFragmentGeneratorTestCase(TestCase):
+  """
+  Generating values for this test case using the JS lib:
+
+  .. code-block:: javascript
+
+     var privateKeyTrytes = '...';
+     var bundleHashTrytes = '...';
+
+     var Bundle = require('./lib/crypto/bundle/bundle')
+     var Converter = require('./lib/crypto/converter/converter');
+     var Signing = require('./lib/crypto/signing/signing');
+
+     var normalizedBundleHashTrits = Bundle.prototype.normalizedBundle(bundleHashTrytes);
+
+     for(var i = 0; i < (privateKeyTrytes.length/2187); i++) {
+       var normalizedBundleFragment = normalizedBundleHashTrits.slice(i*27, (i+1)*27);
+       var keyFragment = Converter.trits(privateKeyTrytes.slice(i*2187, (i+1)*2187));
+       var signatureFragment = Signing.signatureFragment(normalizedBundleFragment, keyFragment);
+       console.log(Converter.trytes(signatureFragment));
+     }
+  """
   def test_single_fragment(self):
     """
     Creating signature fragments from a PrivateKey exactly 1 fragment

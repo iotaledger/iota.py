@@ -22,7 +22,7 @@ class MultisigAddressBuilderTestCase(TestCase):
 
      var Multisig = require('./lib/multisig/address.js');
 
-     var addy = new Multisig.Address(digests);
+     var addy = new Multisig(digests);
      console.log(addy.finalize());
   """
   # noinspection SpellCheckingInspection

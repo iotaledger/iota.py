@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import Address
-from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest
 from iota.multisig.crypto.addresses import MultisigAddressBuilder
 from iota.multisig.types import MultisigAddress
@@ -63,8 +62,8 @@ class MultisigAddressBuilderTestCase(TestCase):
       addy,
 
       Address(
-        b'JUIFYSUQFVBFGNHOJMLWBHMGASFGBPAUMRZRRCJF'
-        b'CCOJHJKZVUOCEYSCLXAGDABCEWSUXCILJCGQWI9SF',
+        b'ZYKDKGXTMGINTQLUMVNBBI9XCEI9BWYF9YOPCBFT'
+        b'UUJZWM9YIWHNYZEWOPEVRVLKZCPRKLCQD9BR9FVLC',
       ),
     )
 
@@ -88,7 +87,11 @@ class MultisigAddressBuilderTestCase(TestCase):
     # noinspection SpellCheckingInspection
     self.assertEqual(
       addy,
-      AddressGenerator(b'ABCDFG').get_addresses(0, 1)[0],
+
+      Address(
+        b'TBOLOKTNJ9MFGBSJBIWDZBHWJRLMKAEGUZFJFNGS'
+        b'VODKPPULLGJVHTCENCD9OOCNYPRLV9XGBGLDZNHPZ',
+      ),
     )
 
     # The address is still designated multisig, so we keep track of the
@@ -130,8 +133,8 @@ class MultisigAddressBuilderTestCase(TestCase):
       addy,
 
       Address(
-        b'XOASSIYBLK9OQCJJNRGLFRAMSB9ZFBKSULIMCZQJ'
-        b'OONAMEPRMSMUHBIPEKRLIRIVJQDGFBBQBINSGDADX'
+        b'JXJLZDJENNRODT9VEIRPVDX9YRLMDYDEXCQUYFIU'
+        b'XFKFJOYOGTJPEIBEKDNEFRFVVVSQFBGMNZRBGFARD',
       ),
     )
 

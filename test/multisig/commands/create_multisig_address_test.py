@@ -6,6 +6,8 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import binary_type
+
 from iota import TryteString
 from iota.adapter import MockAdapter
 from iota.crypto.types import Digest
@@ -13,7 +15,6 @@ from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import CreateMultisigAddressCommand
 from iota.multisig.types import MultisigAddress
-from six import binary_type, text_type
 
 
 class CreateMultisigAddressCommandTestCase(TestCase):
@@ -68,8 +69,8 @@ class CreateMultisigAddressCommandTestCase(TestCase):
         'address':
           MultisigAddress(
             trytes =
-              b'JUIFYSUQFVBFGNHOJMLWBHMGASFGBPAUMRZRRCJF'
-              b'CCOJHJKZVUOCEYSCLXAGDABCEWSUXCILJCGQWI9SF',
+              b'ZYKDKGXTMGINTQLUMVNBBI9XCEI9BWYF9YOPCBFT'
+              b'UUJZWM9YIWHNYZEWOPEVRVLKZCPRKLCQD9BR9FVLC',
 
             digests = [self.digest_1, self.digest_2],
           ),

@@ -11,6 +11,20 @@ from iota.multisig.types import MultisigAddress
 
 
 class MultisigAddressBuilderTestCase(TestCase):
+  """
+  Generating values for this test case using the JS lib:
+
+  .. code-block:: javascript
+
+     // Define digests to use to create the multisig addy.
+     var digests = ['...', ...];
+     ...
+
+     var Multisig = require('./lib/multisig/address.js');
+
+     var addy = new Multisig.Address(digests);
+     console.log(addy.finalize());
+  """
   # noinspection SpellCheckingInspection
   def setUp(self):
     super(MultisigAddressBuilderTestCase, self).setUp()

@@ -23,7 +23,7 @@ STATE_LENGTH = 3 * HASH_LENGTH
 Number of trits that a Curl sponge stores internally.
 """
 
-NUMBER_OF_ROUNDS = 27
+NUMBER_OF_ROUNDS = 81
 """
 Number of iterations to perform per transform operation.
 

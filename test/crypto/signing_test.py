@@ -12,20 +12,23 @@ from iota.crypto.types import PrivateKey
 # noinspection SpellCheckingInspection
 class KeyGeneratorTestCase(TestCase):
   """
-  Unit tests for KeyGenerator.
+  Generating validation data using the JS lib:
 
-  Strap in, folks; SigningKeys are multiples of 2187 trytes long!
+  .. code-block:: javascript
 
-  Note to developers: to pretty-format signing keys so that this file
-  doesn't exceed 80 chars per line, run the byte string through this
-  code and then copy-paste the result into your test:
+     // Specify parameters used to generate the private key.
+     var seed = 'SEED9GOES9HERE';
+     var keyIndex = 42;
+     var securityLevel = 3;
 
-  .. code-block:: python
+     var Converter = require('./lib/crypto/converter/converter');
+     var Signing = require('./lib/crypto/signing/signing');
 
-     print('\n'.join(repr(s[i:i+66]) for i in range(0, len(s), 66)))
+     // Generate the key.
+     var privateKey = Signing.key(Converter.trits(seed), keyIndex, securityLevel);
 
-  References:
-    - http://stackoverflow.com/a/1751478/
+     // Output human-readable version.
+     console.log(Converter.trytes(privateKey));
   """
   def test_get_keys_single(self):
     """
@@ -188,7 +191,7 @@ class KeyGeneratorTestCase(TestCase):
       b'IGVTKTOFGZAIMWHNQWWENEFBAYZXBYWK9QBIWKTMO9MFZIEQVJULQILER9GRDCBLEY'
       b'OPLCYJALVJESQMIEZOVOPYYAOLJMIUCGAJLIUFKHTIHZSEOYYLTPHKSURQSWPQEESV'
       b'99QM9DUSKSMLSCCDYMDAJIAPGJIHWBROISBLAA9GZFGPPRPHSTVNJMPUWGLTZEZEGQ'
-      b'HIHMCRZILISRFGVOJMXOYRALR9ZOUAMQXGW9XPFID'
+      b'HIHMCRZILISRFGVOJMXOYRALR9ZOUAMQXGW9XPFID',
     )
 
     self.assertListEqual(

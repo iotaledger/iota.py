@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, \
-  Tag, Transaction, TransactionHash, TransactionTrytes, TryteString
+  Tag, Transaction, TransactionHash, TransactionTrytes, TryteString, Nonce
 
 
 class BundleTestCase(TestCase):
@@ -32,8 +32,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -62,8 +61,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -92,8 +90,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -157,8 +154,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -197,8 +193,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -228,8 +223,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -259,8 +253,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -290,8 +283,7 @@ class BundleTestCase(TestCase):
         branch_transaction_hash           = TransactionHash(b''),
         bundle_hash                       = BundleHash(b''),
         hash_                             = TransactionHash(b''),
-        nonce                             = TryteString(b''),
-        legacy_tag                        = Tag(b''),
+        nonce                             = Nonce(b''),
         timestamp                         = 1485020456,
         trunk_transaction_hash            = TransactionHash(b''),
         tag                               = Tag(b''),
@@ -551,7 +543,7 @@ class TransactionTestCase(TestCase):
     self.assertEqual(
       transaction.nonce,
 
-      TryteString(
+      Nonce(
         b'999999999999999999999999999'
       ),
     )
@@ -629,7 +621,6 @@ class TransactionTestCase(TestCase):
         ),
 
       value         = 0,
-      legacy_tag    = Tag(b'999999999999999999999999999'),
       timestamp     = 1480690413,
       current_index = 1,
       last_index    = 1,
@@ -659,7 +650,7 @@ class TransactionTestCase(TestCase):
       
 
       nonce =
-        TryteString(
+        Nonce(
           b'999999999999999999999999999'
         ),
     )

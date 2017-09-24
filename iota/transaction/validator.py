@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, List, Optional, Text, Tuple
 
-from iota.crypto import Curl
 from iota.crypto.kerl import Kerl
 from iota.crypto.signing import validate_signature_fragments
 from iota.transaction.base import Bundle, Transaction
@@ -12,6 +11,20 @@ from iota.transaction.base import Bundle, Transaction
 __all__ = [
   'BundleValidator',
 ]
+
+
+#
+# In very rare cases, the IOTA protocol may switch hash algorithms.
+# When this happens, the IOTA Foundation will create a snapshot, so
+# that all new objects on the Tangle use the new hash algorithm.
+#
+# However, the snapshot will still contain references to addresses
+# created using the legacy hash algorithm, so the bundle validator has
+# to be able to use that as a fallback when validation fails.
+#
+SUPPORTED_SPONGE  = Kerl
+LEGACY_SPONGE     = None # Curl
+
 
 class BundleValidator(object):
   """
@@ -129,7 +142,7 @@ class BundleValidator(object):
             # Input is malformed; signature fragments after the first
             # should have zero value.
             yield (
-              'Transaction {i} has invalid amount '
+              'Transaction {i} has invalid value '
               '(expected 0, actual {actual}).'.format(
                 actual = txn.value,
 
@@ -171,40 +184,42 @@ class BundleValidator(object):
     :return:
       List of error messages.  If empty, signature fragments are valid.
     """
-    # Start with Kerl.  If we encounter any errors, we'll go back and
-    # try again with Curl instead.
-    # Note that we keep track of how far we got with Kerl; this will be
-    # important later.
-    kerl_pos = None
-    kerl_errors = []
-
-    for kerl_pos, group in enumerate(groups): # type: Tuple[int, List[Transaction]]
-      error = self._get_group_signature_error(group, Kerl)
+    # Start with the currently-supported hash algo.
+    current_pos = None
+    current_errors = []
+    for current_pos, group in enumerate(groups): # type: Tuple[int, List[Transaction]]
+      error = self._get_group_signature_error(group, SUPPORTED_SPONGE)
       if error:
-        kerl_errors.append(error)
+        current_errors.append(error)
+
+        # Pause and retry with the legacy algo.
         break
 
-    # If Kerl failed, then go back and try with Curl.
-    if kerl_errors:
+    # If validation failed, then go back and try with the legacy algo
+    # (only applies if we are currently transitioning to a new algo).
+    if current_errors and LEGACY_SPONGE:
       for group in groups:
-        if self._get_group_signature_error(group, Curl):
-          # Curl doesn't work, either; no point in continuing.
+        # noinspection PyTypeChecker
+        if self._get_group_signature_error(group, LEGACY_SPONGE):
+          # Legacy algo doesn't work, either; no point in continuing.
           break
       else:
         # If we get here, then we were able to validate the signature
-        # fragments successfully using Curl.
+        # fragments successfully using the legacy algorithm.
         return []
 
-    # If we get here, then Curl validation failed.
-    # We know that the bundle is invalid, but we will continue
-    # validating with Kerl, so that we can return an error message for
-    # each invalid input.
-    kerl_errors.extend(filter(None, (
-      self._get_group_signature_error(group, Kerl)
-        for group in groups[kerl_pos+1:]
+    # If we get here, then validation also failed when using the legacy
+    # algorithm.
+
+    # At this point, we know that the bundle is invalid, but we will
+    # continue validating with the supported algorithm anyway, so that
+    # we can return an error message for every invalid input.
+    current_errors.extend(filter(None, (
+      self._get_group_signature_error(group, SUPPORTED_SPONGE)
+        for group in groups[current_pos+1:]
     )))
 
-    return kerl_errors
+    return current_errors
 
   @staticmethod
   def _get_group_signature_error(group, sponge_type):
@@ -233,8 +248,8 @@ class BundleValidator(object):
 
     return (
       'Transaction {i} has invalid signature '
-        '(using {fragments} fragments).'.format(
-          fragments   = len(group),
-          i           = group[0].current_index,
-        )
+      '(using {fragments} fragments).'.format(
+        fragments   = len(group),
+        i           = group[0].current_index,
+      )
     )

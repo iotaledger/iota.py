@@ -13,7 +13,7 @@ from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 from iota.transaction.base import Bundle, Transaction
-from iota.transaction.types import BundleHash, Fragment, TransactionHash
+from iota.transaction.types import BundleHash, Fragment, TransactionHash, Nonce
 from iota.transaction.utils import get_current_timestamp
 from iota.types import Address, Hash, Tag, TryteString
 
@@ -37,7 +37,6 @@ class ProposedTransaction(Transaction):
 
     super(ProposedTransaction, self).__init__(
       address                           = address,
-      legacy_tag                        = Tag(b'') if tag is None else tag,
       tag                               = Tag(b'') if tag is None else tag,
       timestamp                         = timestamp,
       value                             = value,
@@ -55,7 +54,7 @@ class ProposedTransaction(Transaction):
       # These values start out empty; they will be populated when the
       # node does PoW.
       branch_transaction_hash           = TransactionHash(b''),
-      nonce                             = TryteString(b''),
+      nonce                             = Nonce(b''),
       trunk_transaction_hash            = TransactionHash(b''),
     )
 

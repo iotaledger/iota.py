@@ -11,6 +11,7 @@ __all__ = [
   'Fragment',
   'TransactionHash',
   'TransactionTrytes',
+  'Nonce'
 ]
 
 
@@ -60,6 +61,28 @@ class TransactionTrytes(TryteString):
   def __init__(self, trytes):
     # type: (TrytesCompatible) -> None
     super(TransactionTrytes, self).__init__(trytes, pad=self.LEN)
+
+    if len(self._trytes) > self.LEN:
+      raise with_context(
+        exc = ValueError('{cls} values must be {len} trytes long.'.format(
+          cls = type(self).__name__,
+          len = self.LEN
+        )),
+
+        context = {
+          'trytes': trytes,
+        },
+      )
+
+class Nonce(TryteString):
+  """
+  A TryteString that acts as a transaction nonce.
+  """
+  LEN = 27
+
+  def __init__(self, trytes):
+    # type: (TrytesCompatible) -> None
+    super(Nonce, self).__init__(trytes, pad=self.LEN)
 
     if len(self._trytes) > self.LEN:
       raise with_context(

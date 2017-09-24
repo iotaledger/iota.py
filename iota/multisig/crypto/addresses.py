@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import List, Optional
 
-from iota.crypto import Curl, HASH_LENGTH
+from iota.crypto import HASH_LENGTH
+from iota.crypto.kerl import Kerl
 from iota.crypto.types import Digest
 from iota.multisig.types import MultisigAddress
 
@@ -39,7 +40,7 @@ class MultisigAddressBuilder(object):
     only generate a single address.
     """
 
-    self._sponge = Curl()
+    self._sponge = Kerl()
 
   def add_digest(self, digest):
     # type: (Digest) -> None

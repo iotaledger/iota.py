@@ -36,23 +36,27 @@ class ProposedTransaction(Transaction):
       timestamp = get_current_timestamp()
 
     super(ProposedTransaction, self).__init__(
-      address                     = address,
-      tag                         = Tag(b'') if tag is None else tag,
-      timestamp                   = timestamp,
-      value                       = value,
+      address                           = address,
+      legacy_tag                        = Tag(b'') if tag is None else tag,
+      tag                               = Tag(b'') if tag is None else tag,
+      timestamp                         = timestamp,
+      value                             = value,
 
       # These values will be populated when the bundle is finalized.
-      bundle_hash                 = None,
-      current_index               = None,
-      hash_                       = None,
-      last_index                  = None,
-      signature_message_fragment  = None,
+      bundle_hash                       = None,
+      current_index                     = None,
+      hash_                             = None,
+      last_index                        = None,
+      signature_message_fragment        = None,
+      attachment_timestamp              = None,
+      attachment_timestamp_lower_bound  = None,
+      attachment_timestamp_upper_bound  = None,
 
       # These values start out empty; they will be populated when the
       # node does PoW.
-      branch_transaction_hash     = TransactionHash(b''),
-      nonce                       = Hash(b''),
-      trunk_transaction_hash      = TransactionHash(b''),
+      branch_transaction_hash           = TransactionHash(b''),
+      nonce                             = TryteString(b''),
+      trunk_transaction_hash            = TransactionHash(b''),
     )
 
     self.message = TryteString(b'') if message is None else message

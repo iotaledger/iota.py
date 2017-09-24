@@ -6,8 +6,9 @@ from typing import Iterator, List, MutableSequence, Sequence, Tuple
 
 from six import PY2
 
-from iota import TRITS_PER_TRYTE, TryteString, TrytesCompatible, Hash
-from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
+from iota import Hash, TRITS_PER_TRYTE, TryteString, TrytesCompatible
+from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
+from iota.crypto.kerl import Kerl
 from iota.crypto.types import PrivateKey, Seed
 from iota.exceptions import with_context
 
@@ -237,8 +238,12 @@ class KeyIterator(Iterator[PrivateKey]):
         },
       )
 
+    # In order to work correctly, the seed must be padded so that it is
+    # a multiple of 81 trytes.
+    seed += b'9' * (Hash.LEN - ((len(seed) % Hash.LEN) or Hash.LEN))
+
     self.security_level = security_level
-    self.seed           = seed
+    self.seed_as_trits  = seed.as_trits()
     self.start          = start
     self.step           = step
 
@@ -257,7 +262,7 @@ class KeyIterator(Iterator[PrivateKey]):
       sponge = self._create_sponge(self.current)
 
       key     = [0] * (self.fragment_length * self.security_level)
-      buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
+      buffer  = [0] * len(self.seed_as_trits)
 
       for fragment_seq in range(self.security_level):
         # Squeeze trits from the buffer and append them to the key, one
@@ -270,7 +275,10 @@ class KeyIterator(Iterator[PrivateKey]):
 
           key_stop = key_start + HASH_LENGTH
 
-          key[key_start:key_stop] = buffer
+          # Ensure we only capture one hash from the buffer, in case
+          # it is longer than that (i.e., if the seed is longer than 81
+          # trytes).
+          key[key_start:key_stop] = buffer[0:HASH_LENGTH]
 
       private_key =\
         PrivateKey.from_trits(
@@ -293,11 +301,11 @@ class KeyIterator(Iterator[PrivateKey]):
     self.current += self.step
 
   def _create_sponge(self, index):
-    # type: (int) -> Curl
+    # type: (int) -> Kerl
     """
-    Prepares the Curl sponge for the generator.
+    Prepares the hash sponge for the generator.
     """
-    seed = self.seed.as_trits() # type: MutableSequence[int]
+    seed = self.seed_as_trits[:]
 
     for i in range(index):
       # Treat ``seed`` like a really big number and add ``index``.
@@ -311,12 +319,12 @@ class KeyIterator(Iterator[PrivateKey]):
         else:
           break
 
-    sponge = Curl()
+    sponge = Kerl()
     sponge.absorb(seed)
 
     # Squeeze all of the trits out of the sponge and re-absorb them.
-    # Note that Curl transforms several times per operation, so this
-    # sequence is not as redundant as it looks at first glance.
+    # Note that the sponge transforms several times per operation, so
+    # this sequence is not as redundant as it looks at first glance.
     sponge.squeeze(seed)
     sponge.reset()
     sponge.absorb(seed)
@@ -338,7 +346,7 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
     self._key_chunks      = private_key.iter_chunks(FRAGMENT_LENGTH)
     self._iteration       = -1
     self._normalized_hash = normalize(hash_)
-    self._sponge          = Curl()
+    self._sponge          = Kerl()
 
   def __iter__(self):
     # type: () -> SignatureFragmentGenerator
@@ -388,8 +396,13 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
     next = __next__
 
 
-def validate_signature_fragments(fragments, hash_, public_key):
-  # type: (Sequence[TryteString], Hash, TryteString) -> bool
+def validate_signature_fragments(
+    fragments,
+    hash_,
+    public_key,
+    sponge_type = Kerl,
+):
+  # type: (Sequence[TryteString], Hash, TryteString, type) -> bool
   """
   Returns whether a sequence of signature fragments is valid.
 
@@ -404,12 +417,15 @@ def validate_signature_fragments(fragments, hash_, public_key):
   :param public_key:
     The public key value used to verify the signature digest (usually a
     :py:class:`iota.types.Address` instance).
+
+  :param sponge_type:
+    The class used to create the cryptographic sponge (i.e., Curl or Kerl).
   """
   checksum        = [0] * (HASH_LENGTH * len(fragments))
   normalized_hash = normalize(hash_)
 
   for (i, fragment) in enumerate(fragments): # type: Tuple[int, TryteString]
-    outer_sponge = Curl()
+    outer_sponge = sponge_type()
 
     # If there are more than 3 iterations, loop back around to the
     # start.
@@ -418,7 +434,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
     buffer = []
     for (j, hash_trytes) in enumerate(fragment.iter_chunks(Hash.LEN)): # type: Tuple[int, TryteString]
       buffer        = hash_trytes.as_trits() # type: MutableSequence[int]
-      inner_sponge  = Curl()
+      inner_sponge  = sponge_type()
 
       # Note the sign flip compared to ``SignatureFragmentGenerator``.
       for _ in range(13 + normalized_chunk[j]):
@@ -432,7 +448,7 @@ def validate_signature_fragments(fragments, hash_, public_key):
     checksum[i*HASH_LENGTH:(i+1)*HASH_LENGTH] = buffer
 
   actual_public_key = [0] * HASH_LENGTH # type: MutableSequence[int]
-  addy_sponge = Curl()
+  addy_sponge = sponge_type()
   addy_sponge.absorb(checksum)
   addy_sponge.squeeze(actual_public_key)
 

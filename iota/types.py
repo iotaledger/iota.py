@@ -13,7 +13,8 @@ from six import PY2, binary_type, itervalues, python_2_unicode_compatible, \
   text_type
 
 from iota import TRITS_PER_TRYTE, TrytesCodec
-from iota.crypto import Curl, HASH_LENGTH
+from iota.crypto import HASH_LENGTH
+from iota.crypto.kerl import Kerl
 from iota.exceptions import with_context
 from iota.json import JsonSerializable
 
@@ -790,13 +791,13 @@ class Address(TryteString):
     """
     checksum_trits = [] # type: MutableSequence[int]
 
-    sponge = Curl()
+    sponge = Kerl()
     sponge.absorb(self.address.as_trits())
     sponge.squeeze(checksum_trits)
 
     checksum_length = AddressChecksum.LEN * TRITS_PER_TRYTE
 
-    return TryteString.from_trits(checksum_trits[:checksum_length])
+    return TryteString.from_trits(checksum_trits[-checksum_length:])
 
 
 class AddressChecksum(TryteString):

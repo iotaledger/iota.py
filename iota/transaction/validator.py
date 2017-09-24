@@ -4,12 +4,27 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, List, Optional, Text, Tuple
 
+from iota.crypto.kerl import Kerl
 from iota.crypto.signing import validate_signature_fragments
 from iota.transaction.base import Bundle, Transaction
 
 __all__ = [
   'BundleValidator',
 ]
+
+
+#
+# In very rare cases, the IOTA protocol may switch hash algorithms.
+# When this happens, the IOTA Foundation will create a snapshot, so
+# that all new objects on the Tangle use the new hash algorithm.
+#
+# However, the snapshot will still contain references to addresses
+# created using the legacy hash algorithm, so the bundle validator has
+# to be able to use that as a fallback when validation fails.
+#
+SUPPORTED_SPONGE  = Kerl
+LEGACY_SPONGE     = None # Curl
+
 
 class BundleValidator(object):
   """
@@ -114,19 +129,20 @@ class BundleValidator(object):
     # Signature validation is only meaningful if the transactions are
     # otherwise valid.
     if not self._errors:
+      signature_validation_queue = [] # type: List[List[Transaction]]
+
       for group in grouped_transactions:
         # Signature validation only applies to inputs.
         if group[0].value >= 0:
           continue
 
-        signature_valid = True
-        signature_fragments = []
+        validate_group_signature = True
         for j, txn in enumerate(group): # type: Tuple[int, Transaction]
           if (j > 0) and (txn.value != 0):
             # Input is malformed; signature fragments after the first
             # should have zero value.
             yield (
-              'Transaction {i} has invalid amount '
+              'Transaction {i} has invalid value '
               '(expected 0, actual {actual}).'.format(
                 actual = txn.value,
 
@@ -140,29 +156,100 @@ class BundleValidator(object):
             # We won't be able to validate the signature, but continue
             # anyway, so that we can check that the other transactions
             # in the group have the correct ``value``.
-            signature_valid = False
+            validate_group_signature = False
             continue
 
-          signature_fragments.append(txn.signature_message_fragment)
-
         # After collecting the signature fragment from each transaction
-        # in the group, run it through the validator.
-        if signature_valid:
-          signature_valid = validate_signature_fragments(
-            fragments   = signature_fragments,
-            hash_       = txn.bundle_hash,
-            public_key  = txn.address,
-          )
+        # in the group, queue them up to run through the validator.
+        #
+        # We have to perform signature validation separately so that we
+        # can try different algorithms (for backwards-compatibility).
+        #
+        # References:
+        #   - https://github.com/iotaledger/kerl#kerl-integration-in-iota
+        if validate_group_signature:
+          signature_validation_queue.append(group)
 
-          if not signature_valid:
-            yield (
-              'Transaction {i} has invalid signature '
-              '(using {fragments} fragments).'.format(
-                fragments = len(signature_fragments),
+      # Once we've finished checking the attributes from each
+      # transaction in the bundle, go back and validate signatures.
+      if signature_validation_queue:
+        for error in self._get_bundle_signature_errors(signature_validation_queue):
+          yield error
 
-                # If we get to this point, we know that the
-                # ``current_index`` value for each transaction can be
-                # trusted.
-                i = group[0].current_index,
-              )
-            )
+  def _get_bundle_signature_errors(self, groups):
+    # type: (List[List[Transaction]]) -> List[Text]
+    """
+    Validates the signature fragments in the bundle.
+
+    :return:
+      List of error messages.  If empty, signature fragments are valid.
+    """
+    # Start with the currently-supported hash algo.
+    current_pos = None
+    current_errors = []
+    for current_pos, group in enumerate(groups): # type: Tuple[int, List[Transaction]]
+      error = self._get_group_signature_error(group, SUPPORTED_SPONGE)
+      if error:
+        current_errors.append(error)
+
+        # Pause and retry with the legacy algo.
+        break
+
+    # If validation failed, then go back and try with the legacy algo
+    # (only applies if we are currently transitioning to a new algo).
+    if current_errors and LEGACY_SPONGE:
+      for group in groups:
+        # noinspection PyTypeChecker
+        if self._get_group_signature_error(group, LEGACY_SPONGE):
+          # Legacy algo doesn't work, either; no point in continuing.
+          break
+      else:
+        # If we get here, then we were able to validate the signature
+        # fragments successfully using the legacy algorithm.
+        return []
+
+    # If we get here, then validation also failed when using the legacy
+    # algorithm.
+
+    # At this point, we know that the bundle is invalid, but we will
+    # continue validating with the supported algorithm anyway, so that
+    # we can return an error message for every invalid input.
+    current_errors.extend(filter(None, (
+      self._get_group_signature_error(group, SUPPORTED_SPONGE)
+        for group in groups[current_pos+1:]
+    )))
+
+    return current_errors
+
+  @staticmethod
+  def _get_group_signature_error(group, sponge_type):
+    # type: (List[Transaction], type) -> Optional[Text]
+    """
+    Validates the signature fragments for a group of transactions using
+    the specified sponge type.
+
+    Note: this method assumes that the transactions in the group have
+    already passed basic validation (see :py:meth:`_create_validator`).
+
+    :return:
+      - ``None``:  Indicates that the signature fragments are valid.
+      - ``Text``:  Error message indicating the fragments are invalid.
+    """
+    validate_group_signature =\
+      validate_signature_fragments(
+        fragments   = [txn.signature_message_fragment for txn in group],
+        hash_       = group[0].bundle_hash,
+        public_key  = group[0].address,
+        sponge_type = sponge_type,
+      )
+
+    if validate_group_signature:
+      return None
+
+    return (
+      'Transaction {i} has invalid signature '
+      '(using {fragments} fragments).'.format(
+        fragments   = len(group),
+        i           = group[0].current_index,
+      )
+    )

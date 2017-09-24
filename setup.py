@@ -5,7 +5,6 @@
 from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
-from sys import version_info
 
 from setuptools import find_packages, setup
 
@@ -16,40 +15,13 @@ with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
 
 
 ##
-# For compatibility with versions of pip < 9, we will determine
-# dependencies at runtime.
-# Maybe once Travis upgrades their containers to use a newer version,
-# we'll switch to the newer syntax (:
-install_dependencies = [
-  'filters',
-  'six',
-
-  # ``security`` extra wasn't introduced until 2.4.1
-  # http://docs.python-requests.org/en/latest/community/updates/#id35
-  'requests[security] >= 2.4.1',
-]
-
-unit_test_dependencies = [
-    'nose',
-  ]
-
-if version_info[0] < 3:
-  install_dependencies.extend([
-    'typing',
-  ])
-
-  unit_test_dependencies.extend([
-    'mock', # 'mock; python_version < "3.0"',
-  ])
-
-
-##
 # Off we go!
+# noinspection SpellCheckingInspection
 setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '1.2.0b1',
+  version     = '2.0.0b1',
 
   long_description = long_description,
 
@@ -68,7 +40,17 @@ setup(
     ],
   },
 
-  install_requires = install_dependencies,
+  install_requires = [
+    'filters',
+    'pysha3',
+
+    # ``security`` extra wasn't introduced until 2.4.1
+    # http://docs.python-requests.org/en/latest/community/updates/#id35
+    'requests[security] >= 2.4.1',
+
+    'six',
+    'typing; python_version < "3.0"',
+  ],
 
   extras_require = {
     'ccurl': ['pyota-ccurl'],
@@ -76,12 +58,15 @@ setup(
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',
-  tests_require = unit_test_dependencies,
+  tests_require = [
+    'mock; python_version < "3.0"',
+    'nose',
+  ],
 
   license = 'MIT',
 
   classifiers = [
-    'Development Status :: 5 - Production/Stable',
+    'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 2',

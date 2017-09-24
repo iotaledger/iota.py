@@ -9,6 +9,7 @@ script: nosetests
 deploy:
   on:
     branch: master
+    python: '3.6'
   provider: pypi
   distribution: 'bdist_wheel sdist'
   skip_upload_docs: true

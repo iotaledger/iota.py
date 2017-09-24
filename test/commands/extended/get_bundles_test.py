@@ -154,32 +154,32 @@ class GetBundlesCommandTestCase(TestCase):
           # This value is computed automatically, so it has to be real.
           hash_ =
             TransactionHash(
-              b'TAOICZV9ZSXIZINMNRLOLCWNLL9IDKGVWTJITNGU'
-              b'HAIKLHZLBZWOQ9HJSODUDISTYGIYPWTYDCFMVRBQN'
+              b'UGQBSMKGNXXWDCS9XZCFTPUXFADCT9I9KCNQGUXK'
+              b'NDJDUXLWODOVJQWJHCLWTODAELDXGL9SMQYQZFWHE',
             ),
 
           address =
             Address(
               b'TESTVALUE9DONTUSEINPRODUCTION99999OCSGVF'
-              b'IBQA99KGTCPCZ9NHR9VGLGADDDIEGGPCGBDEDDTBC'
+              b'IBQA99KGTCPCZ9NHR9VGLGADDDIEGGPCGBDEDDTBC',
             ),
 
           bundle_hash =
             BundleHash(
-              b'TESTVALUE9DONTUSEINPRODUCTION99999DIOAZD'
-              b'M9AIUHXGVGBC9EMGI9SBVBAIXCBFJ9EELCPDRAD9U'
+              b'TESTVALUE9DONTUSEINPRODUCTION99999DIOAZD' 
+              b'M9AIUHXGVGBC9EMGI9SBVBAIXCBFJ9EELCPDRAD9U',
             ),
 
           branch_transaction_hash =
             TransactionHash(
               b'TESTVALUE9DONTUSEINPRODUCTION99999BBCEDI'
-              b'ZHUDWBYDJEXHHAKDOCKEKDFIMB9AMCLFW9NBDEOFV'
+              b'ZHUDWBYDJEXHHAKDOCKEKDFIMB9AMCLFW9NBDEOFV',
             ),
 
           trunk_transaction_hash =
             TransactionHash(
               b'TESTVALUE9DONTUSEINPRODUCTION999999ARAYA'
-              b'MHCB9DCFEIWEWDLBCDN9LCCBQBKGDDAECFIAAGDAS'
+              b'MHCB9DCFEIWEWDLBCDN9LCCBQBKGDDAECFIAAGDAS',
             ),
         )
 

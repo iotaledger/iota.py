@@ -353,12 +353,23 @@ They both licked their dry lips.
 
 
 class TransactionTestCase(TestCase):
+  """
+  If you need to generate values for these tests using the JS lib, you
+  can leverage the following functions:
+
+  - ``lib/utils/utils.js:transactionObject``:  Convert a sequence of
+    trytes into an object that you can manipulate easily.
+  - ``lib/utils/utils.js:transactionTrytes``:  Convert an object back
+    into a tryte sequence.
+  """
   # noinspection SpellCheckingInspection
   def test_from_tryte_string(self):
     """
     Initializing a Transaction object from a TryteString.
+
+    References:
+      - http://iotasupport.com/news/index.php/2016/12/02/fixing-the-latest-solid-subtangle-milestone-issue/
     """
-    # :see: http://iotasupport.com/news/index.php/2016/12/02/fixing-the-latest-solid-subtangle-milestone-issue/
     trytes =\
       TransactionTrytes(
         b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC'
@@ -412,8 +423,8 @@ class TransactionTestCase(TestCase):
       transaction.hash,
 
       Hash(
-        b'QODOAEJHCFUYFTTPRONYSMMSFDNFWFX9UCMESVWA'
-        b'FCVUQYOIJGJMBMGQSFIAFQFMVECYIFXHRGHHEOTMK'
+        b'SYABNCYPLULQQBTDCUWJPVVMYNWHKEHGAZPKRBGE'
+        b'QKEHUIKJCHWGAUKLSYMDOUUBMXPKCPTNFWUFU9JKW',
       ),
     )
 

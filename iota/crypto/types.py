@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import MutableSequence, Optional, Tuple
 
-from iota.crypto import Curl, FRAGMENT_LENGTH, HASH_LENGTH
+from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
+from iota.crypto.kerl import Kerl
 from iota.exceptions import with_context
 from iota.transaction.base import Bundle
 from iota.types import Hash, TryteString, TrytesCompatible
@@ -157,7 +158,7 @@ class PrivateKey(TryteString):
         hash_trits  = fragment_trits[hash_start:hash_end] # type: MutableSequence[int]
 
         for k in range(26):
-          sponge = Curl()
+          sponge = Kerl()
           sponge.absorb(hash_trits)
           sponge.squeeze(hash_trits)
 
@@ -170,7 +171,7 @@ class PrivateKey(TryteString):
       # Note that we will do this once per fragment in the key, so the
       # longer the key is, the longer the digest will be.
       #
-      sponge = Curl()
+      sponge = Kerl()
       sponge.absorb(key_fragment)
       sponge.squeeze(hash_trits)
 

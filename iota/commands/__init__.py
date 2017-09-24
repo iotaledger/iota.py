@@ -4,17 +4,17 @@ from __future__ import absolute_import, division, print_function, \
 
 from abc import ABCMeta, abstractmethod as abstract_method
 from importlib import import_module
-from inspect import isabstract as is_abstract, isclass as is_class, \
-  getmembers as get_members
+from inspect import getmembers as get_members, isabstract as is_abstract, \
+  isclass as is_class
 from pkgutil import walk_packages
 from types import ModuleType
-from typing import Dict, Mapping, Optional, Text, Union
+from typing import Any, Dict, Mapping, Optional, Text, Union
 
 import filters as f
-from iota.exceptions import with_context
-from six import with_metaclass, string_types
+from six import string_types, with_metaclass
 
 from iota.adapter import BaseAdapter
+from iota.exceptions import with_context
 
 __all__ = [
   'BaseCommand',
@@ -49,10 +49,14 @@ def discover_commands(package, recursively=True):
 
   commands = {}
 
-  for _, name, is_package in walk_packages(package.__path__):
+  for _, name, is_package in walk_packages(package.__path__, package.__name__ + '.'):
     # Loading the module is good enough; the CommandMeta metaclass will
     # ensure that any commands in the module get registered.
-    sub_package = import_module(package.__name__ + '.' + name)
+
+    # Prefix in name module move to function "walk_packages" for fix
+    # conflict with names importing packages
+    # Bug https://github.com/iotaledger/iota.lib.py/issues/63
+    sub_package = import_module(name)
 
     # Index any command classes that we find.
     for (_, obj) in get_members(sub_package):
@@ -99,7 +103,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
     self.response = None # type: dict
 
   def __call__(self, **kwargs):
-    # type: (dict) -> dict
+    # type: (**Any) -> dict
     """
     Sends the command to the node.
     """

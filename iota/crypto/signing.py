@@ -240,10 +240,10 @@ class KeyIterator(Iterator[PrivateKey]):
 
     # In order to work correctly, the seed must be padded so that it is
     # a multiple of 81 trytes.
-    pad = (len(seed) % Hash.LEN) or Hash.LEN
-    self.seed = seed + b'9' * (Hash.LEN - pad)
+    seed += b'9' * (Hash.LEN - ((len(seed) % Hash.LEN) or Hash.LEN))
 
     self.security_level = security_level
+    self.seed_as_trits  = seed.as_trits()
     self.start          = start
     self.step           = step
 
@@ -262,7 +262,7 @@ class KeyIterator(Iterator[PrivateKey]):
       sponge = self._create_sponge(self.current)
 
       key     = [0] * (self.fragment_length * self.security_level)
-      buffer  = [0] * HASH_LENGTH # type: MutableSequence[int]
+      buffer  = [0] * len(self.seed_as_trits)
 
       for fragment_seq in range(self.security_level):
         # Squeeze trits from the buffer and append them to the key, one
@@ -275,7 +275,10 @@ class KeyIterator(Iterator[PrivateKey]):
 
           key_stop = key_start + HASH_LENGTH
 
-          key[key_start:key_stop] = buffer
+          # Ensure we only capture one hash from the buffer, in case
+          # it is longer than that (i.e., if the seed is longer than 81
+          # trytes).
+          key[key_start:key_stop] = buffer[0:HASH_LENGTH]
 
       private_key =\
         PrivateKey.from_trits(
@@ -302,7 +305,7 @@ class KeyIterator(Iterator[PrivateKey]):
     """
     Prepares the hash sponge for the generator.
     """
-    seed = self.seed.as_trits() # type: MutableSequence[int]
+    seed = self.seed_as_trits[:]
 
     for i in range(index):
       # Treat ``seed`` like a really big number and add ``index``.

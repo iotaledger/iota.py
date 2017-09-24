@@ -369,8 +369,6 @@ class BundleValidatorTestCase(TestCase):
 
     self.assertFalse(validator.is_valid())
 
-    self.maxDiff = None
-
     self.assertListEqual(
       validator.errors,
 

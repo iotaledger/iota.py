@@ -410,6 +410,9 @@ class GetTransfersCommandTestCase(TestCase):
         bundle_hash = None,
         trunk_transaction_hash = None,
         branch_transaction_hash = None,
+        attachment_timestamp = 1483033814,
+        attachment_timestamp_lower_bound = 12,
+        attachment_timestamp_upper_bound = 0,
         nonce = None,
       )
     ])
@@ -526,6 +529,9 @@ class GetTransfersCommandTestCase(TestCase):
         bundle_hash = None,
         trunk_transaction_hash = None,
         branch_transaction_hash = None,
+        attachment_timestamp = 1483033814,
+        attachment_timestamp_lower_bound = 12,
+        attachment_timestamp_upper_bound = 0,
         nonce = None,
       )
     ])
@@ -601,6 +607,9 @@ class GetTransfersCommandTestCase(TestCase):
         bundle_hash = None,
         trunk_transaction_hash = None,
         branch_transaction_hash = None,
+        attachment_timestamp = 1483033814,
+        attachment_timestamp_lower_bound = 12,
+        attachment_timestamp_upper_bound = 0,
         nonce = None,
       )
     ])

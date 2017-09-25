@@ -47,9 +47,9 @@ class ProposedTransaction(Transaction):
       hash_                             = None,
       last_index                        = None,
       signature_message_fragment        = None,
-      attachment_timestamp              = None,
-      attachment_timestamp_lower_bound  = None,
-      attachment_timestamp_upper_bound  = None,
+      attachment_timestamp              = 0,
+      attachment_timestamp_lower_bound  = 0,
+      attachment_timestamp_upper_bound  = 0,
 
       # These values start out empty; they will be populated when the
       # node does PoW.

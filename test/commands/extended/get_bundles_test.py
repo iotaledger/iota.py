@@ -356,7 +356,6 @@ class GetBundlesCommandTestCase(TestCase):
           b'DRXICGYDGSVPXFTILFFGAPICYHGGJ9OHXINFX9999'
         ),
     )
-    print(response['bundles'][0].as_tryte_strings())
     self.maxDiff = None
     self.assertListEqual(
       response['bundles'][0].as_json_compatible(),

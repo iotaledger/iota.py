@@ -8,7 +8,7 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
-  Iota, Tag, Transaction, TransactionHash, TransactionTrytes
+  Iota, Tag, Transaction, TransactionHash, TransactionTrytes, Nonce
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.filters import Trytes
@@ -141,21 +141,24 @@ class GetBundlesCommandTestCase(TestCase):
     """
     transaction =\
       Transaction(
-          current_index = 0,
-          last_index    = 0,
-          tag           = Tag(b''),
-          timestamp     = 1484960990,
-          value         = 0,
+          current_index                     = 0,
+          last_index                        = 0,
+          tag                               = Tag(b''),
+          timestamp                         = 1484960990,
+          value                             = 0,
+          attachment_timestamp              = 1484960990,
+          attachment_timestamp_lower_bound  = 12,
+          attachment_timestamp_upper_bound  = 0,
 
           # These values are not relevant for 0-value transactions.
-          nonce                       = Hash(b''),
+          nonce                       = Nonce(b''),
           signature_message_fragment  = Fragment(b''),
 
           # This value is computed automatically, so it has to be real.
           hash_ =
             TransactionHash(
-              b'UGQBSMKGNXXWDCS9XZCFTPUXFADCT9I9KCNQGUXK'
-              b'NDJDUXLWODOVJQWJHCLWTODAELDXGL9SMQYQZFWHE',
+              b'XPJIYZWPF9LBCYZPNBFARDRCSUGJGF9TWZT9K9PX'
+              b'VYDFPZOZBGXUCKLTJEUCFBEKQQ9VCSQVQDMMJQAY9',
             ),
 
           address =
@@ -238,8 +241,8 @@ class GetBundlesCommandTestCase(TestCase):
         b'999999999999999999999999999999999999999999999999999999999999999999'
         b'999999999999999999999999999999999999999999999999999999999999999999'
         b'999999999WUQXEGBVIECGIWO9IGSYKWWPYCIVUJJGSJPWGIAFJPYSF9NSQOHWAHS9P'
-        b'9PWQHOBXNNQIF9IRHVQXKPZW999999999999999999999999999999999999999999'
-        b'999999999999HNLFMVD99A99999999A99999999PDQWLVVDPUU9VIBODGMRIAZPGQX'
+        b'9PWQHOBXNNQIF9IRHVQXKPZW999999999999999999999999999XZUIENOTTBKJMDP'
+        b'RXWGQYG9PWGTHNLFMVD99A99999999A99999999PDQWLVVDPUU9VIBODGMRIAZPGQX'
         b'DOGSEXIHKIBWSLDAWUKZCZMK9Z9YZSPCKBDJSVDPRQLJSTKUMTNVSXBGUEHHGAIWWQ'
         b'BCJZHZAQOWZMAIDAFUZBVMUVPWQJLUGGQKNKLMGTWXXNZKUCBJLEDAMYVRGABAWBY9'
         b'999MYIYBTGIOQYYZFJBLIAWMPSZEFFTXUZPCDIXSLLQDQSFYGQSQOGSPKCZNLVSZ9L'
@@ -285,8 +288,8 @@ class GetBundlesCommandTestCase(TestCase):
         b'999999999999999999999999999999999999999999999999999999999999999999'
         b'999999999999999999999999999999999999999999999999999999999999999999'
         b'999999999999999999999999999999999999999999999999999999999999999999'
-        b'999999999999999999999999999999999999999999999999999999999999999999'
-        b'999999999999HNLFMVD99999999999A99999999PDQWLVVDPUU9VIBODGMRIAZPGQX'
+        b'999999999999999999999999999999999999999999999999999SYRABNN9JD9PNDL'
+        b'IKUNCECUELTOHNLFMVD99999999999A99999999PDQWLVVDPUU9VIBODGMRIAZPGQX'
         b'DOGSEXIHKIBWSLDAWUKZCZMK9Z9YZSPCKBDJSVDPRQLJSTKUMTNVSXFSEWUNJOEGNU'
         b'I9QOCRFMYSIFAZLJHKZBPQZZYFG9ORYCRDX9TOMJPFCRB9R9KPUUGFPVOWYXFIWEW9'
         b'999BGUEHHGAIWWQBCJZHZAQOWZMAIDAFUZBVMUVPWQJLUGGQKNKLMGTWXXNZKUCBJL'
@@ -353,7 +356,7 @@ class GetBundlesCommandTestCase(TestCase):
           b'DRXICGYDGSVPXFTILFFGAPICYHGGJ9OHXINFX9999'
         ),
     )
-
+    print(response['bundles'][0].as_tryte_strings())
     self.maxDiff = None
     self.assertListEqual(
       response['bundles'][0].as_json_compatible(),

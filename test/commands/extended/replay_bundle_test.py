@@ -9,7 +9,7 @@ from filters.test import BaseFilterTestCase
 from six import binary_type
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, Tag, \
-  Transaction, TransactionHash
+  Transaction, TransactionHash, Nonce
 from iota.adapter import MockAdapter
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
 from iota.filters import Trytes
@@ -343,9 +343,8 @@ class ReplayBundleCommandTestCase(TestCase):
           ),
 
         nonce =
-          Hash(
-            b'LIJVXBVTYMEEPCKJRIQTGAKWJRAMYNPJEGHEWAUL'
-            b'XPBBUQPCJTJPRZTISQPJRJGMSBGQLER9OXYQXFGQO'
+          Nonce(
+            b'LIJVXBVTYMEEPCKJRIQTGAKWJRA'
           ),
 
         trunk_transaction_hash =
@@ -356,11 +355,14 @@ class ReplayBundleCommandTestCase(TestCase):
 
         signature_message_fragment = Fragment(b''),
 
-        current_index = 0,
-        last_index    = 3,
-        tag           = Tag(b''),
-        timestamp     = 1483033814,
-        value         = 1,
+        current_index                     = 0,
+        last_index                        = 3,
+        tag                               = Tag(b''),
+        timestamp                         = 1483033814,
+        value                             = 1,
+        attachment_timestamp              = 0,
+        attachment_timestamp_lower_bound  = 0,
+        attachment_timestamp_upper_bound  = 0,
       ),
 
       # Input #1, Part 1 of 2
@@ -390,9 +392,8 @@ class ReplayBundleCommandTestCase(TestCase):
           ),
 
         nonce =
-          Hash(
-            b'VRYLDCKEWZJXPQVSWOJVYVBJSCWZQEVKPBG9KGEZ'
-            b'GPRQFKFSRNBPXCSVQNJINBRNEPIKAXNHOTJFIVYJO'
+          Nonce(
+            b'VRYLDCKEWZJXPQVSWOJVYVBJSCW'
           ),
 
         trunk_transaction_hash =
@@ -440,11 +441,14 @@ class ReplayBundleCommandTestCase(TestCase):
             b'G9CM9VLMQZA'
           ),
 
-        current_index = 1,
-        last_index    = 3,
-        tag           = Tag(b''),
-        timestamp     = 1483033814,
-        value         = -99,
+        current_index                     = 1,
+        last_index                        = 3,
+        tag                               = Tag(b''),
+        timestamp                         = 1483033814,
+        value                             = -99,
+        attachment_timestamp              = 0,
+        attachment_timestamp_lower_bound  = 0,
+        attachment_timestamp_upper_bound  = 0,
       ),
 
       # Input #1, Part 2 of 2
@@ -474,9 +478,8 @@ class ReplayBundleCommandTestCase(TestCase):
           ),
 
         nonce =
-          Hash(
-            b'AAKVYZOEZSOXTX9LOLHZYLNAS9CXBLSWVZQAMRGW'
-            b'YW9GHHMVIOHWBMTXHDBXRTF9DEFFQFQESNVJORNXK'
+          Nonce(
+            b'AAKVYZOEZSOXTX9LOLHZYLNAS9C'
           ),
 
         trunk_transaction_hash =
@@ -524,11 +527,14 @@ class ReplayBundleCommandTestCase(TestCase):
             b'WVLUITJQ9JM'
           ),
 
-        current_index = 2,
-        last_index    = 3,
-        tag           = Tag(b''),
-        timestamp     = 1483033814,
-        value         = 0,
+        current_index                     = 2,
+        last_index                        = 3,
+        tag                               = Tag(b''),
+        timestamp                         = 1483033814,
+        value                             = 0,
+        attachment_timestamp              = 0,
+        attachment_timestamp_lower_bound  = 0,
+        attachment_timestamp_upper_bound  = 0,
       ),
 
       # "Change" transaction, Part 1 of 1
@@ -558,9 +564,8 @@ class ReplayBundleCommandTestCase(TestCase):
           ),
 
         nonce =
-          Hash(
-            b'TPGXQFUGNEYYFFKPFWJSXKTWEUKUFTRJCQKKXLXL'
-            b'PSOHBZTGIBFPGLSVRIVYAC9NZMOMZLARFZYCNNRCM'
+          Nonce(
+            b'TPGXQFUGNEYYFFKPFWJSXKTWEUK'
           ),
 
         trunk_transaction_hash =
@@ -571,11 +576,14 @@ class ReplayBundleCommandTestCase(TestCase):
 
         signature_message_fragment = Fragment(b''),
 
-        current_index = 3,
-        last_index    = 3,
-        tag           = Tag(b''),
-        timestamp     = 1483033814,
-        value         = 98,
+        current_index                     = 3,
+        last_index                        = 3,
+        tag                               = Tag(b''),
+        timestamp                         = 1483033814,
+        value                             = 98,
+        attachment_timestamp              = 0,
+        attachment_timestamp_lower_bound  = 0,
+        attachment_timestamp_upper_bound  = 0,
       ),
     ])
 

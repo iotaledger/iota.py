@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from abc import ABCMeta, abstractmethod as abstract_method
 from json.encoder import JSONEncoder as BaseJsonEncoder
-from typing import Mapping, Iterable
+from typing import Iterable, Mapping, Text
 
 from six import with_metaclass
 

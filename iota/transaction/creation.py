@@ -80,6 +80,42 @@ class ProposedTransaction(Transaction):
     return super(ProposedTransaction, self).as_tryte_string()
 
 
+class Transfer(ProposedTransaction):
+  """
+  Follow naming convention of other libs.
+  A transaction that has not yet been attached to the Tangle.
+
+  Provide to :py:meth:`iota.api.Iota.send_transfer` to attach to
+  tangle and publish/store.
+  """
+  def __init__(self, address, value, tag=None, message=None, timestamp=None):
+    # type: (Address, int, Optional[Tag], Optional[TryteString], Optional[int]) -> None
+    if not timestamp:
+      timestamp = get_current_timestamp()
+
+    super(ProposedTransaction, self).__init__(
+      address                     = address,
+      tag                         = Tag(b'') if tag is None else tag,
+      timestamp                   = timestamp,
+      value                       = value,
+
+      # These values will be populated when the bundle is finalized.
+      bundle_hash                 = None,
+      current_index               = None,
+      hash_                       = None,
+      last_index                  = None,
+      signature_message_fragment  = None,
+
+      # These values start out empty; they will be populated when the
+      # node does PoW.
+      branch_transaction_hash     = TransactionHash(b''),
+      nonce                       = Hash(b''),
+      trunk_transaction_hash      = TransactionHash(b''),
+    )
+
+    self.message = TryteString(b'') if message is None else message
+
+
 class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
   """
   A collection of proposed transactions, to be treated as an atomic

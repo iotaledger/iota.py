@@ -593,10 +593,20 @@ class ReplayBundleCommandTestCase(TestCase):
       })
 
     send_trytes_response = {
-      'trytes': bundle.as_tryte_strings(head_to_tail=True),
+      'trytes': bundle.as_tryte_strings(),
     }
 
-    mock_send_trytes = mock.Mock(return_value=send_trytes_response)
+    def mock_send_trytes(self,request):
+      """
+      Ensures that the correct trytes are sent to the ``sendTrytes`` command
+      to replay the bundle.
+
+      References:
+        - https://github.com/iotaledger/iota.lib.py/issues/74
+      """
+      from unittest import TestCase
+      TestCase().assertEqual(request['trytes'], send_trytes_response['trytes'])
+      return send_trytes_response
 
     with mock.patch(
         'iota.commands.extended.get_bundles.GetBundlesCommand._execute',

@@ -8,8 +8,8 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type
 
-from iota import Address, Bundle, BundleHash, Fragment, Hash, Iota, Tag, \
-  Transaction, TransactionHash, Nonce
+from iota import Address, Bundle, BundleHash, Fragment, Iota, Nonce, Tag, \
+  Transaction, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
 from iota.filters import Trytes

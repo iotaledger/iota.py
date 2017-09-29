@@ -47,7 +47,7 @@ class ReplayBundleCommand(FilterCommand):
       minWeightMagnitude  = min_weight_magnitude,
 
 
-      trytes = bundle.as_tryte_strings(head_to_tail=True),
+      trytes = bundle.as_tryte_strings(),
     )
 
 

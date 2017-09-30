@@ -596,7 +596,7 @@ class ReplayBundleCommandTestCase(TestCase):
       'trytes': bundle.as_tryte_strings(),
     }
 
-    def mock_send_trytes(self,request):
+    def mock_send_trytes(_,request):
       """
       Ensures that the correct trytes are sent to the ``sendTrytes`` command
       to replay the bundle.
@@ -604,8 +604,7 @@ class ReplayBundleCommandTestCase(TestCase):
       References:
         - https://github.com/iotaledger/iota.lib.py/issues/74
       """
-      from unittest import TestCase
-      TestCase().assertEqual(request['trytes'], send_trytes_response['trytes'])
+      self.assertEqual(request['trytes'], send_trytes_response['trytes'])
       return send_trytes_response
 
     with mock.patch(

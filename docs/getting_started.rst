@@ -39,7 +39,7 @@ object with the URI of the node, and optional seed:
    api = Iota('http://localhost:14265')
 
    # Specify seed.
-   api = Iota('http://localhost:14265', b'SEED9GOES9HERE')
+   api = Iota('http://localhost:14265', 'SEED9GOES9HERE')
 
 Test your connection to the server by sending a ``getNodeInfo`` command:
 

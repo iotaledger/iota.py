@@ -10,6 +10,8 @@ from iota.exceptions import with_context
 from iota.transaction.base import Bundle
 from iota.types import Hash, TryteString, TrytesCompatible
 
+import warnings
+
 __all__ = [
   'Digest',
   'PrivateKey',
@@ -76,6 +78,13 @@ class Seed(TryteString):
   References:
     - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278
   """
+  def __init__(self, trytes=None):
+    # type: (Optional[TrytesCompatible]) -> None
+    if trytes:
+        if len(trytes) > 81:
+         warnings.warn("Beyond 81 trytes, you can't increase the security of your seed, see - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278")
+
+
   @classmethod
   def random(cls, length=Hash.LEN):
     """

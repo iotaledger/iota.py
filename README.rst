@@ -4,10 +4,6 @@
 =====
 PyOTA
 =====
-.. warning::
-   ⚠️ This is pre-release software; it may have performance or stability issues.
-   Please do not use this software on mainnet until v2.0.0 stable is released. ⚠️
-
 This is the official Python library for the IOTA Core.
 
 It implements both the `official API`_, as well as newly-proposed functionality
@@ -32,13 +28,9 @@ PyOTA is compatible with Python 3.6, 3.5 and 2.7.
 ============
 Installation
 ============
-.. warning::
-   ⚠️ This is pre-release software; it may have performance or stability issues.
-   Please do not use this software on mainnet until v2.0.0 stable is released. ⚠️
-
 To install the latest version::
 
-  pip install --pre pyota
+  pip install pyota
 
 Optional C Extension
 ====================
@@ -47,7 +39,7 @@ cryptography features significantly (speedups of **60x** are common!).
 
 To install this extension, use the following command::
 
-   pip install --pre pyota[ccurl]
+   pip install pyota[ccurl]
 
 
 Installing from Source
@@ -75,7 +67,7 @@ For the full documentation of this library, please refer to the
 `official API`_
 
 
-.. _Create virtualenv: https://virtualenvwrapper.readthedocs.io/
+.. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _Slack: https://slack.iota.org/
 .. _dedicated forum: https://forum.iota.org/

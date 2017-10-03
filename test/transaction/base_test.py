@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, \
-  Tag, Transaction, TransactionHash, TransactionTrytes
+  Tag, Transaction, TransactionHash, TransactionTrytes, TryteString, Nonce
 
 
 class BundleTestCase(TestCase):
@@ -24,18 +24,21 @@ class BundleTestCase(TestCase):
             b'XCQANAWGJBTFWEAEQCN9WBZB9BJAIIY9UDLIGFOAA'
           ),
 
-        current_index           = 0,
-        last_index              = 7,
-        value                   = 0,
+        current_index                     = 0,
+        last_index                        = 7,
+        value                             = 0,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       # This transaction has something that can't be decoded as a UTF-8
@@ -50,18 +53,21 @@ class BundleTestCase(TestCase):
             b'MHCGKEUGYFUBIARAXBFASGLCHCBEVGTBDCSAEBTBM'
           ),
 
-        current_index           = 1,
-        last_index              = 7,
-        value                   = 10,
+        current_index                     = 1,
+        last_index                        = 7,
+        value                             = 10,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       # This transaction has a message that fits into a single
@@ -76,18 +82,21 @@ class BundleTestCase(TestCase):
             b'M9XADCPFJDFANCIHR9OBDHTAGGE9TGCI9EO9ZCRBN'
           ),
 
-        current_index           = 2,
-        last_index              = 7,
-        value                   = 20,
+        current_index                     = 2,
+        last_index                        = 7,
+        value                             = 20,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       # This transaction has a message that spans multiple fragments.
@@ -142,13 +151,16 @@ class BundleTestCase(TestCase):
         value                   = 30,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       Transaction(
@@ -173,18 +185,21 @@ class BundleTestCase(TestCase):
             b'XCQANAWGJBTFWEAEQCN9WBZB9BJAIIY9UDLIGFOAA'
           ),
 
-        current_index           = 4,
-        last_index              = 7,
-        value                   = 0,
+        current_index                     = 4,
+        last_index                        = 7,
+        value                             = 0,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       # Input, Part 1 of 2
@@ -200,18 +215,21 @@ class BundleTestCase(TestCase):
             b'HDVHYHOBHGP9VCGIZHNCAAQFJGE9YHEHEFTDAGXHY'
           ),
 
-        current_index           = 5,
-        last_index              = 7,
-        value                   = -100,
+        current_index                     = 5,
+        last_index                        = 7,
+        value                             = -100,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       # Input, Part 2 of 2
@@ -227,18 +245,21 @@ class BundleTestCase(TestCase):
             b'HDVHYHOBHGP9VCGIZHNCAAQFJGE9YHEHEFTDAGXHY'
           ),
 
-        current_index           = 6,
-        last_index              = 7,
-        value                   = 0,
+        current_index                     = 6,
+        last_index                        = 7,
+        value                             = 0,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
 
       # Change
@@ -254,18 +275,21 @@ class BundleTestCase(TestCase):
             b'N9ACYCP99GZBSDK9CECFI9RAIH9BRCCAHAIAWEFAN'
           ),
 
-        current_index           = 7,
-        last_index              = 7,
-        value                   = 40,
+        current_index                     = 7,
+        last_index                        = 7,
+        value                             = 40,
 
         # These values are not relevant to the tests.
-        branch_transaction_hash = TransactionHash(b''),
-        bundle_hash             = BundleHash(b''),
-        hash_                   = TransactionHash(b''),
-        nonce                   = Hash(b''),
-        tag                     = Tag(b''),
-        timestamp               = 1485020456,
-        trunk_transaction_hash  = TransactionHash(b''),
+        branch_transaction_hash           = TransactionHash(b''),
+        bundle_hash                       = BundleHash(b''),
+        hash_                             = TransactionHash(b''),
+        nonce                             = Nonce(b''),
+        timestamp                         = 1485020456,
+        trunk_transaction_hash            = TransactionHash(b''),
+        tag                               = Tag(b''),
+        attachment_timestamp              = 1485020456,
+        attachment_timestamp_upper_bound  = 1485020456,
+        attachment_timestamp_lower_bound  = 1485020456,
       ),
     ])
 
@@ -411,8 +435,8 @@ class TransactionTestCase(TestCase):
         b'XRHWWTZFBXMPSQHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PGTKORV9IKTJZQ'
         b'UBQAWTKBKZ9NEZHBFIMCLV9TTNJNQZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999'
         b'999TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJNQZUIJDFPTTCTKBJRHAITVSK'
-        b'UCUEMD9M9SQJ999999999999999999999999999999999999999999999999999999'
-        b'999999999999999999999999999999999'
+        b'UCUEMD9M9SQJ999999999999999999999999999999999RKWEEVD99RKWEEVD99RKW'
+        b'EEVD99999999999999999999999999999'
       )
 
     transaction = Transaction.from_tryte_string(trytes)
@@ -423,8 +447,8 @@ class TransactionTestCase(TestCase):
       transaction.hash,
 
       Hash(
-        b'SYABNCYPLULQQBTDCUWJPVVMYNWHKEHGAZPKRBGE'
-        b'QKEHUIKJCHWGAUKLSYMDOUUBMXPKCPTNFWUFU9JKW',
+        b'JBVVEWEPYNZ9KRHNUUTRENXXAVXT9MKAVPAUQ9SJ'
+        b'NSIHDCPQM9LJHIZGXO9PIRWUUVBOXNCBE9XJGMOZF'
       ),
     )
 
@@ -479,7 +503,7 @@ class TransactionTestCase(TestCase):
     )
 
     self.assertEqual(transaction.value, 0)
-    self.assertEqual(transaction.tag, Tag(b'999999999999999999999999999'))
+    self.assertEqual(transaction.legacy_tag, Tag(b'999999999999999999999999999'))
     self.assertEqual(transaction.timestamp, 1480690413)
     self.assertEqual(transaction.current_index, 1)
     self.assertEqual(transaction.last_index, 1)
@@ -510,13 +534,17 @@ class TransactionTestCase(TestCase):
         b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
       ),
     )
+    
+    self.assertEqual(transaction.tag, Tag(b'999999999999999999999999999'))
+    self.assertEqual(transaction.attachment_timestamp,1480690413)
+    self.assertEqual(transaction.attachment_timestamp_lower_bound,1480690413)
+    self.assertEqual(transaction.attachment_timestamp_upper_bound,1480690413)
 
     self.assertEqual(
       transaction.nonce,
 
-      Hash(
-        b'9999999999999999999999999999999999999999'
-        b'99999999999999999999999999999999999999999'
+      Nonce(
+        b'999999999999999999999999999'
       ),
     )
 
@@ -544,8 +572,8 @@ class TransactionTestCase(TestCase):
     transaction = Transaction(
       hash_ =
         TransactionHash(
-          b'QODOAEJHCFUYFTTPRONYSMMSFDNFWFX9UCMESVWA'
-          b'FCVUQYOIJGJMBMGQSFIAFQFMVECYIFXHRGHHEOTMK'
+          b'SYABNCYPLULQQBTDCUWJPVVMYNWHKEHGAZPKRBGE'
+          b'QKEHUIKJCHWGAUKLSYMDOUUBMXPKCPTNFWUFU9JKW'
         ),
 
       signature_message_fragment =
@@ -588,12 +616,11 @@ class TransactionTestCase(TestCase):
 
       address =
         Address(
-          b'9999999999999999999999999999999999999999'
           b'99999999999999999999999999999999999999999'
+          b'9999999999999999999999999999999999999999'
         ),
 
       value         = 0,
-      tag           = Tag(b'999999999999999999999999999'),
       timestamp     = 1480690413,
       current_index = 1,
       last_index    = 1,
@@ -615,18 +642,23 @@ class TransactionTestCase(TestCase):
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
         ),
+        
+      tag                               = Tag(b'999999999999999999999999999'),
+      attachment_timestamp              = 1480690413,
+      attachment_timestamp_lower_bound  = 1480690413,
+      attachment_timestamp_upper_bound  = 1480690413,
+      
 
       nonce =
-        Hash(
-          b'9999999999999999999999999999999999999999'
-          b'99999999999999999999999999999999999999999'
+        Nonce(
+          b'999999999999999999999999999'
         ),
     )
 
     self.assertEqual(
       transaction.as_tryte_string(),
 
-      TransactionTrytes(
+     TransactionTrytes(
         b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC'
         b'OYOXYPCLR9PBEY9ORZIEPPDNTI9CQWYZUOTAVBXPSBOFEQAPFLWXSWUIUSJMSJIIIZ'
         b'WIKIRH9GCOEVZFKNXEVCUCIIWZQCQEUVRZOCMEL9AMGXJNMLJCIA9UWGRPPHCEOPTS'
@@ -666,7 +698,7 @@ class TransactionTestCase(TestCase):
         b'XRHWWTZFBXMPSQHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PGTKORV9IKTJZQ'
         b'UBQAWTKBKZ9NEZHBFIMCLV9TTNJNQZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999'
         b'999TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJNQZUIJDFPTTCTKBJRHAITVSK'
-        b'UCUEMD9M9SQJ999999999999999999999999999999999999999999999999999999'
-        b'999999999999999999999999999999999',
+        b'UCUEMD9M9SQJ999999999999999999999999999999999RKWEEVD99RKWEEVD99RKW'
+        b'EEVD99999999999999999999999999999'
       ),
     )

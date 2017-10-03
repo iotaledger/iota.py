@@ -11,7 +11,7 @@ deploy:
     python: '3.6'
     tags: true
   provider: pypi
-  distribution: 'bdist_wheel sdist'
+  distributions: 'bdist_wheel sdist'
   skip_upload_docs: true
   user: phx
   password:

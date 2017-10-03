@@ -20,6 +20,7 @@ from iota.types import Address, Hash, Tag, TryteString
 __all__ = [
   'ProposedBundle',
   'ProposedTransaction',
+  'Transfer',
 ]
 
 
@@ -81,6 +82,13 @@ class ProposedTransaction(Transaction):
       )
 
     return super(ProposedTransaction, self).as_tryte_string()
+
+
+Transfer = ProposedTransaction
+"""
+Follow naming convention of other libs.
+https://github.com/iotaledger/iota.lib.py/issues/72
+"""
 
 
 class ProposedBundle(Bundle, Sequence[ProposedTransaction]):

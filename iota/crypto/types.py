@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import warnings
 from typing import MutableSequence, Optional, Tuple
 
 from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
@@ -76,6 +77,15 @@ class Seed(TryteString):
   References:
     - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278
   """
+
+  def __init__(self, trytes=None):
+    # type: (Optional[TrytesCompatible]) -> None
+    if trytes and len(trytes) > 81:
+         warnings.warn("Seed has invalid length."
+                       "(https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278)")
+
+    super(Seed, self).__init__(trytes)
+
   @classmethod
   def random(cls, length=Hash.LEN):
     """

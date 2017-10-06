@@ -19,3 +19,5 @@ dist/*
 # you can add these to your own "global" .gitignore file.
 # https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
 #
+.idea/
+.python-version

@@ -31,7 +31,7 @@ __all__ = [
 
 
 # Custom types for type hints and docstrings.
-TrytesCompatible  = Union[AnyStr, bytearray, 'TryteString']
+TrytesCompatible = Union[AnyStr, bytearray, 'TryteString']
 
 
 def trits_from_int(n, pad=None):

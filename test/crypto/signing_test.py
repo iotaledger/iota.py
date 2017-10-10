@@ -6,6 +6,7 @@ import warnings
 from unittest import TestCase
 
 from iota import Hash, TryteString
+from iota.crypto import SeedWarning
 from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator
 from iota.crypto.types import PrivateKey
 
@@ -37,6 +38,7 @@ class KeyGeneratorTestCase(TestCase):
     """
     with warnings.catch_warnings(record=True) as catched_warnings:
 
+      # Cause all warnings to always be triggered
       warnings.simplefilter("always")
 
       kg = KeyGenerator(
@@ -196,7 +198,8 @@ class KeyGeneratorTestCase(TestCase):
     """
     with warnings.catch_warnings(record=True) as catched_warnings:
 
-      warnings.simplefilter("always")
+      # Cause seed related warnings to be triggered
+      warnings.simplefilter("always", category=SeedWarning)
 
       kg = KeyGenerator(
         b'TESTSEED9DONTUSEINPRODUCTION99999ZTRFNBTRBSDIHWKOWCFBOQYQTENWLTG9S'
@@ -206,7 +209,10 @@ class KeyGeneratorTestCase(TestCase):
         b'HIHMCRZILISRFGVOJMXOYRALR9ZOUAMQXGW9XPFID',
       )
 
+      # check attribures of warning
       assert len(catched_warnings) == 1
+      assert catched_warnings[-1].category is SeedWarning
+      assert "invalid length" in str(catched_warnings[-1].message)
 
       self.assertListEqual(
         kg.get_keys(start=0),

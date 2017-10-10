@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import warnings
 from unittest import TestCase
 
 from iota import Hash, TryteString
+from iota.crypto import SeedWarning
 from iota.crypto.types import Digest, PrivateKey, Seed
 
 
@@ -13,7 +15,15 @@ class SeedTestCase(TestCase):
     """
     Generating a random seed.
     """
-    seed = Seed.random()
+
+    with warnings.catch_warnings(record=True) as catched_warnings:
+
+      # all warnings should be triggered
+      warnings.simplefilter("always")
+
+      seed = Seed.random()
+
+      self.assertEqual(len(catched_warnings), 0)
 
     # Regression test: ``random`` MUST return a :py:class:`Seed`, NOT a
     # :py:class:`TryteString`!
@@ -22,6 +32,25 @@ class SeedTestCase(TestCase):
     # Regression test: Random seed must be exactly 81 trytes long.
     # https://github.com/iotaledger/iota.lib.py/issues/44
     self.assertEqual(len(seed), Hash.LEN)
+
+  def test_random_seed_too_long(self):
+    """
+    Generating a random seed, which is too long.
+    """
+
+    with warnings.catch_warnings(record=True) as catched_warnings:
+
+      # Cause seed related warnings to be triggered
+      warnings.simplefilter("always", category=SeedWarning)
+
+      seed = Seed.random(length=Hash.LEN + 1)
+
+      # check attributes of warning
+      self.assertEqual(len(catched_warnings), 1)
+      self.assertIs(catched_warnings[-1].category, SeedWarning)
+      self.assertIn("inappropriate length", str(catched_warnings[-1].message))
+
+      self.assertEqual(len(seed), Hash.LEN + 1)
 
 
 class DigestTestCase(TestCase):

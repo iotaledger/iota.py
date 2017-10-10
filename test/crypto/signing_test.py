@@ -209,10 +209,10 @@ class KeyGeneratorTestCase(TestCase):
         b'HIHMCRZILISRFGVOJMXOYRALR9ZOUAMQXGW9XPFID',
       )
 
-      # check attribures of warning
+      # check attributes of warning
       assert len(catched_warnings) == 1
       assert catched_warnings[-1].category is SeedWarning
-      assert "invalid length" in str(catched_warnings[-1].message)
+      assert "inappropriate length" in str(catched_warnings[-1].message)
 
       self.assertListEqual(
         kg.get_keys(start=0),

@@ -20,3 +20,10 @@ Number of trytes per fragment.
 Fragments are used to divide up really long tryte sequences into
 manageable chunks (similar in concept to AES blocks).
 """
+
+
+class SeedWarning(Warning):
+  """
+  Warning for inappropriate seeds.
+  """
+  pass

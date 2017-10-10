@@ -2,9 +2,10 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+import warnings
 from typing import MutableSequence, Optional, Tuple
 
-from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
+from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH, SeedWarning
 from iota.crypto.kerl import Kerl
 from iota.exceptions import with_context
 from iota.transaction.base import Bundle
@@ -73,9 +74,22 @@ class Seed(TryteString):
 
   IMPORTANT: For maximum security, a seed must be EXACTLY 81 trytes!
 
+  WARNINGS:
+      .. warning:: :py:class:`SeedWarning` if seed has inappropriate length.
+
   References:
     - https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278
   """
+
+  def __init__(self, trytes=None):
+    # type: (Optional[TrytesCompatible]) -> None
+    if trytes and len(trytes) > Hash.LEN:
+         warnings.warn("Seed has inappropriate length! "
+                       "(https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278)",
+                       category=SeedWarning)
+
+    super(Seed, self).__init__(trytes)
+
   @classmethod
   def random(cls, length=Hash.LEN):
     """

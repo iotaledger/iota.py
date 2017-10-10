@@ -84,7 +84,7 @@ class Seed(TryteString):
   def __init__(self, trytes=None):
     # type: (Optional[TrytesCompatible]) -> None
     if trytes and len(trytes) > Hash.LEN:
-         warnings.warn("Seed has invalid length! "
+         warnings.warn("Seed has inappropriate length! "
                        "(https://forum.iota.org/t/why-arent-seeds-longer-than-81-trytes-more-secure/1278)",
                        category=SeedWarning)
 

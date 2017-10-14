@@ -34,7 +34,7 @@ __all__ = [
 TrytesCompatible = Union[AnyStr, bytearray, 'TryteString']
 
 
-def trits_from_int(n, pad=None):
+def trits_from_int(n, pad=1):
   # type: (int, Optional[int]) -> List[int]
   """
   Returns a trit representation of an integer value.
@@ -60,7 +60,7 @@ def trits_from_int(n, pad=None):
       quotient  += 1
       remainder = -1
 
-    trits = [remainder] + trits_from_int(quotient)
+    trits = [remainder] + trits_from_int(quotient, pad=0)
 
   if pad:
     trits += [0] * max(0, pad - len(trits))

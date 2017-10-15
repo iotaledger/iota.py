@@ -7,7 +7,7 @@ from unittest import TestCase
 from six import binary_type, text_type
 
 from iota import Address, AddressChecksum, Hash, Tag, TryteString, \
-  TrytesCodec, TrytesDecodeError, trits_from_int
+  AsciiTrytesCodec, TrytesDecodeError, trits_from_int
 
 
 class TritsFromIntTestCase(TestCase):
@@ -592,7 +592,7 @@ class TryteStringTestCase(TestCase):
     self.assertDictEqual(
       {
         chr(c): TryteString(chr(c).encode('ascii')).as_trytes()
-          for c in TrytesCodec.alphabet.values()
+          for c in AsciiTrytesCodec.alphabet.values()
       },
 
       {
@@ -666,7 +666,7 @@ class TryteStringTestCase(TestCase):
     self.assertDictEqual(
       {
         chr(c): TryteString(chr(c).encode('ascii')).as_trits()
-          for c in TrytesCodec.alphabet.values()
+          for c in AsciiTrytesCodec.alphabet.values()
       },
 
       {

@@ -28,7 +28,7 @@ STANDARD_UNITS = {
 }
 
 
-# Activate TrytesCodec.
+# Activate codecs.
 from .codecs import *
 
 # Make some imports accessible from the top level of the package.

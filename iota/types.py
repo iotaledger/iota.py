@@ -6,13 +6,13 @@ from codecs import decode, encode
 from itertools import chain
 from math import ceil
 from random import SystemRandom
-from typing import AnyStr, Generator, Iterable, Iterator, List, \
+from typing import Any, AnyStr, Generator, Iterable, Iterator, List, \
   MutableSequence, Optional, Text, Union
 
 from six import PY2, binary_type, itervalues, python_2_unicode_compatible, \
   text_type
 
-from iota import TRITS_PER_TRYTE, TrytesCodec
+from iota import AsciiTrytesCodec, TRITS_PER_TRYTE
 from iota.crypto import HASH_LENGTH
 from iota.crypto.kerl import Kerl
 from iota.exceptions import with_context
@@ -99,7 +99,7 @@ class TryteString(JsonSerializable):
     :param length:
       Number of trytes to generate.
     """
-    alphabet  = list(itervalues(TrytesCodec.alphabet))
+    alphabet  = list(itervalues(AsciiTrytesCodec.alphabet))
     generator = SystemRandom()
 
     # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
@@ -111,13 +111,20 @@ class TryteString(JsonSerializable):
     )
 
   @classmethod
-  def from_bytes(cls, bytes_, *args, **kwargs):
-    # type: (Union[binary_type, bytearray], ...) -> TryteString
+  def from_bytes(cls, bytes_, codec=AsciiTrytesCodec.name, *args, **kwargs):
+    # type: (Union[binary_type, bytearray], Text, *Any, **Any) -> TryteString
     """
     Creates a TryteString from a sequence of bytes.
 
     :param bytes_:
       Source bytes.
+
+    :param codec:
+      Which codec to use:
+
+        - 'binary': Converts each byte into a sequence of trits with
+          the same value (this is usually what you want).
+        - 'ascii': Uses the legacy ASCII codec.
 
     :param args:
       Additional positional arguments to pass to the initializer.
@@ -125,15 +132,13 @@ class TryteString(JsonSerializable):
     :param kwargs:
       Additional keyword arguments to pass to the initializer.
     """
-    return cls(encode(bytes_, 'trytes'), *args, **kwargs)
+    return cls(encode(bytes_, codec), *args, **kwargs)
 
   @classmethod
   def from_string(cls, string, *args, **kwargs):
-    # type: (Text, ...) -> TryteString
+    # type: (Text, *Any, **Any) -> TryteString
     """
     Creates a TryteString from a Unicode string.
-
-    Note: The string will be encoded using UTF-8.
 
     :param string:
       Source string.
@@ -144,11 +149,16 @@ class TryteString(JsonSerializable):
     :param kwargs:
       Additional keyword arguments to pass to the initializer.
     """
-    return cls.from_bytes(string.encode('utf-8'), *args, **kwargs)
+    return cls.from_bytes(
+      bytes_  = string.encode('utf-8'),
+      codec   = AsciiTrytesCodec.name,
+      *args,
+      **kwargs
+    )
 
   @classmethod
   def from_trytes(cls, trytes, *args, **kwargs):
-    # type: (Iterable[Iterable[int]], ...) -> TryteString
+    # type: (Iterable[Iterable[int]], *Any, **Any) -> TryteString
     """
     Creates a TryteString from a sequence of trytes.
 
@@ -174,13 +184,13 @@ class TryteString(JsonSerializable):
       if converted < 0:
         converted += 27
 
-      chars.append(TrytesCodec.alphabet[converted])
+      chars.append(AsciiTrytesCodec.alphabet[converted])
 
     return cls(chars, *args, **kwargs)
 
   @classmethod
   def from_trits(cls, trits, *args, **kwargs):
-    # type: (Iterable[int], ...) -> TryteString
+    # type: (Iterable[int], *Any, **Any) -> TryteString
     """
     Creates a TryteString from a sequence of trits.
 
@@ -275,7 +285,7 @@ class TryteString(JsonSerializable):
         trytes = bytearray(trytes)
 
       for i, ordinal in enumerate(trytes):
-        if ordinal not in TrytesCodec.index:
+        if ordinal not in AsciiTrytesCodec.index:
           raise with_context(
             exc = ValueError(
               'Invalid character {char!r} at position {i} '
@@ -313,9 +323,9 @@ class TryteString(JsonSerializable):
     Note: This does not decode the trytes into bytes/characters; it
     only returns an ASCII representation of the trytes themselves!
 
-    If you want to:
-    - Decode trytes into bytes: use :py:meth:`as_bytes`.
-    - Decode trytes into Unicode: use :py:meth:`as_string`.
+    If you want to...
+    - ... decode trytes into bytes: use :py:meth:`as_bytes`.
+    - ... decode trytes into Unicode: use :py:meth:`as_string`.
     """
     return binary_type(self._trytes)
 
@@ -479,8 +489,8 @@ class TryteString(JsonSerializable):
     """
     return ChunkIterator(self, chunk_size)
 
-  def as_bytes(self, errors='strict'):
-    # type: (Text) -> binary_type
+  def as_bytes(self, errors='strict', codec=AsciiTrytesCodec.name):
+    # type: (Text, Text) -> binary_type
     """
     Converts the TryteString into a byte string.
 
@@ -490,12 +500,19 @@ class TryteString(JsonSerializable):
         - 'replace':  replace with '?'.
         - 'ignore':   omit the tryte from the result.
 
+    :param codec:
+      Which codec to use:
+
+      - 'binary': Converts each sequence of 5 trits into a byte with
+        the same value (this is usually what you want).
+      - 'ascii': Uses the legacy ASCII codec.
+
     :raise:
       - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
         be decoded into bytes.
     """
-    # :bc: In Python 2, `decode` does not accept keyword arguments.
-    return decode(self._trytes, 'trytes', errors)
+    # In Python 2, :py:func:`decode` does not accept keyword arguments.
+    return decode(self._trytes, codec, errors)
 
   def as_string(self, errors='strict', strip_padding=True):
     # type: (Text, bool) -> Text
@@ -523,10 +540,10 @@ class TryteString(JsonSerializable):
     if strip_padding and (trytes[-1] == ord(b'9')):
       trytes = trytes.rstrip(b'9')
 
-      # Put one back to preserve even length.
+      # Put one back to preserve even length for ASCII codec.
       trytes += b'9' * (len(trytes) % 2)
 
-    return decode(trytes, 'trytes', errors).decode('utf-8', errors)
+    return decode(trytes, AsciiTrytesCodec.name, errors).decode('utf-8', errors)
 
   def as_json_compatible(self):
     # type: () -> Text
@@ -546,7 +563,7 @@ class TryteString(JsonSerializable):
     Each integer is a value between -13 and 13.
     """
     return [
-      self._normalize(TrytesCodec.index[c])
+      self._normalize(AsciiTrytesCodec.index[c])
         for c in self._trytes
     ]
 

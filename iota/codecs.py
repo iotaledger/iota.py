@@ -3,12 +3,13 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from codecs import Codec, CodecInfo, register as lookup_function
+from warnings import warn
 
 from iota.exceptions import with_context
 from six import PY3, binary_type
 
 __all__ = [
-  'TrytesCodec',
+  'AsciiTrytesCodec',
   'TrytesDecodeError',
 ]
 
@@ -20,11 +21,26 @@ class TrytesDecodeError(ValueError):
   pass
 
 
-class TrytesCodec(Codec):
+class AsciiTrytesCodec(Codec):
   """
-  Codec for converting byte strings into trytes, and vice versa.
+  Legacy codec for converting byte strings into trytes, and vice versa.
+
+  This method encodes each pair of trytes as an ASCII code point (and
+  vice versa when decoding).
+
+  The end result requires more space than if the trytes were converted
+  mathematically, but because the result is ASCII, it's easier to work
+  with.
+
+  Think of this kind of like Base 64 for balanced ternary (:
   """
-  name = 'trytes'
+  name = 'trytes_ascii'
+
+  compat_name = 'trytes'
+  """
+  Old name for this codec.
+  Note:  Will be removed in PyOTA v2.1!
+  """
 
   # :bc: Without the bytearray cast, Python 2 will populate the dict
   # with characters instead of integers.
@@ -173,7 +189,25 @@ class TrytesCodec(Codec):
 
 @lookup_function
 def check_trytes_codec(encoding):
-  if encoding == TrytesCodec.name:
-    return TrytesCodec.get_codec_info()
+  """
+  Determines which codec to use for the specified encoding.
+
+  References:
+    - https://docs.python.org/3/library/codecs.html#codecs.register
+  """
+  if encoding == AsciiTrytesCodec.name:
+    return AsciiTrytesCodec.get_codec_info()
+
+  elif encoding == AsciiTrytesCodec.compat_name:
+    warn(
+      '"{old_codec}" codec will be removed in PyOTA v2.1. '
+      'Use "{new_codec}" instead.'.format(
+        new_codec = AsciiTrytesCodec.name,
+        old_codec = AsciiTrytesCodec.compat_name,
+      ),
+
+      DeprecationWarning,
+    )
+    return AsciiTrytesCodec.get_codec_info()
 
   return None

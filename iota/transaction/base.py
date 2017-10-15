@@ -457,7 +457,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     return self[0]
 
   def get_messages(self, errors='drop'):
-    # type: () -> List[Text]
+    # type: (Text) -> List[Text]
     """
     Attempts to decipher encoded messages from the transactions in the
     bundle.

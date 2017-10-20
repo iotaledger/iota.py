@@ -6,7 +6,13 @@ from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
 
+import setuptools
 from setuptools import find_packages, setup
+
+from distutils.version import LooseVersion
+if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
+    import sys
+    sys.exit('First, you have to upgrade your setuptools.')
 
 ##
 # Load long description for PyPi.

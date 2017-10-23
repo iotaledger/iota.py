@@ -12,7 +12,7 @@ from setuptools import find_packages, setup
 from distutils.version import LooseVersion
 if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
     import sys
-    sys.exit('First, you have to upgrade your setuptools.')
+    sys.exit('Installation failed: Upgrade setuptools to version 20.5 or later')
 
 ##
 # Load long description for PyPi.

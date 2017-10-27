@@ -33,7 +33,7 @@ if PY2:
   __all__ = map(binary_type, __all__)
 
 
-API_VERSION = 1
+API_VERSION = '1'
 """
 API protocol version.
 https://github.com/iotaledger/iota.lib.py/issues/84

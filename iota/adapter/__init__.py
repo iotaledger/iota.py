@@ -11,11 +11,14 @@ from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
 
 from requests import Response, codes, request
+from six import PY2, binary_type, iteritems, moves as compat, text_type, \
+  with_metaclass
+
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
-from six import PY2, binary_type, moves as compat, text_type, with_metaclass
 
 __all__ = [
+  'API_VERSION',
   'AdapterSpec',
   'BadApiResponse',
   'InvalidUri',
@@ -28,6 +31,13 @@ if PY2:
   # https://docs.python.org/3/library/imp.html
   # https://travis-ci.org/iotaledger/iota.lib.py/jobs/191974244
   __all__ = map(binary_type, __all__)
+
+
+API_VERSION = 1
+"""
+API protocol version.
+https://github.com/iotaledger/iota.lib.py/issues/84
+"""
 
 
 # Custom types for type hints and docstrings.
@@ -201,6 +211,18 @@ class HttpAdapter(BaseAdapter):
   """
   supported_protocols = ('http', 'https',)
 
+  DEFAULT_HEADERS = {
+    'Content-type': 'application/json',
+
+    # https://github.com/iotaledger/iota.lib.py/issues/84
+    'X-IOTA-API-Version': API_VERSION,
+  }
+  """
+  Default headers sent with every request.
+  These can be overridden on a per-request basis, by specifying values
+  in the ``headers`` kwarg.
+  """
+
   def __init__(self, uri):
     # type: (Union[Text, SplitResult]) -> None
     super(HttpAdapter, self).__init__()
@@ -265,7 +287,8 @@ class HttpAdapter(BaseAdapter):
   def send_request(self, payload, **kwargs):
     # type: (dict, dict) -> dict
     kwargs.setdefault('headers', {})
-    kwargs['headers']['Content-type'] = 'application/json'
+    for key, value in iteritems(self.DEFAULT_HEADERS):
+      kwargs['headers'].setdefault(key, value)
 
     response = self._send_http_request(
       # Use a custom JSON encoder that knows how to convert Tryte values.

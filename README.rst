@@ -1,5 +1,8 @@
-.. image:: https://travis-ci.org/iotaledger/iota.lib.py.svg?branch=develop
+.. image:: https://travis-ci.org/iotaledger/iota.lib.py.svg?branch=master
    :target: https://travis-ci.org/iotaledger/iota.lib.py
+
+.. image:: https://readthedocs.org/projects/pyota/badge/?version=latest
+   :target: http://pyota.readthedocs.io/en/latest/?badge=latest
 
 =====
 PyOTA

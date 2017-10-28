@@ -6,7 +6,13 @@ from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
 
+import setuptools
 from setuptools import find_packages, setup
+
+from distutils.version import LooseVersion
+if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
+    import sys
+    sys.exit('Installation failed: Upgrade setuptools to version 20.5 or later')
 
 ##
 # Load long description for PyPi.
@@ -21,7 +27,7 @@ setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '2.0.0',
+  version     = '2.0.1',
 
   long_description = long_description,
 

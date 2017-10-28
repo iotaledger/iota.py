@@ -8,6 +8,7 @@ from iota import Address, Fragment, ProposedBundle, ProposedTransaction, Tag, \
   TryteString
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
+from iota.transaction.types import BundleHash
 
 
 class ProposedBundleTestCase(TestCase):
@@ -488,6 +489,51 @@ They both licked their dry lips.
     # inputs.
     with self.assertRaises(ValueError):
       self.bundle.finalize()
+
+  def test_finalize_insecure_bundle(self):
+    """
+    When finalizing, the bundle detects an insecure bundle hash.
+
+    References:
+      - https://github.com/iotaledger/iota.lib.py/issues/84
+    """
+    # noinspection SpellCheckingInspection
+    bundle =\
+      ProposedBundle([
+        ProposedTransaction(
+          address =\
+            Address(
+              '9XV9RJGFJJZWITDPKSQXRTHCKJAIZZY9BYLBEQUX'
+              'UNCLITRQDR9CCD99AANMXYEKD9GLJGVB9HIAGRIBQ',
+            ),
+
+          tag       = Tag('PPDIDNQDJZGUQKOWJ9JZRCKOVGP'),
+          timestamp = 1509136296,
+          value     = 0,
+        ),
+      ])
+
+    bundle.finalize()
+
+    # The resulting bundle hash is insecure (contains a [1, 1, 1]), so
+    # the legacy tag is manipulated until a secure hash is generated.
+    # noinspection SpellCheckingInspection
+    self.assertEqual(bundle[0].legacy_tag, Tag('ZTDIDNQDJZGUQKOWJ9JZRCKOVGP'))
+
+    # The proper tag is left alone, however.
+    # noinspection SpellCheckingInspection
+    self.assertEqual(bundle[0].tag, Tag('PPDIDNQDJZGUQKOWJ9JZRCKOVGP'))
+
+    # The bundle hash takes the modified legacy tag into account.
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      bundle.hash,
+
+      BundleHash(
+        'NYSJSEGCWESDAFLIFCNJFWGZ9PCYDOT9VCSALKBD'
+        '9UUNKBJAJCB9KVMTHZDPRDDXC9UFJQBJBQFUPJKFC',
+      )
+    )
 
   def test_sign_inputs(self):
     """

@@ -351,7 +351,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
       # Check that we generated a secure bundle hash.
       # https://github.com/iotaledger/iota.lib.py/issues/84
-      if any(13 in fragment for fragment in normalize(bundle_hash)):
+      if any(13 in part for part in normalize(bundle_hash)):
         # Increment the legacy tag and try again.
         tail_transaction = self.tail_transaction # type: ProposedTransaction
         tail_transaction.increment_legacy_tag()

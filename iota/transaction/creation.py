@@ -9,13 +9,14 @@ from six import PY2
 
 from iota.crypto import HASH_LENGTH
 from iota.crypto.kerl import Kerl
-from iota.crypto.signing import KeyGenerator
+from iota.crypto.signing import KeyGenerator, normalize
 from iota.crypto.types import PrivateKey
 from iota.exceptions import with_context
 from iota.transaction.base import Bundle, Transaction
-from iota.transaction.types import BundleHash, Fragment, TransactionHash, Nonce
+from iota.transaction.types import BundleHash, Fragment, Nonce, TransactionHash
 from iota.transaction.utils import get_current_timestamp
-from iota.types import Address, Hash, Tag, TryteString
+from iota.trits import add_trits
+from iota.types import Address, Tag, TryteString
 
 __all__ = [
   'ProposedBundle',
@@ -82,6 +83,17 @@ class ProposedTransaction(Transaction):
       )
 
     return super(ProposedTransaction, self).as_tryte_string()
+
+  def increment_legacy_tag(self):
+    """
+    Increments the transaction's legacy tag, used to fix insecure
+    bundle hashes when finalizing a bundle.
+
+    References:
+      - https://github.com/iotaledger/iota.lib.py/issues/84
+    """
+    self._legacy_tag =\
+      Tag.from_trits(add_trits(self.legacy_tag.as_trits(), [1]))
 
 
 Transfer = ProposedTransaction
@@ -322,20 +334,31 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
       )
 
     # Generate bundle hash.
-    sponge      = Kerl()
-    last_index  = len(self) - 1
+    while True:
+      sponge      = Kerl()
+      last_index  = len(self) - 1
 
-    for (i, txn) in enumerate(self): # type: Tuple[int, ProposedTransaction]
-      txn.current_index = i
-      txn.last_index    = last_index
+      for (i, txn) in enumerate(self): # type: Tuple[int, ProposedTransaction]
+        txn.current_index = i
+        txn.last_index    = last_index
 
-      sponge.absorb(txn.get_signature_validation_trytes().as_trits())
+        sponge.absorb(txn.get_signature_validation_trytes().as_trits())
 
-    bundle_hash_trits = [0] * HASH_LENGTH # type: MutableSequence[int]
-    sponge.squeeze(bundle_hash_trits)
+      bundle_hash_trits = [0] * HASH_LENGTH # type: MutableSequence[int]
+      sponge.squeeze(bundle_hash_trits)
+
+      bundle_hash = BundleHash.from_trits(bundle_hash_trits)
+
+      # Check that we generated a secure bundle hash.
+      # https://github.com/iotaledger/iota.lib.py/issues/84
+      if any(13 in part for part in normalize(bundle_hash)):
+        # Increment the legacy tag and try again.
+        tail_transaction = self.tail_transaction # type: ProposedTransaction
+        tail_transaction.increment_legacy_tag()
+      else:
+        break
 
     # Copy bundle hash to individual transactions.
-    bundle_hash = BundleHash.from_trits(bundle_hash_trits)
     for txn in self:
       txn.bundle_hash = bundle_hash
 

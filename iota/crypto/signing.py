@@ -11,6 +11,7 @@ from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.kerl import Kerl
 from iota.crypto.types import PrivateKey, Seed
 from iota.exceptions import with_context
+from iota.trits import add_trits, trits_from_int
 
 __all__ = [
   'KeyGenerator',
@@ -307,20 +308,8 @@ class KeyIterator(Iterator[PrivateKey]):
     """
     seed = self.seed_as_trits[:]
 
-    for i in range(index):
-      # Treat ``seed`` like a really big number and add ``index``.
-      # Note that addition works a little bit differently in balanced
-      # ternary.
-      for j in range(len(seed)):
-        seed[j] += 1
-
-        if seed[j] > 1:
-          seed[j] = -1
-        else:
-          break
-
     sponge = Kerl()
-    sponge.absorb(seed)
+    sponge.absorb(add_trits(seed, trits_from_int(index)))
 
     # Squeeze all of the trits out of the sponge and re-absorb them.
     # Note that the sponge transforms several times per operation, so

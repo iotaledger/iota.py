@@ -6,8 +6,8 @@ from unittest import TestCase
 
 from six import binary_type, text_type
 
-from iota import Address, AddressChecksum, Hash, Tag, TryteString, TrytesCodec, \
-  TrytesDecodeError
+from iota import Address, AddressChecksum, AsciiTrytesCodec, Hash, Tag, \
+  TryteString, TrytesDecodeError
 
 
 # noinspection SpellCheckingInspection
@@ -569,7 +569,7 @@ class TryteStringTestCase(TestCase):
     self.assertDictEqual(
       {
         chr(c): TryteString(chr(c).encode('ascii')).as_trytes()
-          for c in TrytesCodec.alphabet.values()
+          for c in AsciiTrytesCodec.alphabet.values()
       },
 
       {
@@ -643,7 +643,7 @@ class TryteStringTestCase(TestCase):
     self.assertDictEqual(
       {
         chr(c): TryteString(chr(c).encode('ascii')).as_trits()
-          for c in TrytesCodec.alphabet.values()
+          for c in AsciiTrytesCodec.alphabet.values()
       },
 
       {

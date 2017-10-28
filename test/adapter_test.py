@@ -8,7 +8,7 @@ from unittest import TestCase
 
 import requests
 from iota import BadApiResponse, InvalidUri, TryteString
-from iota.adapter import HttpAdapter, MockAdapter, resolve_adapter
+from iota.adapter import API_VERSION, HttpAdapter, MockAdapter, resolve_adapter
 from six import BytesIO, text_type
 from test import mock
 
@@ -140,18 +140,28 @@ class HttpAdapterTestCase(TestCase):
     """
     adapter = HttpAdapter('http://localhost:14265')
 
-    expected_result = {
-      'message': 'Hello, IOTA!',
-    }
+    payload = {'command': 'helloWorld'}
+    expected_result = {'message': 'Hello, IOTA!'}
 
     mocked_response = create_http_response(json.dumps(expected_result))
     mocked_sender   = mock.Mock(return_value=mocked_response)
 
     # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
-      result = adapter.send_request({'command': 'helloWorld'})
+      result = adapter.send_request(payload)
 
     self.assertEqual(result, expected_result)
+
+    # https://github.com/iotaledger/iota.lib.py/issues/84
+    mocked_sender.assert_called_once_with(
+      headers = {
+        'Content-type':       'application/json',
+        'X-IOTA-API-Version': API_VERSION,
+      },
+
+      payload = json.dumps(payload),
+      url     = adapter.node_url,
+    )
 
   def test_error_response(self):
     """
@@ -343,6 +353,7 @@ class HttpAdapterTestCase(TestCase):
       }),
 
       headers = {
-        'Content-type': 'application/json',
+        'Content-type':       'application/json',
+        'X-IOTA-API-Version': API_VERSION,
       },
     )

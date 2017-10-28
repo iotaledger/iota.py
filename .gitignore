@@ -7,6 +7,9 @@ PyOTA.egg-info/*
 build/*
 dist/*
 
+# Sphinx documentation
+docs/_build/
+
 # Created by ``setup.py test``.
 .eggs/*
 

@@ -37,6 +37,7 @@ from .types import *
 from .transaction import *
 from .adapter import *
 from .api import *
+from .trits import *
 
 # :see: http://stackoverflow.com/a/2073599/
 from pkg_resources import require

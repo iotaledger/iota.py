@@ -11,8 +11,8 @@ from iota.crypto import Curl, HASH_LENGTH
 from iota.json import JsonSerializable
 from iota.transaction.types import BundleHash, Fragment, Nonce, TransactionHash, \
   TransactionTrytes
-from iota.types import Address, Tag, TryteString, TrytesCompatible, \
-  int_from_trits, trits_from_int
+from iota.trits import int_from_trits, trits_from_int
+from iota.types import Address, Tag, TryteString, TrytesCompatible
 
 __all__ = [
   'Bundle',

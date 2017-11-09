@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import List, MutableSequence, Optional, Sequence
 
+from iota.exceptions import with_context
+
 __all__ = [
   'Curl',
   'HASH_LENGTH',
@@ -59,16 +61,35 @@ class Curl(object):
     """
     self._state = [0] * STATE_LENGTH # type: List[int]
 
-  def absorb(self, trits):
-    # type: (Sequence[int], Optional[int]) -> None
+  def absorb(self, trits, offset=0, length=None):
+    # type: (Sequence[int], int, Optional[int]) -> None
     """
     Absorb trits into the sponge.
 
     :param trits:
       Sequence of trits to absorb.
+
+    :param offset:
+      Starting offset in ``trits``.
+
+    :param length:
+      Number of trits to absorb.  Defaults to ``len(trits)``.
     """
-    length  = len(trits)
-    offset  = 0
+    pad = ((len(trits) % HASH_LENGTH) or HASH_LENGTH)
+    trits += [0] * (HASH_LENGTH - pad)
+
+    if length is None:
+      length = len(trits)
+
+    if length < 1:
+      raise with_context(
+        exc = ValueError('Invalid length passed to ``absorb``.'),
+        context = {
+          'trits': trits,
+          'offset': offset,
+          'length': length,
+        },
+      )
 
     # Copy trits from ``trits`` into internal state, one hash at a
     # time, transforming internal state in between hashes.
@@ -92,7 +113,7 @@ class Curl(object):
       # Move on to the next hash.
       offset += HASH_LENGTH
 
-  def squeeze(self, trits):
+  def squeeze(self, trits, offset=0):
     # type: (MutableSequence[int]) -> None
     """
     Squeeze trits from the sponge.
@@ -100,6 +121,9 @@ class Curl(object):
     :param trits:
       Sequence that the squeezed trits will be copied to.
       Note: this object will be modified!
+
+    :param offset:
+      Starting offset in ``trits``.
     """
     #
     # Squeeze is kind of like the opposite of absorb; it copies trits
@@ -113,8 +137,18 @@ class Curl(object):
     # Ensure that ``trits`` can hold at least one hash worth of trits.
     trits.extend([0] * max(0, HASH_LENGTH - len(trits)))
 
+    # Check trits with offset can handle hash length
+    if len(trits) - offset < HASH_LENGTH:
+      raise with_context(
+        exc = ValueError('Invalid offset passed to ``squeeze``.'),
+        context = {
+          'trits': trits,
+          'offset': offset,
+        },
+      )
+
     # Copy exactly one hash.
-    trits[0:HASH_LENGTH] = self._state[0:HASH_LENGTH]
+    trits[offset:offset + HASH_LENGTH] = self._state[0:HASH_LENGTH]
 
     # One hash worth of trits copied; now transform.
     self._transform()

@@ -52,7 +52,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
       api.adapter.set_logger(logger)
 
       # Turn on debugging for the underlying HTTP library.
-      http_client.HTTPConnection.debuglevel=1
+      http_client.HTTPConnection.debuglevel = 1
 
     try:
       self._start_repl(api)

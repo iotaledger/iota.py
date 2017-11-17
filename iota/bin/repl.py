@@ -11,6 +11,7 @@ from logging import DEBUG, basicConfig, getLogger
 from sys import stderr
 
 from six import text_type
+from six.moves import http_client
 
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
@@ -42,12 +43,16 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
 
     # If ``debug_requests`` is specified, log HTTP requests/responses.
     if debug_requests:
+      # Inject a logger into the IOTA HTTP adapter.
       basicConfig(level=DEBUG, stream=stderr)
 
       logger = getLogger(__name__)
       logger.setLevel(DEBUG)
 
       api.adapter.set_logger(logger)
+
+      # Turn on debugging for the underlying HTTP library.
+      http_client.HTTPConnection.debuglevel=1
 
     try:
       self._start_repl(api)

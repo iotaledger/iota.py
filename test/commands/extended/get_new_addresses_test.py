@@ -438,17 +438,11 @@ class GetNewAddressesCommandTestCase(TestCase):
         {
           'command':    'findTransactions',
           'addresses':  [self.addy_1],
-          'approvees':  [],
-          'bundles':    [],
-          'tags':       [],
         },
 
         {
           'command':    'findTransactions',
           'addresses':  [self.addy_2],
-          'approvees':  [],
-          'bundles':    [],
-          'tags':       [],
         },
       ],
     )

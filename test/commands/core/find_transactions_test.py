@@ -139,9 +139,11 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           text_type(TransactionHash(self.trytes2)),
         ],
 
-        'addresses':  [],
-        'approvees':  [],
-        'tags':       [],
+        # Null criteria are not included in the request.
+        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # 'addresses':  [],
+        # 'approvees':  [],
+        # 'tags':       [],
       },
     )
 
@@ -168,9 +170,11 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           text_type(Address(self.trytes2)),
         ],
 
-        'approvees':  [],
-        'bundles':    [],
-        'tags':       [],
+        # Null criteria are not included in the request.
+        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # 'approvees':  [],
+        # 'bundles':    [],
+        # 'tags':       [],
       },
     )
 
@@ -197,9 +201,11 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           text_type(Tag(self.trytes3)),
         ],
 
-        'addresses':  [],
-        'approvees':  [],
-        'bundles':    [],
+        # Null criteria are not included in the request.
+        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # 'addresses':  [],
+        # 'approvees':  [],
+        # 'bundles':    [],
       },
     )
 
@@ -226,9 +232,11 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
           text_type(TransactionHash(self.trytes3)),
         ],
 
-        'addresses':  [],
-        'bundles':    [],
-        'tags':       [],
+        # Null criteria are not included in the request.
+        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # 'addresses':  [],
+        # 'bundles':    [],
+        # 'tags':       [],
       },
     )
 
@@ -244,20 +252,35 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_all_parameters_empty(self):
+  def test_fail_all_parameters_null(self):
     """
-    The request contains all parameters, but every one is empty.
+    The request contains all parameters, but every one is null.
     """
     self.assertFilterErrors(
+      {
+        'addresses':  None,
+        'approvees':  None,
+        'bundles':    None,
+        'tags':       None,
+      },
+
+      {
+        '': [FindTransactionsRequestFilter.CODE_NO_SEARCH_VALUES],
+      },
+    )
+
+  def test_success_all_parameters_empty(self):
+    """
+    All of the parameters are empty lists.
+
+    This is technically valid, though probably not very useful.
+    """
+    self.assertFilterPasses(
       {
         'addresses':  [],
         'approvees':  [],
         'bundles':    [],
         'tags':       [],
-      },
-
-      {
-        '': [FindTransactionsRequestFilter.CODE_NO_SEARCH_VALUES],
       },
     )
 

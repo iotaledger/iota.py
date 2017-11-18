@@ -9,6 +9,7 @@ from unittest import TestCase
 from six import text_type
 
 from iota import BadApiResponse
+from iota.adapter import API_VERSION
 from iota.adapter.sandbox import SandboxAdapter
 from test import mock
 from test.adapter_test import create_http_response
@@ -42,8 +43,9 @@ class SandboxAdapterTestCase(TestCase):
 
       # Auth token automatically added to the HTTP request.
       headers = {
-        'Authorization':  'token ACCESS-TOKEN',
-        'Content-type':   'application/json',
+        'Authorization':      'token ACCESS-TOKEN',
+        'Content-type':       'application/json',
+        'X-IOTA-API-Version': API_VERSION,
       },
     )
 
@@ -233,7 +235,8 @@ class SandboxAdapterTestCase(TestCase):
       headers = {
         # No auth token, so no Authorization header.
         # 'Authorization':  'token ACCESS-TOKEN',
-        'Content-type':   'application/json',
+        'Content-type':       'application/json',
+        'X-IOTA-API-Version': API_VERSION,
       },
     )
 

@@ -17,6 +17,7 @@ from iota.crypto import HASH_LENGTH
 from iota.crypto.kerl import Kerl
 from iota.exceptions import with_context
 from iota.json import JsonSerializable
+from iota.trits import int_from_trits, trits_from_int
 
 __all__ = [
   'Address',
@@ -25,57 +26,11 @@ __all__ = [
   'Tag',
   'TryteString',
   'TrytesCompatible',
-  'int_from_trits',
-  'trits_from_int',
 ]
 
 
 # Custom types for type hints and docstrings.
 TrytesCompatible = Union[AnyStr, bytearray, 'TryteString']
-
-
-def trits_from_int(n, pad=1):
-  # type: (int, Optional[int]) -> List[int]
-  """
-  Returns a trit representation of an integer value.
-
-  :param n:
-    Integer value to convert.
-
-  :param pad:
-    Ensure the result has at least this many trits.
-
-  References:
-    - https://dev.to/buntine/the-balanced-ternary-machines-of-soviet-russia
-    - https://en.wikipedia.org/wiki/Balanced_ternary
-    - https://rosettacode.org/wiki/Balanced_ternary#Python
-  """
-  if n == 0:
-    trits = []
-  else:
-    quotient, remainder = divmod(n, 3)
-
-    if remainder == 2:
-      # Lend 1 to the next place so we can make this trit negative.
-      quotient  += 1
-      remainder = -1
-
-    trits = [remainder] + trits_from_int(quotient, pad=0)
-
-  if pad:
-    trits += [0] * max(0, pad - len(trits))
-
-  return trits
-
-
-def int_from_trits(trits):
-  # type: (Iterable[int]) -> int
-  """
-  Converts a sequence of trits into an integer value.
-  """
-  # Normally we'd have to wrap ``enumerate`` inside ``reversed``, but
-  # balanced ternary puts least significant digits first.
-  return sum(base * (3 ** power) for power, base in enumerate(trits))
 
 
 @python_2_unicode_compatible

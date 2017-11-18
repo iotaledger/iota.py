@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
+from six import iteritems
 
 from iota import Address, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
@@ -45,7 +46,6 @@ class FindTransactionsRequestFilter(RequestFilter):
               | Trytes(result_type=Address)
               | f.Unicode(encoding='ascii', normalize=False)
             )
-          | f.Optional(default=[])
         ),
 
         'approvees': (
@@ -55,7 +55,6 @@ class FindTransactionsRequestFilter(RequestFilter):
               | Trytes(result_type=TransactionHash)
               | f.Unicode(encoding='ascii', normalize=False)
             )
-          | f.Optional(default=[])
         ),
 
         'bundles': (
@@ -65,7 +64,6 @@ class FindTransactionsRequestFilter(RequestFilter):
               | Trytes(result_type=TransactionHash)
               | f.Unicode(encoding='ascii', normalize=False)
             )
-          | f.Optional(default=[])
         ),
 
         'tags': (
@@ -75,7 +73,6 @@ class FindTransactionsRequestFilter(RequestFilter):
               | Trytes(result_type=Tag)
               | f.Unicode(encoding='ascii', normalize=False)
             )
-          | f.Optional(default=[])
         ),
       },
 
@@ -91,16 +88,21 @@ class FindTransactionsRequestFilter(RequestFilter):
     if self._has_errors:
       return value
 
+    # Remove null search terms.
+    # Note: We will assume that empty lists are intentional.
+    # https://github.com/iotaledger/iota.lib.py/issues/96
+    search_terms = {
+      term: query
+        for term, query in iteritems(value)
+        if query is not None
+    }
+
     # At least one search term is required.
-    if not any((
-        value['addresses'],
-        value['approvees'],
-        value['bundles'],
-        value['tags'],
-    )):
+    if not search_terms:
+      # Include unfiltered ``value`` in filter error context.
       return self._invalid_value(value, self.CODE_NO_SEARCH_VALUES)
 
-    return value
+    return search_terms
 
 
 class FindTransactionsResponseFilter(ResponseFilter):

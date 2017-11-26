@@ -470,7 +470,7 @@ class Iota(StrictIota):
            'balance': int,
              Total account balance.  Might be 0.
 
-           'bundles': List[Bundles],
+           'bundles': List[Bundle],
              List of bundles with transactions to/from this account.
          }
     """

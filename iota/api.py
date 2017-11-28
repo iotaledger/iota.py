@@ -433,7 +433,7 @@ class Iota(StrictIota):
     return extended.BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
   def get_account_data(self, start=0, stop=None, inclusion_states=False):
-    # type± (int, Optional[int], bool) -> dict
+    # type: (int, Optional[int], bool) -> dict
     """
     More comprehensive version of :py:meth:`get_transfers` that returns
     addresses and account balance in addition to bundles.

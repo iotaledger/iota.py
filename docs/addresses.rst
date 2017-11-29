@@ -9,82 +9,24 @@ Note that this also means that anyone with access to your seed can spend
 your IOTAs! Treat your seed(s) the same as you would the password for
 any other financial service.
 
-.. raw:: html
+.. note::
 
-   <aside class="notice">
+    PyOTA's crytpo functionality is currently very slow; on average it takes
+    8-10 seconds to generate each address.
 
-PyOTA's crytpo functionality is currently very slow; on average it takes
-8-10 seconds to generate each address.
+        These performance issues will be fixed in a future version of the library;
+        please bear with us!
 
-.. raw:: html
+        In the meantime, if you are using Python 3, you can install a C extension
+        that boosts PyOTA's performance significantly (speedups of 60x are common!).
 
-   <p>
+        To install the extension, run ``pip install pyota[ccurl]``.
 
-::
+        **Important:** The extension is not yet compatible with Python 2.
 
-    These performance issues will be fixed in a future version of the library;
-    please bear with us!
-
-.. raw:: html
-
-   </p>
-
-.. raw:: html
-
-   <p>
-
-::
-
-    In the meantime, if you are using Python 3, you can install a C extension
-    that boosts PyOTA's performance significantly (speedups of 60x are common!).
-
-.. raw:: html
-
-   </p>
-
-.. raw:: html
-
-   <p>
-
-::
-
-    To install the extension, run <code>pip install pyota[ccurl]</code>.
-
-.. raw:: html
-
-   </p>
-
-.. raw:: html
-
-   <p>
-
-::
-
-    <strong>Important:</strong> The extension is not yet compatible with Python
-    2.
-
-.. raw:: html
-
-   </p>
-
-.. raw:: html
-
-   <p>
-
-::
-
-    If you are familiar with Python 2's C API, we'd love to hear from you!
-    Check the
-    <a href="https://github.com/todofixthis/pyota-ccurl/issues/4">GitHub issue</a>
-    for more information.
-
-.. raw:: html
-
-   </p>
-
-.. raw:: html
-
-   </aside>
+        If you are familiar with Python 2's C API, we'd love to hear from you!
+        Check the `GitHub issue <https://github.com/todofixthis/pyota-ccurl/issues/4>`_
+        for more information.
 
 PyOTA provides two methods for generating addresses:
 

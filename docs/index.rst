@@ -4,6 +4,9 @@
 
    getting_started
    types
+   adapters
+   addresses
+   api
 
 .. note::
    **🚧 PyOTA documentation is still under construction. 🚧**

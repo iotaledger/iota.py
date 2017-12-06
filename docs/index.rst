@@ -7,6 +7,7 @@
    adapters
    addresses
    api
+   multisig
 
 .. note::
    **🚧 PyOTA documentation is still under construction. 🚧**

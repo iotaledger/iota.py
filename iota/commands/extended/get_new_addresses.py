@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import Address
+from iota import Address, AddressChecksum
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.crypto.addresses import AddressGenerator
@@ -36,25 +36,35 @@ class GetNewAddressesCommand(FilterCommand):
     count           = request['count'] # type: Optional[int]
     index           = request['index'] # type: int
     security_level  = request['securityLevel'] # type: int
+    checksum        = request['checksum'] # type: Optional[bool]
     seed            = request['seed'] # type: Seed
 
     return {
-      'addresses': self._find_addresses(seed, index, count, security_level),
+      'addresses': 
+         self._find_addresses(seed, index, count, security_level, checksum),
     }
 
-  def _find_addresses(self, seed, index, count, security_level):
-    # type: (Seed, int, Optional[int], int) -> List[Address]
+  def _find_addresses(self, seed, index, count, security_level, checksum):
+    # type: (Seed, int, Optional[int], int, Optional[bool]) -> List[Address]
     """
     Find addresses matching the command parameters.
     """
-    # type: (Seed, int, Optional[int]) -> List[Address]
-    generator = AddressGenerator(seed, security_level)
+    # type: (Seed, int, Optional[bool]) -> List[Address]
+    generator = AddressGenerator(seed, security_level, checksum)
 
     if count is None:
       # Connect to Tangle and find the first address without any
       # transactions.
       for addy in generator.create_iterator(start=index):
-        response = FindTransactionsCommand(self.adapter)(addresses=[addy])
+        # If we're generating addresses with checksums we need to check
+        # for transactions on the address without the checksum
+        if not checksum:
+          response = FindTransactionsCommand(self.adapter)(addresses=[addy])
+        else:
+          response = FindTransactionsCommand(self.adapter)(
+            addresses=[addy][:-AddressChecksum.LEN]
+        )
+
 
         if not response.get('hashes'):
           return [addy]
@@ -84,6 +94,8 @@ class GetNewAddressesRequestFilter(RequestFilter):
             | f.Max(self.MAX_SECURITY_LEVEL)
             | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
+        'checksum':  f.Type(bool) | f.Optional(default=False),
+
         'seed': f.Required | Trytes(result_type=Seed),
       },
 
@@ -91,5 +103,6 @@ class GetNewAddressesRequestFilter(RequestFilter):
         'count',
         'index',
         'securityLevel',
+        'checksum',
       },
     )

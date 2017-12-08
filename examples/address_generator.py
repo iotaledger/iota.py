@@ -16,8 +16,8 @@ from iota.crypto.types import Seed
 from six import binary_type, moves as compat, text_type
 
 
-def main(uri, index, count):
-  # type: (Text, int, Optional[int], bool) -> None
+def main(uri, index, count, security, checksum):
+  # type: (Text, int, Optional[int], Optional[int], Optional[bool]) -> None
   seed = get_seed()
 
   # Create the API instance.
@@ -34,7 +34,7 @@ def main(uri, index, count):
   print('')
 
   # Here's where all the magic happens!
-  api_response = api.get_new_addresses(index, count)
+  api_response = api.get_new_addresses(index, count, security, checksum)
   for addy in api_response['addresses']:
     print(binary_type(addy).decode('ascii'))
 
@@ -109,6 +109,21 @@ if __name__ == '__main__':
       help =
         'Number of addresses to generate. '
         'If not specified, the first unused address will be returned.'
+  )
+
+  parser.add_argument(
+    '--security',
+      type      = int,
+      default   = 2,
+      help      = 'Security level to be used for the private key / address. Can be 1, 2 or 3',
+  )
+
+  parser.add_argument(
+    '--with-checksum',
+      action    = 'store_true',
+      default   = False,
+      dest      = 'checksum',
+      help      = 'List the address with the checksum.',
   )
 
   main(**vars(parser.parse_args(argv[1:])))

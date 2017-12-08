@@ -35,6 +35,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       'index':          1,
       'count':          1,
       'securityLevel':  2,
+      'checksum':       False,
     }
 
     filter_ = self._filter(request)
@@ -59,6 +60,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         'index':          0,
         'count':          None,
         'securityLevel':  AddressGenerator.DEFAULT_SECURITY_LEVEL,
+        'checksum':       False,
       },
     )
 
@@ -75,6 +77,9 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       'index':          100,
       'count':          8,
       'securityLevel':  2,
+
+      # ``checksum`` must be boolean.
+      'checksum':       False,
     })
 
     self.assertFilterPasses(filter_)
@@ -86,6 +91,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         'index':          100,
         'count':          8,
         'securityLevel':  2,
+        'checksum':       False,
       },
     )
 
@@ -111,6 +117,7 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
         'index':          None,
         'count':          1,
         'securityLevel':  2,
+        'checksum':       False,
 
         # Some men just want to watch the world burn.
         'foo': 'bar',
@@ -306,6 +313,21 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+  def test_fail_checksum_wrong_type(self):
+    """
+    ``checksum`` is not a boolean.
+    """
+    self.assertFilterErrors(
+      {
+        'checksum':       '2',
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'checksum': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
 
 class GetNewAddressesCommandTestCase(TestCase):
   # noinspection SpellCheckingInspection
@@ -331,6 +353,13 @@ class GetNewAddressesCommandTestCase(TestCase):
       Address(
         b'NTPSEVZHQITARYWHIRTSIFSERINLRYVXLGIQKKHY'
         b'IWYTLQUUHDWSOVXLIKVJTYZBFKLABWRBFYVSMD9NB',
+      )
+
+    self.addy_1_checksum =\
+      Address(
+        b'NYMWLBUJEISSACZZBRENC9HEHYQXHCGQHSNHVCEA'
+        b'ZDCTEVNGSDUEKTSYBSQGMVJRIEDHWDYSEYCFAZAH'
+        b'9T9FPJROTW',
       )
 
   def test_wireup(self):
@@ -445,4 +474,21 @@ class GetNewAddressesCommandTestCase(TestCase):
           'addresses':  [self.addy_2],
         },
       ],
+    )
+
+  def test_new_address_checksum(self):
+    """
+    Generate address with a checksum.
+    """
+    response =\
+      self.command(
+        count         = 1,
+        index         = 0,
+        seed          = self.seed,
+        checksum      = True,
+      )
+
+    self.assertDictEqual(
+      response,
+      {'addresses': [self.addy_1_checksum]},
     )

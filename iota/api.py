@@ -611,8 +611,9 @@ class Iota(StrictIota):
       index = 0,
       count = 1,
       security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+      checksum = False,
   ):
-    # type: (int, Optional[int], int) -> dict
+    # type: (int, Optional[int], int, Optional[bool]) -> dict
     """
     Generates one or more new addresses from the seed.
 
@@ -636,6 +637,10 @@ class Iota(StrictIota):
 
       This value must be between 1 and 3, inclusive.
 
+    :param checksum:
+      Specify whether to return the address with the checksum.
+      Defaults to False.
+
     :return:
       Dict with the following items::
 
@@ -651,6 +656,7 @@ class Iota(StrictIota):
       count         = count,
       index         = index,
       securityLevel = security_level,
+      checksum      = checksum,
       seed          = self.seed,
     )
 

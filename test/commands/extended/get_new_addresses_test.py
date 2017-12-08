@@ -482,10 +482,10 @@ class GetNewAddressesCommandTestCase(TestCase):
     """
     response =\
       self.command(
+        checksum      = True,
         count         = 1,
         index         = 0,
         seed          = self.seed,
-        checksum      = True,
       )
 
     self.assertDictEqual(

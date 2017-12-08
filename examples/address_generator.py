@@ -12,12 +12,13 @@ from sys import argv
 from typing import Optional, Text
 
 from iota import __version__, Iota
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from six import binary_type, moves as compat, text_type
 
 
 def main(uri, index, count, security, checksum):
-  # type: (Text, int, Optional[int], Optional[int], Optional[bool]) -> None
+  # type: (Text, int, Optional[int], Optional[int], bool) -> None
   seed = get_seed()
 
   # Create the API instance.
@@ -114,8 +115,9 @@ if __name__ == '__main__':
   parser.add_argument(
     '--security',
       type      = int,
-      default   = 2,
-      help      = 'Security level to be used for the private key / address. Can be 1, 2 or 3',
+      default   = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+      help      = 'Security level to be used for the private key / address. '
+                  'Can be 1, 2 or 3',
   )
 
   parser.add_argument(

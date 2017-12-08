@@ -33,10 +33,10 @@ class GetNewAddressesCommand(FilterCommand):
     pass
 
   def _execute(self, request):
+    checksum        = request['checksum'] # type: bool
     count           = request['count'] # type: Optional[int]
     index           = request['index'] # type: int
     security_level  = request['securityLevel'] # type: int
-    checksum        = request['checksum'] # type: Optional[bool]
     seed            = request['seed'] # type: Seed
 
     return {
@@ -45,26 +45,21 @@ class GetNewAddressesCommand(FilterCommand):
     }
 
   def _find_addresses(self, seed, index, count, security_level, checksum):
-    # type: (Seed, int, Optional[int], int, Optional[bool]) -> List[Address]
+    # type: (Seed, int, Optional[int], int, bool) -> List[Address]
     """
     Find addresses matching the command parameters.
     """
-    # type: (Seed, int, Optional[bool]) -> List[Address]
     generator = AddressGenerator(seed, security_level, checksum)
 
     if count is None:
       # Connect to Tangle and find the first address without any
       # transactions.
       for addy in generator.create_iterator(start=index):
-        # If we're generating addresses with checksums we need to check
-        # for transactions on the address without the checksum
-        if not checksum:
-          response = FindTransactionsCommand(self.adapter)(addresses=[addy])
-        else:
-          response = FindTransactionsCommand(self.adapter)(
-            addresses=[addy][:-AddressChecksum.LEN]
+        # We use addy.address here because FindTransactions does
+        # not work on an address with a checksum
+        response = FindTransactionsCommand(self.adapter)(
+           addresses=[addy.address]
         )
-
 
         if not response.get('hashes'):
           return [addy]
@@ -85,8 +80,10 @@ class GetNewAddressesRequestFilter(RequestFilter):
     super(GetNewAddressesRequestFilter, self).__init__(
       {
         # Everything except ``seed`` is optional.
-        'count':  f.Type(int) | f.Min(1),
-        'index':  f.Type(int) | f.Min(0) | f.Optional(default=0),
+
+        'checksum':  f.Type(bool) | f.Optional(default=False),
+        'count':     f.Type(int) | f.Min(1),
+        'index':     f.Type(int) | f.Min(0) | f.Optional(default=0),
 
         'securityLevel':
               f.Type(int)
@@ -94,15 +91,13 @@ class GetNewAddressesRequestFilter(RequestFilter):
             | f.Max(self.MAX_SECURITY_LEVEL)
             | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
-        'checksum':  f.Type(bool) | f.Optional(default=False),
-
         'seed': f.Required | Trytes(result_type=Seed),
       },
 
       allow_missing_keys = {
+        'checksum',
         'count',
         'index',
         'securityLevel',
-        'checksum',
       },
     )

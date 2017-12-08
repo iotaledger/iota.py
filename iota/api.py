@@ -613,7 +613,7 @@ class Iota(StrictIota):
       security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
       checksum = False,
   ):
-    # type: (int, Optional[int], int, Optional[bool]) -> dict
+    # type: (int, Optional[int], int, bool) -> dict
     """
     Generates one or more new addresses from the seed.
 

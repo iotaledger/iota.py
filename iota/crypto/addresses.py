@@ -40,11 +40,12 @@ class AddressGenerator(Iterable[Address]):
     - :py:class:`iota.transaction.BundleValidator`
   """
 
-  def __init__(self, seed, security_level=DEFAULT_SECURITY_LEVEL):
-    # type: (TrytesCompatible, int) -> None
+  def __init__(self, seed, security_level=DEFAULT_SECURITY_LEVEL, checksum=False):
+    # type: (TrytesCompatible, int, bool) -> None
     super(AddressGenerator, self).__init__()
 
     self.security_level = security_level
+    self.checksum       = checksum
     self.seed           = Seed(seed)
 
   def __iter__(self):
@@ -175,7 +176,10 @@ class AddressGenerator(Iterable[Address]):
 
     Used in the event of a cache miss.
     """
-    return self.address_from_digest(self._get_digest(key_iterator))
+    if self.checksum:
+      return self.address_from_digest(self._get_digest(key_iterator)).with_valid_checksum()
+    else:
+      return self.address_from_digest(self._get_digest(key_iterator))
 
   @staticmethod
   def _get_digest(key_iterator):

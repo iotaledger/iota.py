@@ -60,6 +60,7 @@ setup(
 
   extras_require = {
     'ccurl': ['pyota-ccurl'],
+    'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
   },
 
   test_suite    = 'test',

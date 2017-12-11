@@ -14,7 +14,13 @@ Generating multisignature address
 
 In order to use multisignature functionality, a special multisignature address must be created. It is done by adding each key digest in agreed order into digests list. At the end, last participant is converting digests list (Curl state trits) into multisignature address. 
 
-Here is the example where digest is created:
+.. note::
+
+    Each multisignature addresses participant has to create its own digest locally. Then, when it is created it can be safely shared with other participants, in order to build list of digests which then will be converted into multisignature address.
+
+    Created digests should be shared with each multisignature participant, so each one of them could regenerate address and ensure it is OK.
+
+Here is the examples where digest is created:
 
 .. code-block:: python
 
@@ -46,6 +52,11 @@ And here is example where digests are converted into multisignature address:
     # For consistency, every API command returns a dict, even if it only
     # has a single value.
     multisig_address = cma_result['address'] # type: MultisigAddress
+
+.. note::
+
+    As you can see in above example, multisignature addresses is created from list of digests, and in this case **order** is important. The same order need to be used in **signing transfer**.
+
 
 
 

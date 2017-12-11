@@ -6,8 +6,9 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
+from six import text_type
 
-from iota import Address, TryteString, Iota
+from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.is_reattachable import IsReattachableCommand
 
@@ -21,12 +22,12 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
     super(IsReattachableRequestFilterTestCase, self).setUp()
 
     # Define a few valid values that we can reuse across tests.
-    self.addresses_1 = (
+    self.address_1 = (
       'TESTVALUE9DONTUSEINPRODUCTION99999EKJZZT'
       'SOGJOUNVEWLDPKGTGAOIZIPMGBLHC9LMQNHLGXGYX'
     )
 
-    self.addresses_2 = (
+    self.address_2 = (
       'TESTVALUE9DONTUSEINPRODUCTION99999FDCDTZ'
       'ZWLL9MYGUTLSYVSIFJ9NGALTRMCQVIIOVEQOITYTE'
     )
@@ -38,13 +39,25 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
 
     request = {
       # Raw trytes are extracted to match the IRI's JSON protocol.
-      'addresses': [self.addresses_1, self.addresses_2],
+      'addresses': [
+        self.address_1,
+        Address(self.address_2)
+      ],
     }
 
     filter_ = self._filter(request)
 
     self.assertFilterPasses(filter_)
-    self.assertDictEqual(filter_.cleaned_data, request)
+
+    self.assertDictEqual(
+      filter_.cleaned_data,
+      {
+        'addresses': [
+          text_type(Address(self.address_1)),
+          text_type(Address(self.address_2))
+        ],
+      },
+    )
 
   def test_pass_compatible_types(self):
     """
@@ -53,8 +66,8 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
     """
     request = {
       'addresses': [
-        Address(self.addresses_1),
-        bytearray(self.addresses_2.encode('ascii')),
+        Address(self.address_1),
+        bytearray(self.address_2.encode('ascii')),
       ],
     }
 
@@ -64,7 +77,7 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
     self.assertDictEqual(
       filter_.cleaned_data,
       {
-        'addresses': [self.addresses_1, self.addresses_2],
+        'addresses': [self.address_1, self.address_2],
       },
     )
 
@@ -176,4 +189,3 @@ class IsReattachableCommandTestCase(TestCase):
       Iota(self.adapter).isReattachable,
       IsReattachableCommand,
     )
-

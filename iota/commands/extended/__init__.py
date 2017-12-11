@@ -22,3 +22,4 @@ from .prepare_transfer import *
 from .replay_bundle import *
 from .send_transfer import *
 from .send_trytes import *
+from .is_reattachable import *

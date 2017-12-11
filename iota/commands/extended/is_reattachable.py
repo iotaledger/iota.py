@@ -1,9 +1,14 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from typing import List
+
 import filters as f
+
 from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.commands.extended import GetLatestInclusionCommand
+from iota.commands.extended.utils import find_transaction_objects
 from iota.filters import Trytes
 
 __all__ = [
@@ -24,7 +29,21 @@ class IsReattachableCommand(FilterCommand):
     return IsReattachableResponseFilter()
 
   def _execute(self, request):
-    pass
+    addresses = request['addresses']  # type: List[Address]
+
+    # fetch full transaction objects
+    transactions = find_transaction_objects(adapter=self.adapter, **{'addresses': addresses})
+
+    # map and filter transactions, which have zero value
+    transaction_map = {t.address: t.hash for t in transactions if t.value > 0}
+
+    # fetch inclusion states
+    inclusion_states = GetLatestInclusionCommand(adapter=self.adapter)(hashes=transaction_map.values())
+
+    # map inclusion states to addresses
+    return {
+      'reattachable': [not inclusion_states[transaction_map[address]] for address in addresses]
+    }
 
 
 class IsReattachableRequestFilter(RequestFilter):

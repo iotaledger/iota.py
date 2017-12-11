@@ -904,6 +904,7 @@ class Iota(StrictIota):
       Dict containing the following values::
          {
            'reattachable': List[bool],
+           Always a list, even if only one address was queried.
          }
     """
     return extended.IsReattachableCommand(self.adapter)(

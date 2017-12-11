@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
-
+from itertools import groupby
 from typing import List
 
 import filters as f
@@ -34,13 +34,16 @@ class IsReattachableCommand(FilterCommand):
     # fetch full transaction objects
     transactions = find_transaction_objects(adapter=self.adapter, **{'addresses': addresses})
 
-    # map and filter transactions, which have zero value
+    # map and filter transactions, which have zero value.
+    # If multiple transactions for the same address are returned the one with the
+    # highest attachment_timestamp is selected
+    transactions = sorted(transactions, key=lambda t: t.attachment_timestamp)
     transaction_map = {t.address: t.hash for t in transactions if t.value > 0}
 
     # fetch inclusion states
-    inclusion_states = GetLatestInclusionCommand(adapter=self.adapter)(hashes=transaction_map.values())
+    inclusion_states = GetLatestInclusionCommand(adapter=self.adapter)(hashes=list(transaction_map.values()))
+    inclusion_states = inclusion_states['states']
 
-    # map inclusion states to addresses
     return {
       'reattachable': [not inclusion_states[transaction_map[address]] for address in addresses]
     }

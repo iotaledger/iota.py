@@ -1,4 +1,8 @@
+include docs/conf.py
+include docs/make.bat
+include docs/Makefile
 include LICENSE
 include README.rst
+recursive-include docs *.rst
 recursive-include examples *.py
 recursive-include test *.py *.csv

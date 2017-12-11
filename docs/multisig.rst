@@ -20,7 +20,7 @@ In order to use multisignature functionality, a special multisignature address m
 
     Created digests should be shared with each multisignature participant, so each one of them could regenerate address and ensure it is OK.
 
-Here is the examples where digest is created:
+Here is the example where digest is created:
 
 .. code-block:: python
 
@@ -113,12 +113,56 @@ First signer for multisignature wallet is defining address where tokens should b
 Sign the inputs
 ---------------
 
+When trytes are prepared, round of signing must be performed. Order of signing must be the same as in generate multisignature addresses procedure (as described above).
+
 .. note::
 
-    Validate the signatures.
+    In example below, all signing is done on one local machine. In real case, each participant sign bundle locally and then passes it to next participant in previously defined order
+
+    **index**, **count** and **security_lavel** parameters for each private key should be the same as used in **get_digests** function in previous steps.
+
+.. code-block:: python
+
+    bundle = Bundle.from_tryte_strings(prepared_trytes)
+
+    gpk_result = api_1.get_private_keys(index=0, count=1, security_level=3)
+    private_key_1 = gpk_result['keys'][0] # type: PrivateKey
+    private_key_1.sign_input_transactions(bundle, 1)
+
+    gpk_result = api_2.get_private_keys(index=42, count=1, security_level=3)
+    private_key_2 = gpk_result['keys'][0] # type: PrivateKey
+    private_key_2.sign_input_transactions(bundle, 4)
+
+    gpk_result = api_3.get_private_keys(index=8, count=1, security_level=2)
+    private_key_3 = gpk_result['keys'][0] # type: PrivateKey
+    private_key_3.sign_input_transactions(bundle, 7)
+
+    signed_trytes = bundle.as_tryte_strings()
+
+.. note::
+
+    After creation, bundle can be optionally validated:
+    
+    .. code-block:: python
+        
+        validator = BundleValidator(bundle)
+        if not validator.is_valid():
+          raise ValueError(
+            'Bundle failed validation:\n{errors}'.format(
+              errors = '\n'.join(('  - ' + e) for e in validator.errors),
+            ),
+          )
+
+
 
 Broadcast the bundle
 --------------------
+
+When bundle is created it can be broadcasted in standard way:
+
+.. code-block:: python
+
+    api_1.send_trytes(trytes=signed_trytes, depth=3)
 
 Remarks
 -------
@@ -128,6 +172,23 @@ Full code `example`_.
 .. note::
 
     How M-of-N works
+
+    One of the key differences between IOTA multi-signatures is that M-of-N (e.g. 3 of 5) works differently. What this means is that in order to successfully spend inputs, all of the co-signers have to sign the transaction. As such, in order to enable M-of-N we have to make use of a simple trick: sharing of private keys.
+
+    This concept is best explained with a concrete example:
+
+        Lets say that we have a multi-signature between 3 parties: Alice, Bob and Carol. Each has their own private key, and they generated a new multi-signature address in the aforementioned order. Currently, this is a 3 of 3 multisig. This means that all 3 participants (Alice, Bob and Carol) need to sign the inputs with their private keys in order to successfully spend them.
+
+        In order to enable a 2 of 3 multisig, the cosigners need to share their private keys with the other parties in such a way that no single party can sign inputs alone, but that still enables an M-of-N multsig. In our example, the sharing of the private keys would look as follows:
+
+        Alice   ->      Bob 
+
+        Bob     ->      Carol 
+
+        Carol   ->      Alice   
+
+        Now, each participant holds two private keys that he/she can use to collude with another party to successfully sign the inputs and make a transaction. But no single party holds enough keys (3 of 3) to be able to independently make the transaction.
+
 
 .. _example: https://github.com/iotaledger/iota.lib.py/blob/develop/examples/multisig.py
 .. _wiki: https://github.com/iotaledger/wiki/blob/master/multisigs.md

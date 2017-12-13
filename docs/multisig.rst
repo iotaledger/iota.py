@@ -189,6 +189,25 @@ Full code `example`_.
 
         Now, each participant holds two private keys that he/she can use to collude with another party to successfully sign the inputs and make a transaction. But no single party holds enough keys (3 of 3) to be able to independently make the transaction.
 
+Important
+---------
+
+There are some general rules (repeated once again for convenience) which should be followed while working with multisignature addresses (and in general with IOTA):
+
+Signing order is important
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When creating a multi-signature address and when signing a transaction for that address, it is important to follow the exact order that was used during the initial creation. If we have a multi-signature address that was signed in the following order: Alice -> Bob -> Carol. You will not be able to spend these inputs if you provide the signatures in a different order (e.g. Bob -> Alice -> Carol). As such, keep the signing order in mind.
+
+Never re-use keys
+~~~~~~~~~~~~~~~~~
+
+Probably the most important rule to keep in mind: absolutely never re-use private keys. IOTA uses one-time Winternitz signatures, which means that if you re-use private keys you significantly decrease the security of your private keys, up to the point where signing of another transaction can be done on a conventional computer within few days. Therefore, when generating a new multi-signature with your co-signers, always increase the private key **index counter** and only use a single private key once. Don't use it for any other multi-signatures and don't use it for any personal transactions.
+
+Never share your private keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Under no circumstances - other than wanting to reduce the requirements for a multi-signature (see section **How M-of-N works**) - should you share your private keys. Sharing your private keys with others means that they can sign your part of the multi-signature successfully.
 
 .. _example: https://github.com/iotaledger/iota.lib.py/blob/develop/examples/multisig.py
 .. _wiki: https://github.com/iotaledger/wiki/blob/master/multisigs.md

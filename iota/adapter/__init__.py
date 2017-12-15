@@ -32,11 +32,13 @@ if PY2:
   # https://travis-ci.org/iotaledger/iota.lib.py/jobs/191974244
   __all__ = map(binary_type, __all__)
 
+
 API_VERSION = '1'
 """
 API protocol version.
 https://github.com/iotaledger/iota.lib.py/issues/84
 """
+
 
 # Custom types for type hints and docstrings.
 AdapterSpec = Union[Text, 'BaseAdapter']
@@ -64,7 +66,7 @@ class InvalidUri(ValueError):
   pass
 
 
-adapter_registry = {}  # type: Dict[Text, AdapterMeta]
+adapter_registry = {} # type: Dict[Text, AdapterMeta]
 """
 Keeps track of available adapters and their supported protocols.
 """
@@ -78,17 +80,17 @@ def resolve_adapter(uri):
   if isinstance(uri, BaseAdapter):
     return uri
 
-  parsed = compat.urllib_parse.urlsplit(uri)  # type: SplitResult
+  parsed = compat.urllib_parse.urlsplit(uri) # type: SplitResult
 
   if not parsed.scheme:
     raise with_context(
-      exc=InvalidUri(
+      exc = InvalidUri(
         'URI must begin with "<protocol>://" (e.g., "udp://").',
       ),
 
-      context={
+      context = {
         'parsed': parsed,
-        'uri': uri,
+        'uri':    uri,
       },
     )
 
@@ -96,13 +98,13 @@ def resolve_adapter(uri):
     adapter_type = adapter_registry[parsed.scheme]
   except KeyError:
     raise with_context(
-      exc=InvalidUri('Unrecognized protocol {protocol!r}.'.format(
-        protocol=parsed.scheme,
+      exc = InvalidUri('Unrecognized protocol {protocol!r}.'.format(
+        protocol = parsed.scheme,
       )),
 
-      context={
+      context = {
         'parsed': parsed,
-        'uri': uri,
+        'uri':    uri,
       },
     )
 
@@ -113,7 +115,6 @@ class AdapterMeta(ABCMeta):
   """
   Automatically registers new adapter classes in ``adapter_registry``.
   """
-
   # noinspection PyShadowingBuiltins
   def __init__(cls, what, bases=None, dict=None):
     super(AdapterMeta, cls).__init__(what, bases, dict)
@@ -141,7 +142,7 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
   Adapters make it easy to customize the way an StrictIota instance
   communicates with a node.
   """
-  supported_protocols = ()  # type: Tuple[Text]
+  supported_protocols = () # type: Tuple[Text]
   """
   Protocols that ``resolve_adapter`` can use to identify this adapter
   type.
@@ -150,7 +151,7 @@ class BaseAdapter(with_metaclass(AdapterMeta)):
   def __init__(self):
     super(BaseAdapter, self).__init__()
 
-    self._logger = None  # type: Logger
+    self._logger = None # type: Logger
 
   @abstract_method
   def get_uri(self):
@@ -229,28 +230,28 @@ class HttpAdapter(BaseAdapter):
     self.timeout = timeout
 
     if isinstance(uri, text_type):
-      uri = compat.urllib_parse.urlsplit(uri)  # type: SplitResult
+      uri = compat.urllib_parse.urlsplit(uri) # type: SplitResult
 
     if uri.scheme not in self.supported_protocols:
       raise with_context(
-        exc=InvalidUri('Unsupported protocol {protocol!r}.'.format(
-          protocol=uri.scheme,
+        exc = InvalidUri('Unsupported protocol {protocol!r}.'.format(
+          protocol = uri.scheme,
         )),
 
-        context={
+        context = {
           'uri': uri,
         },
       )
 
     if not uri.hostname:
       raise with_context(
-        exc=InvalidUri(
+        exc = InvalidUri(
           'Empty hostname in URI {uri!r}.'.format(
-            uri=uri.geturl(),
+            uri = uri.geturl(),
           ),
         ),
 
-        context={
+        context = {
           'uri': uri,
         },
       )
@@ -260,13 +261,13 @@ class HttpAdapter(BaseAdapter):
       uri.port
     except ValueError:
       raise with_context(
-        exc=InvalidUri(
+        exc = InvalidUri(
           'Non-numeric port in URI {uri!r}.'.format(
-            uri=uri.geturl(),
+            uri = uri.geturl(),
           ),
         ),
 
-        context={
+        context = {
           'uri': uri,
         },
       )
@@ -293,9 +294,9 @@ class HttpAdapter(BaseAdapter):
 
     response = self._send_http_request(
       # Use a custom JSON encoder that knows how to convert Tryte values.
-      payload=JsonEncoder().encode(payload),
+      payload = JsonEncoder().encode(payload),
 
-      url=self.node_url,
+      url = self.node_url,
       **kwargs
     )
 
@@ -314,38 +315,38 @@ class HttpAdapter(BaseAdapter):
     kwargs.setdefault('timeout', default_timeout)
 
     self._log(
-      level=DEBUG,
+      level = DEBUG,
 
-      message='Sending {method} to {url}: {payload!r}'.format(
-        method=method,
-        payload=payload,
-        url=url,
+      message = 'Sending {method} to {url}: {payload!r}'.format(
+        method  = method,
+        payload = payload,
+        url     = url,
       ),
 
-      context={
-        'request_method': method,
-        'request_kwargs': kwargs,
-        'request_payload': payload,
-        'request_url': url,
+      context = {
+        'request_method':   method,
+        'request_kwargs':   kwargs,
+        'request_payload':  payload,
+        'request_url':      url,
       },
     )
 
     response = request(method=method, url=url, data=payload, **kwargs)
 
     self._log(
-      level=DEBUG,
+      level = DEBUG,
 
-      message='Receiving {method} from {url}: {response!r}'.format(
-        method=method,
-        response=response.content,
-        url=url,
+      message = 'Receiving {method} from {url}: {response!r}'.format(
+        method    = method,
+        response  = response.content,
+        url       = url,
       ),
 
-      context={
-        'request_method': method,
-        'request_kwargs': kwargs,
-        'request_payload': payload,
-        'request_url': url,
+      context = {
+        'request_method':   method,
+        'request_kwargs':   kwargs,
+        'request_payload':  payload,
+        'request_url':      url,
 
         'response_headers': response.headers,
         'response_content': response.content,
@@ -372,46 +373,46 @@ class HttpAdapter(BaseAdapter):
     raw_content = response.text
     if not raw_content:
       raise with_context(
-        exc=BadApiResponse(
+        exc = BadApiResponse(
           'Empty {status} response from node.'.format(
-            status=response.status_code,
+            status = response.status_code,
           ),
         ),
 
-        context={
+        context = {
           'request': payload,
         },
       )
 
     try:
-      decoded = json.loads(raw_content)  # type: dict
+      decoded = json.loads(raw_content) # type: dict
     # :bc: py2k doesn't have JSONDecodeError
     except ValueError:
       raise with_context(
-        exc=BadApiResponse(
+        exc = BadApiResponse(
           'Non-JSON {status} response from node: {raw_content}'.format(
-            status=response.status_code,
-            raw_content=raw_content,
+            status      = response.status_code,
+            raw_content = raw_content,
           )
         ),
 
-        context={
-          'request': payload,
+        context = {
+          'request':      payload,
           'raw_response': raw_content,
         },
       )
 
     if not isinstance(decoded, dict):
       raise with_context(
-        exc=BadApiResponse(
+        exc = BadApiResponse(
           'Malformed {status} response from node: {decoded!r}'.format(
-            status=response.status_code,
-            decoded=decoded,
+            status  = response.status_code,
+            decoded = decoded,
           ),
         ),
 
-        context={
-          'request': payload,
+        context = {
+          'request':  payload,
           'response': decoded,
         },
       )
@@ -429,15 +430,15 @@ class HttpAdapter(BaseAdapter):
       pass
 
     raise with_context(
-      exc=BadApiResponse(
+      exc = BadApiResponse(
         '{status} response from node: {error}'.format(
-          error=error or decoded,
-          status=response.status_code,
+          error   = error or decoded,
+          status  = response.status_code,
         ),
       ),
 
-      context={
-        'request': payload,
+      context = {
+        'request':  payload,
         'response': decoded,
       },
     )
@@ -461,8 +462,8 @@ class MockAdapter(BaseAdapter):
   def __init__(self):
     super(MockAdapter, self).__init__()
 
-    self.responses = {}  # type: Dict[Text, deque]
-    self.requests = []  # type: List[dict]
+    self.responses  = {} # type: Dict[Text, deque]
+    self.requests   = [] # type: List[dict]
 
   def get_uri(self):
     return 'mock://'
@@ -505,27 +506,27 @@ class MockAdapter(BaseAdapter):
       response = self.responses[command].popleft()
     except KeyError:
       raise with_context(
-        exc=BadApiResponse(
+        exc = BadApiResponse(
           'No seeded response for {command!r} '
           '(expected one of: {seeds!r}).'.format(
-            command=command,
-            seeds=list(sorted(self.responses.keys())),
+            command = command,
+            seeds   = list(sorted(self.responses.keys())),
           ),
         ),
 
-        context={
+        context = {
           'request': payload,
         },
       )
     except IndexError:
       raise with_context(
-        exc=BadApiResponse(
+        exc = BadApiResponse(
           '{command} called too many times; no seeded responses left.'.format(
-            command=command,
+            command = command,
           ),
         ),
 
-        context={
+        context = {
           'request': payload,
         },
       )

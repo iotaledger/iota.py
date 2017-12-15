@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import json
+import socket
 from typing import Text
 from unittest import TestCase
 
@@ -313,6 +314,43 @@ class HttpAdapterTestCase(TestCase):
         response = invalid_response,
       ),
     )
+
+  @mock.patch('iota.adapter.request')
+  def test_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
+
+    # test with default timeout
+    adapter.send_request(payload=mock_payload)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], socket.getdefaulttimeout())
+
+    request_mock.request_mock()
+
+    # test with explicit attribute
+    adapter.timeout = 77
+    adapter.send_request(payload=mock_payload)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], 77)
+
+    request_mock.request_mock()
+
+    # test with timeout in kwargs
+    adapter.send_request(payload=mock_payload, timeout=88)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], 88)
+
+    request_mock.request_mock()
+
+    # test with timeout at adapter creation
+    adapter = HttpAdapter('http://localhost:14265', timeout=99)
+    adapter.send_request(payload=mock_payload)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], 99)
 
   # noinspection SpellCheckingInspection
   @staticmethod

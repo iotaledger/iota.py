@@ -316,7 +316,7 @@ class HttpAdapterTestCase(TestCase):
     )
 
   @mock.patch('iota.adapter.request')
-  def test_timeout(self, request_mock):
+  def test_default_timeout(self, request_mock):
     # create dummy response
     request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
 
@@ -329,7 +329,14 @@ class HttpAdapterTestCase(TestCase):
     _, kwargs = request_mock.call_args
     self.assertEqual(kwargs['timeout'], socket.getdefaulttimeout())
 
-    request_mock.request_mock()
+  @mock.patch('iota.adapter.request')
+  def test_default_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
 
     # test with explicit attribute
     adapter.timeout = 77
@@ -337,9 +344,17 @@ class HttpAdapterTestCase(TestCase):
     _, kwargs = request_mock.call_args
     self.assertEqual(kwargs['timeout'], 77)
 
-    request_mock.request_mock()
+  @mock.patch('iota.adapter.request')
+  def test_default_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
 
     # test with timeout in kwargs
+    adapter.timeout = 77
     adapter.send_request(payload=mock_payload, timeout=88)
     _, kwargs = request_mock.call_args
     self.assertEqual(kwargs['timeout'], 88)

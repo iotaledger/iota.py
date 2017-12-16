@@ -223,8 +223,8 @@ class HttpAdapter(BaseAdapter):
   in the ``headers`` kwarg.
   """
 
-  def __init__(self, uri, timeout=None, **kwargs):
-    # type: (Union[Text, SplitResult], Optional(int)) -> None
+  def __init__(self, uri, timeout=None):
+    # type: (Union[Text, SplitResult], Optional[int]) -> None
     super(HttpAdapter, self).__init__()
 
     self.timeout = timeout

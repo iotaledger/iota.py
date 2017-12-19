@@ -6,7 +6,7 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, TryteString, TransactionHash
-from iota.filters import GeneratedAddress, NodeUri, Trytes, AddressNoChecksum
+from iota.filters import AddressNoChecksum, GeneratedAddress, NodeUri, Trytes
 
 
 class GeneratedAddressTestCase(BaseFilterTestCase):

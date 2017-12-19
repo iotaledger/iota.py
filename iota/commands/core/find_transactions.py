@@ -7,7 +7,7 @@ from six import iteritems
 
 from iota import Address, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import Trytes, AddressNoChecksum
+from iota.filters import AddressNoChecksum, Trytes
 
 __all__ = [
   'FindTransactionsCommand',

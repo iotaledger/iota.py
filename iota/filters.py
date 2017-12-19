@@ -9,7 +9,6 @@ from six import binary_type, moves as compat, text_type
 
 from iota import Address, TryteString, TrytesCompatible
 
-
 class GeneratedAddress(f.BaseFilter):
   """
   Validates an incoming value as a generated :py:class:`Address` (must
@@ -69,10 +68,12 @@ class Trytes(f.BaseFilter):
   """
   Validates a sequence as a sequence of trytes.
   """
-  CODE_NOT_TRYTES   = 'not_trytes'
-  CODE_WRONG_FORMAT = 'wrong_format'
+  ADDRESS_BAD_CHECKSUM   = 'address_bad_checksum'
+  CODE_NOT_TRYTES        = 'not_trytes'
+  CODE_WRONG_FORMAT      = 'wrong_format'
 
   templates = {
+    ADDRESS_BAD_CHECKSUM: 'The checksum for this address is invalid.',
     CODE_NOT_TRYTES: 'This value is not a valid tryte sequence.',
     CODE_WRONG_FORMAT: 'This value is not a valid {result_type}.',
   }
@@ -132,6 +133,70 @@ class Trytes(f.BaseFilter):
     # type-specific errors.
     try:
       return self.result_type(value)
+    except ValueError:
+      return self._invalid_value(
+        value     = value,
+        reason    = self.CODE_WRONG_FORMAT,
+        exc_info  = True,
+
+        template_vars = {
+          'result_type': self.result_type.__name__,
+        },
+      )
+
+
+class AddressNoChecksum(Trytes):
+  """
+  Validates a sequence as a sequence of trytes.
+  """
+
+  def _apply(self, value):
+    # noinspection PyTypeChecker
+    value =\
+      self._filter(
+        filter_chain = f.Type((binary_type, bytearray, text_type, TryteString)),
+        value = value,
+      ) # type: TrytesCompatible
+
+    if self._has_errors:
+      return None
+
+    # If the incoming value already is an Address then we just make sure it has no checksum
+    if isinstance(value, Address):
+      if value.checksum and not value.is_checksum_valid():
+        return self._invalid_value(
+        value     = value,
+        reason    = self.ADDRESS_BAD_CHECKSUM,
+        exc_info  = True,
+
+        template_vars = {
+          'result_type': self.ADDRESS_BAD_CHECKSUM,
+        },
+      )
+      return Address(value.address)
+
+    # First convert to a generic TryteString, to make sure that the
+    # sequence doesn't contain any invalid characters.
+    try:
+      value = TryteString(value)
+    except ValueError:
+      return self._invalid_value(value, self.CODE_NOT_TRYTES, exc_info=True)
+
+    # Now coerce to the expected type and verify that there are no
+    # type-specific errors.
+    try:
+      addy = Address(value)
+      if addy.checksum and not addy.is_checksum_valid():
+        return self._invalid_value(
+        value     = addy,
+        reason    = self.ADDRESS_BAD_CHECKSUM,
+        exc_info  = True,
+
+        template_vars = {
+          'result_type': self.ADDRESS_BAD_CHECKSUM,
+        },
+      )
+      return Address(addy.address)
     except ValueError:
       return self._invalid_value(
         value     = value,

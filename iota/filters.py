@@ -147,7 +147,7 @@ class Trytes(f.BaseFilter):
 
 class AddressNoChecksum(Trytes):
   """
-  Validates a sequence as a sequence of trytes.
+  Validates a sequence as an Address then chops off the checksum if it exists
   """
 
   def _apply(self, value):
@@ -163,6 +163,7 @@ class AddressNoChecksum(Trytes):
 
     # If the incoming value already is an Address then we just make sure it has no checksum
     if isinstance(value, Address):
+      # Make sure it has a valid checksum if one exists
       if value.checksum and not value.is_checksum_valid():
         return self._invalid_value(
         value     = value,
@@ -182,10 +183,11 @@ class AddressNoChecksum(Trytes):
     except ValueError:
       return self._invalid_value(value, self.CODE_NOT_TRYTES, exc_info=True)
 
-    # Now coerce to the expected type and verify that there are no
+    # Now coerce to an Address and verify that there are no
     # type-specific errors.
     try:
       addy = Address(value)
+      # Make sure it has a valid checksum if one exists
       if addy.checksum and not addy.is_checksum_valid():
         return self._invalid_value(
         value     = addy,

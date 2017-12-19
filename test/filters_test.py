@@ -6,7 +6,7 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, TryteString, TransactionHash
-from iota.filters import GeneratedAddress, NodeUri, Trytes
+from iota.filters import GeneratedAddress, NodeUri, Trytes, AddressNoChecksum
 
 
 class GeneratedAddressTestCase(BaseFilterTestCase):
@@ -201,3 +201,48 @@ class TrytesTestCase(BaseFilterTestCase):
       [TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')],
       [f.Type.CODE_WRONG_TYPE],
     )
+
+
+# noinspection SpellCheckingInspection
+class AddressNoChecksumTestCase(BaseFilterTestCase):
+  filter_type = AddressNoChecksum
+
+  # noinspection SpellCheckingInspection
+  def setUp(self):
+    super(AddressNoChecksumTestCase, self).setUp()
+
+    # Define some addresses that we can reuse between tests
+    """
+    Incoming value is not an :py:class:`Address` instance.
+    """
+    self.tryte1 = (
+      b'TESTVALUE9DONTUSEINPRODUCTION99999FBFFTG'
+      b'QFWEHEL9KCAFXBJBXGE9HID9XCOHFIDABHDG9AHDR'
+    )
+    self.checksum = b'ENXYJOBP9'
+    self.address = Address(self.tryte1)
+    self.address_with_checksum = Address(self.tryte1 + self.checksum)
+    self.address_with_bad_checksum = Address(self.tryte1 + b'DEADBEEF9')
+
+  def test_pass_checksumless_addy(self):
+    """
+    Incoming value is tryte in address form or Address object
+    """
+    self.assertFilterPasses(self.tryte1)
+    self.assertFilterPasses(self.address)
+
+  def test_pass_withchecksum_addy(self):
+    """
+    After passing through the filter an address with a checksum should
+    return the address without
+    """
+    self.assertFilterPasses(self.address_with_checksum, self.address)
+
+  def test_fail_badchecksum_addy(self):
+    """
+    If they've got a bad checksum in their address we should probably tell
+    them so they don't wonder why something works in one place and not another
+    """
+    self.assertFilterErrors(
+      self.address_with_bad_checksum,
+      [AddressNoChecksum.ADDRESS_BAD_CHECKSUM])

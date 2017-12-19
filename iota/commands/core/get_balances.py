@@ -6,7 +6,7 @@ import filters as f
 
 from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import Trytes
+from iota.filters import Trytes, AddressNoChecksum
 
 __all__ = [
   'GetBalancesCommand',
@@ -37,7 +37,7 @@ class GetBalancesRequestFilter(RequestFilter):
           | f.Array
           | f.FilterRepeater(
                 f.Required
-              | Trytes(result_type=Address)
+              | AddressNoChecksum(result_type=Address)
               | f.Unicode(encoding='ascii', normalize=False)
             )
         ),

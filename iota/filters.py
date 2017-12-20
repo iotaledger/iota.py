@@ -9,6 +9,7 @@ from six import binary_type, moves as compat, text_type
 
 from iota import Address, TryteString, TrytesCompatible
 
+
 class GeneratedAddress(f.BaseFilter):
   """
   Validates an incoming value as a generated :py:class:`Address` (must
@@ -68,8 +69,8 @@ class Trytes(f.BaseFilter):
   """
   Validates a sequence as a sequence of trytes.
   """
-  CODE_NOT_TRYTES        = 'not_trytes'
-  CODE_WRONG_FORMAT      = 'wrong_format'
+  CODE_NOT_TRYTES   = 'not_trytes'
+  CODE_WRONG_FORMAT = 'wrong_format'
 
   templates = {
     CODE_NOT_TRYTES: 'This value is not a valid tryte sequence.',

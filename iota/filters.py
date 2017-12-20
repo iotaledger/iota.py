@@ -161,20 +161,14 @@ class AddressNoChecksum(Trytes):
   def _apply(self, value):
     super(AddressNoChecksum, self)._apply(value)
 
+    if self._has_errors:
+      return None
+
+    # Possible it's still just a TryteString
     if not isinstance(value, Address):
-      try:
-          value = Address(value)
-      except ValueError:
-          return self._invalid_value(
-            value     = value,
-            reason    = self.CODE_WRONG_FORMAT,
-          exc_info  = True,
+      value = Address(value)
 
-          template_vars = {
-              'result_type': self.result_type.__name__,
-          },
-        )
-
+    # Bail out if we have a bad checksum
     if value.checksum and not value.is_checksum_valid():
       return self._invalid_value(
         value     = value,

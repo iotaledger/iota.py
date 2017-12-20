@@ -224,21 +224,21 @@ class AddressNoChecksumTestCase(BaseFilterTestCase):
     self.address_with_checksum = Address(self.tryte1 + self.checksum)
     self.address_with_bad_checksum = Address(self.tryte1 + b'DEADBEEF9')
 
-  def test_pass_checksumless_addy(self):
+  def test_pass_no_checksum_addy(self):
     """
     Incoming value is tryte in address form or Address object
     """
     self.assertFilterPasses(self.tryte1)
     self.assertFilterPasses(self.address)
 
-  def test_pass_withchecksum_addy(self):
+  def test_pass_with_checksum_addy(self):
     """
     After passing through the filter an address with a checksum should
     return the address without
     """
     self.assertFilterPasses(self.address_with_checksum, self.address)
 
-  def test_fail_badchecksum_addy(self):
+  def test_fail_with_bad_checksum_addy(self):
     """
     If they've got a bad checksum in their address we should probably tell
     them so they don't wonder why something works in one place and not another

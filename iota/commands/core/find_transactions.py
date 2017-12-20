@@ -43,7 +43,7 @@ class FindTransactionsRequestFilter(RequestFilter):
             f.Array
           | f.FilterRepeater(
                 f.Required
-              | AddressNoChecksum(result_type=Address)
+              | AddressNoChecksum()
               | f.Unicode(encoding='ascii', normalize=False)
             )
         ),

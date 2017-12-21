@@ -195,6 +195,34 @@ class StrictIota(with_metaclass(ApiMeta)):
     """
     return core.BroadcastTransactionsCommand(self.adapter)(trytes=trytes)
 
+  def check_consistency(self, tails):
+    # type: (Iterable[TransactionHash]) -> dict
+    """
+    Used to ensure tail resolves to a consistent ledger which is necessary to
+    validate before attempting promotionChecks transaction hashes for
+    promotability.
+
+    This is called with a pending transaction (or more of them) and it will
+    tell you if it is still possible for this transaction (or all the
+    transactions simultaneously if you give more than one) to be confirmed, or
+    not (because it conflicts with another already confirmed transaction).
+
+    :param tails:
+      Transaction hashes. Must be tail transactions.
+
+    :return:
+      Dict containing the following::
+          {
+            'state': bool,
+
+            'info': str,
+              This field will only exist set if `state` is False.
+          }
+    """
+    return core.CheckConsistencyCommand(self.adapter)(
+      tails = tails,
+    )
+
   def find_transactions(
       self,
       bundles   = None,

@@ -142,3 +142,42 @@ class Trytes(f.BaseFilter):
           'result_type': self.result_type.__name__,
         },
       )
+
+
+class AddressNoChecksum(Trytes):
+  """
+  Validates a sequence as an Address then chops off the checksum if it exists
+  """
+  ADDRESS_BAD_CHECKSUM   = 'address_bad_checksum'
+
+  templates = {
+    ADDRESS_BAD_CHECKSUM: 'Checksum is {supplied_checksum}, should be {expected_checksum}?',
+  }
+
+  def __init__(self):
+    # type: (type) -> None
+    super(AddressNoChecksum, self).__init__(result_type=Address)
+
+  def _apply(self, value):
+    super(AddressNoChecksum, self)._apply(value)
+
+    if self._has_errors:
+      return None
+
+    # Possible it's still just a TryteString
+    if not isinstance(value, Address):
+      value = Address(value)
+
+    # Bail out if we have a bad checksum
+    if value.checksum and not value.is_checksum_valid():
+      return self._invalid_value(
+        value     = value,
+        reason    = self.ADDRESS_BAD_CHECKSUM,
+        exc_info  = True,
+
+        context = {
+          'supplied_checksum': value.checksum,
+          'expected_checksum': value.with_valid_checksum().checksum,
+        },
+      )
+    return Address(value.address)

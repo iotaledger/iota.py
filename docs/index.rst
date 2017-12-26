@@ -4,10 +4,9 @@
 
    getting_started
    types
-
-.. note::
-   **🚧 PyOTA documentation is still under construction. 🚧**
-
-   Follow https://github.com/iotaledger/iota.lib.py/issues/78 for updates.
+   adapters
+   addresses
+   api
+   multisig
 
 .. include:: ../README.rst

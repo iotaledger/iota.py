@@ -9,6 +9,7 @@ from codecs import StreamReader, open
 import setuptools
 from setuptools import find_packages, setup
 
+
 from distutils.version import LooseVersion
 if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
     import sys
@@ -27,7 +28,7 @@ setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '2.0.2',
+  version     = '2.0.3',
 
   long_description = long_description,
 

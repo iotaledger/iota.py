@@ -7,7 +7,7 @@ from six import iteritems
 
 from iota import Address, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import Trytes
+from iota.filters import AddressNoChecksum, Trytes
 
 __all__ = [
   'FindTransactionsCommand',
@@ -43,7 +43,7 @@ class FindTransactionsRequestFilter(RequestFilter):
             f.Array
           | f.FilterRepeater(
                 f.Required
-              | Trytes(result_type=Address)
+              | AddressNoChecksum()
               | f.Unicode(encoding='ascii', normalize=False)
             )
         ),

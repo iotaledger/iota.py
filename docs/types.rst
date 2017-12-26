@@ -1,264 +1,355 @@
-================
-PyOTA Data Types
-================
-.. important::
+Basic Concepts
+==============
 
-   Before diving into the API, it's important to understand the fundamental data
-   types of IOTA.
+Before diving into the API, it's important to understand the fundamental
+data types of IOTA.
 
-   For an introduction to the IOTA protocol and the Tangle, give the
-   `protocol documentation`_ a once-over.
+:todo: Link to IOTA docs
 
-PyOTA defines a few types that will make it easy for you to model objects like
-Transactions and Bundles in your own code.
+PyOTA Types
+===========
+
+PyOTA defines a few types that will make it easy for you to model
+objects like Transactions and Bundles in your own code.
 
 TryteString
 -----------
-A :py:class:`TryteString` is an ASCII representation of a sequence of trytes.
-In many respects, it is similar to a Python ``bytes`` object (which is an ASCII
-representation of a sequence of bytes).
 
-In fact, the two objects behave very similarly; they support concatenation,
-comparison, can be used as dict keys, etc.
+.. code:: python
 
-However, unlike ``bytes``,  a :py:class:`TryteString` can only contain uppercase
+    from iota import TryteString
+
+    trytes_1 = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+    trytes_2 = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD')
+
+    if trytes_1 != trytes_2:
+      trytes_combined = trytes_1 + trytes_2
+
+    index = {
+      trytes_1: 42,
+      trytes_2: 86,
+    }
+
+A ``TryteString`` is an ASCII representation of a sequence of trytes. In
+many respects, it is similar to a Python ``bytes`` object (which is an
+ASCII representation of a sequence of bytes).
+
+In fact, the two objects behave very similarly; they support
+concatenation, comparison, can be used as dict keys, etc.
+
+However, unlike ``bytes``, a ``TryteString`` can only contain uppercase
 letters and the number 9 (as a regular expression: ``^[A-Z9]*$``).
 
-.. admonition:: Why only these characters?
-
-   You can find the answer on the
-   `IOTA Forum <https://forum.iota.org/t/1860/10>`__.
-
 As you go through the API documentation, you will see many references to
-:py:class:`TryteString` and its subclasses:
+``TryteString`` and its subclasses:
 
-- :py:class:`Fragment`
+-  ``Fragment``: A signature or message fragment inside a transaction.
+   Fragments are always 2187 trytes long.
+-  ``Hash``: An object identifier. Hashes are always 81 trytes long.
+   There are many different types of hashes:
+-  ``Address``: Identifies an address on the Tangle.
+-  ``BundleHash``: Identifies a bundle on the Tangle.
+-  ``TransactionHash``: Identifies a transaction on the Tangle.
+-  ``Seed``: A TryteString that is used for crypto functions such as
+   generating addresses, signing inputs, etc. Seeds can be any length,
+   but 81 trytes offers the best security.
+-  ``Tag``: A tag used to classify a transaction. Tags are always 27
+   trytes long.
+-  ``TransactionTrytes``: A TryteString representation of a transaction
+   on the Tangle. ``TransactionTrytes`` are always 2673 trytes long.
 
-  A signature or message fragment inside a transaction.
-  Fragments are always 2187 trytes long.
+Encoding
+~~~~~~~~
 
-- :py:class:`Hash`
+.. code:: python
 
-  An object identifier.  Hashes are always 81 trytes long.
+    from iota import TryteString
 
-  There are many different types of hashes:
+    message_trytes = TryteString.from_string('Hello, IOTA!')
 
-   :py:class:`Address`
-      Identifies an address on the Tangle.
-   :py:class:`BundleHash`
-      Identifies a bundle on the Tangle.
-   :py:class:`TransactionHash`
-      Identifies a transaction on the Tangle.
+To encode character data into trytes, use the
+``TryteString.from_string`` method.
 
-- :py:class:`Seed`
+You can also convert a tryte sequence into characters using
+``TryteString.as_string``. Note that not every tryte sequence can be
+converted; garbage in, garbage out!
 
-  A TryteString that is used for crypto functions such as generating addresses,
-  signing inputs, etc.
+.. code:: python
 
-  .. important::
+    from iota import TryteString
 
-     Seeds can be any length, but 81 trytes offers the best security.
-     More information is available on the
-     `IOTA Forum <https://forum.iota.org/t/1278>`__.
-
-- :py:class:`Tag`
-
-  A tag used to classify a transaction.  Tags are always 27 trytes long.
-
-- :py:class:`TransactionTrytes`
-
-  A TryteString representation of a transaction on the Tangle.
-  :py:class:`TransactionTrytes` are always 2673 trytes long.
-
-Creating TryteStrings
-~~~~~~~~~~~~~~~~~~~~~
-To create a new :py:class:`TryteString` from a sequence of trytes, simply
-wrap the trytes inside the :py:class:`TryteString` initializer:
-
-.. code-block:: python
-
-   from iota import TryteString
-
-   trytes = TryteString('RBTC9D9DCDQAEASBYBCCKBFA')
-
-To encode ASCII text into trytes, use the :py:meth:`TryteString.from_string`
-method:
-
-.. code-block:: python
-
-   from iota import TryteString
-
-   message_trytes = TryteString.from_string('Hello, IOTA!')
-
-   print(message_trytes) # RBTC9D9DCDQAEASBYBCCKBFA
-
-To decode a sequence of trytes back into ASCII text, use
-:py:meth:`TryteString.as_string`:
-
-.. code-block:: python
-
-   from iota import TryteString
-
-   message_trytes = TryteString('RBTC9D9DCDQAEASBYBCCKBFA')
-
-   message_str = message_trytes.as_string()
-
-   print(message_str) # Hello, IOTA!
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+    message = trytes.as_string()
 
 .. note::
 
-   PyOTA also supports encoding non-ASCII characters, but this functionality is
-   **experimental** and has not yet been standardized.
+    PyOTA also supports encoding non-ASCII characters, but this functionality is
+    **experimental** and has not yet been evaluated by the IOTA
+    community!
 
-   If you encode non-ASCII characters, be aware that other IOTA libraries
-   (possibly including future versions of PyOTA!) might not be able to decode
-   them!
+    Until this feature has been standardized, it is recommended that you only
+    use ASCII characters when generating ``TryteString`` objects from
+    character strings.
 
 Transaction Types
 -----------------
+
 PyOTA defines two different types used to represent transactions:
-
-:py:class:`Transaction`
-   A transaction that has been loaded from the Tangle.
-
-:py:class:`ProposedTransaction`
-   A transaction that was created locally and hasn't been broadcast to the
-   Tangle yet.
 
 Transaction
 ~~~~~~~~~~~
-Generally, you will never need to create `Transaction` objects; the API will
-build them for you, as the result of various API methods.
 
-.. tip::
+.. code:: python
 
-   If you have a TryteString representation of a transaction, and you'd like to
-   convert it into a :py:class:`Transaction` object, use the
-   :py:meth:`Transaction.from_tryte_string` method:
+    from iota import Address, ProposedTransaction, Tag, Transaction
 
-   .. code-block:: python
+    txn_1 =\
+      Transaction.from_tryte_string(
+        b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC'
+        b'OYOXYPCLR9PBEY9ORZIEPPDNTI9CQWYZUOTAVBXPSBOFEQAPFLWXSWUIUSJMSJIIIZ'
+        b'WIKIRH9GCOEVZFKNXEVCUCIIWZQCQEUVRZOCMEL9AMGXJNMLJCIA9UWGRPPHCEOPTS'
+        b'VPKPPPCMQXYBHMSODTWUOABPKWFFFQJHCBVYXLHEWPD9YUDFTGNCYAKQKVEZYRBQRB'
+        b'XIAUX9SVEDUKGMTWQIYXRGSWYRK9SRONVGTW9YGHSZRIXWGPCCUCDRMAXBPDFVHSRY'
+        b'WHGB9DQSQFQKSNICGPIPTRZINYRXQAFSWSEWIFRMSBMGTNYPRWFSOIIWWT9IDSELM9'
+        b'JUOOWFNCCSHUSMGNROBFJX9JQ9XT9PKEGQYQAWAFPRVRRVQPUQBHLSNTEFCDKBWRCD'
+        b'X9EYOBB9KPMTLNNQLADBDLZPRVBCKVCYQEOLARJYAGTBFR9QLPKZBOYWZQOVKCVYRG'
+        b'YI9ZEFIQRKYXLJBZJDBJDJVQZCGYQMROVHNDBLGNLQODPUXFNTADDVYNZJUVPGB9LV'
+        b'PJIYLAPBOEHPMRWUIAJXVQOEM9ROEYUOTNLXVVQEYRQWDTQGDLEYFIYNDPRAIXOZEB'
+        b'CS9P99AZTQQLKEILEVXMSHBIDHLXKUOMMNFKPYHONKEYDCHMUNTTNRYVMMEYHPGASP'
+        b'ZXASKRUPWQSHDMU9VPS99ZZ9SJJYFUJFFMFORBYDILBXCAVJDPDFHTTTIYOVGLRDYR'
+        b'TKHXJORJVYRPTDH9ZCPZ9ZADXZFRSFPIQKWLBRNTWJHXTOAUOL9FVGTUMMPYGYICJD'
+        b'XMOESEVDJWLMCVTJLPIEKBE9JTHDQWV9MRMEWFLPWGJFLUXI9BXPSVWCMUWLZSEWHB'
+        b'DZKXOLYNOZAPOYLQVZAQMOHGTTQEUAOVKVRRGAHNGPUEKHFVPVCOYSJAWHZU9DRROH'
+        b'BETBAFTATVAUGOEGCAYUXACLSSHHVYDHMDGJP9AUCLWLNTFEVGQGHQXSKEMVOVSKQE'
+        b'EWHWZUDTYOBGCURRZSJZLFVQQAAYQO9TRLFFN9HTDQXBSPPJYXMNGLLBHOMNVXNOWE'
+        b'IDMJVCLLDFHBDONQJCJVLBLCSMDOUQCKKCQJMGTSTHBXPXAMLMSXRIPUBMBAWBFNLH'
+        b'LUJTRJLDERLZFUBUSMF999XNHLEEXEENQJNOFFPNPQ9PQICHSATPLZVMVIWLRTKYPI'
+        b'XNFGYWOJSQDAXGFHKZPFLPXQEHCYEAGTIWIJEZTAVLNUMAFWGGLXMBNUQTOFCNLJTC'
+        b'DMWVVZGVBSEBCPFSM99FLOIDTCLUGPSEDLOKZUAEVBLWNMODGZBWOVQT9DPFOTSKRA'
+        b'BQAVOQ9RXWBMAKFYNDCZOJGTCIDMQSQQSODKDXTPFLNOKSIZEOY9HFUTLQRXQMEPGO'
+        b'XQGLLPNSXAUCYPGZMNWMQWSWCKAQYKXJTWINSGPPZG9HLDLEAWUWEVCTVRCBDFOXKU'
+        b'ROXH9HXXAXVPEJFRSLOGRVGYZASTEBAQNXJJROCYRTDPYFUIQJVDHAKEG9YACV9HCP'
+        b'JUEUKOYFNWDXCCJBIFQKYOXGRDHVTHEQUMHO999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999999999999999999999999999999999999'
+        b'999999999999RKWEEVD99A99999999A99999999NFDPEEZCWVYLKZGSLCQNOFUSENI'
+        b'XRHWWTZFBXMPSQHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9PGTKORV9IKTJZQ'
+        b'UBQAWTKBKZ9NEZHBFIMCLV9TTNJNQZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999'
+        b'999TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJNQZUIJDFPTTCTKBJRHAITVSK'
+        b'UCUEMD9M9SQJ999999999999999999999999999999999999999999999999999999'
+        b'999999999999999999999999999999999'
+      )
 
-      from iota import Transaction
+``Transaction`` is a transaction that has been loaded from the Tangle.
 
-      txn_1 =\
-        Transaction.from_tryte_string(
-          'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQ...',
-        )
+Generally, you will never need to create ``Transaction`` objects; the
+API will build them for you, as the result of various API methods.
 
-   This is equivalent to the `Paste Trytes`_ feature from the IOTA Wallet.
+Each ``Transaction`` has the following attributes:
 
-Each :py:class:`Transaction` object has the following attributes:
+-  ``address: Address``: The address associated with this transaction.
+   Depending on the transaction's ``value``, this address may be a
+   sender or a recipient.
+-  ``branch_transaction_hash: TransactionHash``: An unrelated
+   transaction that this transaction "approves". Refer to the Basic
+   Concepts section for more information.
+-  ``bundle_hash: BundleHash``: The bundle hash, used to identify
+   transactions that are part of the same bundle. This value is
+   generated by taking a hash of the metadata from all transactions in
+   the bundle.
+-  ``current_index: int``: The transaction's position in the bundle.
+-  If the ``current_index`` value is 0, then this is the "tail
+   transaction".
+-  If it is equal to ``last_index``, then this is the "head
+   transaction".
+-  ``hash: TransactionHash``: The transaction hash, used to uniquely
+   identify the transaction on the Tangle. This value is generated by
+   taking a hash of the raw transaction trits.
+-  ``is_confirmed: Optional[bool]``: Whether this transaction has been
+   "confirmed". Refer to the Basic Concepts section for more
+   information.
+-  ``last_index: int``: The index of the final transaction in the
+   bundle. This value is attached to every transaction to make it easier
+   to traverse and verify bundles.
+-  ``nonce: Hash``: This is the product of the PoW process.
+-  ``signature_message_fragment: Fragment``: Additional data attached to
+   the transaction:
+-  If ``value < 0``, this value contains a fragment of the cryptographic
+   signature authorizing the spending of the IOTAs.
+-  If ``value > 0``, this value is an (optional) string message attached
+   to the transaction.
+-  If ``value = 0``, this value could be either a signature or message
+   fragment, depending on the previous transaction.
+-  ``tag: Tag``: Used to classify the transaction. Many transactions
+   have empty tags (``Tag(b'999999999999999999999999999')``).
+-  ``timestamp: int``: Unix timestamp when the transaction was created.
+   Note that devices can specify any timestamp when creating
+   transactions, so this value is not safe to use for security measures
+   (such as resolving double-spends).
+-  ``trunk_transaction_hash: TransactionHash``: The transaction hash of
+   the next transaction in the bundle. If this transaction is the head
+   transaction, its ``trunk_transaction_hash`` will be pseudo-randomly
+   selected, similarly to ``branch_transaction_hash``.
+-  ``value: int``: The number of IOTAs being transferred in this
+   transaction:
+-  If this value is negative, then the ``address`` is spending IOTAs.
+-  If it is positive, then the ``address`` is receiving IOTAs.
+-  If it is zero, then this transaction is being used to carry metadata
+   (such as a signature fragment or a message) instead of transferring
+   IOTAs.
 
-- ``address`` (:py:class:`Address`)
+ProposedTransaction
+~~~~~~~~~~~~~~~~~~~
 
-   The address associated with this transaction.  Depending on the transaction's
-   ``value``, this address may be a sender or a recipient.
+``ProposedTransaction`` is a transaction that was created locally and
+hasn't been broadcast yet.
 
-- ``attachment_timestamp`` (:py:class:`int`)
-  Timestamp after completing the Proof of Work process.
+.. code:: python
 
-  See the `timestamps white paper`_ for more information.
+    txn_2 =\
+      ProposedTransaction(
+        address =
+          Address(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+            b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+          ),
 
-- ``attachment_timestamp_lower_bound`` (:py:class:`int`)
-  Lower bound of the timestamp.
+        message = TryteString.from_string('thx fur cheezburgers'),
+        tag     = Tag(b'KITTEHS'),
+        value   = 42,
+      )
 
-  See the `timestamps white paper`_ for more information.
+This type is useful when creating new transactions to broadcast to the
+Tangle. Note that creating a ``ProposedTransaction`` requires only a
+small subset of the attributes needed to create a ``Transaction``
+object.
 
-- ``attachment_timestamp_upper_bound`` (:py:class:`int`)
-  Upper bound of the timestamp.
+To create a ``ProposedTransaction``, specify the following values:
 
-  See the `timestamps white paper`_ for more information.
+-  ``address: Address``: The address associated with the transaction.
+   Note that each transaction references exactly one address; in order
+   to transfer IOTAs from one address to another, you must create at
+   least two transactions: One to deduct the IOTAs from the sender's
+   balance, and one to add the IOTAs to the recipient's balance.
+-  ``message: Optional[TryteString]``: Optional trytes to attach to the
+   transaction. This could be any value (character strings, binary data,
+   or raw trytes), as long as it's converted to a ``TryteString`` first.
+-  ``tag: Optional[Tag]``: Optional tag to classify this transaction.
+   Each transaction may have exactly one tag, and the tag is limited to
+   27 trytes.
+-  ``value: int``: The number of IOTAs being transferred in this
+   transaction. This value can be 0; for example, to send a message
+   without spending any IOTAs.
 
-- ``branch_transaction_hash`` (:py:class:`TransactionHash`)
+Bundle Types
+------------
 
-  An unrelated transaction that this transaction "approves".
-  Refer to the `protocol documentation`_ for more information.
+As with transactions, PyOTA defines two bundle types.
 
-- ``bundle_hash`` (:py:class:`BundleHash`)
+Bundle
+~~~~~~
 
-   The bundle hash, used to identify transactions that are part of the same
-   bundle.  This value is generated by taking a hash of the metadata from all
-   transactions in the bundle.
+.. code:: python
 
-- ``current_index`` (:py:class:`int`)
+    from iota import Bundle
 
-   The transaction's position in the bundle.
+    bundle = Bundle.from_tryte_strings([
+      b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC...',
+      b'OYOXYPCLR9PBEY9ORZIEPPDNTI9CQWYZUOTAVBXPSBOFEQAPFLWXSWUIUSJMSJIIIZ...',
+      # etc.
+    ])
 
-   - If the ``current_index`` value is 0, then this is the "tail transaction".
-   - If it is equal to ``last_index``, then this is the "head transaction".
+``Bundle`` represents a bundle of transactions published on the Tangle.
+It is intended to be a read-only object, allowing you to inspect the
+transactions and bundle metadata.
 
-- ``hash`` (:py:class:`TransactionHash`)
+Each bundle has the following attributes:
 
-   The transaction hash, used to uniquely identify the transaction on the
-   Tangle.  This value is generated by taking a hash of the raw transaction
-   trytes.
+-  ``hash: BundleHash``: The hash of this bundle. This value is
+   generated by taking a hash of the metadata from all transactions in
+   the bundle.
+-  ``is_confirmed: Optional[bool]``: Whether the transactions in this
+   bundle have been confirmed. Refer to the Basic Concepts section for
+   more information.
+-  ``tail_transaction: Optional[Transaction]``: The bundle's tail
+   transaction.
+-  ``transactions: List[Transaction]``: The transactions associated with
+   this bundle.
 
-- ``last_index`` (:py:class:`int`)
+ProposedBundle
+~~~~~~~~~~~~~~
 
-   The index of the final transaction in the bundle.  This value is attached to
-   every transaction to make it easier to traverse and verify bundles.
+.. code:: python
 
-- ``nonce`` (:py:class:`Nonce`)
+    from iota import Address, ProposedBundle, ProposedTransaction
+    from iota.crypto.signing import KeyGenerator
 
-   This is the product of the PoW process.
+    bundle = ProposedBundle()
 
-   Refer to the `protocol documentation`_ for more information.
+    bundle.add_transaction(ProposedTransaction(...))
+    bundle.add_transaction(ProposedTransaction(...))
+    bundle.add_transaction(ProposedTransaction(...))
 
-- ``signature_message_fragment`` (:py:class:`Fragment`)
+    bundle.add_inputs([
+      Address(
+        address =
+          b'TESTVALUE9DONTUSEINPRODUCTION99999HAA9UA'
+          b'MHCGKEUGYFUBIARAXBFASGLCHCBEVGTBDCSAEBTBM',
 
-   Additional data attached to the transaction:
+        balance   = 86,
+        key_index = 0,
+      ),
+    ])
 
-   - If ``value < 0``, this value contains a fragment of the cryptographic
-     signature authorizing the spending of the IOTAs.
-   - If ``value > 0``, this value is an (optional) string message attached to
-     the transaction.
-   - If ``value = 0``, this value could be either a signature or message
-     fragment, depending on the previous transaction.
+    bundle.send_unspent_inputs_to(
+      Address(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999D99HEA'
+        b'M9XADCPFJDFANCIHR9OBDHTAGGE9TGCI9EO9ZCRBN'
+      ),
+    )
 
-   .. tip::
+    bundle.finalize()
+    bundle.sign_inputs(KeyGenerator(b'SEED9GOES9HERE'))
 
-      Read this as "Signature/Message Fragment".  That is, it could be a
-      fragment of a signature **or** a message, depending on the transaction.
+.. note::
 
-- ``tag`` (:py:class:`Tag`)
+    This section contains information about how PyOTA works "under the
+    hood".
 
-   Used to classify the transaction.
-
-   Every transaction has a tag, but many transactions have empty tags.
-
-- ``timestamp`` (:py:class:`int`)
-
-  Unix timestamp when the transaction was created.
-
-  Note that devices can specify any timestamp when creating transactions, so
-  this value is not safe to use by itself for security measures (such as
-  resolving double-spends).
-
-  .. note::
-
-     The IOTA protocol does support verifiable timestamps.  Refer to the
-     `timestamps white paper`_ for more information.
-
-- ``trunk_transaction_hash`` (:py:class:`TransactionHash`)
-
-   The transaction hash of the next transaction in the bundle.
-
-   If this transaction is the head transaction, its ``trunk_transaction_hash``
-   will be pseudo-randomly selected, similarly to ``branch_transaction_hash``.
-
-- ``value`` (:py:class:`int`)
-
-   The number of IOTAs being transferred in this transaction:
-
-  - If this value is negative, then the ``address`` is spending IOTAs.
-  - If it is positive, then the ``address`` is receiving IOTAs.
-  - If it is zero, then this transaction is being used to carry metadata (such
-    as a signature fragment or a message) instead of transferring IOTAs.
+        The ``prepare_transfer`` API method encapsulates this functionality
+        for you; it is not necessary to understand how ``ProposedBundle``
+        works in order to use PyOTA.
 
 
-:todo: ProposedTransaction
+``ProposedBundle`` provides a convenient interface for creating new
+bundles, listed in the order that they should be invoked:
 
+-  ``add_transaction: (ProposedTransaction) -> None``: Adds a
+   transaction to the bundle. If necessary, it may split the transaction
+   into multiple (for example, if the transaction's message is too long
+   to fit into 2187 trytes).
+-  ``add_inputs: (List[Address]) -> None``: Specifies inputs that can be
+   used to fund transactions that spend IOTAs. The ``ProposedBundle``
+   will use these to create the necessary input transactions.
+-  You can use the ``get_inputs`` API command to find suitable inputs.
+-  ``send_unspent_inputs_to: (Address) -> None``: Specifies the address
+   that will receive unspent IOTAs. The ``ProposedBundle`` will use this
+   to create the necessary change transaction, if necessary.
+-  ``finalize: () -> None``: Prepares the bundle for PoW. Once this
+   method is invoked, no new transactions may be added to the bundle.
+-  ``sign_inputs: (KeyGenerator) -> None``: Generates the necessary
+   cryptographic signatures to authorize spending the inputs. You do not
+   need to invoke this method if the bundle does not contain any
+   transactions that spend IOTAs.
 
-.. _protocol documentation: https://iota.readme.io/docs/
-.. _paste trytes: https://forum.iota.org/t/3457/3
-.. _timestamps white paper: https://iota.org/timestamps.pdf
+Once the ``ProposedBundle`` has been finalized (and inputs signed, if
+necessary), invoke its ``as_tryte_strings`` method to generate the raw
+trytes that should be included in an ``attach_to_tangle`` API request.

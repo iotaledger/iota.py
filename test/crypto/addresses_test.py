@@ -279,3 +279,37 @@ class AddressGeneratorTestCase(TestCase):
         ),
       ],
     )
+
+  def test_generator_checksum(self):
+    """
+    Creating a generator with checksums on the addresses.
+    """
+    ag = AddressGenerator(
+       self.seed_2,
+       security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
+       checksum=True
+    )
+
+    generator = ag.create_iterator()
+
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      next(generator),
+
+      Address(
+        b'FNKCVJPUANHNWNBAHFBTCONMCUBC9KCZ9EKREBCJ'
+        b'AFMABCTEPLGGXDJXVGPXDCFOUCRBWFJFLEAVOEUPY'
+        b'ADHVCBXFD',
+      ),
+    )
+
+    # noinspection SpellCheckingInspection
+    self.assertEqual(
+      next(generator),
+
+      Address(
+        b'MSYILYYZLSJ99TDMGQHDOBWGHTBARCBGJZE9PIMQ'
+        b'LTEXJXKTDREGVTPA9NDGGLQHTMGISGRAKSLYPGWMB'
+        b'WIKQRCIOD',
+      ),
+    )

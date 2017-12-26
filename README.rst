@@ -45,12 +45,14 @@ To install this extension, use the following command::
    pip install pyota[ccurl]
 
 
+.. _readme-installing-from-source:
+
 Installing from Source
 ======================
 
-1. `Create virtualenv`_ (recommended, but not required).
-2. ``git clone https://github.com/iotaledger/iota.lib.py.git``
-3. ``pip install -e .``
+#. `Create virtualenv`_ (recommended, but not required).
+#. ``git clone https://github.com/iotaledger/iota.lib.py.git``
+#. ``pip install -e .``
 
 Running Unit Tests
 ------------------
@@ -66,12 +68,33 @@ PyOTA is also compatible with `tox`_::
 =============
 Documentation
 =============
-For the full documentation of this library, please refer to the
-`official API`_
+PyOTA's documentation is available on `ReadTheDocs`_.
 
+If you are :ref:`installing from source <readme-installing-from-source>`, you
+can also build the documentation locally:
+
+#. Install extra dependencies (you only have to do this once)::
+
+      pip install '.[docs-builder]'
+
+   .. tip::
+
+      To install the CCurl extension and the documentation builder tools
+      together, use the following command::
+
+         pip install '.[ccurl,docs-builder]'
+
+#. Switch to the ``docs`` directory::
+
+      cd docs
+
+#. Build the documentation::
+
+      make html
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
+.. _ReadTheDocs: https://pyota.readthedocs.io/
 .. _Slack: https://slack.iota.org/
 .. _dedicated forum: https://forum.iota.org/
 .. _official API: https://iota.readme.io/

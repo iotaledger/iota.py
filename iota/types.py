@@ -77,9 +77,9 @@ class TryteString(JsonSerializable):
     :param codec:
       Which codec to use:
 
-        - 'binary': Converts each byte into a sequence of trits with
-          the same value (this is usually what you want).
-        - 'ascii': Uses the legacy ASCII codec.
+        - 'trytes_binary': Converts each byte into a sequence of trits
+          with the same value (this is usually what you want).
+        - 'trytes_ascii': Uses the legacy ASCII codec.
 
     :param args:
       Additional positional arguments to pass to the initializer.
@@ -458,9 +458,9 @@ class TryteString(JsonSerializable):
     :param codec:
       Which codec to use:
 
-      - 'binary': Converts each sequence of 5 trits into a byte with
-        the same value (this is usually what you want).
-      - 'ascii': Uses the legacy ASCII codec.
+      - 'trytes_binary': Converts each sequence of 5 trits into a byte
+        with the same value (this is usually what you want).
+      - 'trytes_ascii': Uses the legacy ASCII codec.
 
     :raise:
       - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot

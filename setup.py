@@ -10,10 +10,15 @@ import setuptools
 from setuptools import find_packages, setup
 
 
+##
+# Because of the way PyOTA declares its dependencies, it requires a
+# more recent version of setuptools.
+# https://www.python.org/dev/peps/pep-0508/#environment-markers
 from distutils.version import LooseVersion
 if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
     import sys
     sys.exit('Installation failed: Upgrade setuptools to version 20.5 or later')
+
 
 ##
 # Load long description for PyPi.

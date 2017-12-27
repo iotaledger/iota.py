@@ -729,6 +729,18 @@ class Iota(StrictIota):
       inclusionStates = inclusion_states,
     )
 
+  def is_promotable(self, tail):
+    # type: (TransactionHash) -> bool
+    """
+    Determines if a tail transaction is promotable.
+
+    :param tail:
+      Transaction hash. Must be a tail transaction.
+    """
+    return extended.IsPromotableCommand(self.adapter)(
+      tail=tail,
+    )
+
   def prepare_transfer(self, transfers, inputs=None, change_address=None):
     # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> dict
     """

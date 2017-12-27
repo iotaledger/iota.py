@@ -7,7 +7,194 @@ from unittest import TestCase
 from six import binary_type, text_type
 
 from iota import Address, AddressChecksum, AsciiTrytesCodec, Hash, Tag, \
-  TryteString, TrytesDecodeError
+  TryteString, TrytesDecodeError, TransactionTrytes, TransactionHash
+
+
+# noinspection SpellCheckingInspection
+class TryteStringConvertBytesTestCase(TestCase):
+  def test_transaction_hash(self):
+    txh = TransactionHash(b'CHVXYIMWTDHTBXGEUMNSAS9WMLNSGNYGI9NGKUMCQAZONLMYLQXFVBKNVLATTLWNCNFNBNIPJULFA9999')
+    bytes_ = (b'\xe8\xf2\xedu\xa4">\x05>V\xd5\xb4\x1c\xaet\xa08\x8d\xc8\x1c\x8b=@\x1f'
+             b'\x11\xfd\x87x\xfb\xaa\xac\xa1d_t\xc1J\xa4\x17\xa2\x89\x8c\xd3\x1dj!\x00'
+             b'\x00\x00')
+    self.assertEqual(txh.as_bytes(), bytes_)
+    self.assertEqual(TransactionHash.from_bytes(bytes_), txh)
+
+  def test_tag(self):
+    tag = Hash(b'EXAMPLE')
+    bytes_ = (b'\xb4T\xa1\xa0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+              b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+              b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+
+    self.assertEqual(tag.as_bytes(), bytes_)
+    self.assertEqual(Hash.from_bytes(bytes_), tag)
+
+  def test_transaction_trytes(self):
+    txt = TransactionTrytes(
+      (b'BVWUTCNFCTBHZHF9HPLVUGWOPHYQYEIBWDPAXNGZTKXWXXZD9GATQKDQOGQZKGNYCFMGYJ'
+       b'9BCCFU9JYTKDYLRRZOXSYZGLTODYEXAYWMDZOSREGLOYJMINYEKVVUEHHUDMQNVOBIDJGH'
+       b'LRVONVFPMFUMFWKXEQG9YVOBUXCWFBVASSAWHJQATDHHUKQORNJLNOEYDKIRYOT9APCJFK'
+       b'GP99IJDHD9BMEVS9JGJJOZXFVJKHHJ9HDEWJUTCPT9CNVEZLXLDKKWCEZ9ZNMUYEGSQVTM'
+       b'SFMW9DGALROMSXUGRAUCEJQG9BDEXEEMNSKGFEFSFNUWIGPUMETHMDGHSGFHKBFEBCBEPI'
+       b'XTVHLIKVEPK9WNXSACJNKTONWLFJLEPFIWBCKJZPYP9VHKJTRTNORKOETDDTZPJDXLVPTK'
+       b'LT99RIQSFBC9PDXEOSLOKXTBQSUXFKGZCQSMQRRUVQYEG9JDGFKLAKPZA9QDF9OLORFURS'
+       b'KQLFWEKCNPM9XAE9HXV9QVKUFUADBXIWEKDLHNFLZ9CFSSSIMLLHQMGXJOAPGCSGIAWOQM'
+       b'BWURGABAETJLLGRCFURCSXHPHLWITZFEDKXJIVCGIEAHJRFRWERLYULRLXBHVMZISUGQZT'
+       b'OONMV9SXGTALLYVLI9VZOXKOLKAWTLJNRPGPGTIACCQCNHHUROBBEAERNKAA9WSSGXR9LP'
+       b'X9GKKZTKUYM9XBVBVKCZFX9K9NPDDBYPZPGSTFYCDDFXRHQRHDDPWWRQTSNPKZTMDMXSRE'
+       b'INPIQBGUXT9IOIMGEA9TFTHFACNPPBZWAIAATNIK9CSSI9BMYVIXCLLFRIPXQUL9VMOSBZ'
+       b'YWXQCGYIWQJHDCJKLJBPVXULGNFYHCHHKAIHALEQBOIKKSWOE9ZMXNVAJLKYVBFGEPYPVY'
+       b'PXCIHUUKNJPNQASXXFBIND9XOTU9JQNKNUTGNYLGUICKSJDBISZVMDOZKRIBPCAMYBBFTG'
+       b'TYHYMFPLXJVCGWLOSA9NZRSWIJZYKWHYXYDUGNGYI999VQUAT9NJTUJAYBKBUN9CUUIGMU'
+       b'9SQAHLVDYBDVTZMHIGBJMEWBNUHQLWAIARCUJJBTTTHUSLAUEMAUQIFEQNV9KQYZJFXXXF'
+       b'SIOKQBTGMAMRSFIHEDKUZVUSOCTGQQZBHVUFDFYRLQXLTDCOTHWXOAJDLNKPWXAUKWQXQP'
+       b'GY9IXMDWHZJUFWBQVTBNHO9XUPKLWHMPIAYMRSLWVBAMYMTUKFHTOFQIWLWXLGYUUWXJHE'
+       b'RTGUGGSKUYOUZKFUXDRFEBSM9PPWCUVOKSBBXCZGPTKNPFCEOVDTCMFXYCRJXH9VFLANDF'
+       b'XZEGJVFNNGQMIM9DYBHKRQLDYGDAUXVKDFKZEWDHZUTTOLRVY9XGEFVRHTCOEHGPT9A9SO'
+       b'YRSLCNKOBYZCTSIYRDN9CQHZRAVEAHDTOUWS9SCUTYXKJGXW9DDVUYBKL9VCTJGWUDTMZH'
+       b'XRNHVGCGWMDLMFXEKWFEGGFGXLBX9YUFQPDUMNPAAXNWPRQWKUCUCXMQMNPAUNOFXCQQNX'
+       b'GHQWMLZHPMKDZEJRRZNMLMSQ9UWEIPQATAIEUCTNZQYNXWSQPJQCQ9XFAHQOSAYWVMQVIF'
+       b'JPPKUGFBJKVUVLWQVIFCUIMQHKGFSZIGZFIQZJECUCHXAWYDM9PYXPLWPPHXTZ9CVRYXZQ'
+       b'HUHLSLJ9IVAWWWJGPXTKDUYARLOHGMSAWSMPFAXJTJNB9PTRGVMYQEVPDOKKHTOPOILMBR'
+       b'QB9MWYGHEHRBJLDVCHHQBYPALXEAGQYQRSAFYKUYAJBXMGVMBHRR9RISZRZVJYOMYTDUJO'
+       b'EIEDRBWOBFZSSIUXK99RXDYAEGAH9ROJWTETQUHYJYAJVG9CKUHRANRUBJYXGPSXVKKXPS'
+       b'BGWKBRGFXFZNOHXNSFPIPAZHCMCKGAUJRXGCCOKLFRXNCXJGGJZNONSCYRIBWKGYIMUPBW'
+       b'FBLERFFNXPMGTGLEHHHSEYBVC9VONAYLNZWIRLINAXLLQXPDYSBWACVQHHRCEZCWYYPXWN'
+       b'KWZSMYPNAMYOOUOCIYYZOODLUB9ES9Q9BMRHTXMUKDPUWWBAWKIZWSGN9XKUHAJWGRKRHS'
+       b'HUPKAUPPQPMRSJJFHBPDQGWTY9DYFEMEIBJ9RXYSYMDHNRPQVZ9HWOFVT9I9CDNYYCKDM9'
+       b'TQQFVZCHWJMNQWZV9KPWCHICGJZXKE9GSUDXZYUAPLHAKAHYHDXNPHENTERYMMBQOPSQID'
+       b'ENXKLKCEYCPVTZQLEEJVYJZV9BWU999999999999999999999999999QRFM99999999999'
+       b'999999999999SUYEEXD99999999999A99999999SSSFJDJAJ9HBHQSDSGZQIRUYXIQTSMC'
+       b'JZUDBRQXTWVDMDAAWALGPXAZUXGF9ATJJ9BQHMHORGF9VBHBAZSGVAWACCHIGS9CCPXJYJ'
+       b'KOWAA9YERRVGIHRVKPMSKOLQGGYENRIXZXRKHJDDKKPPZBOVEUWMDEBVA9999OBDZAJUQM'
+       b'ZXX9RAQO9CYLLIONKQWRSTYDPRJKIWTHXOAWAZUII9QRLAML9BXCXTGYREN9IIDRNDQ999'
+       b'99999999999999999999999999999999999999999999999999999999YZTZAFBXOBRHZM'
+       b'XZG9OUBFJMOBL'))
+    bytes_ = (b'n\xf3\xbf\x97\x11\xc2\xe7\xad9\xe5\xe0\xd7\xc4\xf5\x99\xd23,?E\x9e\xb0*\xf9/\xa7\xe4\xe2\x0c?'
+        b'7\x90(\xa5\xc3\xf4\xd5+\x1argY6\t7\xfao\xc0w\xfa\xb3\xdc\xdc\xb7\xe3\x15\xc5`\xa9\xe7'
+        b'\xcbE(\xae\xe7*X.Y\r+,w\xf0+\xed@v\x8a\xf0\x0euoJ\x0c\xf0\x87\xaa1:'
+        b'f\xc2b\x914\x02j\x8a\xcbN\xf4\x14\x169\x06\xe1\xce\x06e\xc7\xcd\xf0\xdb\x88[\xda)j!\xb2'
+        b'\xad\xea\tF\x1ee\xd1\xffQvi\x01na\xb6\x1bg]\xd9\xf7\xd5@\xc8]\xe5\xbc\xde[\xea\x9e'
+        b'\xf9\xb8\xcf\xea$k:\xd1\x1a\xea\xaf\x8b^\xa8A\xdd\x9fs\xa7\xd7\xff\xce\x04\xb3`\xe9\xc9\x07\x02\x19'
+        b' 4\x02n\x0f,q+`\xb6\x10\xba\x9a\x9cP\xd1>1\xdey@#\x14JA\xc1\x149`M'
+        b'3\x9fo?\xa1\x9f\x0b\xa3\xe1\x13Z\x8eA\x8a\xd8\xbb\x1f1\xa4\xcb\x119\xce\x9d\xc8PF&\xec\xbe'
+        b'\xa2\x93\x98;\\\xc2\xc9n\xe6x\x8daB\xff\xaf\xee\xe7\x14\x030\xe6\xb4\xe7\x98\xba\x9a\xa7I\xf6e'
+        b'\xec\xb8\xb5\xf2\xe4\xc7\xe0\xa8A\x1b^8\\\xb3\xa1\x1a\xaf!\x06\xdc\x98\xa6\xef\xb5\xf0#\xde;\xb9\x99'
+        b'\rH-\xe5I\xfeb 4\x15\xbb\xe6\x9d\xbe(\xf1\xdan\xff\t\xba\x13kp\xf14C\x18.\x9d'
+        b'X9S\x95\x8br\x96\xee<7\xb2\xc3[v\xb1\xb2\xef\x18\xa7iD\xa0\xca\xf5\x9a\xbc\xe9\n\xf2@'
+        b'\x9d\xb3]\xa6\x95,H\xfbjH\xa7Ig\xfe\xbb\xc4\x92\xc1\xa3)\xd7\x1bG\xc3Rv\xd2\x0cR\xf5'
+        b'\xa3!h&\xa3j\x9e5;\xbf\xec\x0cT\xe2\x8c\xed\xef\x918`-\x8bq\t\x949<\xfd\xff\xa1'
+        b"\xfd\xc4g5 \xec\r\xa6\xd4n \xf8\xb5\xaf\x04\xbd\\\x13\xc8M;.b\x1ap\x12\xae\xed\x93'"
+        b'\xce\xa2\xae,\x96\x99\xf0<(\xbc\xe8*\x9d\xde\xa9\xcc\xef\xc0\x00\xddx\x9b\x04\xc1<\x17\x0b\x97/\x0e'
+        b'\x93\x03\x0c7\xd8fQ9N6x\xd2\xb8\tp\x06k\xe1G#\xd3\xbc\x96\xf8\x92\xa6\x18\xd1\xca\xa5'
+        b'\xef\r[\\\xce\x9e\xaa\xeeC\xa2\xaa\x1e\xedsQ#\xd3\xa8\xb1\xc9g\x8c\x8b\x02k\xa7\xcf\x1c\xd4\xf2'
+        b'1c/\xbf0\xec\xa4\tKK\xcfV\x892\xb8\xac\xc1R_\x00\x93JP\xa9)\xda\xbf\x9b\xf9C'
+        b'\xfa\xb9\xbcv\x06\xbbkw\x955\xe6\x15FT\xf28\xc1=\xc3it\xd0#YL\xc4k\x0f\x02\x8b'
+        b'\xff\x96P\xef\xa9\xe0\xd2H#\xc4+\xf0\t\x00\xd3G\xb1\xfe\x0e\xecX\xcb\xb5\x16\x8e\xff\xcb\xfag\xce'
+        b"\x1b2Hx\\\x11p\x99u\x08\xc5[\xa1\xa4\x8c\xdf\xe3\xe0\x01\x04\x18\x15\xce\xc2/\x17\xb6'\x9dw"
+        b'R\xe19\xea)\xfe\xf0\xa8Z\xb5\xf75\xf8\x8c\xaa8e\r\r\xe7S\x9c\xbc\xcek>\x919\xc3\xa3'
+        b'5i\xc8rc\xae\xf1\xf6\xc5U\x8bF\xab-ZU\x89\xa1\xab\x03a\xe1\xa5\x9a\xd1\x00\xe8y\xa3\xfa'
+        b'[\xc0\x11b\x99\x8c\xb7\xff\xc9+\xd4G\xd7k\xee\r\xe7\xe01T\xf2C\x9c:>\xdb\xa8\x9d\xd3\xe4'
+        b'\xd6\xfb\xc8\xab\xcd0-\x14=" \xecE\xab:\xa9\x0c3;9\x04\xbf\xf3\xcb\xaaq\x0f\xb1\xb8?'
+        b"+\xcf\x99W\x0f\xcf:Y:\xc7\tW\xe2R4'*7\xe2`\\\xaa\x89;bm\x04\xce\xb5f"
+        b'\xdct\xefs\x03\xe31\re\x93FIP\x99\x92\x0cA\xff\xc7\x10\xd5\xdc\xec\x95\xeag\xbd\x1bQ\x91'
+        b'\xfe\xe7\x1f)\x8c\xefP<N\xfe\xba\xfc\xe8\xc6\xafm_H:\xdb\xda\xf8\xe8\xcb\xc3\xa6^\xb6\xf4$'
+        b'p>\x11\\R\x19\x14\xc5\xc9:\xd5H\xfd\x87\xd6X\xc4tU(\xe7;\xf5/\xd1d\xe7B\xf7\xee'
+        b'\xa94 f+\x05\xb0\x88\x9c\xdc\xa2\xceT\x08tb+\x05\x8e\xdb\xe7\xe8\x90\xe1\xec\x92t\xf1iq'
+        b'w\xac\\\xf7\xabqx\x98\xfd\x8e\x0f\xa0\x11<QV\xb7\x89\xe4\xa8\xe1\x172VG\xe2\xe5!\xc7\x91'
+        b'\x13\xa9\xd2\xf2\xf09\xd4\x8d\xce\xb6XfL\xf0\xe0b\x1a\x1d\xfa\xd7E\xd5d\xf4\xd3\xfeS\xdb\xcd\x1d'
+        b"K\x18\x08\xc6]\x04\xbfHh\xc6\x8d\xe8\xde\x00\xd4\xc1\xa6\xa6Y\x17\xbc'\x01\xd6\x95\xa3Y\xd1\xa5a"
+        b'UJ\xaf\xbbhw\x13Er\xa4\x04Y\x14\x89\x01+5\xd5\xd7\x91\xd5a\x8bg>,\x90Z\xd7\xb0'
+        b',Q\xe0\xc8\xc8J-\x1e(L\xc7\xa9\xcc0l\x91U\xa8\xe35\x06\xd0!\xec\x1c\x07ts\xd5I'
+        b'\xf7\xffN\xdd\x94\xd3\xd4-\xf2e?\x97\x05a\xb0\x96\x8b7\x1a\xe7\xcd3\x01\xafiK-"\x18\xaf'
+        b'\x0f\xa4+\xde\x9c\xf1\xd4T\xd6\x07\xb8\xce\x08\xb1\xab0o\xe4\xd1\xe7\xd2AI\xb4\xcc\xa4\x16\xc1\x135'
+        b'\x93\x8a\xe8\x0ebM\x10\xac\x1e^r\x0b\x15\xe6>T\x8bp\x06\xa5\x17\x18g\\\x93\x8a\xb4\xcd\xe5\x15'
+        b'2gP^\x8d\xdd<\xd3\xb1\xb5\xda\x9c\xd7=n\xea\xc8\xbb\xcfW\x19l\x8a\x05O\x89\xdc\t#\x8e'
+        b'\xb0$\xaa\xc7\\\xb7\x96\x03\xd4\xdb\x19\x18\xea\xb8\xed\xc8\xa5\x8a\x9fNr\xc8)u\xad\xdb\x92\x03L\xf6'
+        b'\xa3\x0b\xce\x02`\xfd\xf6W\xb3>G\xcew\xdf\xda2\xb2b\xeeE<\xf3\xa6\xce#\xcd>-\x95\xbb'
+        b'Y\x8d\r\xc4\x8d\x9a\r8]\xebX \xc0\xa4\xecl\xfa/\xa1\xcb[\x00G\xb7j\xbc\x8e\xc12\xf5'
+        b'\xe5\xf521\xff\x03o*\xed9^\x04\xde\xe1\xd5P\xc7Y\xa1\x90\xf6\xfbr\xd8\xe8\x1c@\xef\xa61'
+        b'\xca\xe9"\xe2\xfa\x07Fjc\xe6\xaa\'\x91\x8d0)\x0e\xeby\xb6\x91\x10\xe1\'\x99\xa5p\\`\x1a'
+        b'a\x99\xa6\xa0a\xd6\x19O\xfe\x96\xee\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf6b\x04'
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe8\xec\x99I\x01\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\xb8'
+        b"\x13b'%\x1eH\xe74!\xc2\xadNH\xf9P,8\x1f\xef?\x13\xdc\xa5\xdagx\n\x95\x03C"
+        b'\xa4\xb2\xca\xc7\x13\t\x14\x1f\x12\xdb\xd7\x97\xc1\x13\xd3\xe7X\xf7\xc2C\xdcR\xb8T"\xff\x1c\xa4oY'
+        b'\xbaD\t\xca\x0f\xac\xc5\xcb\xb211\xbc\xba\xd2<\xd1\xbe\xab\xb8\xfd\xae\xf0p%A1\xf3\xb1\x9f\xcc'
+        b'h\xbc\x14\x16\x00\x00\xafV\xf8\x1c\x9er\xae\xf7\xaf\xe6\xdb\x1bO%\x97)\x92\xae.J\x9e\x12"\xdf'
+        b'\xde\xf8\x05\x17\xfdO\t\xe2im%\x12N\xa6=\xfe\xbd\xfc\t\r\x88\xe9\xff\x00\x00\x00\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xca\xac\xf5'
+        b'\xb0\x07\x93\x02\xc6u\xe2\x15\x940cx*$')
+
+    self.assertEqual(txt.as_bytes(), bytes_)
+    self.assertEqual(TransactionTrytes.from_bytes(bytes_), txt)
+
+  def test_address(self):
+    address = Address(b'KPWCHICGJZXKE9GSUDXZYUAPLHAKAHYHDXNPHENTERYMMBQOPSQIDENXKLKCEYCPVTZQLEEJVYJZV9BWU')
+    bytes_ = (b'\xd5\xf3IZf\xfa3\x10?I\x0b\xf6OSh#rH\xe3\r\x8a\xda\xbf\xbd'
+              b'\x05Jy\xe7,\xb4\xf6\xbc\x8d3\xd4\x1f\xcfZ\xcf\xde\xe21 CYk\xae'
+              b'\xdd\xfa')
+
+    self.assertEqual(address.as_bytes(), bytes_)
+    self.assertEqual(Address.from_bytes(bytes_), bytes_)
+
+  def test_tryte_string(self):
+    ts = TryteString(b'HELLOIOTA')
+    bytes_0 = b''
+    bytes_10 = b'\x9c%'
+    bytes_27 = b'\x9c%\x98\xb8;\x00'
+
+    # as_bytes length indicate how many trits want to convert to bytes
+    self.assertEqual(ts.as_bytes(length=0), bytes_0)
+    self.assertEqual(ts.as_bytes(length=10), bytes_10)
+    self.assertEqual(ts.as_bytes(length=27), bytes_27)
+    self.assertEqual(ts.as_bytes(), bytes_27)
+    with self.assertRaises(IndexError):
+      ts.as_bytes(length=28)
+    with self.assertRaises(IndexError):
+      ts.as_bytes(length=48)
+
+    # from_bytes length indicate how may trits you want to convert to, it will
+    # then convert trits to tryte string
+    self.assertEqual(TryteString.from_bytes(bytes_0, length=0), TryteString(b''))
+    self.assertEqual(TryteString.from_bytes(bytes_0, length=10), TryteString(b'9999'))
+    self.assertEqual(TryteString.from_bytes(bytes_0, length=27), TryteString(b'999999999'))
+
+    self.assertEqual(TryteString.from_bytes(bytes_10, length=0), TryteString(b''))
+    self.assertEqual(TryteString.from_bytes(bytes_10, length=1), TryteString(b'Z'))
+    self.assertEqual(TryteString.from_bytes(bytes_10, length=10), TryteString(b'HEL9'))
+    self.assertEqual(TryteString.from_bytes(bytes_10, length=27), TryteString(b'HEL999999'))
+
+    self.assertEqual(TryteString.from_bytes(bytes_27, length=0), TryteString(b''))
+    self.assertEqual(TryteString.from_bytes(bytes_10, length=1), TryteString(b'Z'))
+    self.assertEqual(TryteString.from_bytes(bytes_27, length=10), TryteString(b'HEL9'))
+    self.assertEqual(TryteString.from_bytes(bytes_27, length=27), TryteString(b'HELLOIOTA'))
+    self.assertEqual(TryteString.from_bytes(bytes_27, length=48), TryteString(b'HELLOIOTA9999999'))
+
+    # from_bytes can auto triming trailing 9 when not providing length
+    self.assertEqual(TryteString.from_bytes(bytes_27), TryteString(b'HELLOIOTA'))
+
+  def test_empty_tryte_string(self):
+    ts = TryteString(b'')
+
+    self.assertEqual(ts.as_bytes(), b'')
+    self.assertEqual(ts.as_bytes(length=0), b'')
+    with self.assertRaises(IndexError):
+      ts.as_bytes(length=1)
+
+    self.assertEqual(TryteString.from_bytes(b''), TryteString(b''))
+    self.assertEqual(TryteString.from_bytes(b'', length=1), TryteString(b'9'))
+    self.assertEqual(TryteString.from_bytes(b'', length=2), TryteString(b'9'))
+    self.assertEqual(TryteString.from_bytes(b'', length=3), TryteString(b'9'))
+    self.assertEqual(TryteString.from_bytes(b'', length=4), TryteString(b'99'))
+    self.assertEqual(TryteString.from_bytes(b'', length=5), TryteString(b'99'))
+    self.assertEqual(TryteString.from_bytes(b'', length=6), TryteString(b'99'))
+    self.assertEqual(TryteString.from_bytes(b'', length=7), TryteString(b'999'))
+    self.assertEqual(TryteString.from_bytes(b'', length=8), TryteString(b'999'))
+    self.assertEqual(TryteString.from_bytes(b'', length=9), TryteString(b'999'))
+    self.assertEqual(TryteString.from_bytes(b'', length=10), TryteString(b'9999'))
+    self.assertEqual(TryteString.from_bytes(b'', length=11), TryteString(b'9999'))
+    self.assertEqual(TryteString.from_bytes(b'', length=12), TryteString(b'9999'))
+    self.assertEqual(TryteString.from_bytes(b'', length=13), TryteString(b'99999'))
 
 
 # noinspection SpellCheckingInspection

@@ -155,6 +155,10 @@ API will build them for you, as the result of various API methods.
 
 Each ``Transaction`` has the following attributes:
 
+-  ``legacy tag``: A short message attached to the transaction.
+-  ``attachment_timestamp``: Estimated epoch time of the attachment to the tangle.
+-  ``attachment_time_lower_bound``: The lowest possible epoch time of the attachment to the tangle.
+-  ``attachment_time_upper_bound``: The highest possible epoch time of the attachment to the tangle.
 -  ``address: Address``: The address associated with this transaction.
    Depending on the transaction's ``value``, this address may be a
    sender or a recipient.

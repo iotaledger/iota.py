@@ -9,6 +9,7 @@ from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
   discover_commands, extended
+from iota.commands.extended.helpers import Helpers
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from six import with_metaclass
@@ -440,6 +441,7 @@ class Iota(StrictIota):
     super(Iota, self).__init__(adapter, testnet)
 
     self.seed = Seed(seed) if seed else Seed.random()
+    self.helpers = Helpers(self)
 
   def broadcast_and_store(self, trytes):
     # type: (Iterable[TransactionTrytes]) -> dict
@@ -727,18 +729,6 @@ class Iota(StrictIota):
       start           = start,
       stop            = stop,
       inclusionStates = inclusion_states,
-    )
-
-  def is_promotable(self, tail):
-    # type: (TransactionHash) -> bool
-    """
-    Determines if a tail transaction is promotable.
-
-    :param tail:
-      Transaction hash. Must be a tail transaction.
-    """
-    return extended.IsPromotableCommand(self.adapter)(
-      tail=tail,
     )
 
   def prepare_transfer(self, transfers, inputs=None, change_address=None):

@@ -10,6 +10,7 @@ from iota import Iota, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.core.get_transactions_to_approve import \
   GetTransactionsToApproveCommand
+from iota.filters import Trytes
 
 
 class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
@@ -17,12 +18,35 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     GetTransactionsToApproveCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  def test_pass_happy_path(self):
+  def setUp(self):
+    super(GetTransactionsToApproveRequestFilterTestCase, self).setUp()
+
+    # Define some tryte sequences that we can reuse between tests.
+    self.trytes1 = (
+      b'TESTVALUEONE9DONTUSEINPRODUCTION99999JBW'
+      b'GEC99GBXFFBCHAEJHLC9DX9EEPAI9ICVCKBX9FFII'
+    )
+
+  def test_pass_happy_path_without_reference(self):
     """
-    Request is valid.
+    Request is valid without reference.
     """
     request = {
       'depth': 100,
+    }
+
+    filter_ = self._filter(request)
+
+    self.assertFilterPasses(filter_)
+    self.assertDictEqual(filter_.cleaned_data, request)
+
+  def test_pass_happy_path_with_reference(self):
+    """
+    Request is valid with reference.
+    """
+    request = {
+      'depth': 100,
+      'reference': TransactionHash(self.trytes1),
     }
 
     filter_ = self._filter(request)
@@ -112,6 +136,38 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'depth': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_reference_wrong_type(self):
+    """
+    ``reference`` is not a TrytesCompatible value.
+    """
+    self.assertFilterErrors(
+      {
+        'reference': 42,
+
+        'depth': 100,
+      },
+
+      {
+        'reference': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_reference_not_trytes(self):
+    """
+    ``reference`` contains invalid characters.
+    """
+    self.assertFilterErrors(
+      {
+        'reference': b'not valid; must contain only uppercase and "9"',
+
+        'depth': 100,
+      },
+
+      {
+        'reference': [Trytes.CODE_NOT_TRYTES],
       },
     )
 

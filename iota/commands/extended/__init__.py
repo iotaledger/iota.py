@@ -18,7 +18,6 @@ from .get_inputs import *
 from .get_latest_inclusion import *
 from .get_new_addresses import *
 from .get_transfers import *
-from .is_promotable import *
 from .prepare_transfer import *
 from .replay_bundle import *
 from .send_transfer import *

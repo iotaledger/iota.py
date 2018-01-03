@@ -155,13 +155,12 @@ API will build them for you, as the result of various API methods.
 
 Each ``Transaction`` has the following attributes:
 
--  ``legacy tag``: A short message attached to the transaction.
--  ``attachment_timestamp``: Estimated epoch time of the attachment to the tangle.
--  ``attachment_time_lower_bound``: The lowest possible epoch time of the attachment to the tangle.
--  ``attachment_time_upper_bound``: The highest possible epoch time of the attachment to the tangle.
 -  ``address: Address``: The address associated with this transaction.
    Depending on the transaction's ``value``, this address may be a
    sender or a recipient.
+-  ``attachment_timestamp: int``: Estimated epoch time of the attachment to the tangle.
+-  ``attachment_time_lower_bound: int``: The lowest possible epoch time of the attachment to the tangle.
+-  ``attachment_time_upper_bound: int``: The highest possible epoch time of the attachment to the tangle.
 -  ``branch_transaction_hash: TransactionHash``: An unrelated
    transaction that this transaction "approves". Refer to the Basic
    Concepts section for more information.
@@ -183,6 +182,7 @@ Each ``Transaction`` has the following attributes:
 -  ``last_index: int``: The index of the final transaction in the
    bundle. This value is attached to every transaction to make it easier
    to traverse and verify bundles.
+-  ``legacy_tag: Tag``: A short message attached to the transaction. Deprecated, use ``tag`` instead.
 -  ``nonce: Hash``: This is the product of the PoW process.
 -  ``signature_message_fragment: Fragment``: Additional data attached to
    the transaction:

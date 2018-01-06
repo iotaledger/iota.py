@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import Address, Bundle, BundleHash, Fragment, Hash, \
-  Tag, Transaction, TransactionHash, TransactionTrytes, TryteString, Nonce
+from iota import Address, Bundle, BundleHash, Fragment, Hash, Nonce, Tag, \
+  Transaction, TransactionHash, TransactionTrytes
 
 
 class BundleTestCase(TestCase):
@@ -74,7 +74,7 @@ class BundleTestCase(TestCase):
       # fragment.
       Transaction(
         signature_message_fragment =
-          Fragment.from_string('Hello, world!'),
+          Fragment.from_unicode('Hello, world!'),
 
         address =
           Address(
@@ -207,7 +207,7 @@ class BundleTestCase(TestCase):
         # Make the signature look like a message, so we can verify that
         # the Bundle skips it correctly.
         signature_message_fragment =
-          Fragment.from_string('This is a signature, not a message!'),
+          Fragment.from_unicode('This is a signature, not a message!'),
 
         address =
           Address(
@@ -237,7 +237,7 @@ class BundleTestCase(TestCase):
         # Make the signature look like a message, so we can verify that
         # the Bundle skips it correctly.
         signature_message_fragment =
-          Fragment.from_string('This is a signature, not a message!'),
+          Fragment.from_unicode('This is a signature, not a message!'),
 
         address =
           Address(
@@ -267,7 +267,7 @@ class BundleTestCase(TestCase):
         # It's unusual for a change transaction to have a message, but
         # half the fun of unit tests is designing unusual scenarios!
         signature_message_fragment =
-          Fragment.from_string('I can haz change?'),
+          Fragment.from_unicode('I can haz change?'),
 
         address =
           Address(
@@ -534,7 +534,7 @@ class TransactionTestCase(TestCase):
         b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
       ),
     )
-    
+
     self.assertEqual(transaction.tag, Tag(b'999999999999999999999999999'))
     self.assertEqual(transaction.attachment_timestamp,1480690413)
     self.assertEqual(transaction.attachment_timestamp_lower_bound,1480690413)
@@ -642,12 +642,12 @@ class TransactionTestCase(TestCase):
           b'TKORV9IKTJZQUBQAWTKBKZ9NEZHBFIMCLV9TTNJN'
           b'QZUIJDFPTTCTKBJRHAITVSKUCUEMD9M9SQJ999999'
         ),
-        
+
       tag                               = Tag(b'999999999999999999999999999'),
       attachment_timestamp              = 1480690413,
       attachment_timestamp_lower_bound  = 1480690413,
       attachment_timestamp_upper_bound  = 1480690413,
-      
+
 
       nonce =
         Nonce(

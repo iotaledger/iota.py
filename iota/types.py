@@ -7,7 +7,8 @@ from itertools import chain
 from math import ceil
 from random import SystemRandom
 from typing import Any, AnyStr, Generator, Iterable, Iterator, List, \
-  MutableSequence, Optional, Text, Union
+  MutableSequence, Optional, Text, Type, TypeVar, Union
+from warnings import warn
 
 from six import PY2, binary_type, itervalues, python_2_unicode_compatible, \
   text_type
@@ -24,14 +25,16 @@ __all__ = [
   'AddressChecksum',
   'Hash',
   'Tag',
-  'TryteString',
   'TrytesCompatible',
+  'TryteString',
 ]
 
 
 # Custom types for type hints and docstrings.
 TrytesCompatible = Union[AnyStr, bytearray, 'TryteString']
 
+
+T = TypeVar('T', bound='TryteString')
 
 @python_2_unicode_compatible
 class TryteString(JsonSerializable):
@@ -67,7 +70,7 @@ class TryteString(JsonSerializable):
 
   @classmethod
   def from_bytes(cls, bytes_, codec=AsciiTrytesCodec.name, *args, **kwargs):
-    # type: (Union[binary_type, bytearray], Text, *Any, **Any) -> TryteString
+    # type: (Type[T], Union[binary_type, bytearray], Text, *Any, **Any) -> T
     """
     Creates a TryteString from a sequence of bytes.
 
@@ -75,11 +78,10 @@ class TryteString(JsonSerializable):
       Source bytes.
 
     :param codec:
-      Which codec to use:
+      Reserved for future use.
 
-        - 'trytes_binary': Converts each byte into a sequence of trits
-          with the same value (this is usually what you want).
-        - 'trytes_ascii': Uses the legacy ASCII codec.
+      See https://github.com/iotaledger/iota.lib.py/issues/62 for more
+      information.
 
     :param args:
       Additional positional arguments to pass to the initializer.
@@ -90,8 +92,8 @@ class TryteString(JsonSerializable):
     return cls(encode(bytes_, codec), *args, **kwargs)
 
   @classmethod
-  def from_string(cls, string, *args, **kwargs):
-    # type: (Text, *Any, **Any) -> TryteString
+  def from_unicode(cls, string, *args, **kwargs):
+    # type: (Type[T], Text, *Any, **Any) -> T
     """
     Creates a TryteString from a Unicode string.
 
@@ -112,8 +114,21 @@ class TryteString(JsonSerializable):
     )
 
   @classmethod
+  def from_string(cls, *args, **kwargs):
+    """
+    Deprecated; use :py:meth:`from_unicode` instead.
+
+    https://github.com/iotaledger/iota.lib.py/issues/90
+    """
+    warn(
+      message='`from_string()` is deprecated; use `from_unicode()` instead.',
+      category=DeprecationWarning,
+    )
+    return cls.from_unicode(*args, **kwargs)
+
+  @classmethod
   def from_trytes(cls, trytes, *args, **kwargs):
-    # type: (Iterable[Iterable[int]], *Any, **Any) -> TryteString
+    # type: (Type[T], Iterable[Iterable[int]], *Any, **Any) -> T
     """
     Creates a TryteString from a sequence of trytes.
 
@@ -145,7 +160,7 @@ class TryteString(JsonSerializable):
 
   @classmethod
   def from_trits(cls, trits, *args, **kwargs):
-    # type: (Iterable[int], *Any, **Any) -> TryteString
+    # type: (Type[T], Iterable[int], *Any, **Any) -> T
     """
     Creates a TryteString from a sequence of trits.
 
@@ -234,7 +249,7 @@ class TryteString(JsonSerializable):
 
     else:
       if isinstance(trytes, text_type):
-        trytes = trytes.encode('ascii')
+        trytes = encode(trytes, 'ascii')
 
       if not isinstance(trytes, bytearray):
         trytes = bytearray(trytes)
@@ -279,8 +294,8 @@ class TryteString(JsonSerializable):
     only returns an ASCII representation of the trytes themselves!
 
     If you want to...
-    - ... decode trytes into bytes: use :py:meth:`as_bytes`.
-    - ... decode trytes into Unicode: use :py:meth:`as_string`.
+    - ... encode trytes into bytes: use :py:meth:`encode`.
+    - ... decode trytes into Unicode: use :py:meth:`decode`.
     """
     return binary_type(self._trytes)
 
@@ -444,10 +459,11 @@ class TryteString(JsonSerializable):
     """
     return ChunkIterator(self, chunk_size)
 
-  def as_bytes(self, errors='strict', codec=AsciiTrytesCodec.name):
+  def encode(self, errors='strict', codec=AsciiTrytesCodec.name):
     # type: (Text, Text) -> binary_type
     """
-    Converts the TryteString into a byte string.
+    Encodes the TryteString into a lower-level primitive (usually
+    bytes).
 
     :param errors:
       How to handle trytes that can't be converted:
@@ -456,11 +472,10 @@ class TryteString(JsonSerializable):
         - 'ignore':   omit the tryte from the result.
 
     :param codec:
-      Which codec to use:
+      Reserved for future use.
 
-      - 'trytes_binary': Converts each sequence of 5 trits into a byte
-        with the same value (this is usually what you want).
-      - 'trytes_ascii': Uses the legacy ASCII codec.
+      See https://github.com/iotaledger/iota.lib.py/issues/62 for more
+      information.
 
     :raise:
       - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
@@ -469,11 +484,23 @@ class TryteString(JsonSerializable):
     # In Python 2, :py:func:`decode` does not accept keyword arguments.
     return decode(self._trytes, codec, errors)
 
-  def as_string(self, errors='strict', strip_padding=True):
+  def as_bytes(self, *args, **kwargs):
+    """
+    Deprecated; use :py:meth:`encode` instead.
+
+    https://github.com/iotaledger/iota.lib.py/issues/90
+    """
+    warn(
+      category=DeprecationWarning,
+      message='`as_bytes()` is deprecated; use `encode()` instead.',
+    )
+    return self.encode(*args, **kwargs)
+
+  def decode(self, errors='strict', strip_padding=True):
     # type: (Text, bool) -> Text
     """
-    Attempts to interpret the TryteString as a UTF-8 encoded Unicode
-    string.
+    Decodes the TryteString into a higher-level abstraction (usually
+    Unicode characters).
 
     :param errors:
       How to handle trytes that can't be converted, or bytes that can't
@@ -499,6 +526,18 @@ class TryteString(JsonSerializable):
       trytes += b'9' * (len(trytes) % 2)
 
     return decode(trytes, AsciiTrytesCodec.name, errors).decode('utf-8', errors)
+
+  def as_string(self, *args, **kwargs):
+    """
+    Deprecated; use :py:meth:`decode` instead.
+
+    https://github.com/iotaledger/iota.lib.py/issues/90
+    """
+    warn(
+      category=DeprecationWarning,
+      message='`as_string()` is deprecated; use `decode()` instead.',
+    )
+    return self.decode(*args, **kwargs)
 
   def as_json_compatible(self):
     # type: () -> Text
@@ -757,7 +796,7 @@ class Address(TryteString):
     )
 
   def _generate_checksum(self):
-    # type: () -> TryteString
+    # type: () -> AddressChecksum
     """
     Generates the correct checksum for this address.
     """
@@ -769,7 +808,7 @@ class Address(TryteString):
 
     checksum_length = AddressChecksum.LEN * TRITS_PER_TRYTE
 
-    return TryteString.from_trits(checksum_trits[-checksum_length:])
+    return AddressChecksum.from_trits(checksum_trits[-checksum_length:])
 
 
 class AddressChecksum(TryteString):

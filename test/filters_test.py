@@ -70,11 +70,19 @@ class NodeUriTestCase(BaseFilterTestCase):
     """
     self.assertFilterPasses(None)
 
-  def test_pass_uri(self):
+  def test_pass_udp(self):
     """
-    The incoming value is a valid URI.
+    The incoming value is a valid UDP URI.
     """
     self.assertFilterPasses('udp://localhost:14265/node')
+
+  def test_pass_tcp(self):
+    """
+    The incoming value is a valid TCP URI.
+
+    https://github.com/iotaledger/iota.lib.py/issues/111
+    """
+    self.assertFilterPasses('tcp://localhost:14265/node')
 
   def test_fail_not_a_uri(self):
     """

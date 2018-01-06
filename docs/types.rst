@@ -65,13 +65,13 @@ Encoding
 
     from iota import TryteString
 
-    message_trytes = TryteString.from_string('Hello, IOTA!')
+    message_trytes = TryteString.from_unicode('Hello, IOTA!')
 
 To encode character data into trytes, use the
-``TryteString.from_string`` method.
+``TryteString.from_unicode`` method.
 
 You can also convert a tryte sequence into characters using
-``TryteString.as_string``. Note that not every tryte sequence can be
+``TryteString.decode``. Note that not every tryte sequence can be
 converted; garbage in, garbage out!
 
 .. code:: python
@@ -79,7 +79,7 @@ converted; garbage in, garbage out!
     from iota import TryteString
 
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
-    message = trytes.as_string()
+    message = trytes.decode()
 
 .. note::
 
@@ -226,7 +226,7 @@ hasn't been broadcast yet.
             b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
           ),
 
-        message = TryteString.from_string('thx fur cheezburgers'),
+        message = TryteString.from_unicode('thx fur cheezburgers'),
         tag     = Tag(b'KITTEHS'),
         value   = 42,
       )

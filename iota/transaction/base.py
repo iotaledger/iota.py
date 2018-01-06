@@ -9,8 +9,8 @@ from typing import Iterable, Iterator, List, MutableSequence, \
 from iota.codecs import TrytesDecodeError
 from iota.crypto import Curl, HASH_LENGTH
 from iota.json import JsonSerializable
-from iota.transaction.types import BundleHash, Fragment, Nonce, TransactionHash, \
-  TransactionTrytes
+from iota.transaction.types import BundleHash, Fragment, Nonce, \
+  TransactionHash, TransactionTrytes
 from iota.trits import int_from_trits, trits_from_int
 from iota.types import Address, Tag, TryteString, TrytesCompatible
 
@@ -485,7 +485,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
 
       if message_trytes:
         try:
-          messages.append(message_trytes.as_string(decode_errors))
+          messages.append(message_trytes.decode(decode_errors))
         except (TrytesDecodeError, UnicodeDecodeError):
           if errors != 'drop':
             raise

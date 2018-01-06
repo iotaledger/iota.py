@@ -18,8 +18,12 @@ from iota.exceptions import with_context
 
 __all__ = [
   'BaseCommand',
-  'CustomCommand',
   'command_registry',
+  'discover_commands',
+  'CustomCommand',
+  'FilterCommand',
+  'RequestFilter',
+  'ResponseFilter',
 ]
 
 command_registry = {} # type: Dict[Text, CommandMeta]
@@ -91,7 +95,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
   command = None # Text
 
   def __init__(self, adapter):
-    # type: (BaseAdapter, bool) -> None
+    # type: (BaseAdapter) -> None
     """
     :param adapter:
       Adapter that will send request payloads to the node.

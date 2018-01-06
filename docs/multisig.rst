@@ -1,18 +1,18 @@
 Multisignature
 ==============
 
-Multisignature transactions are transactions which require multiple signatures before execution. In simplest example it means that, if there is token wallet which require 5 signatures from different parties, all 5 parties must sign spent transaction, before it will be processed. 
+Multisignature transactions are transactions which require multiple signatures before execution. In simplest example it means that, if there is token wallet which require 5 signatures from different parties, all 5 parties must sign spent transaction, before it will be processed.
 
 It is standard functionality in blockchain systems and it is also implemented in IOTA
 
 .. note::
 
-    You can read more about IOTA multisignature on the `wiki`_.  
+    You can read more about IOTA multisignature on the `wiki`_.
 
 Generating multisignature address
 ---------------------------------
 
-In order to use multisignature functionality, a special multisignature address must be created. It is done by adding each key digest in agreed order into digests list. At the end, last participant is converting digests list (Curl state trits) into multisignature address. 
+In order to use multisignature functionality, a special multisignature address must be created. It is done by adding each key digest in agreed order into digests list. At the end, last participant is converting digests list (Curl state trits) into multisignature address.
 
 .. note::
 
@@ -45,8 +45,8 @@ And here is example where digests are converted into multisignature address:
 .. code-block:: python
 
     cma_result =\
-      api_1.create_multisig_address(digests=[digest_1, 
-                                             digest_2, 
+      api_1.create_multisig_address(digests=[digest_1,
+                                             digest_2,
                                              digest_3])
 
     # For consistency, every API command returns a dict, even if it only
@@ -90,7 +90,7 @@ First signer for multisignature wallet is defining address where tokens should b
             # If you'd like, you may include an optional tag and/or
             # message.
             tag = Tag(b'KITTEHS'),
-            message = TryteString.from_string('thanx fur cheezburgers'),
+            message = TryteString.from_unicode('thanx fur cheezburgers'),
           ),
         ],
 
@@ -142,9 +142,9 @@ When trytes are prepared, round of signing must be performed. Order of signing m
 .. note::
 
     After creation, bundle can be optionally validated:
-    
+
     .. code-block:: python
-        
+
         validator = BundleValidator(bundle)
         if not validator.is_valid():
           raise ValueError(
@@ -181,11 +181,11 @@ Full code `example`_.
 
         In order to enable a 2 of 3 multisig, the cosigners need to share their private keys with the other parties in such a way that no single party can sign inputs alone, but that still enables an M-of-N multsig. In our example, the sharing of the private keys would look as follows:
 
-        Alice   ->      Bob 
+        Alice   ->      Bob
 
-        Bob     ->      Carol 
+        Bob     ->      Carol
 
-        Carol   ->      Alice   
+        Carol   ->      Alice
 
         Now, each participant holds two private keys that he/she can use to collude with another party to successfully sign the inputs and make a transaction. But no single party holds enough keys (3 of 3) to be able to independently make the transaction.
 

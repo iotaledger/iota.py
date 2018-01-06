@@ -481,6 +481,12 @@ class TryteString(JsonSerializable):
       - :py:class:`iota.codecs.TrytesDecodeError` if the trytes cannot
         be decoded into bytes.
     """
+    # Converting ASCII-encoded trytes into bytes is considered to be a
+    # *decode* operation according to :py:class:`AsciiTrytesCodec`.
+    # Once we add more codecs, we may need to revisit this.
+    # See https://github.com/iotaledger/iota.lib.py/issues/62 for more
+    # information.
+    #
     # In Python 2, :py:func:`decode` does not accept keyword arguments.
     return decode(self._trytes, codec, errors)
 

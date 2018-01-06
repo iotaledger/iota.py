@@ -45,6 +45,11 @@ class NodeUri(f.BaseFilter):
   """
   Validates a string as a node URI.
   """
+  SCHEMES = {'tcp', 'udp'}
+  """
+  Allowed schemes for node URIs.
+  """
+
   CODE_NOT_NODE_URI = 'not_node_uri'
 
   templates = {
@@ -59,7 +64,7 @@ class NodeUri(f.BaseFilter):
 
     parsed = compat.urllib_parse.urlparse(value)
 
-    if parsed.scheme != 'udp':
+    if parsed.scheme not in self.SCHEMES:
       return self._invalid_value(value, self.CODE_NOT_NODE_URI)
 
     return value
@@ -148,14 +153,14 @@ class AddressNoChecksum(Trytes):
   """
   Validates a sequence as an Address then chops off the checksum if it exists
   """
-  ADDRESS_BAD_CHECKSUM   = 'address_bad_checksum'
+  ADDRESS_BAD_CHECKSUM = 'address_bad_checksum'
 
   templates = {
-    ADDRESS_BAD_CHECKSUM: 'Checksum is {supplied_checksum}, should be {expected_checksum}?',
+    ADDRESS_BAD_CHECKSUM:
+      'Checksum is {supplied_checksum}, should be {expected_checksum}?',
   }
 
   def __init__(self):
-    # type: (type) -> None
     super(AddressNoChecksum, self).__init__(result_type=Address)
 
   def _apply(self, value):
@@ -180,4 +185,5 @@ class AddressNoChecksum(Trytes):
           'expected_checksum': value.with_valid_checksum().checksum,
         },
       )
+
     return Address(value.address)

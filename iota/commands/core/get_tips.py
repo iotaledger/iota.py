@@ -4,9 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'GetTipsCommand',
@@ -42,7 +42,7 @@ class GetTipsResponseFilter(ResponseFilter):
           f.Array
         | f.FilterRepeater(
               f.ByteString(encoding='ascii')
-            | Trytes(result_type=Address)
+            | Trytes(result_type=TransactionHash)
           )
       ),
     })

@@ -59,23 +59,23 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_pass_single_address(self):
-    """
-    The incoming request contains a single address
-    """
-    request = {
-      'addresses': Address(self.address_1)
-    }
-
-    filter_ = self._filter(request)
-
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
-      {
-        'addresses': text_type(Address(self.address_1))
-      },
-    )
+  # def test_pass_single_address(self):
+  #   """
+  #   The incoming request contains a single address
+  #   """
+  #   request = {
+  #     'addresses': Address(self.address_1)
+  #   }
+  #
+  #   filter_ = self._filter(request)
+  #
+  #   self.assertFilterPasses(filter_)
+  #   self.assertDictEqual(
+  #     filter_.cleaned_data,
+  #     {
+  #       'addresses': text_type(Address(self.address_1))
+  #     },
+  #   )
 
   def test_pass_compatible_types(self):
     """

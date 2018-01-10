@@ -113,8 +113,8 @@ class Curl(object):
       # Move on to the next hash.
       offset += HASH_LENGTH
 
-  def squeeze(self, trits, offset=0):
-    # type: (MutableSequence[int]) -> None
+  def squeeze(self, trits, offset=0, length=HASH_LENGTH):
+    # type: (MutableSequence[int], Optional[int], Optional[int]) -> None
     """
     Squeeze trits from the sponge.
 
@@ -124,6 +124,9 @@ class Curl(object):
 
     :param offset:
       Starting offset in ``trits``.
+
+    :param length:
+      Number of trits to squeeze, default to ``HASH_LENGTH``
     """
     #
     # Squeeze is kind of like the opposite of absorb; it copies trits
@@ -134,8 +137,18 @@ class Curl(object):
     # can simplify the implementation somewhat.
     #
 
+    # Ensure length can be mod by HASH_LENGTH
+    if length % HASH_LENGTH != 0:
+      raise with_context(
+        exc = ValueError('Invalid length passed to ``sequeeze`.'),
+        context = {
+          'trits': trits,
+          'offset': offset,
+          'length': length,
+        })
+
     # Ensure that ``trits`` can hold at least one hash worth of trits.
-    trits.extend([0] * max(0, HASH_LENGTH - len(trits)))
+    trits.extend([0] * max(0, length - len(trits)))
 
     # Check trits with offset can handle hash length
     if len(trits) - offset < HASH_LENGTH:
@@ -144,14 +157,19 @@ class Curl(object):
         context = {
           'trits': trits,
           'offset': offset,
+          'length': length
         },
       )
 
-    # Copy exactly one hash.
-    trits[offset:offset + HASH_LENGTH] = self._state[0:HASH_LENGTH]
+    while length >= HASH_LENGTH:
+      # Copy exactly one hash.
+      trits[offset:offset + HASH_LENGTH] = self._state[0:HASH_LENGTH]
 
-    # One hash worth of trits copied; now transform.
-    self._transform()
+      # One hash worth of trits copied; now transform.
+      self._transform()
+
+      offset += HASH_LENGTH
+      length -= HASH_LENGTH
 
   def _transform(self):
     # type: () -> None

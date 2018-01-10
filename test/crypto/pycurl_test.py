@@ -137,3 +137,29 @@ class TestCurl(TestCase):
             trits_out,
             'TAWDGNSEAD9ZRGBBVRVEKQYYVDOKHYQ9KEIYJKFT'
             'BQEYZDWZVMRFJQQGTMPHBZOGPIJCCVWLZVDKLAQVI')
+
+    def test_squeeze_with_486_length_should_work(self):
+        """
+        Test squeeze with 486 length should work as well, no one use this
+        in real situation
+        """
+        inp = (
+          'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
+          'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
+        )
+
+        trits = TryteString(inp).as_trits()
+
+        curl = Curl()
+        curl.absorb(trits)
+        trits_out = []
+        curl.squeeze(trits_out, length=486)
+
+        trits_out = TryteString.from_trits(trits_out)
+
+        self.assertEqual(
+            trits_out,
+            'AQBOPUMJMGVHFOXSMUAGZNACKUTISDPBSILMRAGIG'
+            'RXXS9JJTLIKZUW9BCJWKSTFBDSBLNVEEGVGAMSSMQ'
+            'GSJWCCFQRHWKTSMVPWWCEGOMCNWFYWDZBEDBLXIFB'
+            'HOTCKUMCANLSXXTNKSYNBMOSDDEYFTDOYIKDRJM')

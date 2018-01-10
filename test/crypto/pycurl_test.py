@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from unittest import TestCase
 
 from iota import TryteString
-from iota.crypto.pycurl import Curl
+from iota.crypto import Curl
 
 
 class TestCurl(TestCase):

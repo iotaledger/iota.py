@@ -102,7 +102,9 @@ class TestCurl(TestCase):
             'WEULHUDY9RAWAT9GIUXTTUSYJEGNGQDVJCGTQLN9')
 
     def test_squeeze_with_offset(self):
-        """Test squeeze with offset, this only used in ISS"""
+        """Test squeeze with offset, this only used in ISS
+        GitHub IRI ISS: https://github.com/iotaledger/iri/blob/dev/src/main/java/com/iota/iri/hash/ISS.java#L83
+        """
         inp = (
             'CDLFODMOGMQAWXDURDXTUAOO9BFESHYGZLBUWIIHPTLNZCUNHZAAXSUPUIBW'
             'IRLOVKCVWJSWEKRJQZUVRDZGZRNANUNCSGANCJWVHMZMVNJVUAZNFZKDAIVV'

@@ -9,7 +9,11 @@ from iota.crypto import Curl
 
 
 class TestCurl(TestCase):
+    """
+    This is the test case for CURL-P hash function used in IOTA
+    """
     def test_correct_first(self):
+        """Test the inp tryte string will get the correct output"""
         inp = (
           'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
           'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
@@ -29,7 +33,8 @@ class TestCurl(TestCase):
             'AQBOPUMJMGVHFOXSMUAGZNACKUTISDPBSILMRAGIG'
             'RXXS9JJTLIKZUW9BCJWKSTFBDSBLNVEEGVGAMSSM')
 
-    def test_input_length_greater_then_243(self):
+    def test_input_length_greater_than_243(self):
+        """Test input trytes length greater than hash length should work"""
         inp = (
           'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
           'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
@@ -39,7 +44,7 @@ class TestCurl(TestCase):
         trits = TryteString(inp).as_trits()
 
         curl = Curl()
-        curl.absorb(trits, length=486)
+        curl.absorb(trits)
         trits_out = []
         curl.squeeze(trits_out)
 
@@ -50,7 +55,31 @@ class TestCurl(TestCase):
             'RWCBOLRFANOAYQWXXTFQJYQFAUTEEBSZWTIRSSDR'
             'EYGCNFRLHQVDZXYXSJKCQFQLJMMRHYAZKRRLQZDKR')
 
+    def test_input_without_offset(self):
+        """Test input without offset should work"""
+        inp = (
+          'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
+          'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
+          '9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA'
+        )
+
+        trits = TryteString(inp).as_trits()
+
+        curl = Curl()
+        curl.absorb(trits, 0, length=486)
+        curl.absorb(trits, 0, length=243)
+        trits_out = []
+        curl.squeeze(trits_out)
+
+        trits_out = TryteString.from_trits(trits_out)
+
+        self.assertEqual(
+            trits_out,
+            'OTYHXEXJLCSMEY9LYCC9ASJXMORTLAYQEHRS9DAH'
+            '9NR9DXLXYDGOVOBEL9LWRITLWPHPYPZDKXVPAPKUA')
+
     def test_input_with_offset(self):
+        """Test input with offset should work"""
         inp = (
           'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
           'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
@@ -73,6 +102,7 @@ class TestCurl(TestCase):
             'WEULHUDY9RAWAT9GIUXTTUSYJEGNGQDVJCGTQLN9')
 
     def test_squeeze_with_offset(self):
+        """Test squeeze with offset, this only used in ISS"""
         inp = (
             'CDLFODMOGMQAWXDURDXTUAOO9BFESHYGZLBUWIIHPTLNZCUNHZAAXSUPUIBW'
             'IRLOVKCVWJSWEKRJQZUVRDZGZRNANUNCSGANCJWVHMZMVNJVUAZNFZKDAIVV'

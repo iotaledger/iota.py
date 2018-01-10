@@ -62,7 +62,7 @@ class Curl(object):
     self._state = [0] * STATE_LENGTH # type: List[int]
 
   def absorb(self, trits, offset=0, length=None):
-    # type: (Sequence[int], int, Optional[int]) -> None
+    # type: (Sequence[int], Optional[int], Optional[int]) -> None
     """
     Absorb trits into the sponge.
 

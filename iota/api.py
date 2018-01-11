@@ -775,6 +775,33 @@ class Iota(StrictIota):
       changeAddress = change_address,
     )
 
+  def promote_transaction(
+      self,
+      transaction,
+      depth,
+      min_weight_magnitude = None,
+  ):
+    # type: (TransactionHash, int, Optional[int]) -> dict
+    """
+    Promotes a transaction by adding spam on top of it.
+
+    :return:
+      Dict containing the following values::
+
+         {
+           'bundle': Bundle,
+             The newly-published bundle.
+         }
+    """
+    if min_weight_magnitude is None:
+        min_weight_magnitude = self.default_min_weight_magnitude
+
+    return extended.PromoteTransactionCommand(self.adapter)(
+      transaction         = transaction,
+      depth               = depth,
+      minWeightMagnitude  = min_weight_magnitude,
+    )
+
   def replay_bundle(
       self,
       transaction,

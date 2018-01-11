@@ -48,7 +48,7 @@ setup(
   # http://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
   entry_points = {
     'console_scripts': [
-      'iota-cli=iota.bin.repl:main',
+      'pyota-cli=iota.bin.repl:main',
     ],
   },
 

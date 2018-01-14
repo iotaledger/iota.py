@@ -18,6 +18,7 @@ from .get_inputs import *
 from .get_latest_inclusion import *
 from .get_new_addresses import *
 from .get_transfers import *
+from .is_reattachable import *
 from .prepare_transfer import *
 from .promote_transaction import *
 from .replay_bundle import *

@@ -44,6 +44,13 @@ HttpAdapter
     api = Iota('https://service.iotasupport.com:14265')
     api = Iota(HttpAdapter('https://service.iotasupport.com:14265'))
 
+    # Use HTTP with basic authentication and custom timeout:
+    api = Iota(HttpAdapter(
+                   url='http://localhost:14265',
+                   authentication=('username', 'longandsecureIRIpassword'),
+                   timeout=60.))
+
+
 ``HttpAdapter`` uses the HTTP protocol to send requests to the node.
 
 To configure an ``Iota`` instance to use ``HttpAdapter``, specify an

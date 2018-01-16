@@ -70,7 +70,7 @@ Documentation
 =============
 PyOTA's documentation is available on `ReadTheDocs`_.
 
-If you are :ref:`installing from source <readme-installing-from-source>`, you
+If you are [installing from source](#installing-from-source), you
 can also build the documentation locally:
 
 #. Install extra dependencies (you only have to do this once)::

@@ -4,6 +4,8 @@ Example script that shows how to use PyOTA to send a transfer to an address.
 """
 from iota import *
 
+SEED1 = b"THESEEDOFTHEWALLETSENDINGGOESHERE999999999999999999999999999999999999999999999999"
+ADDRESS_WITH_CHECKSUM_SECURITY_LEVEL_2 = b"RECEIVINGWALLETADDRESSGOESHERE9WITHCHECKSUMANDSECURITYLEVEL2999999999999999999999999999999"
 
 # Create the API instance.
 api =\
@@ -12,7 +14,7 @@ api =\
     'http://localhost:14265/',
 
     # Seed used for cryptographic functions.
-    seed = b'SEED9GOES9HERE'
+    seed = SEED1
   )
 
 # For more information, see :py:meth:`Iota.send_transfer`.
@@ -26,8 +28,7 @@ api.send_transfer(
       # Recipient of the transfer.
       address =
         Address(
-          b'TESTVALUE9DONTUSEINPRODUCTION99999FBFFTG'
-          b'QFWEHEL9KCAFXBJBXGE9HID9XCOHFIDABHDG9AHDR'
+          ADDRESS_WITH_CHECKSUM_SECURITY_LEVEL_2,
         ),
 
       # Amount of IOTA to transfer.

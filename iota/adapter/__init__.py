@@ -223,9 +223,11 @@ class HttpAdapter(BaseAdapter):
   in the ``headers`` kwarg.
   """
 
-  def __init__(self, uri):
-    # type: (Union[Text, SplitResult]) -> None
+  def __init__(self, uri, timeout=None):
+    # type: (Union[Text, SplitResult], Optional[int]) -> None
     super(HttpAdapter, self).__init__()
+
+    self.timeout = timeout
 
     if isinstance(uri, text_type):
       uri = compat.urllib_parse.urlsplit(uri) # type: SplitResult
@@ -308,7 +310,9 @@ class HttpAdapter(BaseAdapter):
     Split into its own method so that it can be mocked during unit
     tests.
     """
-    kwargs.setdefault('timeout', get_default_timeout())
+
+    default_timeout = self.timeout if self.timeout else get_default_timeout()
+    kwargs.setdefault('timeout', default_timeout)
 
     self._log(
       level = DEBUG,

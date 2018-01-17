@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 from unittest import TestCase
+from warnings import catch_warnings, simplefilter as simple_filter
 
 from six import binary_type, text_type
 
@@ -405,159 +406,194 @@ class TryteStringTestCase(TestCase):
       [b'R', b'B', b'T', b'C', b'9', b'9'],
     )
 
-  def test_string_conversion(self):
+  def test_encode(self):
     """
-    A TryteString can be converted into an ASCII representation.
+    Converting a sequence of trytes into a sequence of bytes.
     """
-    self.assertEqual(
-      binary_type(TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')),
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
 
-      # Note that the trytes are NOT converted into bytes!
-      b'RBTC9D9DCDQAEASBYBCCKBFA',
-    )
+    self.assertEqual(trytes.encode(), b'Hello, IOTA!')
 
-  def test_as_bytes_partial_sequence_errors_strict(self):
+  def test_encode_partial_sequence_errors_strict(self):
     """
     Attempting to convert an odd number of trytes into bytes using the
-    `as_bytes` method with errors='strict'.
+    `encode` method with errors='strict'.
     """
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
 
     with self.assertRaises(TrytesDecodeError):
-      trytes.as_bytes(errors='strict')
+      trytes.encode(errors='strict')
 
-  def test_as_bytes_partial_sequence_errors_ignore(self):
+  def test_encode_partial_sequence_errors_ignore(self):
     """
     Attempting to convert an odd number of trytes into bytes using the
-    `as_bytes` method with errors='ignore'.
+    `encode` method with errors='ignore'.
     """
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
 
     self.assertEqual(
-      trytes.as_bytes(errors='ignore'),
+      trytes.encode(errors='ignore'),
 
       # The extra tryte is ignored.
       b'Hello, IOTA!',
     )
 
-  def test_as_bytes_partial_sequence_errors_replace(self):
+  def test_encode_partial_sequence_errors_replace(self):
     """
     Attempting to convert an odd number of trytes into bytes using the
-    `as_bytes` method with errors='replace'.
+    `encode` method with errors='replace'.
     """
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA9')
 
     self.assertEqual(
-      trytes.as_bytes(errors='replace'),
+      trytes.encode(errors='replace'),
 
       # The extra tryte is replaced with '?'.
       b'Hello, IOTA!?',
     )
 
-  def test_as_bytes_non_ascii_errors_strict(self):
+  def test_encode_non_ascii_errors_strict(self):
     """
-    Converting a sequence of trytes into bytes using the `as_bytes`
+    Converting a sequence of trytes into bytes using the `encode`
     method yields non-ASCII characters, and errors='strict'.
     """
     trytes = TryteString(b'ZJVYUGTDRPDYFGFXMK')
 
     with self.assertRaises(TrytesDecodeError):
-      trytes.as_bytes(errors='strict')
+      trytes.encode(errors='strict')
 
-  def test_as_bytes_non_ascii_errors_ignore(self):
+  def test_encode_non_ascii_errors_ignore(self):
     """
-    Converting a sequence of trytes into bytes using the `as_bytes`
+    Converting a sequence of trytes into bytes using the `encode`
     method yields non-ASCII characters, and errors='ignore'.
     """
     trytes = TryteString(b'ZJVYUGTDRPDYFGFXMK')
 
     self.assertEqual(
-      trytes.as_bytes(errors='ignore'),
+      trytes.encode(errors='ignore'),
       b'\xd2\x80\xc3',
     )
 
-  def test_as_bytes_non_ascii_errors_replace(self):
+  def test_encode_non_ascii_errors_replace(self):
     """
-    Converting a sequence of trytes into bytes using the `as_bytes`
+    Converting a sequence of trytes into bytes using the `encode`
     method yields non-ASCII characters, and errors='replace'.
     """
     trytes = TryteString(b'ZJVYUGTDRPDYFGFXMK')
 
     self.assertEqual(
-      trytes.as_bytes(errors='replace'),
+      trytes.encode(errors='replace'),
       b'??\xd2\x80??\xc3??',
     )
 
-  def test_as_string(self):
+  def test_as_bytes_deprecated(self):
+    """
+    :py:meth:`TryteString.as_bytes` is deprecated in favor of
+    :py:meth:`TryteString.encode`.
+    """
+    trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+    with catch_warnings(record=True) as caught_warnings:
+      simple_filter('always', category=DeprecationWarning)
+
+      encoded = trytes.as_bytes()
+
+    self.assertEqual(
+      [w.category for w in caught_warnings],
+      [DeprecationWarning],
+    )
+
+    self.assertEqual(encoded, b'Hello, IOTA!')
+
+  def test_decode(self):
     """
     Converting a sequence of trytes into a Unicode string.
     """
     trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD')
 
-    self.assertEqual(trytes.as_string(), '你好，世界！')
+    self.assertEqual(trytes.decode(), '你好，世界！')
 
-  def test_as_string_strip(self):
+  def test_decode_strip(self):
     """
     Strip trailing padding from a TryteString before converting.
     """
     # Note odd number of trytes!
     trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD9999999999999')
 
-    self.assertEqual(trytes.as_string(), '你好，世界！')
+    self.assertEqual(trytes.decode(), '你好，世界！')
 
-  def test_as_string_no_strip(self):
+  def test_decode_no_strip(self):
     """
     Prevent stripping trailing padding when converting to string.
     """
     trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD999999999999')
 
     self.assertEqual(
-      trytes.as_string(strip_padding=False),
+      trytes.decode(strip_padding=False),
       '你好，世界！\x00\x00\x00\x00\x00\x00',
     )
 
-  def test_as_string_not_utf8_errors_strict(self):
+  def test_decode_not_utf8_errors_strict(self):
     """
     The tryte sequence does not represent a valid UTF-8 sequence, and
     errors='strict'.
     """
     # Chop off a couple of trytes to break up a multi-byte sequence.
-    trytes = TryteString.from_string('你好，世界！')[:-2]
+    trytes = TryteString.from_unicode('你好，世界！')[:-2]
 
     # Note the exception type.  The trytes were decoded to bytes
     # successfully; the exception occurred while trying to decode the
     # bytes into Unicode code points.
     with self.assertRaises(UnicodeDecodeError):
-      trytes.as_string('strict')
+      trytes.decode('strict')
 
-  def test_as_string_not_utf8_errors_ignore(self):
+  def test_decode_not_utf8_errors_ignore(self):
     """
     The tryte sequence does not represent a valid UTF-8 sequence, and
     errors='ignore'.
     """
     # Chop off a couple of trytes to break up a multi-byte sequence.
-    trytes = TryteString.from_string('你好，世界！')[:-2]
+    trytes = TryteString.from_unicode('你好，世界！')[:-2]
 
     self.assertEqual(
-      trytes.as_string('ignore'),
+      trytes.decode('ignore'),
       '你好，世界',
     )
 
-  def test_as_string_not_utf8_errors_replace(self):
+  def test_decode_not_utf8_errors_replace(self):
     """
     The tryte sequence does not represent a valid UTF-8 sequence, and
     errors='replace'.
     """
     # Chop off a couple of trytes to break up a multi-byte sequence.
-    trytes = TryteString.from_string('你好，世界！')[:-2]
+    trytes = TryteString.from_unicode('你好，世界！')[:-2]
 
     self.assertEqual(
-      trytes.as_string('replace'),
+      trytes.decode('replace'),
 
       # Note that the replacement character is the Unicode replacement
       # character, not '?'.
       '你好，世界�',
     )
+
+  def test_as_string_deprecated(self):
+    """
+    :py:meth:`TryteString.as_string` is deprecated in favor of
+    :py:meth:`TryteString.decode`.
+    """
+    trytes = TryteString(b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD')
+
+    with catch_warnings(record=True) as caught_warnings:
+      simple_filter('always', category=DeprecationWarning)
+
+      decoded = trytes.as_string()
+
+    self.assertEqual(
+      [w.category for w in caught_warnings],
+      [DeprecationWarning],
+    )
+
+    self.assertEqual(decoded, '你好，世界！')
 
   def test_as_trytes_single_tryte(self):
     """
@@ -715,7 +751,7 @@ class TryteStringTestCase(TestCase):
 
     # It is (hopefully!) impossible to predict what the actual trytes
     # will be, but at least we can verify that the correct number were
-    # generated!
+    # generated.
     self.assertEqual(len(trytes), Hash.LEN)
 
   def test_from_bytes(self):
@@ -727,12 +763,34 @@ class TryteStringTestCase(TestCase):
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
-  def test_from_string(self):
+  def test_from_unicode(self):
     """
     Converting a Unicode string into a TryteString.
     """
     self.assertEqual(
-      binary_type(TryteString.from_string('你好，世界！')),
+      binary_type(TryteString.from_unicode('你好，世界！')),
+      b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD',
+    )
+
+  def test_from_string_deprecated(self):
+    """
+    :py:meth:`TryteString.from_string` is deprecated in favor of
+    :py:meth:`TryteString.from_unicode`.
+
+    https://github.com/iotaledger/iota.lib.py/issues/90
+    """
+    with catch_warnings(record=True) as caught_warnings:
+      simple_filter('always', category=DeprecationWarning)
+
+      trytes = TryteString.from_string('你好，世界！')
+
+    self.assertEqual(
+      [w.category for w in caught_warnings],
+      [DeprecationWarning],
+    )
+
+    self.assertEqual(
+      binary_type(trytes),
       b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD',
     )
 

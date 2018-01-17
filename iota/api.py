@@ -9,6 +9,7 @@ from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
   discover_commands, extended
+from iota.commands.extended.helpers import Helpers
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from six import with_metaclass
@@ -440,6 +441,7 @@ class Iota(StrictIota):
     super(Iota, self).__init__(adapter, testnet)
 
     self.seed = Seed(seed) if seed else Seed.random()
+    self.helpers = Helpers(self)
 
   def broadcast_and_store(self, trytes):
     # type: (Iterable[TransactionTrytes]) -> dict
@@ -773,6 +775,33 @@ class Iota(StrictIota):
       changeAddress = change_address,
     )
 
+  def promote_transaction(
+      self,
+      transaction,
+      depth,
+      min_weight_magnitude = None,
+  ):
+    # type: (TransactionHash, int, Optional[int]) -> dict
+    """
+    Promotes a transaction by adding spam on top of it.
+
+    :return:
+      Dict containing the following values::
+
+         {
+           'bundle': Bundle,
+             The newly-published bundle.
+         }
+    """
+    if min_weight_magnitude is None:
+        min_weight_magnitude = self.default_min_weight_magnitude
+
+    return extended.PromoteTransactionCommand(self.adapter)(
+      transaction         = transaction,
+      depth               = depth,
+      minWeightMagnitude  = min_weight_magnitude,
+    )
+
   def replay_bundle(
       self,
       transaction,
@@ -913,4 +942,28 @@ class Iota(StrictIota):
       trytes              = trytes,
       depth               = depth,
       minWeightMagnitude  = min_weight_magnitude,
+    )
+
+  def is_reattachable(self, addresses):
+    # type: (Iterable[Address]) -> dict
+    """
+    This API function helps you to determine whether you should replay a
+     transaction or make a completely new transaction with a different seed.
+     What this function does, is it takes one or more input addresses (i.e. from spent transactions)
+     as input and then checks whether any transactions with a value transferred are confirmed.
+     If yes, it means that this input address has already been successfully used in a different
+     transaction and as such you should no longer replay the transaction.
+
+    :param addresses:
+      List of addresses.
+
+    :return:
+      Dict containing the following values::
+         {
+           'reattachable': List[bool],
+           Always a list, even if only one address was queried.
+         }
+    """
+    return extended.IsReattachableCommand(self.adapter)(
+      addresses=addresses
     )

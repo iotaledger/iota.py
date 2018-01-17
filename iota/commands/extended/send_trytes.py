@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List
 
 import filters as f
-from iota import TransactionTrytes, TryteString
+from iota import TransactionTrytes, TryteString, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.commands.core.get_transactions_to_approve import \
@@ -36,10 +36,14 @@ class SendTrytesCommand(FilterCommand):
     depth                 = request['depth'] # type: int
     min_weight_magnitude  = request['minWeightMagnitude'] # type: int
     trytes                = request['trytes'] # type: List[TryteString]
+    reference             = request['reference'] # type: Optional[TransactionHash]
 
     # Call ``getTransactionsToApprove`` to locate trunk and branch
     # transactions so that we can attach the bundle to the Tangle.
-    gta_response = GetTransactionsToApproveCommand(self.adapter)(depth=depth)
+    gta_response = GetTransactionsToApproveCommand(self.adapter)(
+      depth=depth,
+      reference=reference,
+    )
 
     att_response = AttachToTangleCommand(self.adapter)(
       branchTransaction   = gta_response.get('branchTransaction'),
@@ -72,4 +76,10 @@ class SendTrytesRequestFilter(RequestFilter):
       # Loosely-validated; testnet nodes require a different value than
       # mainnet.
       'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
+
+      'reference': Trytes(result_type=TransactionHash),
+    },
+
+    allow_missing_keys = {
+      'reference',
     })

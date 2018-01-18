@@ -1,14 +1,14 @@
-Standard API
+Core API
 ============
 
-The Standard API includes all of the core API calls that are made
+The Core API includes all of the core API calls that are made
 available by the current `IOTA Reference
 Implementation <https://github.com/iotaledger/iri>`__.
 
 These methods are "low level" and generally do not need to be called
 directly.
 
-For the full documentation of all the Standard API calls, please refer
+For the full documentation of all the Core API calls, please refer
 to the `official documentation <https://iota.readme.io/>`__.
 
 Extended API

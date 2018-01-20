@@ -48,7 +48,7 @@ HttpAdapter
     api = Iota(
         HttpAdapter(
             'https://service.iotasupport.com:14265',
-            auth=('myusername', 'mypassword'),
+            authentication=('myusername', 'mypassword'),
             timeout=60))
 
 ``HttpAdapter`` uses the HTTP protocol to send requests to the node.

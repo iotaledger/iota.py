@@ -140,7 +140,7 @@ class Curl(object):
     # Ensure length can be mod by HASH_LENGTH
     if length % HASH_LENGTH != 0:
       raise with_context(
-        exc = ValueError('Invalid length passed to ``sequeeze`.'),
+        exc = ValueError('Invalid length passed to ``squeeze`.'),
         context = {
           'trits': trits,
           'offset': offset,

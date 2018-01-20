@@ -45,11 +45,10 @@ HttpAdapter
     api = Iota(HttpAdapter('https://service.iotasupport.com:14265'))
 
     # Use HTTPS with basic authentication and 60 seconds timeout:
-    api = Iota('https://USERNAME:MYIRIPASSWORD@service.iotasupport.com:14265',
-               timeout=60)
     api = Iota(
         HttpAdapter(
-            'https://USERNAME:MYIRIPASSWORD@service.iotasupport.com:14265',
+            'https://service.iotasupport.com:14265',
+            auth=('myusername', 'mypassword'),
             timeout=60))
 
 ``HttpAdapter`` uses the HTTP protocol to send requests to the node.

@@ -943,3 +943,27 @@ class Iota(StrictIota):
       depth               = depth,
       minWeightMagnitude  = min_weight_magnitude,
     )
+
+  def is_reattachable(self, addresses):
+    # type: (Iterable[Address]) -> dict
+    """
+    This API function helps you to determine whether you should replay a
+     transaction or make a completely new transaction with a different seed.
+     What this function does, is it takes one or more input addresses (i.e. from spent transactions)
+     as input and then checks whether any transactions with a value transferred are confirmed.
+     If yes, it means that this input address has already been successfully used in a different
+     transaction and as such you should no longer replay the transaction.
+
+    :param addresses:
+      List of addresses.
+
+    :return:
+      Dict containing the following values::
+         {
+           'reattachable': List[bool],
+           Always a list, even if only one address was queried.
+         }
+    """
+    return extended.IsReattachableCommand(self.adapter)(
+      addresses=addresses
+    )

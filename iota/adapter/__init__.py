@@ -10,7 +10,7 @@ from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
 
-from requests import Response, codes, request
+from requests import Response, codes, request, auth
 from six import PY2, binary_type, iteritems, moves as compat, text_type, \
   with_metaclass
 
@@ -223,11 +223,12 @@ class HttpAdapter(BaseAdapter):
   in the ``headers`` kwarg.
   """
 
-  def __init__(self, uri, timeout=None):
+  def __init__(self, uri, timeout=None, authentication=None):
     # type: (Union[Text, SplitResult], Optional[int]) -> None
     super(HttpAdapter, self).__init__()
 
     self.timeout = timeout
+    self.authentication = authentication
 
     if isinstance(uri, text_type):
       uri = compat.urllib_parse.urlsplit(uri) # type: SplitResult
@@ -313,6 +314,8 @@ class HttpAdapter(BaseAdapter):
 
     default_timeout = self.timeout if self.timeout else get_default_timeout()
     kwargs.setdefault('timeout', default_timeout)
+    if self.authentication:
+        kwargs.setdefault('auth', auth.HTTPBasicAuth(*self.authentication))
 
     self._log(
       level = DEBUG,

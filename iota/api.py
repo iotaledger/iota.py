@@ -152,12 +152,11 @@ class StrictIota(with_metaclass(ApiMeta)):
 
     def attach_to_tangle(
         self,
-        trunk_transaction,
-        branch_transaction,
-        trytes,
-        min_weight_magnitude=None
+        trunk_transaction,  # type: TransactionHash
+        branch_transaction,  # type: TransactionHash
+        trytes,  # type: Iteratble[TryteString]
+        min_weight_magnitude=None  # type: int
     ):
-        # type: (TransactionHash, TransactionHash, Iterable[TryteString], int) -> dict  # noqa
         """
         Attaches the specified transactions (trytes) to the Tangle by doing
         Proof of Work. You need to supply branchTransaction as well as
@@ -224,12 +223,12 @@ class StrictIota(with_metaclass(ApiMeta)):
 
     def find_transactions(
         self,
-        bundles=None,
-        addresses=None,
-        tags=None,
-        approvees=None,
+        bundles=None,  # Optional[Iterable[TransactionHash]]
+        addresses=None,  # Optional[Iterable[Address]]
+        tags=None,  # Optional[Iterable[Tag]]
+        approvees=None,  # Optional[Iterable[TransactionHash]]
     ):
-        # type: (Optional[Iterable[TransactionHash]], Optional[Iterable[Address]], Optional[Iterable[Tag]], Optional[Iterable[TransactionHash]]) -> dict    # noqa
+        # type: (...) -> dict
         """
         Find the transactions which match the specified input and return.
 
@@ -730,8 +729,13 @@ class Iota(StrictIota):
             inclusionStates=inclusion_states,
         )
 
-    def prepare_transfer(self, transfers, inputs=None, change_address=None):
-        # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> dict  # noqa
+    def prepare_transfer(
+        self,
+        transfers,  # type: Iterable[ProposedTransaction]
+        inputs=None,  # type: Optional[Iterable[Address]]
+        change_address=None  # type: Optional[Address]
+    ):
+        # type: (...) -> dict
         """
         Prepares transactions to be broadcast to the Tangle, by generating
         the correct bundle, as well as choosing and signing the inputs (for
@@ -847,13 +851,13 @@ class Iota(StrictIota):
 
     def send_transfer(
         self,
-        depth,
-        transfers,
-        inputs=None,
-        change_address=None,
-        min_weight_magnitude=None,
+        depth,  # type: int
+        transfers,  # type: Iterable[ProposedTransaction]
+        inputs=None,  # type: Optional[Iterable[Address]]
+        change_address=None,  # type: Optional[Address]
+        min_weight_magnitude=None,  # type: Optional[int]
     ):
-        # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> dict     # noqa
+        # type: (...) -> dict
         """
         Prepares a set of transfers and creates the bundle, then attaches
         the bundle to the Tangle, and broadcasts and stores the

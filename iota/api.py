@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from typing import Dict, Iterable, Optional, Text  # noqa
 
@@ -16,9 +16,9 @@ from iota.crypto.types import Seed
 from six import with_metaclass
 
 __all__ = [
-  'InvalidCommand',
-  'Iota',
-  'StrictIota',
+    'InvalidCommand',
+    'Iota',
+    'StrictIota',
 ]
 
 

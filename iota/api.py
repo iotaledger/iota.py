@@ -2,14 +2,8 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from typing import Dict, Iterable, Optional, Text  # noqa
-
-from iota import AdapterSpec, Address, ProposedTransaction, Tag  # noqa
-from iota import TransactionHash, TransactionTrytes, TryteString    # noqa
-from iota import TrytesCompatible   # noqa
-from iota.adapter import BaseAdapter, resolve_adapter  # noqa
-from iota.commands import BaseCommand, CustomCommand, core  # noqa
-from iota.commands import discover_commands, extended
+from iota.adapter import BaseAdapter, resolve_adapter
+from iota.commands import CustomCommand, core, discover_commands, extended
 from iota.commands.extended.helpers import Helpers
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed

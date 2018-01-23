@@ -1,189 +1,189 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
-from typing import Text
+    unicode_literals
 
 import filters as f
 from six import binary_type, moves as compat, text_type
 
-from iota import Address, TryteString, TrytesCompatible
+from iota import Address, TryteString
 
 
 class GeneratedAddress(f.BaseFilter):
-  """
-  Validates an incoming value as a generated :py:class:`Address` (must
-  have ``key_index`` set).
-  """
-  CODE_NO_KEY_INDEX       = 'no_key_index'
-  CODE_NO_SECURITY_LEVEL  = 'no_security_level'
+    """
+    Validates an incoming value as a generated :py:class:`Address` (must
+    have ``key_index`` set).
+    """
+    CODE_NO_KEY_INDEX = 'no_key_index'
+    CODE_NO_SECURITY_LEVEL = 'no_security_level'
 
-  templates = {
-    CODE_NO_KEY_INDEX:
-      'Address must have ``key_index`` attribute set.',
+    templates = {
+        CODE_NO_KEY_INDEX:
+            'Address must have ``key_index`` attribute set.',
 
-    CODE_NO_SECURITY_LEVEL:
-      'Address must have ``security_level`` attribute set.',
-  }
+        CODE_NO_SECURITY_LEVEL:
+            'Address must have ``security_level`` attribute set.',
+    }
 
-  def _apply(self, value):
-    value = self._filter(value, f.Type(Address)) # type: Address
+    def _apply(self, value):
+        value = self._filter(value, f.Type(Address))  # type: Address
 
-    if self._has_errors:
-      return None
+        if self._has_errors:
+            return None
 
-    if value.key_index is None:
-      return self._invalid_value(value, self.CODE_NO_KEY_INDEX)
+        if value.key_index is None:
+            return self._invalid_value(value, self.CODE_NO_KEY_INDEX)
 
-    if value.security_level is None:
-      return self._invalid_value(value, self.CODE_NO_SECURITY_LEVEL)
+        if value.security_level is None:
+            return self._invalid_value(value, self.CODE_NO_SECURITY_LEVEL)
 
-    return value
+        return value
 
 
 class NodeUri(f.BaseFilter):
-  """
-  Validates a string as a node URI.
-  """
-  SCHEMES = {'tcp', 'udp'}
-  """
-  Allowed schemes for node URIs.
-  """
+    """
+    Validates a string as a node URI.
+    """
+    SCHEMES = {'tcp', 'udp'}
+    """
+    Allowed schemes for node URIs.
+    """
 
-  CODE_NOT_NODE_URI = 'not_node_uri'
+    CODE_NOT_NODE_URI = 'not_node_uri'
 
-  templates = {
-    CODE_NOT_NODE_URI: 'This value does not appear to be a valid node URI.',
-  }
+    templates = {
+        CODE_NOT_NODE_URI: 'This value does not appear to be a valid node URI.'
+    }
 
-  def _apply(self, value):
-    value = self._filter(value, f.Type(text_type)) # type: Text
+    def _apply(self, value):
+        value = self._filter(value, f.Type(text_type))  # type: Text
 
-    if self._has_errors:
-      return None
+        if self._has_errors:
+            return None
 
-    parsed = compat.urllib_parse.urlparse(value)
+        parsed = compat.urllib_parse.urlparse(value)
 
-    if parsed.scheme not in self.SCHEMES:
-      return self._invalid_value(value, self.CODE_NOT_NODE_URI)
+        if parsed.scheme not in self.SCHEMES:
+            return self._invalid_value(value, self.CODE_NOT_NODE_URI)
 
-    return value
+        return value
 
 
 class Trytes(f.BaseFilter):
-  """
-  Validates a sequence as a sequence of trytes.
-  """
-  CODE_NOT_TRYTES   = 'not_trytes'
-  CODE_WRONG_FORMAT = 'wrong_format'
+    """
+    Validates a sequence as a sequence of trytes.
+    """
+    CODE_NOT_TRYTES = 'not_trytes'
+    CODE_WRONG_FORMAT = 'wrong_format'
 
-  templates = {
-    CODE_NOT_TRYTES: 'This value is not a valid tryte sequence.',
-    CODE_WRONG_FORMAT: 'This value is not a valid {result_type}.',
-  }
+    templates = {
+        CODE_NOT_TRYTES: 'This value is not a valid tryte sequence.',
+        CODE_WRONG_FORMAT: 'This value is not a valid {result_type}.',
+    }
 
-  def __init__(self, result_type=TryteString):
-    # type: (type) -> None
-    super(Trytes, self).__init__()
+    def __init__(self, result_type=TryteString):
+        # type: (type) -> None
+        super(Trytes, self).__init__()
 
-    if not isinstance(result_type, type):
-      raise TypeError(
-        'Invalid result_type for {filter_type} '
-        '(expected subclass of TryteString, '
-        'actual instance of {result_type}).'.format(
-          filter_type = type(self).__name__,
-          result_type = type(result_type).__name__,
-        ),
-      )
+        if not isinstance(result_type, type):
+            raise TypeError(
+                'Invalid result_type for {filter_type} '
+                '(expected subclass of TryteString, '
+                'actual instance of {result_type}).'
+                .format(
+                    filter_type=type(self).__name__,
+                    result_type=type(result_type).__name__,
+                ),
+            )
 
-    if not issubclass(result_type, TryteString):
-      raise ValueError(
-        'Invalid result_type for {filter_type} '
-        '(expected TryteString, actual {result_type}).'.format(
-          filter_type = type(self).__name__,
-          result_type = result_type.__name__,
-        ),
-      )
+        if not issubclass(result_type, TryteString):
+            raise ValueError(
+                'Invalid result_type for {filter_type} '
+                '(expected TryteString, actual {result_type}).'
+                .format(
+                    filter_type=type(self).__name__,
+                    result_type=result_type.__name__,
+                ),
+            )
 
-    self.result_type = result_type
+        self.result_type = result_type
 
-  def _apply(self, value):
-    # noinspection PyTypeChecker
-    value =\
-      self._filter(
-        filter_chain = f.Type((binary_type, bytearray, text_type, TryteString)),
-        value = value,
-      ) # type: TrytesCompatible
+    def _apply(self, value):
+        # noinspection PyTypeChecker
+        value =\
+            self._filter(
+                filter_chain=f.Type((binary_type, bytearray,
+                                     text_type, TryteString)),
+                value=value,
+            )  # type: TrytesCompatible
 
-    if self._has_errors:
-      return None
+        if self._has_errors:
+            return None
 
-    # If the incoming value already has the correct type, then we're
-    # done.
-    if isinstance(value, self.result_type):
-      return value
+        # If the incoming value already has the correct type, then we're
+        # done.
+        if isinstance(value, self.result_type):
+            return value
 
-    # First convert to a generic TryteString, to make sure that the
-    # sequence doesn't contain any invalid characters.
-    try:
-      value = TryteString(value)
-    except ValueError:
-      return self._invalid_value(value, self.CODE_NOT_TRYTES, exc_info=True)
+        # First convert to a generic TryteString, to make sure that the
+        # sequence doesn't contain any invalid characters.
+        try:
+            value = TryteString(value)
+        except ValueError:
+            return self._invalid_value(value, self.CODE_NOT_TRYTES,
+                                       exc_info=True)
 
-    if self.result_type is TryteString:
-      return value
+        if self.result_type is TryteString:
+            return value
 
-    # Now coerce to the expected type and verify that there are no
-    # type-specific errors.
-    try:
-      return self.result_type(value)
-    except ValueError:
-      return self._invalid_value(
-        value     = value,
-        reason    = self.CODE_WRONG_FORMAT,
-        exc_info  = True,
-
-        template_vars = {
-          'result_type': self.result_type.__name__,
-        },
-      )
+        # Now coerce to the expected type and verify that there are no
+        # type-specific errors.
+        try:
+            return self.result_type(value)
+        except ValueError:
+            return self._invalid_value(
+                value=value,
+                reason=self.CODE_WRONG_FORMAT,
+                exc_info=True,
+                template_vars={
+                    'result_type': self.result_type.__name__
+                },
+            )
 
 
 class AddressNoChecksum(Trytes):
-  """
-  Validates a sequence as an Address then chops off the checksum if it exists
-  """
-  ADDRESS_BAD_CHECKSUM = 'address_bad_checksum'
+    """
+    Validates a sequence as an Address then chops off the checksum if it exists
+    """
+    ADDRESS_BAD_CHECKSUM = 'address_bad_checksum'
 
-  templates = {
-    ADDRESS_BAD_CHECKSUM:
-      'Checksum is {supplied_checksum}, should be {expected_checksum}?',
-  }
+    templates = {
+        ADDRESS_BAD_CHECKSUM:
+            'Checksum is {supplied_checksum}, should be {expected_checksum}?',
+    }
 
-  def __init__(self):
-    super(AddressNoChecksum, self).__init__(result_type=Address)
+    def __init__(self):
+        super(AddressNoChecksum, self).__init__(result_type=Address)
 
-  def _apply(self, value):
-    super(AddressNoChecksum, self)._apply(value)
+    def _apply(self, value):
+        super(AddressNoChecksum, self)._apply(value)
 
-    if self._has_errors:
-      return None
+        if self._has_errors:
+            return None
 
-    # Possible it's still just a TryteString
-    if not isinstance(value, Address):
-      value = Address(value)
+        # Possible it's still just a TryteString
+        if not isinstance(value, Address):
+            value = Address(value)
 
-    # Bail out if we have a bad checksum
-    if value.checksum and not value.is_checksum_valid():
-      return self._invalid_value(
-        value     = value,
-        reason    = self.ADDRESS_BAD_CHECKSUM,
-        exc_info  = True,
+        # Bail out if we have a bad checksum
+        if value.checksum and not value.is_checksum_valid():
+            return self._invalid_value(
+                value=value,
+                reason=self.ADDRESS_BAD_CHECKSUM,
+                exc_info=True,
+                context={
+                    'supplied_checksum': value.checksum,
+                    'expected_checksum': value.with_valid_checksum().checksum,
+                },
+            )
 
-        context = {
-          'supplied_checksum': value.checksum,
-          'expected_checksum': value.with_valid_checksum().checksum,
-        },
-      )
-
-    return Address(value.address)
+        return Address(value.address)

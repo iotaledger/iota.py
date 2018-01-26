@@ -16,7 +16,7 @@ Join the Discussion
 ===================
 If you want to get involved in the community, need help with getting setup,
 have any issues related with the library or just want to discuss Blockchain,
-Distributed Ledgers and IoT with other people, feel free to join our `Slack`_.
+Distributed Ledgers and IoT with other people, feel free to join our `Discord`_.
 
 You can also ask questions on our `dedicated forum`_.
 
@@ -98,9 +98,9 @@ can also build the documentation locally:
       make html
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
+.. _Discord: https://discordapp.com/invite/yxve4wu
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
-.. _Slack: https://slack.iota.org/
 .. _dedicated forum: https://forum.iota.org/
 .. _detox: https://pypi.python.org/pypi/detox
 .. _official API: https://iota.readme.io/

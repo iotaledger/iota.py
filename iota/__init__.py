@@ -29,17 +29,17 @@ STANDARD_UNITS = {
 
 
 # Activate codecs.
-from .codecs import *
+from .codecs import *  # noqa:f401
 
 # Make some imports accessible from the top level of the package.
 # Note that order is important, to prevent circular imports.
-from .types import *
-from .transaction import *
-from .adapter import *
-from .api import *
-from .trits import *
+from .types import *  # noqa:f401
+from .transaction import *  # noqa:f401
+from .adapter import *  # noqa:f401
+from .api import *  # noqa:f401
+from .trits import *  # noqa:f401
 
 # :see: http://stackoverflow.com/a/2073599/
-from pkg_resources import require
+from pkg_resources import require  # noqa:E402
 __version__ = require('PyOTA')[0].version
 del require

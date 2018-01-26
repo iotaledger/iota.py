@@ -1,22 +1,25 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
-from typing import Iterable, Optional
+# from typing import Iterable, Optional
 
-from iota import Address, Iota, ProposedTransaction
+from iota import Iota
+# Address
+# ProposedTransaction
 from iota.commands import discover_commands
 from iota.crypto.addresses import AddressGenerator
-from iota.crypto.types import Digest
+# from iota.crypto.types import Digest
 from iota.multisig import commands
-from iota.multisig.types import MultisigAddress
+# from iota.multisig.types import MultisigAddress
 
 __all__ = [
-  'MultisigIota',
+    'MultisigIota',
 ]
 
+
 class MultisigIota(Iota):
-  """
+    """
   Extends the IOTA API so that it can send multi-signature
   transactions.
 
@@ -28,11 +31,11 @@ class MultisigIota(Iota):
   References:
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
   """
-  commands = discover_commands('iota.multisig.commands')
+    commands = discover_commands('iota.multisig.commands')
 
-  def create_multisig_address(self, digests):
-    # type: (Iterable[Digest]) -> dict
-    """
+    def create_multisig_address(self, digests):
+        # type: (Iterable[Digest]) -> dict
+        """
     Generates a multisig address from a collection of digests.
 
     :param digests:
@@ -50,18 +53,18 @@ class MultisigIota(Iota):
              The generated multisig address.
          }
     """
-    return commands.CreateMultisigAddressCommand(self.adapter)(
-      digests = digests,
-    )
+        return commands.CreateMultisigAddressCommand(self.adapter)(
+            digests=digests,
+        )
 
-  def get_digests(
-      self,
-      index = 0,
-      count = 1,
-      security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
-  ):
-    # type: (int, int, int) -> dict
-    """
+    def get_digests(
+            self,
+            index=0,
+            count=1,
+            security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
+    ):
+        # type: (int, int, int) -> dict
+        """
     Generates one or more key digests from the seed.
 
     Digests are safe to share; use them to generate multisig addresses.
@@ -89,21 +92,21 @@ class MultisigIota(Iota):
              generated.
          }
     """
-    return commands.GetDigestsCommand(self.adapter)(
-      seed          = self.seed,
-      index         = index,
-      count         = count,
-      securityLevel = security_level,
-    )
+        return commands.GetDigestsCommand(self.adapter)(
+            seed=self.seed,
+            index=index,
+            count=count,
+            securityLevel=security_level,
+        )
 
-  def get_private_keys(
-      self,
-      index = 0,
-      count = 1,
-      security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL,
-  ):
-    # type: (int, int, int) -> dict
-    """
+    def get_private_keys(
+            self,
+            index=0,
+            count=1,
+            security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
+    ):
+        # type: (int, int, int) -> dict
+        """
     Generates one or more private keys from the seed.
 
     As the name implies, private keys should not be shared.  However,
@@ -136,21 +139,21 @@ class MultisigIota(Iota):
       - :py:class:`iota.crypto.signing.KeyGenerator`
       - https://github.com/iotaledger/wiki/blob/master/multisigs.md#how-m-of-n-works
     """
-    return commands.GetPrivateKeysCommand(self.adapter)(
-      seed          = self.seed,
-      index         = index,
-      count         = count,
-      securityLevel = security_level,
-    )
+        return commands.GetPrivateKeysCommand(self.adapter)(
+            seed=self.seed,
+            index=index,
+            count=count,
+            securityLevel=security_level,
+        )
 
-  def prepare_multisig_transfer(
-      self,
-      transfers,
-      multisig_input,
-      change_address = None,
-  ):
-    # type: (Iterable[ProposedTransaction], MultisigAddress, Optional[Address]) -> dict
-    """
+    def prepare_multisig_transfer(
+            self,
+            transfers,
+            multisig_input,
+            change_address=None,
+    ):
+        # type: (Iterable[ProposedTransaction], MultisigAddress, Optional[Address]) -> dict
+        """
     Prepares a bundle that authorizes the spending of IOTAs from a
     multisig address.
 
@@ -209,8 +212,8 @@ class MultisigIota(Iota):
       proof of work (``attachToTangle``) and broadcast the bundle using
       :py:meth:`iota.api.Iota.send_trytes`.
     """
-    return commands.PrepareMultisigTransferCommand(self.adapter)(
-      changeAddress = change_address,
-      multisigInput = multisig_input,
-      transfers     = transfers,
-    )
+        return commands.PrepareMultisigTransferCommand(self.adapter)(
+            changeAddress=change_address,
+            multisigInput=multisig_input,
+            transfers=transfers,
+        )

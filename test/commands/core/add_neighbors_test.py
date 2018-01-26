@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from unittest import TestCase
 
@@ -13,146 +13,146 @@ from iota.filters import NodeUri
 
 
 class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = AddNeighborsCommand(MockAdapter()).get_request_filter
-  skip_value_check = True
+    filter_type = AddNeighborsCommand(MockAdapter()).get_request_filter
+    skip_value_check = True
 
-  def test_pass_valid_request(self):
-    """
+    def test_pass_valid_request(self):
+        """
     The incoming request is valid.
     """
-    request = {
-      'uris': [
-        'udp://node1.iotatoken.com',
-        'udp://localhost:14265/',
-      ],
-    }
+        request = {
+            'uris': [
+                'udp://node1.iotatoken.com',
+                'udp://localhost:14265/',
+            ],
+        }
 
-    filter_ = self._filter(request)
+        filter_ = self._filter(request)
 
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(filter_.cleaned_data, request)
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(filter_.cleaned_data, request)
 
-  def test_fail_empty(self):
-    """
+    def test_fail_empty(self):
+        """
     The incoming request is empty.
     """
-    self.assertFilterErrors(
-      {},
+        self.assertFilterErrors(
+            {},
 
-      {
-        'uris': [f.FilterMapper.CODE_MISSING_KEY],
-      },
-    )
+            {
+                'uris': [f.FilterMapper.CODE_MISSING_KEY],
+            },
+        )
 
-  def test_fail_unexpected_parameters(self):
-    """
+    def test_fail_unexpected_parameters(self):
+        """
     The incoming request contains unexpected parameters.
     """
-    self.assertFilterErrors(
-      {
-        'uris': ['udp://localhost'],
+        self.assertFilterErrors(
+            {
+                'uris': ['udp://localhost'],
 
-        # I've never seen that before in my life, officer.
-        'foo': 'bar',
-      },
+                # I've never seen that before in my life, officer.
+                'foo': 'bar',
+            },
 
-      {
-        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
-      },
-    )
+            {
+                'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+            },
+        )
 
-  def test_fail_neighbors_null(self):
-    """
+    def test_fail_neighbors_null(self):
+        """
     ``uris`` is null.
     """
-    self.assertFilterErrors(
-      {
-        'uris': None,
-      },
+        self.assertFilterErrors(
+            {
+                'uris': None,
+            },
 
-      {
-        'uris': [f.Required.CODE_EMPTY],
-      },
-    )
+            {
+                'uris': [f.Required.CODE_EMPTY],
+            },
+        )
 
-  def test_fail_uris_wrong_type(self):
-    """
+    def test_fail_uris_wrong_type(self):
+        """
     ``uris`` is not an array.
     """
-    self.assertFilterErrors(
-      {
-        # Nope; it's gotta be an array, even if you only want to add
-        # a single neighbor.
-        'uris': 'udp://localhost:8080/'
-      },
+        self.assertFilterErrors(
+            {
+                # Nope; it's gotta be an array, even if you only want to add
+                # a single neighbor.
+                'uris': 'udp://localhost:8080/'
+            },
 
-      {
-        'uris': [f.Type.CODE_WRONG_TYPE]
-      },
-    )
+            {
+                'uris': [f.Type.CODE_WRONG_TYPE]
+            },
+        )
 
-  def test_fail_uris_empty(self):
-    """
+    def test_fail_uris_empty(self):
+        """
     ``uris`` is an array, but it's empty.
     """
-    self.assertFilterErrors(
-      {
-        # Insert "Forever Alone" meme here.
-        'uris': [],
-      },
+        self.assertFilterErrors(
+            {
+                # Insert "Forever Alone" meme here.
+                'uris': [],
+            },
 
-      {
-        'uris': [f.Required.CODE_EMPTY],
-      },
-    )
+            {
+                'uris': [f.Required.CODE_EMPTY],
+            },
+        )
 
-  def test_fail_uris_contents_invalid(self):
-    """
+    def test_fail_uris_contents_invalid(self):
+        """
     ``uris`` is an array, but it contains invalid values.
     """
-    self.assertFilterErrors(
-      {
-        'uris': [
-          '',
-          False,
-          None,
-          b'udp://localhost:8080/',
-          'not a valid uri',
+        self.assertFilterErrors(
+            {
+                'uris': [
+                    '',
+                    False,
+                    None,
+                    b'udp://localhost:8080/',
+                    'not a valid uri',
 
-          # This is actually valid; I just added it to make sure the
-          # filter isn't cheating!
-          'udp://localhost:14265',
+                    # This is actually valid; I just added it to make sure the
+                    # filter isn't cheating!
+                    'udp://localhost:14265',
 
-          # Only UDP URIs are allowed.
-          'http://localhost:14265',
+                    # Only UDP URIs are allowed.
+                    'http://localhost:14265',
 
-          2130706433,
-        ],
-      },
+                    2130706433,
+                ],
+            },
 
-      {
-        'uris.0':  [f.Required.CODE_EMPTY],
-        'uris.1':  [f.Type.CODE_WRONG_TYPE],
-        'uris.2':  [f.Required.CODE_EMPTY],
-        'uris.3':  [f.Type.CODE_WRONG_TYPE],
-        'uris.4':  [NodeUri.CODE_NOT_NODE_URI],
-        'uris.6':  [NodeUri.CODE_NOT_NODE_URI],
-        'uris.7':  [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'uris.0': [f.Required.CODE_EMPTY],
+                'uris.1': [f.Type.CODE_WRONG_TYPE],
+                'uris.2': [f.Required.CODE_EMPTY],
+                'uris.3': [f.Type.CODE_WRONG_TYPE],
+                'uris.4': [NodeUri.CODE_NOT_NODE_URI],
+                'uris.6': [NodeUri.CODE_NOT_NODE_URI],
+                'uris.7': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
 
 class AddNeighborsCommandTestCase(TestCase):
-  def setUp(self):
-    super(AddNeighborsCommandTestCase, self).setUp()
+    def setUp(self):
+        super(AddNeighborsCommandTestCase, self).setUp()
 
-    self.adapter = MockAdapter()
+        self.adapter = MockAdapter()
 
-  def test_wireup(self):
-    """
+    def test_wireup(self):
+        """
     Verify that the command is wired up correctly.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).addNeighbors,
-      AddNeighborsCommand,
-    )
+        self.assertIsInstance(
+            Iota(self.adapter).addNeighbors,
+            AddNeighborsCommand,
+        )

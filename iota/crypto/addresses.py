@@ -1,22 +1,26 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
-from typing import Generator, Iterable, List, MutableSequence
+from typing import Iterable
+# List, Generator, MutableSequence
 
-from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
+from iota import Address, TRITS_PER_TRYTE
+# TrytesCompatible
 from iota.crypto.kerl import Kerl
-from iota.crypto.signing import KeyGenerator, KeyIterator
-from iota.crypto.types import Digest, PrivateKey, Seed
+from iota.crypto.signing import KeyGenerator
+# KeyIterator
+from iota.crypto.types import Seed
+# Digest, PrivateKey,
 from iota.exceptions import with_context
 
 __all__ = [
-  'AddressGenerator',
+    'AddressGenerator',
 ]
 
 
 class AddressGenerator(Iterable[Address]):
-  """
+    """
   Generates new addresses using a standard algorithm.
 
   Note: This class does not check if addresses have already been used;
@@ -27,8 +31,8 @@ class AddressGenerator(Iterable[Address]):
   ``AddressGenerator`` internally, so you get the best of both worlds
   when you use the API (:
   """
-  DEFAULT_SECURITY_LEVEL = 2
-  """
+    DEFAULT_SECURITY_LEVEL = 2
+    """
   Default number of iterations to use when creating digests, used to create
   addresses.
 
@@ -40,25 +44,25 @@ class AddressGenerator(Iterable[Address]):
     - :py:class:`iota.transaction.BundleValidator`
   """
 
-  def __init__(self, seed, security_level=DEFAULT_SECURITY_LEVEL, checksum=False):
-    # type: (TrytesCompatible, int, bool) -> None
-    super(AddressGenerator, self).__init__()
+    def __init__(self, seed, security_level=DEFAULT_SECURITY_LEVEL, checksum=False):
+        # type: (TrytesCompatible, int, bool) -> None
+        super(AddressGenerator, self).__init__()
 
-    self.security_level = security_level
-    self.checksum       = checksum
-    self.seed           = Seed(seed)
+        self.security_level = security_level
+        self.checksum = checksum
+        self.seed = Seed(seed)
 
-  def __iter__(self):
-    # type: () -> Generator[Address]
-    """
+    def __iter__(self):
+        # type: () -> Generator[Address]
+        """
     Returns a generator for creating new addresses, starting at index
     0 and potentially continuing on forever.
     """
-    return self.create_iterator()
+        return self.create_iterator()
 
-  def get_addresses(self, start, count=1, step=1):
-    # type: (int, int, int) -> List[Address]
-    """
+    def get_addresses(self, start, count=1, step=1):
+        # type: (int, int, int) -> List[Address]
+        """
     Generates and returns one or more addresses at the specified
     index(es).
 
@@ -89,44 +93,44 @@ class AddressGenerator(Iterable[Address]):
       ``step * count < start`` (only applies when ``step`` is
       negative).
     """
-    if count < 1:
-      raise with_context(
-        exc = ValueError('``count`` must be positive.'),
+        if count < 1:
+            raise with_context(
+                exc=ValueError('``count`` must be positive.'),
 
-        context = {
-          'start':  start,
-          'count':  count,
-          'step':   step,
-        },
-      )
+                context={
+                    'start': start,
+                    'count': count,
+                    'step': step,
+                },
+            )
 
-    if not step:
-      raise with_context(
-        exc = ValueError('``step`` must not be zero.'),
+        if not step:
+            raise with_context(
+                exc=ValueError('``step`` must not be zero.'),
 
-        context = {
-          'start':  start,
-          'count':  count,
-          'step':   step,
-        },
-      )
+                context={
+                    'start': start,
+                    'count': count,
+                    'step': step,
+                },
+            )
 
-    generator = self.create_iterator(start, step)
+        generator = self.create_iterator(start, step)
 
-    addresses = []
-    for _ in range(count):
-      try:
-        next_addy = next(generator)
-      except StopIteration:
-        break
-      else:
-        addresses.append(next_addy)
+        addresses = []
+        for _ in range(count):
+            try:
+                next_addy = next(generator)
+            except StopIteration:
+                break
+            else:
+                addresses.append(next_addy)
 
-    return addresses
+        return addresses
 
-  def create_iterator(self, start=0, step=1):
-    # type: (int, int) -> Generator[Address]
-    """
+    def create_iterator(self, start=0, step=1):
+        # type: (int, int) -> Generator[Address]
+        """
     Creates an iterator that can be used to progressively generate new
     addresses.
 
@@ -142,53 +146,52 @@ class AddressGenerator(Iterable[Address]):
       Warning: The generator may take awhile to advance between
       iterations if ``step`` is a large number!
     """
-    key_iterator = (
-      KeyGenerator(self.seed)
-        .create_iterator(start, step, self.security_level)
-    )
+        key_iterator = (
+            KeyGenerator(self.seed).create_iterator(start, step, self.security_level)
+        )
 
-    while True:
-      yield self._generate_address(key_iterator)
+        while True:
+            yield self._generate_address(key_iterator)
 
-  @staticmethod
-  def address_from_digest(digest):
-    # type: (Digest) -> Address
-    """
+    @staticmethod
+    def address_from_digest(digest):
+        # type: (Digest) -> Address
+        """
     Generates an address from a private key digest.
     """
-    address_trits = [0] * (Address.LEN * TRITS_PER_TRYTE) # type: MutableSequence[int]
+        address_trits = [0] * (Address.LEN * TRITS_PER_TRYTE)  # type: MutableSequence[int]
 
-    sponge = Kerl()
-    sponge.absorb(digest.as_trits())
-    sponge.squeeze(address_trits)
+        sponge = Kerl()
+        sponge.absorb(digest.as_trits())
+        sponge.squeeze(address_trits)
 
-    return Address.from_trits(
-      trits = address_trits,
+        return Address.from_trits(
+            trits=address_trits,
 
-      key_index       = digest.key_index,
-      security_level  = digest.security_level,
-    )
+            key_index=digest.key_index,
+            security_level=digest.security_level,
+        )
 
-  def _generate_address(self, key_iterator):
-    # type: (KeyIterator) -> Address
-    """
+    def _generate_address(self, key_iterator):
+        # type: (KeyIterator) -> Address
+        """
     Generates a new address.
 
     Used in the event of a cache miss.
     """
-    if self.checksum:
-      return self.address_from_digest(self._get_digest(key_iterator)).with_valid_checksum()
-    else:
-      return self.address_from_digest(self._get_digest(key_iterator))
+        if self.checksum:
+            return self.address_from_digest(self._get_digest(key_iterator)).with_valid_checksum()
+        else:
+            return self.address_from_digest(self._get_digest(key_iterator))
 
-  @staticmethod
-  def _get_digest(key_iterator):
-    # type: (KeyIterator) -> Digest
-    """
+    @staticmethod
+    def _get_digest(key_iterator):
+        # type: (KeyIterator) -> Digest
+        """
     Extracts parameters for :py:meth:`address_from_digest`.
 
     Split into a separate method so that it can be mocked during unit
     tests.
     """
-    private_key = next(key_iterator) # type: PrivateKey
-    return private_key.get_digest()
+        private_key = next(key_iterator)  # type: PrivateKey
+        return private_key.get_digest()

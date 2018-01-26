@@ -1,17 +1,15 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
+    unicode_literals
 
 # Load curl library.
 # If a compiled c extension is available, we will prefer to load that;
 # otherwise fall back to pure-Python implementation.
 # https://pypi.python.org/pypi/PyOTA-CCurl
 try:
-  from ccurl import *
+    from ccurl import *  # noqa:f401
 except ImportError:
-  from .pycurl import *
-
+    from .pycurl import *  # noqa:f401
 
 FRAGMENT_LENGTH = 2187
 """
@@ -23,7 +21,7 @@ manageable chunks (similar in concept to AES blocks).
 
 
 class SeedWarning(Warning):
-  """
+    """
   Warning for inappropriate seeds.
   """
-  pass
+    pass

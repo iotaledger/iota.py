@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, \
 
 # Import symbols to package namespace, for backwards-compatibility with
 # PyOTA 1.1.x.
-from .base import *
-from .creation import *
-from .types import *
-from .utils import *
-from .validator import *
+from .base import *  # noqa:f401
+from .creation import *  # noqa:f401
+from .types import *  # noqa:f401
+from .utils import *  # noqa:f401
+from .validator import *  # noqa:f401

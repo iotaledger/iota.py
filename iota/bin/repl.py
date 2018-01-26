@@ -4,9 +4,9 @@
 Launches a Python shell with a configured API client ready to go.
 """
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
-from argparse import ArgumentParser
+# from argparse import ArgumentParser
 from logging import DEBUG, basicConfig, getLogger
 from sys import stderr
 
@@ -15,7 +15,7 @@ from six.moves import http_client
 
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
-from iota import *
+# from iota import *
 
 from iota.adapter import resolve_adapter
 from iota.adapter.wrappers import RoutingWrapper
@@ -23,98 +23,98 @@ from iota.bin import IotaCommandLineApp
 
 
 class IotaReplCommandLineApp(IotaCommandLineApp):
-  """
+    """
   Creates an IOTA API instance and drops the user into a REPL.
   """
-  def execute(self, api, **arguments):
-    # type: (Iota, ...) -> int
-    debug_requests  = arguments['debug_requests']
-    pow_uri         = arguments['pow_uri']
 
-    # If ``pow_uri`` is specified, route POW requests to a separate
-    # node.
-    if pow_uri:
-      pow_adapter = resolve_adapter(pow_uri)
+    def execute(self, api, **arguments):
+        # type: (Iota, ...) -> int
+        debug_requests = arguments['debug_requests']
+        pow_uri = arguments['pow_uri']
 
-      api.adapter =\
-        RoutingWrapper(api.adapter)\
-          .add_route('attachToTangle', pow_adapter)\
-          .add_route('interruptAttachingToTangle', pow_adapter)
+        # If ``pow_uri`` is specified, route POW requests to a separate
+        # node.
+        if pow_uri:
+            pow_adapter = resolve_adapter(pow_uri)
 
-    # If ``debug_requests`` is specified, log HTTP requests/responses.
-    if debug_requests:
-      # Inject a logger into the IOTA HTTP adapter.
-      basicConfig(level=DEBUG, stream=stderr)
+            api.adapter = \
+                RoutingWrapper(api.adapter).add_route('attachToTangle',
+                                                      pow_adapter).add_route('interruptAttachingToTangle', pow_adapter)
 
-      logger = getLogger(__name__)
-      logger.setLevel(DEBUG)
+        # If ``debug_requests`` is specified, log HTTP requests/responses.
+        if debug_requests:
+            # Inject a logger into the IOTA HTTP adapter.
+            basicConfig(level=DEBUG, stream=stderr)
 
-      api.adapter.set_logger(logger)
+            logger = getLogger(__name__)
+            logger.setLevel(DEBUG)
 
-      # Turn on debugging for the underlying HTTP library.
-      http_client.HTTPConnection.debuglevel = 1
+            api.adapter.set_logger(logger)
 
-    try:
-      self._start_repl(api)
-    except KeyboardInterrupt:
-      pass
+            # Turn on debugging for the underlying HTTP library.
+            http_client.HTTPConnection.debuglevel = 1
 
-    return 0
+        try:
+            self._start_repl(api)
+        except KeyboardInterrupt:
+            pass
 
-  def create_argument_parser(self):
-    # type: () -> ArgumentParser
-    parser = super(IotaReplCommandLineApp, self).create_argument_parser()
+        return 0
 
-    parser.add_argument(
-      '--pow-uri',
-        type    = text_type,
-        default = None,
-        dest    = 'pow_uri',
-        help    = 'URI of node to send POW requests to.'
-    )
+    def create_argument_parser(self):
+        # type: () -> ArgumentParser
+        parser = super(IotaReplCommandLineApp, self).create_argument_parser()
 
-    parser.add_argument(
-      '--debug',
-        action  = 'store_true',
-        default = False,
-        dest    = 'debug_requests',
-        help    = 'If set, log HTTP requests to stderr.'
-    )
+        parser.add_argument(
+            '--pow-uri',
+            type=text_type,
+            default=None,
+            dest='pow_uri',
+            help='URI of node to send POW requests to.'
+        )
 
-    return parser
+        parser.add_argument(
+            '--debug',
+            action='store_true',
+            default=False,
+            dest='debug_requests',
+            help='If set, log HTTP requests to stderr.'
+        )
 
-  @staticmethod
-  def _start_repl(api):
-    # type: (Iota) -> None
-    """
+        return parser
+
+    @staticmethod
+    def _start_repl(api):
+        # type: (Iota) -> None
+        """
     Starts the REPL.
     """
-    _banner = (
-      'IOTA API client for {uri} ({testnet}) initialized as variable `api`.\n'
-      'Type `help(api)` for list of API commands.'.format(
-        testnet = 'testnet' if api.testnet else 'mainnet',
-        uri     = api.adapter.get_uri(),
-      )
-    )
+        _banner = (
+            'IOTA API client for {uri} ({testnet}) initialized as variable `api`.\n'
+            'Type `help(api)` for list of API commands.'.format(
+                testnet='testnet' if api.testnet else 'mainnet',
+                uri=api.adapter.get_uri(),
+            )
+        )
 
-    try:
-      # noinspection PyUnresolvedReferences
-      import IPython
-    except ImportError:
-      # IPython not available; use regular Python REPL.
-      from code import InteractiveConsole
-      InteractiveConsole(locals={'api': api}).interact(_banner)
-    else:
-      # Launch IPython REPL.
-      IPython.embed(header=_banner)
+        try:
+            # noinspection PyUnresolvedReferences
+            import IPython
+        except ImportError:
+            # IPython not available; use regular Python REPL.
+            from code import InteractiveConsole
+            InteractiveConsole(locals={'api': api}).interact(_banner)
+        else:
+            # Launch IPython REPL.
+            IPython.embed(header=_banner)
 
 
 def main():
-  """
+    """
   Entry point for ``setup.py``.
   """
-  IotaReplCommandLineApp().main()
+    IotaReplCommandLineApp().main()
 
 
 if __name__ == '__main__':
-  main()
+    main()

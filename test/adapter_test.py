@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import json
+import socket
 from typing import Text
 from unittest import TestCase
 
@@ -313,6 +314,65 @@ class HttpAdapterTestCase(TestCase):
         response = invalid_response,
       ),
     )
+
+  @mock.patch('iota.adapter.request')
+  def test_default_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
+
+    # test with default timeout
+    adapter.send_request(payload=mock_payload)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], socket.getdefaulttimeout())
+
+  @mock.patch('iota.adapter.request')
+  def test_instance_attribute_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
+
+    # test with explicit attribute
+    adapter.timeout = 77
+    adapter.send_request(payload=mock_payload)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], 77)
+
+  @mock.patch('iota.adapter.request')
+  def test_argument_overriding_attribute_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
+
+    # test with timeout in kwargs
+    adapter.timeout = 77
+    adapter.send_request(payload=mock_payload, timeout=88)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], 88)
+
+  @mock.patch('iota.adapter.request')
+  def test_argument_overriding_init_timeout(self, request_mock):
+    # create dummy response
+    request_mock.return_value = mock.Mock(text='{ "dummy": "payload"}', status_code=200)
+
+    # create adapter
+    mock_payload = {'dummy': 'payload'}
+    adapter = HttpAdapter('http://localhost:14265')
+
+    # test with timeout at adapter creation
+    adapter = HttpAdapter('http://localhost:14265', timeout=99)
+    adapter.send_request(payload=mock_payload)
+    _, kwargs = request_mock.call_args
+    self.assertEqual(kwargs['timeout'], 99)
 
   # noinspection SpellCheckingInspection
   @staticmethod

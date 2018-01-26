@@ -1132,7 +1132,7 @@ class PrepareTransferCommandTestCase(TestCase):
               'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN'
             ),
 
-          message = TryteString.from_string('สวัสดีชาวโลก!'),
+          message = TryteString.from_unicode('สวัสดีชาวโลก!'),
           tag     = Tag('PYOTA9UNIT9TESTS9'),
           value   = 0,
         ),
@@ -1168,7 +1168,7 @@ class PrepareTransferCommandTestCase(TestCase):
               ),
 
             message =
-              TryteString.from_string(
+              TryteString.from_unicode(
                 'Вы не можете справиться правду! Сын, мы живем в мире, который '
                 'имеет стены. И эти стены должны быть охраняют люди с оружием. '
                 'Кто будет это делать? Вы? Вы, лейтенант Weinberg? У меня есть '

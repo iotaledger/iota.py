@@ -115,7 +115,7 @@ class ProposedBundleTestCase(TestCase):
           b'D9YBTH9EMFKF9CAHJIAIKDBEPAMH99DEN9DAJETGN'
         ),
 
-      message = TryteString.from_string('Hello, IOTA!'),
+      message = TryteString.from_unicode('Hello, IOTA!'),
       value   = 42,
     ))
 
@@ -134,13 +134,13 @@ class ProposedBundleTestCase(TestCase):
       b'HCFIUGLBSCKELC9IYENFPHCEWHIDCHCGGEH9OFZBN'
     )
 
-    tag = Tag.from_string('H2G2')
+    tag = Tag.from_unicode('H2G2')
 
     self.bundle.add_transaction(ProposedTransaction(
       address = address,
       tag     = tag,
 
-      message = TryteString.from_string(
+      message = TryteString.from_unicode(
         '''
 "Good morning," said Deep Thought at last.
 "Er... Good morning, O Deep Thought," said Loonquawl nervously.

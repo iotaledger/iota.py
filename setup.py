@@ -33,7 +33,7 @@ setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '2.0.3',
+  version     = '2.0.4',
 
   long_description = long_description,
 
@@ -48,7 +48,7 @@ setup(
   # http://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
   entry_points = {
     'console_scripts': [
-      'iota-cli=iota.bin.repl:main',
+      'pyota-cli=iota.bin.repl:main',
     ],
   },
 
@@ -67,6 +67,7 @@ setup(
   extras_require = {
     'ccurl': ['pyota-ccurl'],
     'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
+    'test-runner': ['detox'],
   },
 
   test_suite    = 'test',

@@ -8,7 +8,7 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
-from iota import Iota, TransactionTrytes, TryteString
+from iota import Iota, TransactionTrytes, TryteString, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
@@ -40,6 +40,8 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         TransactionTrytes(self.trytes1),
         TransactionTrytes(self.trytes2),
       ],
+
+      'reference': TransactionHash(self.trytes1),
     }
 
     filter_ = self._filter(request)
@@ -58,6 +60,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         binary_type(self.trytes1),
         bytearray(self.trytes2),
       ],
+      'reference': binary_type(self.trytes2),
 
       # These still have to be ints, however.
       'depth':              100,
@@ -76,6 +79,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
           TransactionTrytes(self.trytes1),
           TransactionTrytes(self.trytes2),
         ],
+        'reference': TransactionHash(self.trytes2)
       },
     )
 

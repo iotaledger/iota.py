@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
-from iota import Address, Bundle, ProposedTransaction
+from iota import Address, Bundle, ProposedTransaction, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
@@ -38,6 +38,7 @@ class SendTransferCommand(FilterCommand):
     min_weight_magnitude  = request['minWeightMagnitude'] # type: int
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]
+    reference             = request['reference'] # type: Optional[TransactionHash]
 
     pt_response = PrepareTransferCommand(self.adapter)(
       changeAddress   = change_address,
@@ -50,6 +51,7 @@ class SendTransferCommand(FilterCommand):
       depth               = depth,
       minWeightMagnitude  = min_weight_magnitude,
       trytes              = pt_response['trytes'],
+      reference           = reference,
     )
 
     return {
@@ -82,10 +84,13 @@ class SendTransferRequestFilter(RequestFilter):
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
           f.Array | f.FilterRepeater(f.Required | Trytes(result_type=Address)),
+
+        'reference': Trytes(result_type=TransactionHash),
       },
 
       allow_missing_keys = {
         'changeAddress',
         'inputs',
+        'reference',
       },
     )

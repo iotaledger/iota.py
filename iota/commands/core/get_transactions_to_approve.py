@@ -32,7 +32,25 @@ class GetTransactionsToApproveRequestFilter(RequestFilter):
   def __init__(self):
     super(GetTransactionsToApproveRequestFilter, self).__init__({
       'depth': f.Required | f.Type(int) | f.Min(1),
+
+      'reference': Trytes(result_type=TransactionHash),
+    },
+
+    allow_missing_keys = {
+      'reference',
     })
+
+  def _apply(self, value):
+    value = super(GetTransactionsToApproveRequestFilter, self)._apply(value) # type: dict
+
+    if self._has_errors:
+      return value
+
+    # Remove reference if null.
+    if value['reference'] is None:
+      del value['reference']
+
+    return value
 
 
 class GetTransactionsToApproveResponseFilter(ResponseFilter):

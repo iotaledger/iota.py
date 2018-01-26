@@ -17,7 +17,7 @@ from iota.crypto.types import Seed
 
 
 def find_transaction_objects(adapter, **kwargs):
-    # type: (BaseAdapter, dict) -> List[Transaction]
+    # type: (BaseAdapter, **Iterable) -> List[Transaction]
     """
     Finds transactions matching the specified criteria, fetches the
     corresponding trytes and converts them into Transaction objects.

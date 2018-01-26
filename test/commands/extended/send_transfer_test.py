@@ -9,7 +9,7 @@ from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
 from iota import Address, Bundle, Iota, ProposedTransaction, \
-  TransactionTrytes, TryteString
+  TransactionTrytes, TryteString, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.crypto.types import Seed
@@ -87,6 +87,8 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
         self.transfer1,
         self.transfer2
       ],
+
+      'reference': TransactionHash(self.trytes1),
     }
 
     filter_ = self._filter(request)
@@ -103,6 +105,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       # Any TrytesCompatible values will work here.
       'changeAddress':  binary_type(self.trytes1),
       'seed':           bytearray(self.trytes2),
+      'reference':      binary_type(self.trytes1),
 
       'inputs': [
         binary_type(self.trytes3),
@@ -128,6 +131,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
         'depth':              100,
         'minWeightMagnitude': 18,
         'seed':               Seed(self.trytes2),
+        'reference':          TransactionHash(self.trytes1),
 
         'inputs': [
           Address(self.trytes3),
@@ -163,6 +167,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'changeAddress':      None,
         'inputs':             None,
+        'reference':          None,
 
         'depth':              100,
         'minWeightMagnitude': 13,
@@ -567,6 +572,44 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'minWeightMagnitude': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_reference_wrong_type(self):
+    """
+    ``reference`` is not a TrytesCompatible value.
+    """
+    self.assertFilterErrors(
+      {
+        'reference': 42,
+
+        'seed':               Seed(self.trytes1),
+        'depth':              100,
+        'minWeightMagnitude': 18,
+        'transfers':          [self.transfer1],
+      },
+
+      {
+        'reference': [f.Type.CODE_WRONG_TYPE],
+      },
+    )
+
+  def test_fail_reference_not_trytes(self):
+    """
+    ``reference`` contains invalid characters.
+    """
+    self.assertFilterErrors(
+      {
+        'reference': b'not valid; must contain only uppercase and "9"',
+
+        'seed':               Seed(self.trytes1),
+        'depth':              100,
+        'minWeightMagnitude': 18,
+        'transfers':          [self.transfer1],
+      },
+
+      {
+        'reference': [Trytes.CODE_NOT_TRYTES],
       },
     )
 

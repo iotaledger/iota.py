@@ -67,6 +67,7 @@ setup(
   extras_require = {
     'ccurl': ['pyota-ccurl'],
     'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
+    'test-runner': ['detox'],
   },
 
   test_suite    = 'test',

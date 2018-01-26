@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from csv import DictReader
 from os.path import dirname, join
@@ -11,7 +11,7 @@ from sha3 import keccak_384
 
 from iota.crypto.kerl import Kerl
 from iota.crypto.kerl.conv import convertToBytes, convertToTrits, \
-  trits_to_trytes, trytes_to_trits
+    trits_to_trytes, trytes_to_trits
 
 
 class TestKerl(TestCase):
@@ -20,17 +20,17 @@ class TestKerl(TestCase):
         k.update('Message'.encode('utf-8'))
 
         self.assertEqual(
-          k.hexdigest(),
+            k.hexdigest(),
 
-          '0c8d6ff6e6a1cf18a0d55b20f0bca160d0d1c914a5e842f3'
-          '707a25eeb20a279f6b4e83eda8e43a67697832c7f69f53ca',
+            '0c8d6ff6e6a1cf18a0d55b20f0bca160d0d1c914a5e842f3'
+            '707a25eeb20a279f6b4e83eda8e43a67697832c7f69f53ca',
         )
 
     def test_correct_first(self):
         # noinspection SpellCheckingInspection
         inp = (
-          'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
-          'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
+            'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
+            'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
         )
 
         trits = trytes_to_trits(inp)
@@ -44,17 +44,17 @@ class TestKerl(TestCase):
 
         # noinspection SpellCheckingInspection
         self.assertEqual(
-          trytes_out,
+            trytes_out,
 
-          'EJEAOOZYSAWFPZQESYDHZCGYNSTWXUMVJOVDWUNZ'
-          'JXDGWCLUFGIMZRMGCAZGKNPLBRLGUNYWKLJTYEAQX',
+            'EJEAOOZYSAWFPZQESYDHZCGYNSTWXUMVJOVDWUNZ'
+            'JXDGWCLUFGIMZRMGCAZGKNPLBRLGUNYWKLJTYEAQX',
         )
 
     def test_output_greater_243(self):
         # noinspection SpellCheckingInspection
         inp = (
-          '9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
-          'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
+            '9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
+            'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
         )
 
         trits = trytes_to_trits(inp)
@@ -68,19 +68,19 @@ class TestKerl(TestCase):
 
         # noinspection SpellCheckingInspection
         self.assertEqual(
-          trytes_out,
+            trytes_out,
 
-          'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
-          'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
-          '9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA',
+            'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
+            'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
+            '9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA',
         )
 
     def test_input_greater_243(self):
         # noinspection SpellCheckingInspection
         inp = (
-          'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
-          'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
-          '9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA'
+            'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
+            'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
+            '9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA'
         )
 
         trits = trytes_to_trits(inp)
@@ -94,13 +94,12 @@ class TestKerl(TestCase):
 
         # noinspection SpellCheckingInspection
         self.assertEqual(
-          trytes_out,
+            trytes_out,
 
-          'LUCKQVACOGBFYSPPVSSOXJEKNSQQRQKPZC9NXFSMQNRQCGGUL9OHVV'
-          'KBDSKEQEBKXRNUJSRXYVHJTXBPDWQGNSCDCBAIRHAQCOWZEBSNHIJI'
-          'GPZQITIBJQ9LNTDIBTCQ9EUWKHFLGFUVGGUWJONK9GBCDUIMAYMMQX',
+            'LUCKQVACOGBFYSPPVSSOXJEKNSQQRQKPZC9NXFSMQNRQCGGUL9OHVV'
+            'KBDSKEQEBKXRNUJSRXYVHJTXBPDWQGNSCDCBAIRHAQCOWZEBSNHIJI'
+            'GPZQITIBJQ9LNTDIBTCQ9EUWKHFLGFUVGGUWJONK9GBCDUIMAYMMQX',
         )
-
 
     def test_all_bytes(self):
         for i in range(-128, 128):
@@ -111,7 +110,7 @@ class TestKerl(TestCase):
             self.assertEqual(in_bytes, out_bytes)
 
     def test_random_trits(self):
-        in_trits = [randrange(-1,2) for _ in range(243)]
+        in_trits = [randrange(-1, 2) for _ in range(243)]
         in_trits[242] = 0
         in_bytes = convertToBytes(in_trits)
         out_trits = convertToTrits(in_bytes)
@@ -119,13 +118,13 @@ class TestKerl(TestCase):
         self.assertEqual(in_trits, out_trits)
 
     def test_generate_trytes_hash(self):
-        filepath =\
-          join(
-            dirname(__file__),
-            'test_vectors/generate_trytes_and_hashes.csv',
-          )
+        filepath = \
+            join(
+                dirname(__file__),
+                'test_vectors/generate_trytes_and_hashes.csv',
+            )
 
-        with open(filepath,'r') as f:
+        with open(filepath, 'r') as f:
             reader = DictReader(f)
             for count, line in enumerate(reader):
                 trytes = line['trytes']
@@ -141,25 +140,24 @@ class TestKerl(TestCase):
                 trytes_out = trits_to_trytes(trits_out)
 
                 self.assertEqual(
-                  hashes,
-                  trytes_out,
+                    hashes,
+                    trytes_out,
 
-                  msg =
-                    'line {count}: {hashes} != {trytes}'.format(
-                      count = count + 2,
-                      hashes = hashes,
-                      trytes = trytes_out,
+                    msg='line {count}: {hashes} != {trytes}'.format(
+                        count=count + 2,
+                        hashes=hashes,
+                        trytes=trytes_out,
                     ),
                 )
 
     def test_generate_multi_trytes_and_hash(self):
-        filepath =\
-          join(
-            dirname(__file__),
-            'test_vectors/generate_multi_trytes_and_hash.csv',
-          )
+        filepath = \
+            join(
+                dirname(__file__),
+                'test_vectors/generate_multi_trytes_and_hash.csv',
+            )
 
-        with open(filepath,'r') as f:
+        with open(filepath, 'r') as f:
             reader = DictReader(f)
             for count, line in enumerate(reader):
                 trytes = line['multiTrytes']
@@ -175,25 +173,24 @@ class TestKerl(TestCase):
                 trytes_out = trits_to_trytes(trits_out)
 
                 self.assertEqual(
-                  hashes,
-                  trytes_out,
+                    hashes,
+                    trytes_out,
 
-                  msg =
-                    'line {count}: {hashes} != {trytes}'.format(
-                      count = count + 2,
-                      hashes = hashes,
-                      trytes = trytes_out,
+                    msg='line {count}: {hashes} != {trytes}'.format(
+                        count=count + 2,
+                        hashes=hashes,
+                        trytes=trytes_out,
                     ),
                 )
 
     def test_generate_trytes_and_multi_squeeze(self):
-        filepath =\
-          join(
-            dirname(__file__),
-            'test_vectors/generate_trytes_and_multi_squeeze.csv',
-          )
+        filepath = \
+            join(
+                dirname(__file__),
+                'test_vectors/generate_trytes_and_multi_squeeze.csv',
+            )
 
-        with open(filepath,'r') as f:
+        with open(filepath, 'r') as f:
             reader = DictReader(f)
             for count, line in enumerate(reader):
                 trytes = line['trytes']
@@ -211,14 +208,13 @@ class TestKerl(TestCase):
                 trytes_out = trits_to_trytes(trits_out)
 
                 self.assertEqual(
-                  hashes1,
-                  trytes_out,
+                    hashes1,
+                    trytes_out,
 
-                  msg =
-                    'line {count}: {hashes} != {trytes}'.format(
-                      count = count + 2,
-                      hashes = hashes1,
-                      trytes = trytes_out,
+                    msg='line {count}: {hashes} != {trytes}'.format(
+                        count=count + 2,
+                        hashes=hashes1,
+                        trytes=trytes_out,
                     ),
                 )
 
@@ -227,14 +223,13 @@ class TestKerl(TestCase):
                 trytes_out = trits_to_trytes(trits_out)
 
                 self.assertEqual(
-                  hashes2,
-                  trytes_out,
+                    hashes2,
+                    trytes_out,
 
-                  msg =
-                    'line {count}: {hashes} != {trytes}'.format(
-                      count = count + 2,
-                      hashes = hashes2,
-                      trytes = trytes_out,
+                    msg='line {count}: {hashes} != {trytes}'.format(
+                        count=count + 2,
+                        hashes=hashes2,
+                        trytes=trytes_out,
                     ),
                 )
 
@@ -243,13 +238,12 @@ class TestKerl(TestCase):
                 trytes_out = trits_to_trytes(trits_out)
 
                 self.assertEqual(
-                  hashes3,
-                  trytes_out,
+                    hashes3,
+                    trytes_out,
 
-                  msg =
-                    'line {count}: {hashes} != {trytes}'.format(
-                      count = count + 2,
-                      hashes = hashes3,
-                      trytes = trytes_out,
+                    msg='line {count}: {hashes} != {trytes}'.format(
+                        count=count + 2,
+                        hashes=hashes3,
+                        trytes=trytes_out,
                     ),
                 )

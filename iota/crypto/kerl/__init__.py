@@ -2,4 +2,4 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from .pykerl import *
+from .pykerl import *  # noqa:f401

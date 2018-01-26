@@ -1,12 +1,14 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
-from typing import Iterator, List, MutableSequence, Sequence, Tuple
+from typing import Iterator
+# List, MutableSequence, Sequence, Tuple
 
 from six import PY2
 
-from iota import Hash, TRITS_PER_TRYTE, TryteString, TrytesCompatible
+from iota import Hash, TRITS_PER_TRYTE, TryteString
+# TrytesCompatible
 from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
 from iota.crypto.kerl import Kerl
 from iota.crypto.types import PrivateKey, Seed
@@ -14,66 +16,66 @@ from iota.exceptions import with_context
 from iota.trits import add_trits, trits_from_int
 
 __all__ = [
-  'KeyGenerator',
-  'SignatureFragmentGenerator',
-  'validate_signature_fragments',
+    'KeyGenerator',
+    'SignatureFragmentGenerator',
+    'validate_signature_fragments',
 ]
 
 
 def normalize(hash_):
-  # type: (Hash) -> List[List[int]]
-  """
+    # type: (Hash) -> List[List[int]]
+    """
   "Normalizes" a hash, converting it into a sequence of integers
   (not trits!) suitable for use in signature generation/validation.
 
   The hash is divided up into 3 parts, each of which is "balanced" (sum
   of all the values is equal to zero).
   """
-  normalized  = []
-  source      = hash_.as_integers()
+    normalized = []
+    source = hash_.as_integers()
 
-  chunk_size = 27
+    chunk_size = 27
 
-  for i in range(Hash.LEN // chunk_size):
-    start = i * chunk_size
-    stop  = start + chunk_size
+    for i in range(Hash.LEN // chunk_size):
+        start = i * chunk_size
+        stop = start + chunk_size
 
-    chunk     = source[start:stop]
-    chunk_sum = sum(chunk)
+        chunk = source[start:stop]
+        chunk_sum = sum(chunk)
 
-    while chunk_sum > 0:
-      chunk_sum -= 1
-      for j in range(chunk_size):
-        if chunk[j] > -13:
-          chunk[j] -= 1
-          break
+        while chunk_sum > 0:
+            chunk_sum -= 1
+            for j in range(chunk_size):
+                if chunk[j] > -13:
+                    chunk[j] -= 1
+                    break
 
+        while chunk_sum < 0:
+            chunk_sum += 1
+            for j in range(chunk_size):
+                if chunk[j] < 13:
+                    chunk[j] += 1
+                    break
 
-    while chunk_sum < 0:
-      chunk_sum += 1
-      for j in range(chunk_size):
-        if chunk[j] < 13:
-          chunk[j] += 1
-          break
+        normalized.append(chunk)
 
-    normalized.append(chunk)
-
-  return normalized
+    return normalized
 
 
 class KeyGenerator(object):
-  """
+    """
   Generates signing keys for messages.
   """
-  def __init__(self, seed):
-    # type: (TrytesCompatible) -> None
-    super(KeyGenerator, self).__init__()
 
-    self.seed = Seed(seed)
+    def __init__(self, seed):
+        # type: (TrytesCompatible) -> None
+        super(KeyGenerator, self).__init__()
 
-  def get_key(self, index, iterations):
-    # type: (int, int) -> PrivateKey
-    """
+        self.seed = Seed(seed)
+
+    def get_key(self, index, iterations):
+        # type: (int, int) -> PrivateKey
+        """
     Generates a single key.
 
     :param index:
@@ -87,23 +89,23 @@ class KeyGenerator(object):
       Increasing this value makes key generation slower, but more
       resistant to brute-forcing.
     """
-    return self.get_keys(start=index, count=1, step=1, iterations=iterations)[0]
+        return self.get_keys(start=index, count=1, step=1, iterations=iterations)[0]
 
-  def get_key_for(self, address):
-    """
+    def get_key_for(self, address):
+        """
     Generates the key associated with the specified address.
 
     Note that this method will generate the wrong key if the input
     address was generated from a different key!
     """
-    return self.get_key(
-      index       = address.key_index,
-      iterations  = address.security_level,
-    )
+        return self.get_key(
+            index=address.key_index,
+            iterations=address.security_level,
+        )
 
-  def get_keys(self, start, count=1, step=1, iterations=1):
-    # type: (int, int, int, int) -> List[PrivateKey]
-    """
+    def get_keys(self, start, count=1, step=1, iterations=1):
+        # type: (int, int, int, int) -> List[PrivateKey]
+        """
     Generates and returns one or more keys at the specified index(es).
 
     This is a one-time operation; if you want to create lots of keys
@@ -141,46 +143,46 @@ class KeyGenerator(object):
       ``step * count < start`` (only applies when ``step`` is
       negative).
     """
-    if count < 1:
-      raise with_context(
-        exc = ValueError('``count`` must be positive.'),
+        if count < 1:
+            raise with_context(
+                exc=ValueError('``count`` must be positive.'),
 
-        context = {
-          'start':      start,
-          'count':      count,
-          'step':       step,
-          'iterations': iterations,
-        },
-      )
+                context={
+                    'start': start,
+                    'count': count,
+                    'step': step,
+                    'iterations': iterations,
+                },
+            )
 
-    if not step:
-      raise with_context(
-        exc = ValueError('``step`` must not be zero.'),
+        if not step:
+            raise with_context(
+                exc=ValueError('``step`` must not be zero.'),
 
-        context = {
-          'start':      start,
-          'count':      count,
-          'step':       step,
-          'iterations': iterations,
-        },
-      )
+                context={
+                    'start': start,
+                    'count': count,
+                    'step': step,
+                    'iterations': iterations,
+                },
+            )
 
-    iterator = self.create_iterator(start, step, iterations)
+        iterator = self.create_iterator(start, step, iterations)
 
-    keys = []
-    for _ in range(count):
-      try:
-        next_key = next(iterator)
-      except StopIteration:
-        break
-      else:
-        keys.append(next_key)
+        keys = []
+        for _ in range(count):
+            try:
+                next_key = next(iterator)
+            except StopIteration:
+                break
+            else:
+                keys.append(next_key)
 
-    return keys
+        return keys
 
-  def create_iterator(self, start=0, step=1, security_level=1):
-    # type: (int, int, int) -> KeyIterator
-    """
+    def create_iterator(self, start=0, step=1, security_level=1):
+        # type: (int, int, int) -> KeyIterator
+        """
     Creates a generator that can be used to progressively generate new
     keys.
 
@@ -206,193 +208,195 @@ class KeyGenerator(object):
       Increasing this value makes key generation slower, but more
       resistant to brute-forcing.
     """
-    return KeyIterator(self.seed, start, step, security_level)
+        return KeyIterator(self.seed, start, step, security_level)
 
 
 class KeyIterator(Iterator[PrivateKey]):
-  """
+    """
   Creates PrivateKeys from a set of iteration parameters.
   """
-  def __init__(self, seed, start, step, security_level):
-    # type: (Seed, int, int, int) -> None
-    super(KeyIterator, self).__init__()
 
-    if start < 0:
-      raise with_context(
-        exc = ValueError('``start`` cannot be negative.'),
+    def __init__(self, seed, start, step, security_level):
+        # type: (Seed, int, int, int) -> None
+        super(KeyIterator, self).__init__()
 
-        context = {
-          'start':          start,
-          'step':           step,
-          'security_level': security_level,
-        },
-      )
+        if start < 0:
+            raise with_context(
+                exc=ValueError('``start`` cannot be negative.'),
 
-    if security_level < 1:
-      raise with_context(
-        exc = ValueError('``security_level`` must be >= 1.'),
+                context={
+                    'start': start,
+                    'step': step,
+                    'security_level': security_level,
+                },
+            )
 
-        context = {
-          'start':          start,
-          'step':           step,
-          'security_level': security_level,
-        },
-      )
+        if security_level < 1:
+            raise with_context(
+                exc=ValueError('``security_level`` must be >= 1.'),
 
-    # In order to work correctly, the seed must be padded so that it is
-    # a multiple of 81 trytes.
-    seed += b'9' * (Hash.LEN - ((len(seed) % Hash.LEN) or Hash.LEN))
+                context={
+                    'start': start,
+                    'step': step,
+                    'security_level': security_level,
+                },
+            )
 
-    self.security_level = security_level
-    self.seed_as_trits  = seed.as_trits()
-    self.start          = start
-    self.step           = step
+        # In order to work correctly, the seed must be padded so that it is
+        # a multiple of 81 trytes.
+        seed += b'9' * (Hash.LEN - ((len(seed) % Hash.LEN) or Hash.LEN))
 
-    self.current = self.start
+        self.security_level = security_level
+        self.seed_as_trits = seed.as_trits()
+        self.start = start
+        self.step = step
 
-    self.fragment_length     = FRAGMENT_LENGTH * TRITS_PER_TRYTE
-    self.hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
+        self.current = self.start
 
-  def __iter__(self):
-    # type: () -> KeyIterator
-    return self
+        self.fragment_length = FRAGMENT_LENGTH * TRITS_PER_TRYTE
+        self.hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
-  def __next__(self):
-    # type: () -> PrivateKey
-    while self.current >= 0:
-      sponge = self._create_sponge(self.current)
+    def __iter__(self):
+        # type: () -> KeyIterator
+        return self
 
-      key     = [0] * (self.fragment_length * self.security_level)
-      buffer  = [0] * len(self.seed_as_trits)
+    def __next__(self):
+        # type: () -> PrivateKey
+        while self.current >= 0:
+            sponge = self._create_sponge(self.current)
 
-      for fragment_seq in range(self.security_level):
-        # Squeeze trits from the buffer and append them to the key, one
-        # hash at a time.
-        for hash_seq in range(self.hashes_per_fragment):
-          sponge.squeeze(buffer)
+            key = [0] * (self.fragment_length * self.security_level)
+            buffer = [0] * len(self.seed_as_trits)
 
-          key_start =\
-            (fragment_seq * self.fragment_length) + (hash_seq * HASH_LENGTH)
+            for fragment_seq in range(self.security_level):
+                # Squeeze trits from the buffer and append them to the key, one
+                # hash at a time.
+                for hash_seq in range(self.hashes_per_fragment):
+                    sponge.squeeze(buffer)
 
-          key_stop = key_start + HASH_LENGTH
+                    key_start = \
+                        (fragment_seq * self.fragment_length) + (hash_seq * HASH_LENGTH)
 
-          # Ensure we only capture one hash from the buffer, in case
-          # it is longer than that (i.e., if the seed is longer than 81
-          # trytes).
-          key[key_start:key_stop] = buffer[0:HASH_LENGTH]
+                    key_stop = key_start + HASH_LENGTH
 
-      private_key =\
-        PrivateKey.from_trits(
-          key_index       = self.current,
-          security_level  = self.security_level,
-          trits           = key,
-        ) # type: PrivateKey
+                    # Ensure we only capture one hash from the buffer, in case
+                    # it is longer than that (i.e., if the seed is longer than 81
+                    # trytes).
+                    key[key_start:key_stop] = buffer[0:HASH_LENGTH]
 
-      self.advance()
+            private_key = \
+                PrivateKey.from_trits(
+                    key_index=self.current,
+                    security_level=self.security_level,
+                    trits=key,
+                )  # type: PrivateKey
 
-      return private_key
+            self.advance()
 
-  if PY2:
-    next = __next__
+            return private_key
 
-  def advance(self):
-    """
+    if PY2:
+        next = __next__
+
+    def advance(self):
+        """
     Advances the generator without creating a key.
     """
-    self.current += self.step
+        self.current += self.step
 
-  def _create_sponge(self, index):
-    # type: (int) -> Kerl
-    """
+    def _create_sponge(self, index):
+        # type: (int) -> Kerl
+        """
     Prepares the hash sponge for the generator.
     """
-    seed = self.seed_as_trits[:]
+        seed = self.seed_as_trits[:]
 
-    sponge = Kerl()
-    sponge.absorb(add_trits(seed, trits_from_int(index)))
+        sponge = Kerl()
+        sponge.absorb(add_trits(seed, trits_from_int(index)))
 
-    # Squeeze all of the trits out of the sponge and re-absorb them.
-    # Note that the sponge transforms several times per operation, so
-    # this sequence is not as redundant as it looks at first glance.
-    sponge.squeeze(seed)
-    sponge.reset()
-    sponge.absorb(seed)
+        # Squeeze all of the trits out of the sponge and re-absorb them.
+        # Note that the sponge transforms several times per operation, so
+        # this sequence is not as redundant as it looks at first glance.
+        sponge.squeeze(seed)
+        sponge.reset()
+        sponge.absorb(seed)
 
-    return sponge
+        return sponge
 
 
 class SignatureFragmentGenerator(Iterator[TryteString]):
-  """
+    """
   Used to generate signature fragments progressively.
 
   Each instance can generate 1 signature per fragment in the private
   key.
   """
-  def __init__(self, private_key, hash_):
-    # type: (PrivateKey, Hash) -> None
-    super(SignatureFragmentGenerator, self).__init__()
 
-    self._key_chunks      = private_key.iter_chunks(FRAGMENT_LENGTH)
-    self._iteration       = -1
-    self._normalized_hash = normalize(hash_)
-    self._sponge          = Kerl()
+    def __init__(self, private_key, hash_):
+        # type: (PrivateKey, Hash) -> None
+        super(SignatureFragmentGenerator, self).__init__()
 
-  def __iter__(self):
-    # type: () -> SignatureFragmentGenerator
-    return self
+        self._key_chunks = private_key.iter_chunks(FRAGMENT_LENGTH)
+        self._iteration = -1
+        self._normalized_hash = normalize(hash_)
+        self._sponge = Kerl()
 
-  def __len__(self):
-    # type: () -> int
-    """
+    def __iter__(self):
+        # type: () -> SignatureFragmentGenerator
+        return self
+
+    def __len__(self):
+        # type: () -> int
+        """
     Returns the number of fragments this generator can create.
 
     Note: This method always returns the same result, no matter how
     many iterations have been completed.
     """
-    return len(self._key_chunks)
+        return len(self._key_chunks)
 
-  def __next__(self):
-    # type: () -> TryteString
-    """
+    def __next__(self):
+        # type: () -> TryteString
+        """
     Returns the next signature fragment.
     """
-    key_trytes = next(self._key_chunks) # type: TryteString
-    self._iteration += 1
+        key_trytes = next(self._key_chunks)  # type: TryteString
+        self._iteration += 1
 
-    # If the key is long enough, loop back around to the start.
-    normalized_chunk =\
-      self._normalized_hash[self._iteration % len(self._normalized_hash)]
+        # If the key is long enough, loop back around to the start.
+        normalized_chunk = \
+            self._normalized_hash[self._iteration % len(self._normalized_hash)]
 
-    signature_fragment = key_trytes.as_trits()
+        signature_fragment = key_trytes.as_trits()
 
-    # Build the signature, one hash at a time.
-    for i in range(key_trytes.count_chunks(Hash.LEN)):
-      hash_start  = i * HASH_LENGTH
-      hash_end    = hash_start + HASH_LENGTH
+        # Build the signature, one hash at a time.
+        for i in range(key_trytes.count_chunks(Hash.LEN)):
+            hash_start = i * HASH_LENGTH
+            hash_end = hash_start + HASH_LENGTH
 
-      buffer = signature_fragment[hash_start:hash_end] # type: MutableSequence[int]
+            buffer = signature_fragment[hash_start:hash_end]  # type: MutableSequence[int]
 
-      for _ in range(13 - normalized_chunk[i]):
-        self._sponge.reset()
-        self._sponge.absorb(buffer)
-        self._sponge.squeeze(buffer)
+            for _ in range(13 - normalized_chunk[i]):
+                self._sponge.reset()
+                self._sponge.absorb(buffer)
+                self._sponge.squeeze(buffer)
 
-      signature_fragment[hash_start:hash_end] = buffer
+            signature_fragment[hash_start:hash_end] = buffer
 
-    return TryteString.from_trits(signature_fragment)
+        return TryteString.from_trits(signature_fragment)
 
-  if PY2:
-    next = __next__
+    if PY2:
+        next = __next__
 
 
 def validate_signature_fragments(
-    fragments,
-    hash_,
-    public_key,
-    sponge_type = Kerl,
+        fragments,
+        hash_,
+        public_key,
+        sponge_type=Kerl,
 ):
-  # type: (Sequence[TryteString], Hash, TryteString, type) -> bool
-  """
+    # type: (Sequence[TryteString], Hash, TryteString, type) -> bool
+    """
   Returns whether a sequence of signature fragments is valid.
 
   :param fragments:
@@ -410,35 +414,35 @@ def validate_signature_fragments(
   :param sponge_type:
     The class used to create the cryptographic sponge (i.e., Curl or Kerl).
   """
-  checksum        = [0] * (HASH_LENGTH * len(fragments))
-  normalized_hash = normalize(hash_)
+    checksum = [0] * (HASH_LENGTH * len(fragments))
+    normalized_hash = normalize(hash_)
 
-  for (i, fragment) in enumerate(fragments): # type: Tuple[int, TryteString]
-    outer_sponge = sponge_type()
+    for (i, fragment) in enumerate(fragments):  # type: Tuple[int, TryteString]
+        outer_sponge = sponge_type()
 
-    # If there are more than 3 iterations, loop back around to the
-    # start.
-    normalized_chunk = normalized_hash[i % len(normalized_hash)]
+        # If there are more than 3 iterations, loop back around to the
+        # start.
+        normalized_chunk = normalized_hash[i % len(normalized_hash)]
 
-    buffer = []
-    for (j, hash_trytes) in enumerate(fragment.iter_chunks(Hash.LEN)): # type: Tuple[int, TryteString]
-      buffer        = hash_trytes.as_trits() # type: MutableSequence[int]
-      inner_sponge  = sponge_type()
+        buffer = []
+        for (j, hash_trytes) in enumerate(fragment.iter_chunks(Hash.LEN)):  # type: Tuple[int, TryteString]
+            buffer = hash_trytes.as_trits()  # type: MutableSequence[int]
+            inner_sponge = sponge_type()
 
-      # Note the sign flip compared to ``SignatureFragmentGenerator``.
-      for _ in range(13 + normalized_chunk[j]):
-        inner_sponge.reset()
-        inner_sponge.absorb(buffer)
-        inner_sponge.squeeze(buffer)
+            # Note the sign flip compared to ``SignatureFragmentGenerator``.
+            for _ in range(13 + normalized_chunk[j]):
+                inner_sponge.reset()
+                inner_sponge.absorb(buffer)
+                inner_sponge.squeeze(buffer)
 
-      outer_sponge.absorb(buffer)
+            outer_sponge.absorb(buffer)
 
-    outer_sponge.squeeze(buffer)
-    checksum[i*HASH_LENGTH:(i+1)*HASH_LENGTH] = buffer
+        outer_sponge.squeeze(buffer)
+        checksum[i * HASH_LENGTH:(i + 1) * HASH_LENGTH] = buffer
 
-  actual_public_key = [0] * HASH_LENGTH # type: MutableSequence[int]
-  addy_sponge = sponge_type()
-  addy_sponge.absorb(checksum)
-  addy_sponge.squeeze(actual_public_key)
+    actual_public_key = [0] * HASH_LENGTH  # type: MutableSequence[int]
+    addy_sponge = sponge_type()
+    addy_sponge.absorb(checksum)
+    addy_sponge.squeeze(actual_public_key)
 
-  return actual_public_key == public_key.as_trits()
+    return actual_public_key == public_key.as_trits()

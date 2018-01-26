@@ -1,11 +1,11 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 
 def with_context(exc, context):
-  # type: (Exception, dict) -> Exception
-  """
+    # type: (Exception, dict) -> Exception
+    """
   Attaches a ``context`` value to an Exception.
 
   Before::
@@ -18,8 +18,8 @@ def with_context(exc, context):
 
      raise with_context(Exception('Frog blast the vent core!'), { ... })
   """
-  if not hasattr(exc, 'context'):
-    exc.context = {}
+    if not hasattr(exc, 'context'):
+        exc.context = {}
 
-  exc.context.update(context)
-  return exc
+    exc.context.update(context)
+    return exc

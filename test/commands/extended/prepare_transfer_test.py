@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from unittest import TestCase
 
@@ -9,7 +9,7 @@ from filters.test import BaseFilterTestCase
 from six import binary_type, iterkeys
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
-  TryteString
+    TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.crypto.types import Seed
@@ -18,387 +18,385 @@ from test import mock
 
 
 class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = PrepareTransferCommand(MockAdapter()).get_request_filter
-  skip_value_check = True
+    filter_type = PrepareTransferCommand(MockAdapter()).get_request_filter
+    skip_value_check = True
 
-  # noinspection SpellCheckingInspection
-  def setUp(self):
-    super(PrepareTransferRequestFilterTestCase, self).setUp()
+    # noinspection SpellCheckingInspection
+    def setUp(self):
+        super(PrepareTransferRequestFilterTestCase, self).setUp()
 
-    # Define some tryte sequences that we can reuse between tests.
-    self.trytes1 = (
-      b'TESTVALUEONE9DONTUSEINPRODUCTION99999JBW'
-      b'GEC99GBXFFBCHAEJHLC9DX9EEPAI9ICVCKBX9FFII'
-    )
+        # Define some tryte sequences that we can reuse between tests.
+        self.trytes1 = (
+            b'TESTVALUEONE9DONTUSEINPRODUCTION99999JBW'
+            b'GEC99GBXFFBCHAEJHLC9DX9EEPAI9ICVCKBX9FFII'
+        )
 
-    self.trytes2 = (
-      b'TESTVALUETWO9DONTUSEINPRODUCTION99999THZ'
-      b'BODYHZM99IR9KOXLZXVUOJM9LQKCQJBWMTY999999'
-    )
+        self.trytes2 = (
+            b'TESTVALUETWO9DONTUSEINPRODUCTION99999THZ'
+            b'BODYHZM99IR9KOXLZXVUOJM9LQKCQJBWMTY999999'
+        )
 
-    self.trytes3 = (
-      b'TESTVALUETHREE9DONTUSEINPRODUCTIONG99999'
-      b'GTQ9CSNUFPYW9MBQ9LFQJSORCF9LGTY9BWQFY9999'
-    )
+        self.trytes3 = (
+            b'TESTVALUETHREE9DONTUSEINPRODUCTIONG99999'
+            b'GTQ9CSNUFPYW9MBQ9LFQJSORCF9LGTY9BWQFY9999'
+        )
 
-    self.trytes4 = (
-      b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999ZQ'
-      b'HOGCBZCOTZVZRFBEHQKHENBIZWDTUQXTOVWEXRIK9'
-    )
+        self.trytes4 = (
+            b'TESTVALUEFOUR9DONTUSEINPRODUCTION99999ZQ'
+            b'HOGCBZCOTZVZRFBEHQKHENBIZWDTUQXTOVWEXRIK9'
+        )
 
-    self.transfer1 =\
-      ProposedTransaction(
-        address =
-          Address(
-            b'TESTVALUEFIVE9DONTUSEINPRODUCTION99999MG'
-            b'AAAHJDZ9BBG9U9R9XEOHCBVCLCWCCCCBQCQGG9WHK'
-          ),
+        self.transfer1 = \
+            ProposedTransaction(
+                address=Address(
+                    b'TESTVALUEFIVE9DONTUSEINPRODUCTION99999MG'
+                    b'AAAHJDZ9BBG9U9R9XEOHCBVCLCWCCCCBQCQGG9WHK'
+                ),
 
-        value = 42,
-      )
+                value=42,
+            )
 
-    self.transfer2 =\
-      ProposedTransaction(
-        address =
-          Address(
-            b'TESTVALUESIX9DONTUSEINPRODUCTION99999GGT'
-            b'FODSHHELBDERDCDRBCINDCGQEI9NAWDJBC9TGPFME'
-          ),
+        self.transfer2 = \
+            ProposedTransaction(
+                address=Address(
+                    b'TESTVALUESIX9DONTUSEINPRODUCTION99999GGT'
+                    b'FODSHHELBDERDCDRBCINDCGQEI9NAWDJBC9TGPFME'
+                ),
 
-        value = 86,
-      )
+                value=86,
+            )
 
-  def test_pass_happy_path(self):
-    """
+    def test_pass_happy_path(self):
+        """
     Request is valid.
     """
-    request = {
-      'changeAddress':  Address(self.trytes1),
-      'seed':           Seed(self.trytes2),
-      'transfers':      [self.transfer1, self.transfer2],
+        request = {
+            'changeAddress': Address(self.trytes1),
+            'seed': Seed(self.trytes2),
+            'transfers': [self.transfer1, self.transfer2],
 
-      'inputs': [
-        Address(self.trytes3, key_index=3, security_level=2),
-        Address(self.trytes4, key_index=4, security_level=2),
-      ],
+            'inputs': [
+                Address(self.trytes3, key_index=3, security_level=2),
+                Address(self.trytes4, key_index=4, security_level=2),
+            ],
 
-    }
+        }
 
-    filter_ = self._filter(request)
+        filter_ = self._filter(request)
 
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(filter_.cleaned_data, request)
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(filter_.cleaned_data, request)
 
-  def test_pass_compatible_types(self):
-    """
+    def test_pass_compatible_types(self):
+        """
     Request contains values that can be converted to the expected
     types.
     """
-    filter_ = self._filter({
-      # Any TrytesCompatible value works here.
-      'changeAddress':  binary_type(self.trytes1),
-      'seed':           bytearray(self.trytes2),
+        filter_ = self._filter({
+            # Any TrytesCompatible value works here.
+            'changeAddress': binary_type(self.trytes1),
+            'seed': bytearray(self.trytes2),
 
-      # These have to be :py:class:`Address` instances, so that we can
-      # set ``key_index``.
-      'inputs': [
-        Address(self.trytes3, key_index=3, security_level=2),
-        Address(self.trytes4, key_index=4, security_level=2),
-      ],
+            # These have to be :py:class:`Address` instances, so that we can
+            # set ``key_index``.
+            'inputs': [
+                Address(self.trytes3, key_index=3, security_level=2),
+                Address(self.trytes4, key_index=4, security_level=2),
+            ],
 
-      # These still have to have the correct type, however.
-      'transfers': [self.transfer1, self.transfer2],
-    })
+            # These still have to have the correct type, however.
+            'transfers': [self.transfer1, self.transfer2],
+        })
 
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(
+            filter_.cleaned_data,
 
-      {
-        'changeAddress':  Address(self.trytes1),
-        'seed':           Seed(self.trytes2),
-        'transfers':      [self.transfer1, self.transfer2],
+            {
+                'changeAddress': Address(self.trytes1),
+                'seed': Seed(self.trytes2),
+                'transfers': [self.transfer1, self.transfer2],
 
-        'inputs': [
-          Address(self.trytes3),
-          Address(self.trytes4),
-        ],
-      },
-    )
+                'inputs': [
+                    Address(self.trytes3),
+                    Address(self.trytes4),
+                ],
+            },
+        )
 
-  def test_pass_optional_parameters_omitted(self):
-    """
+    def test_pass_optional_parameters_omitted(self):
+        """
     Request omits optional parameters.
     """
-    filter_ = self._filter({
-      'seed':       Seed(self.trytes1),
-      'transfers':  [self.transfer1],
-    })
+        filter_ = self._filter({
+            'seed': Seed(self.trytes1),
+            'transfers': [self.transfer1],
+        })
 
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(
+            filter_.cleaned_data,
 
-      {
-        'seed':       Seed(self.trytes1),
-        'transfers':  [self.transfer1],
+            {
+                'seed': Seed(self.trytes1),
+                'transfers': [self.transfer1],
 
-        # These parameters are set to their default values.
-        'changeAddress':  None,
-        'inputs':         None,
-      },
-    )
+                # These parameters are set to their default values.
+                'changeAddress': None,
+                'inputs': None,
+            },
+        )
 
-  def test_fail_empty(self):
-    """
+    def test_fail_empty(self):
+        """
     Request is empty.
     """
-    self.assertFilterErrors(
-      {},
+        self.assertFilterErrors(
+            {},
 
-      {
-        'seed':       [f.FilterMapper.CODE_MISSING_KEY],
-        'transfers':  [f.FilterMapper.CODE_MISSING_KEY],
-      },
-    )
+            {
+                'seed': [f.FilterMapper.CODE_MISSING_KEY],
+                'transfers': [f.FilterMapper.CODE_MISSING_KEY],
+            },
+        )
 
-  def test_fail_unexpected_parameters(self):
-    """
+    def test_fail_unexpected_parameters(self):
+        """
     Request contains unexpected parameters.
     """
-    self.assertFilterErrors(
-      {
-        'seed': Seed(self.trytes1),
+        self.assertFilterErrors(
+            {
+                'seed': Seed(self.trytes1),
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
 
-        # You guys give up? Or are you thirsty for more?
-        'foo': 'bar',
-      },
+                # You guys give up? Or are you thirsty for more?
+                'foo': 'bar',
+            },
 
-      {
-        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
-      },
-    )
+            {
+                'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+            },
+        )
 
-  def test_fail_seed_null(self):
-    """
+    def test_fail_seed_null(self):
+        """
     ``seed`` is null.
     """
-    self.assertFilterErrors(
-      {
-        'seed': None,
+        self.assertFilterErrors(
+            {
+                'seed': None,
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'seed': [f.Required.CODE_EMPTY],
-      },
-    )
+            {
+                'seed': [f.Required.CODE_EMPTY],
+            },
+        )
 
-  def test_fail_seed_wrong_type(self):
-    """
+    def test_fail_seed_wrong_type(self):
+        """
     ``seed`` is not a TrytesCompatible value.
     """
-    self.assertFilterErrors(
-      {
-        'seed': 42,
+        self.assertFilterErrors(
+            {
+                'seed': 42,
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'seed': [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'seed': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
-  def test_fail_seed_not_trytes(self):
-    """
+    def test_fail_seed_not_trytes(self):
+        """
     ``seed`` contains invalid characters.
     """
-    self.assertFilterErrors(
-      {
-        'seed': b'not valid; must contain only uppercase and "9"',
+        self.assertFilterErrors(
+            {
+                'seed': b'not valid; must contain only uppercase and "9"',
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'seed': [Trytes.CODE_NOT_TRYTES],
-      },
-    )
+            {
+                'seed': [Trytes.CODE_NOT_TRYTES],
+            },
+        )
 
-  def test_fail_transfers_wrong_type(self):
-    """
+    def test_fail_transfers_wrong_type(self):
+        """
     ``transfers`` is not an array.
     """
-    self.assertFilterErrors(
-      {
-        # It's gotta be an array, even if there's only one transaction.
-        'transfers':
-          ProposedTransaction(address=Address(self.trytes2), value=42),
+        self.assertFilterErrors(
+            {
+                # It's gotta be an array, even if there's only one transaction.
+                'transfers':
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
 
-        'seed': Seed(self.trytes1),
-      },
+                'seed': Seed(self.trytes1),
+            },
 
-      {
-        'transfers': [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'transfers': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
-  def test_fail_transfers_empty(self):
-    """
+    def test_fail_transfers_empty(self):
+        """
     ``transfers`` is an array, but it is empty.
     """
-    self.assertFilterErrors(
-      {
-        'transfers': [],
+        self.assertFilterErrors(
+            {
+                'transfers': [],
 
-        'seed': Seed(self.trytes1),
-      },
+                'seed': Seed(self.trytes1),
+            },
 
-      {
-        'transfers': [f.Required.CODE_EMPTY],
-      },
-    )
+            {
+                'transfers': [f.Required.CODE_EMPTY],
+            },
+        )
 
-  def test_fail_transfers_contents_invalid(self):
-    """
+    def test_fail_transfers_contents_invalid(self):
+        """
     ``transfers`` is a non-empty array, but it contains invalid values.
     """
-    self.assertFilterErrors(
-      {
-        'transfers': [
-          None,
+        self.assertFilterErrors(
+            {
+                'transfers': [
+                    None,
 
-          # This value is valid; just adding it to make sure the filter
-          # doesn't cheat!
-          ProposedTransaction(address=Address(self.trytes2), value=42),
+                    # This value is valid; just adding it to make sure the filter
+                    # doesn't cheat!
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
 
-          {'address': Address(self.trytes2), 'value': 42},
-        ],
+                    {'address': Address(self.trytes2), 'value': 42},
+                ],
 
-        'seed': Seed(self.trytes1),
-      },
+                'seed': Seed(self.trytes1),
+            },
 
-      {
-        'transfers.0': [f.Required.CODE_EMPTY],
-        'transfers.2': [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'transfers.0': [f.Required.CODE_EMPTY],
+                'transfers.2': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
-  def test_fail_change_address_wrong_type(self):
-    """
+    def test_fail_change_address_wrong_type(self):
+        """
     ``changeAddress`` is not a TrytesCompatible value.
     """
-    self.assertFilterErrors(
-      {
-        'changeAddress':  42,
+        self.assertFilterErrors(
+            {
+                'changeAddress': 42,
 
-        'seed': Seed(self.trytes1),
+                'seed': Seed(self.trytes1),
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'changeAddress':  [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'changeAddress': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
-  def test_fail_change_address_not_trytes(self):
-    """
+    def test_fail_change_address_not_trytes(self):
+        """
     ``changeAddress`` contains invalid characters.
     """
-    self.assertFilterErrors(
-      {
-        'changeAddress':  b'not valid; must contain only uppercase and "9"',
+        self.assertFilterErrors(
+            {
+                'changeAddress': b'not valid; must contain only uppercase and "9"',
 
-        'seed': Seed(self.trytes1),
+                'seed': Seed(self.trytes1),
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'changeAddress':  [Trytes.CODE_NOT_TRYTES],
-      },
-    )
+            {
+                'changeAddress': [Trytes.CODE_NOT_TRYTES],
+            },
+        )
 
-  def test_fail_inputs_wrong_type(self):
-    """
+    def test_fail_inputs_wrong_type(self):
+        """
     ``inputs`` is not an array.
     """
-    self.assertFilterErrors(
-      {
-        # Must be an array, even if there's only one input.
-        'inputs': Address(self.trytes3),
+        self.assertFilterErrors(
+            {
+                # Must be an array, even if there's only one input.
+                'inputs': Address(self.trytes3),
 
-        'seed': Seed(self.trytes1),
+                'seed': Seed(self.trytes1),
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'inputs': [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'inputs': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
-  def test_fail_inputs_contents_invalid(self):
-    """
+    def test_fail_inputs_contents_invalid(self):
+        """
     ``inputs`` is a non-empty array, but it contains invalid values.
     """
-    self.assertFilterErrors(
-      {
-        'inputs': [
-          None,
-          binary_type(self.trytes1),
+        self.assertFilterErrors(
+            {
+                'inputs': [
+                    None,
+                    binary_type(self.trytes1),
 
-          # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
-          Address(self.trytes1, key_index=1, security_level=2),
+                    # This is actually valid; I just added it to make sure the
+                    #   filter isn't cheating!
+                    Address(self.trytes1, key_index=1, security_level=2),
 
-          # Inputs must have ``key_index`` set, so that we can generate
-          # the correct private key to sign them.
-          Address(b'', key_index=None, security_level=2),
+                    # Inputs must have ``key_index`` set, so that we can generate
+                    # the correct private key to sign them.
+                    Address(b'', key_index=None, security_level=2),
 
-          # Inputs must have ``security_level`` set, so that we know
-          # how many signature fragments to generate.
-          Address(b'', key_index=2),
-        ],
+                    # Inputs must have ``security_level`` set, so that we know
+                    # how many signature fragments to generate.
+                    Address(b'', key_index=2),
+                ],
 
-        'seed': Seed(self.trytes1),
+                'seed': Seed(self.trytes1),
 
-        'transfers': [
-          ProposedTransaction(address=Address(self.trytes2), value=42),
-        ],
-      },
+                'transfers': [
+                    ProposedTransaction(address=Address(self.trytes2), value=42),
+                ],
+            },
 
-      {
-        'inputs.0': [f.Required.CODE_EMPTY],
-        'inputs.1': [f.Type.CODE_WRONG_TYPE],
-        'inputs.3': [GeneratedAddress.CODE_NO_KEY_INDEX],
-        'inputs.4': [GeneratedAddress.CODE_NO_SECURITY_LEVEL],
-      },
-    )
+            {
+                'inputs.0': [f.Required.CODE_EMPTY],
+                'inputs.1': [f.Type.CODE_WRONG_TYPE],
+                'inputs.3': [GeneratedAddress.CODE_NO_KEY_INDEX],
+                'inputs.4': [GeneratedAddress.CODE_NO_SECURITY_LEVEL],
+            },
+        )
 
 
 # noinspection SpellCheckingInspection
 class PrepareTransferCommandTestCase(TestCase):
-  """
+    """
   Generating validation data using the JS lib:
 
   .. code-block:: javascript
@@ -496,723 +494,707 @@ class PrepareTransferCommandTestCase(TestCase):
      var transactionTrytes = bundle.bundle.map(Utils.transactionTrytes).reverse();
      console.log(transactionTrytes);
   """
-  def setUp(self):
-    super(PrepareTransferCommandTestCase, self).setUp()
 
-    self.adapter = MockAdapter()
-    self.command = PrepareTransferCommand(self.adapter)
+    def setUp(self):
+        super(PrepareTransferCommandTestCase, self).setUp()
 
-  def run(self, result=None):
-    # Ensure that all tranactions use a predictable timestamp.
-    self.timestamp = 1482938294
+        self.adapter = MockAdapter()
+        self.command = PrepareTransferCommand(self.adapter)
 
-    def get_current_timestamp():
-      return self.timestamp
+    def run(self, result=None):
+        # Ensure that all tranactions use a predictable timestamp.
+        self.timestamp = 1482938294
 
-    with mock.patch(
-        target  = 'iota.transaction.creation.get_current_timestamp',
-        new     = get_current_timestamp,
-    ):
-      return super(PrepareTransferCommandTestCase, self).run(result)
+        def get_current_timestamp():
+            return self.timestamp
 
-  def test_wireup(self):
-    """
+        with mock.patch(
+                target='iota.transaction.creation.get_current_timestamp',
+                new=get_current_timestamp,
+        ):
+            return super(PrepareTransferCommandTestCase, self).run(result)
+
+    def test_wireup(self):
+        """
     Verify that the command is wired up correctly.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).prepareTransfer,
-      PrepareTransferCommand,
-    )
+        self.assertIsInstance(
+            Iota(self.adapter).prepareTransfer,
+            PrepareTransferCommand,
+        )
 
-  def test_pass_inputs_not_needed(self):
-    """
+    def test_pass_inputs_not_needed(self):
+        """
     Preparing a bundle that does not transfer any IOTAs.
     """
-    response =\
-      self.command(
-        seed =
-          Seed(
-            'TESTVALUE9DONTUSEINPRODUCTION99999HORPYY'
-            'TGKQQTQSNMSZBXYLAFXFHZVPWVGCPRGXKXREJKI9B',
-          ),
+        response = \
+            self.command(
+                seed=Seed(
+                    'TESTVALUE9DONTUSEINPRODUCTION99999HORPYY'
+                    'TGKQQTQSNMSZBXYLAFXFHZVPWVGCPRGXKXREJKI9B',
+                ),
 
-        transfers = [
-          ProposedTransaction(
-            address =
-              Address(
-                'TESTVALUE9DONTUSEINPRODUCTION99999KJUPKN'
-                'RMTHKVJYWNBKBGCKOQWBTKBOBJIZZYQITTFJZKLOI',
-              ),
+                transfers=[
+                    ProposedTransaction(
+                        address=Address(
+                            'TESTVALUE9DONTUSEINPRODUCTION99999KJUPKN'
+                            'RMTHKVJYWNBKBGCKOQWBTKBOBJIZZYQITTFJZKLOI',
+                        ),
 
-            tag   = Tag('PYOTA9UNIT9TESTS9'),
-            value = 0,
-          ),
+                        tag=Tag('PYOTA9UNIT9TESTS9'),
+                        value=0,
+                    ),
 
-          ProposedTransaction(
-            address =
-              Address(
-                'TESTVALUE9DONTUSEINPRODUCTION99999YMSWGX'
-                'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN',
-              ),
+                    ProposedTransaction(
+                        address=Address(
+                            'TESTVALUE9DONTUSEINPRODUCTION99999YMSWGX'
+                            'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN',
+                        ),
 
-            value = 0,
-          ),
-        ],
-      )
+                        value=0,
+                    ),
+                ],
+            )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 2)
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 2)
 
-    # Note that the transactions are returned in reverse order.
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999999999999999999999999999999NYBKIVD99A99999999A99999999VCXVP9VHDQGSGFL9UGWBXIOSCAZHVIVVGLKUEBDWTBBRFXFINBAEKZTUAIVDWIFKCUUHWOZTGRXHLRYPX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Note that the transactions are returned in reverse order.
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999999999999999999999999999999NYBKIVD99A99999999A99999999VCXVP9VHDQGSGFL9UGWBXIOSCAZHVIVVGLKUEBDWTBBRFXFINBAEKZTUAIVDWIFKCUUHWOZTGRXHLRYPX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999KJUPKNRMTHKVJYWNBKBGCKOQWBTKBOBJIZZYQITTFJZKLOI999999999999999999999999999ZYOTA9UNIT9TESTS99999999999NYBKIVD99999999999A99999999VCXVP9VHDQGSGFL9UGWBXIOSCAZHVIVVGLKUEBDWTBBRFXFINBAEKZTUAIVDWIFKCUUHWOZTGRXHLRYPX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999KJUPKNRMTHKVJYWNBKBGCKOQWBTKBOBJIZZYQITTFJZKLOI999999999999999999999999999ZYOTA9UNIT9TESTS99999999999NYBKIVD99999999999A99999999VCXVP9VHDQGSGFL9UGWBXIOSCAZHVIVVGLKUEBDWTBBRFXFINBAEKZTUAIVDWIFKCUUHWOZTGRXHLRYPX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-
-  def test_pass_inputs_explicit_no_change(self):
-    """
+    def test_pass_inputs_explicit_no_change(self):
+        """
     Preparing a bundle with specified inputs, no change address needed.
     """
-    self.adapter.seed_response('getBalances', {
-      'balances': [13, 29],
-      'duration': '1',
+        self.adapter.seed_response('getBalances', {
+            'balances': [13, 29],
+            'duration': '1',
 
-      'milestone':
-        'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
-        'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
-    })
+            'milestone':
+                'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
+                'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
+        })
 
-    response = self.command(
-      seed =
-        Seed(
-          'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-          'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
-        ),
-
-      transfers = [
-        ProposedTransaction(
-          address =
-            Address(
-              'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-              'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+        response = self.command(
+            seed=Seed(
+                'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
             ),
 
-          value = 42,
-        ),
-      ],
+            transfers=[
+                ProposedTransaction(
+                    address=Address(
+                        'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                        'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                    ),
 
-      inputs = [
-        Address(
-          trytes =
-            'MQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIX'
-            'PQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB',
+                    value=42,
+                ),
+            ],
 
-          # Normally, you would use an AddressGenerator to create
-          # new addresses, so ``key_index`` would be populated
-          # automatically.
-          #
-          # But, AddressGenerator runs a bit slowly, so to speed up
-          # test execution, we will use hard-coded values.
-          key_index       = 4,
-          security_level  = 2,
-        ),
+            inputs=[
+                Address(
+                    trytes='MQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIX'
+                    'PQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB',
 
-        Address(
-          trytes =
-            'TNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYR'
-            'QOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC',
+                    # Normally, you would use an AddressGenerator to create
+                    # new addresses, so ``key_index`` would be populated
+                    # automatically.
+                    #
+                    # But, AddressGenerator runs a bit slowly, so to speed up
+                    # test execution, we will use hard-coded values.
+                    key_index=4,
+                    security_level=2,
+                ),
 
-          key_index       = 5,
-          security_level  = 2,
-        ),
-      ],
-    )
+                Address(
+                    trytes='TNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYR'
+                    'QOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC',
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 5)
+                    key_index=5,
+                    security_level=2,
+                ),
+            ],
+        )
 
-    # Note that the transactions are returned in reverse order.
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 5)
 
-    # Input #2, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('RQOQNTDTZWGNBTVNHUYXYELHLRDTUSHIFZBAJDYYGKPUTHMBFMZPWHYULBANOYXDHVTRKLGXKUOZAWFZWJDFVUZKONYTRYSAGTWGDBIAHHMUEEGIPSKBCJPDBSMHAWWZZU9IFKCKJMMTCGGDHPUCBBRDKTQOTQGRDXEDQAYI9WNCNIVMBSAQVCVLJILCKHOUYPJXKNVXDHXPECIPVQQIDWBGRREGYYVROBJELIWPUWSOHSAUKSYSPQMNPRBMKKUQUWGNAWAOEDDVNRJBUSRKBJKWZLGAVDASMZ9GMKKLMIKFWAIAHAW9GIRAWZFYFEOIJ9TBNAVEUSTNUNABHJ9L9GSZTBHTGTRZSIWFVGMXQS9VDTF9ZUVNLDI9MOEVRRBDBAKATS9ACTIABCDWUFNRXZQ9MOHHKMSRTXGXHERZREPSSAASILWCFDUFPXOKGTDSHWRBZSQSNCYFJZJTB9DGDJYISY9EZPLHJRMIQAQJYYRZVHKWCGQLWFDYVZKCDAIBWYQQSUKACFRBALBKMBTBG9PPZEBU9TVRU9RMBHXCNOS9QLASMCDEFWCUBMHS9LHXEYANCHLEFNVGJJKKUITNEYVLPYQIYQHAIIGSTSAURJOAL9SVATHGOVP9CQXMGCYLSYFUQDOWY9ZWJADWVQGPZZISPAWHTMNPVKKPTCSODG9WECGVUANJXZRDYPMPVCLRF9WVGWKKQQWPAKCZQVK9KHBGXJRKGD9IHKRNJQVKSXXQMVPLGVSEWPEXNLBHGOQJUWDOIEXDGIZLFIZWXSIAWWDUOBLSDGTSFLIKGBBGJWTDOMSQWNRSYOWPBJTAJDLRPCRMKNRYEATYBMAZIN9WNMRIHLXGGVIEFZQGAGUSUNQKFAFUI9FR9AIKNBCGGFFECROHFURFC9GFMAUXMPJFWQVRXPLYF99OILFIQIJYSH9HGAZPCJIFHGTZIVGENZHBCMNHOYNAESF9FNMZWLLLCCRMUUFOZVCXLN9OQSODU9QOZKBOVBLBIVZXPFOEZEEXAUBWRWPWRNRYVIKQKBBVOHI9OH9FCQAVQPVVMWFVKZKOCUUSQRZOESNVQR9ULQGQBJEKYEZLXHHIGIAINTHUAXOYJS9NFTZAQIIFPXYMGAFHKYQHADRPQNBWGQXMNSIARLUODCINRFH9CMDIQYAKNJKDSBHGBQJQVA9VHGIHFFSWAIQEHKRGITSLCDBTCHDSEAJSVGGGBCRYHOMFEYEDLDRQVQBBRFLFM9UBOYTIMBYTWTF9VUKUJDRWKJMNFPKKVHRRSJFOFMWJ9QG9SIXCFHNYFTAGQKRUIHVXJ9USSDBJGWLGDBBPRXCOAQPWSFLZXMTCWLFNPEJQFH99YPMFOZDHJYWAJOBECPWONQCPPFNLCAGNJRI9XPK9O9NPWM9WRJKQCDLVWP9HZNGNCJZVKTEUOXEDRVSFBWEREFDKPCU9QATTUXXUHWJFNJSUIHMND9EALDXYCYWEUPJITOTKACDUYCHS9GVTJGFTCLZPIARZAWNGPUWMQRDEIXDOIFUDEWXFVVGVDRKTQIQXLEVULRUJEJGTCDLAOLEFNLDOGLWHYUKGBHSSRURELGFYKTVQUVUXJLMY9ICDMPHG9INCBNABNXEEWOMWQ9J9NQSIASZJLKMXDIXMVFPCFKLM9YEMZOGZVTIF9WHYTYKTRKDXAUIIGJXKPQ9DPVEACFPLZHGVIUVJWML9IEGJXIZNSUETRYORJ9RTEAOZXMTQHAGVFZKHEQCSBZFDD9XAME9ENSFTJZDHRVSQW9XECHIZYAJXXECRBMLNCYSFOH9PNJ9UXOWBGCYIRIAOI9VVAIYOLHTLBYEKOYMOCSVBFCHHCTGIBOUDCXXOCUCRMKTANWHIIXW9LSBYWJAQOPMPMATNGUHWNCBNL9IYJEAUMWSXAKBTIPWWSGXZZCOBRIXZFZMHLGNWAHVTAKTTSN9VNZOLGJJGAHPIJZQBITVDSXNXZTRMIDLH9XFIOEYUVJWIKLLEAIYBOFFUPCBEMMXBDGTZDGFJCBGZSD9CRIGSQSJQOPFIBWSGDSVCTQUHWQWRDLMEQWNIMCSQA9QGQIRSTBXHFVLAOHUTUZBUIWHFTZEDEZGVDKIBUZ9CDJHKWLMIMQZSVIOKCLSURPXHROHGGWKF9IRA9GCOJUDKXYPNBRRDQTNLVKUGCAZHLKZTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC999999999999999999999999999999999999999999999999999999NYBKIVD99D99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Note that the transactions are returned in reverse order.
 
-    # Input #2, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString('AGW9TDZZYGMN9CAHSJCFOBFJCWGBEKETZPUJK9IXAWDXZTCVFTNJSHHEVTCQHBVPMFLPLDCSGPFFWWBDCTQFTG9BSWEKXKWY9ADZVHAMQQAUCEOIQPRULPHGCINEAI9ORHTTCEHU9GPIFDYMOZORWNZYUZNEFGF9WYDXK9CZSKLXVGBHOMBDBGFEMPQXOXBECKEXCQEEDRXNK9YAFEYWXPPURGPKSEXGIAOJDDRLFLGTUHTIHY9EMTOBSHJEEYN9GZ9ZUULYDHYNEQSSETKYZVQYRIPNRWGRBCFLHRUAKJODCEMYRFBP9EVFKXL9ZTERUVFCHH9KZQKBSWZHCGVWDQYMLXDFVDQESOHZVYEUHCROFERIOBOKEWHPWATWEYLCBMQUUVTEWGJBSHGNARCU9QM9QVZ9GEOUMSMMMZSBQVAYWUJPUKCLDZBHDQIGUK9DOADAVEO9GQTVHLMPXSJQZHEYDCCDHTWKPUEJBADZLKXTQKPWUJNZAEILVYCMQFQURKDVQJPOMTJHGUKPYTQHJGIMICF9RVAYQEJDADAHBOYXWRCMESMKZWZSBICV9VSEEGQFNNRJWPBSPZQLDYETZ9TBQGTCEIDEYBRXUYHUQCILZULX9NPUFFYNGIFJJGBYMUTBJMHYOWQEPUXMFKTLTFYEPNQVWRZQ9FFISZBUADRSZTRLQSQCGJXXPN9AUREQNXXGOZCYDVDJWVFDKMJG9CNGXUJQELTWJMRB9IEOGCKGE9RQDANXMTVMPXCEOEQNZG9YJCUC9HEC9QYZTNPPUO9IUKSNDAIAFIXPDONVZXIQJRQCBCTJXIDJGYHXXVUMYNFTGBOPRYRNQDVOXLDLDCACNLOJEOSDVZIDMOVPVKOARQUQNCKWKFHBSHBQXBUDBMZ9PUJBBWVSL9RPUDORRVIQCKADBUDIUVPZDHU9QHDHAWZCKNKVVHCRULLGJDSINCHUILZDWAACAIUVBIF9NRBSODKJGBMTWOBKJANMJLNDRN9FQNOGYQTMQNVS99LAIYNGSMIVRDGRRUJYZUEATJNGXBACDVHTKHGRQELJUPIUYLPFBRREZLFMFUOQGKJWJPSEAFJIALJCHPKZWGJAEVNPQCTGFJTNSBAOMUOXTURUCCKYZCAESRJHEMMYSADNYZKTMPFZAQRHYFMNXZYC9FAHDJPNSLWFUE9MRLUHQYBOLYYGMFJLCIECWPJIRAAZTB9YHLJNCVOUKKKBAHAVFOXSHLDMO9OAYLYCJWXINBHFLHGFBPIDIATUZAU9HCMQZFZLUROQQDTWPRUDEG9AUGBGFNUXIWGQZQAXQX9QFXQPJARKGEZRQFGQEEOUPCYVWHLBP9OCUZZSPOIWFJVXLWSMKORXPAYG9TVOCNNHDIS9CHZLZJBUQRKEA9BSWPYCEXKUGSXXVQAQSVVDWMEACSXHYFDRXLILR9Q9SK9VYJWQEJRJVWSL9KPEHGZPBQYNPQZVQPNYCOOJVCTOHOKQNFKDPEFMKDTTLJZTURRGOXEVUNEEKPNTQDPDWFANWZPBAJYMVYOUQYUZQWNEHEXCARMOKYQSKWEJKKKLDGKJBXQKODOGJXDSACUDHVREMWBSAUAAKUYVAHTUGVSUEVLWKQADVMKRNUYIBEO9BCSPSVFLWLTZBMFOFSGEKFTOAGHAVJ9YRSWFBXMMACGKKBLFPALET9ORLUPLQNQWWYW9EWRLSPTSPF9S9CAHGXEKDLVXFDTVVJDLQEOJNOZMUBJUHQXIUVD9ZFCIGCFCWUJUALQFDULVEHHOWWQXYHXXVSVCJCAXPTJBWOZRXNHBW9DRSBVEWHDDQJUPGZQVBDL9OATVSZKQQFNTHNFFPXJSQZXJJJZDEQZNZAMSOTXBCFPGLNJHEPJOP9IIIZXRHTMFEXXZUVKDXTEIUXKBFRTXZTMGSXRWBQQGKBSJWHEXVZL9EKECPAFTVMVVGKE9TGGTE9YLGGYMK9PKBERBILUCPIQZTKCXSATLRKBGGDSWORLQUKSMQLDLUMMML9VCMZUJZJVGHGAXDELKIAZYNAHPCYSPUYNNBZ9MBUQGRKBEKIHNIOGIWQLIS9NBBWDPWGABMIGADUMG9WKFZHQIPYKDMJTTYQRJWYXSBAPDJSKEIUJNOMNDNGUHEFBSDSNNKABHEJBKBRIRLKSQBQIRPCQJPRXWDDBIXANTCLWTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQCYZ9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input #2, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                'RQOQNTDTZWGNBTVNHUYXYELHLRDTUSHIFZBAJDYYGKPUTHMBFMZPWHYULBANOYXDHVTRKLGXKUOZAWFZWJDFVUZKONYTRYSAGTWGDBIAHHMUEEGIPSKBCJPDBSMHAWWZZU9IFKCKJMMTCGGDHPUCBBRDKTQOTQGRDXEDQAYI9WNCNIVMBSAQVCVLJILCKHOUYPJXKNVXDHXPECIPVQQIDWBGRREGYYVROBJELIWPUWSOHSAUKSYSPQMNPRBMKKUQUWGNAWAOEDDVNRJBUSRKBJKWZLGAVDASMZ9GMKKLMIKFWAIAHAW9GIRAWZFYFEOIJ9TBNAVEUSTNUNABHJ9L9GSZTBHTGTRZSIWFVGMXQS9VDTF9ZUVNLDI9MOEVRRBDBAKATS9ACTIABCDWUFNRXZQ9MOHHKMSRTXGXHERZREPSSAASILWCFDUFPXOKGTDSHWRBZSQSNCYFJZJTB9DGDJYISY9EZPLHJRMIQAQJYYRZVHKWCGQLWFDYVZKCDAIBWYQQSUKACFRBALBKMBTBG9PPZEBU9TVRU9RMBHXCNOS9QLASMCDEFWCUBMHS9LHXEYANCHLEFNVGJJKKUITNEYVLPYQIYQHAIIGSTSAURJOAL9SVATHGOVP9CQXMGCYLSYFUQDOWY9ZWJADWVQGPZZISPAWHTMNPVKKPTCSODG9WECGVUANJXZRDYPMPVCLRF9WVGWKKQQWPAKCZQVK9KHBGXJRKGD9IHKRNJQVKSXXQMVPLGVSEWPEXNLBHGOQJUWDOIEXDGIZLFIZWXSIAWWDUOBLSDGTSFLIKGBBGJWTDOMSQWNRSYOWPBJTAJDLRPCRMKNRYEATYBMAZIN9WNMRIHLXGGVIEFZQGAGUSUNQKFAFUI9FR9AIKNBCGGFFECROHFURFC9GFMAUXMPJFWQVRXPLYF99OILFIQIJYSH9HGAZPCJIFHGTZIVGENZHBCMNHOYNAESF9FNMZWLLLCCRMUUFOZVCXLN9OQSODU9QOZKBOVBLBIVZXPFOEZEEXAUBWRWPWRNRYVIKQKBBVOHI9OH9FCQAVQPVVMWFVKZKOCUUSQRZOESNVQR9ULQGQBJEKYEZLXHHIGIAINTHUAXOYJS9NFTZAQIIFPXYMGAFHKYQHADRPQNBWGQXMNSIARLUODCINRFH9CMDIQYAKNJKDSBHGBQJQVA9VHGIHFFSWAIQEHKRGITSLCDBTCHDSEAJSVGGGBCRYHOMFEYEDLDRQVQBBRFLFM9UBOYTIMBYTWTF9VUKUJDRWKJMNFPKKVHRRSJFOFMWJ9QG9SIXCFHNYFTAGQKRUIHVXJ9USSDBJGWLGDBBPRXCOAQPWSFLZXMTCWLFNPEJQFH99YPMFOZDHJYWAJOBECPWONQCPPFNLCAGNJRI9XPK9O9NPWM9WRJKQCDLVWP9HZNGNCJZVKTEUOXEDRVSFBWEREFDKPCU9QATTUXXUHWJFNJSUIHMND9EALDXYCYWEUPJITOTKACDUYCHS9GVTJGFTCLZPIARZAWNGPUWMQRDEIXDOIFUDEWXFVVGVDRKTQIQXLEVULRUJEJGTCDLAOLEFNLDOGLWHYUKGBHSSRURELGFYKTVQUVUXJLMY9ICDMPHG9INCBNABNXEEWOMWQ9J9NQSIASZJLKMXDIXMVFPCFKLM9YEMZOGZVTIF9WHYTYKTRKDXAUIIGJXKPQ9DPVEACFPLZHGVIUVJWML9IEGJXIZNSUETRYORJ9RTEAOZXMTQHAGVFZKHEQCSBZFDD9XAME9ENSFTJZDHRVSQW9XECHIZYAJXXECRBMLNCYSFOH9PNJ9UXOWBGCYIRIAOI9VVAIYOLHTLBYEKOYMOCSVBFCHHCTGIBOUDCXXOCUCRMKTANWHIIXW9LSBYWJAQOPMPMATNGUHWNCBNL9IYJEAUMWSXAKBTIPWWSGXZZCOBRIXZFZMHLGNWAHVTAKTTSN9VNZOLGJJGAHPIJZQBITVDSXNXZTRMIDLH9XFIOEYUVJWIKLLEAIYBOFFUPCBEMMXBDGTZDGFJCBGZSD9CRIGSQSJQOPFIBWSGDSVCTQUHWQWRDLMEQWNIMCSQA9QGQIRSTBXHFVLAOHUTUZBUIWHFTZEDEZGVDKIBUZ9CDJHKWLMIMQZSVIOKCLSURPXHROHGGWKF9IRA9GCOJUDKXYPNBRRDQTNLVKUGCAZHLKZTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC999999999999999999999999999999999999999999999999999999NYBKIVD99D99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input #1, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][2],
-      TryteString('KVTQSEYVEVEGDETHHKGCXAATAPNN9GDDCUFVOGJXFFC9HAGIMRLGXZMDUCNTJBMGDZWSGPPLZSUOKONNZKRMJQJHRNHPUX9YEIIPOKZLBZUZLDKPMVNVRLUTQFKQIRZLEBIIGBROFFMQVCPQQMGNC9RTZOURPDUNRXVDJUCLZFBEWJDVGCAEDFT9GQSRAAITNLENXSQDILMILGXYHEVCBWCWTHDAMST9IAXCLHDKKMJDWLZDGKD9SNZS9VIDJIFJNHNMHZCBINTWMWFTUPPCUAKEHAXLANHIBDSLPFLTRQSDWONBI9NYJFZVFCTRXOUMWOWDEIJBDBHIORZUVJXIIAXDWPNHXIBKPXFXMXRGWGXRQQG9NXHM9DDYUIOZMEHXTTIZQHNQGQVBKUMSCNABDWINNALMYDJHGJLCFCJ9KZZNTFPZGSLXGEVEGOWSOUAFBJAY9IOEVNLHFTIWEFURULVEFSDURVWBMNUTNAVCEOXRKBZTSCZN9IODZATCQUSPOWMWNBBNWXMA9HVAMYKYAQYHFFKFLBIWYDNDCTXPYVBNKREIGKGMTDCQKIHMAPQGWUMICACHQJODIQPVVWCPUBJC9NWAXSAXUHPMNJEJF9MQJCAJ9LMPCT9XLPLOLCDSAJYPZYUCMURTVZIOZSRMLKANEEYSJAGVVPBWTN9RDUJWEGBJSN9RDPWQDSKDXFXXIPUQATFRAFTZFUVKOKEISVCYZM9LRSLJ9BYNPLUMAQNUHXHPDLHQCUHJUNKRFSUSVWLEPCRIZHWKXVJCAPPGVMRXXXEPNELUREVCCNMEGA9LHXJZRCRWJIRYJPDRYOBG9YQUVIYJPAFQTMIKM9Y9MASZA9DALXZDXFUFJBMBPTNNENFPVGUNLXSNHTXSUVAMYEVRAHPLJDIMJCDUNN9QCJKHDXFSW9CEEAGXOUJLELTFGOQNCSSANOCDNMBMRDKNXAWLXWSTFKPYRRSBCWQJHWGPBRDQNKGHWIIJGZTANNFBUCGHJKCWPLFTVLYWBWTCASCSNHQKSOLKRJILIAVLBTYVWFMA9VWCLNQAMGUGXSLUJFDXZNMXZXNSTTQOZ9RTXF9QOUSFVTZOTRNZ9SUHXFAVITYCNYJGGOKYTWZQCFOQRCRGRSQVMZZNOIOJAELHG9JYUDLUTSOQLWNGIJTHGVELCK9VFZSFOTYHJWAFMMKDGGUSNSUCRKGYCRUFSPWEJLMLAHDNTCGVIEBSO9SC9NDIZYIMBRXCURBHYMAEB9JMAPWFUZRRCGRTLZRXJVLEPZ9QNKMERNSMFKAXPLZQIJXAAWY9SYMFXXOKGIGPF9UVTXEMSZZOINHKANZOVGSEZPGUSYKLAUJKZKNVDZJMS9CZRXCVGFUO9UMYVJZCUIKIXJTUFCRW9E9CJEPWLENSXWVMFA9PJZTLFFXYWRCWTDPICHS9IINY9ZOPNJWZ99IWJJQFRXTCEQAMBFQNXCFXNAPAGDMUJMKVDHGHSZZFQRUINOYWNXTT9FGWYAXWVXJ9YGZYEIKG9MWN99CBNOQWZVYYPZ9NPCYQQKVTWVKUBSTOYWRMFDUPDB9XGAOTEUPAFDVYAEIQHBPBHF9CXEDSOOF9DTGBJOAWHJYKNJ9CWRCATOWWAPTXQQTITZUQ9LXCFDQPCJHFVDPIVQHPJKSHRDOIOQBKECCNOOHDUYKYFYWUBJJGWQMIIMFNZZAOGXPSVZSZQPUPBVUTJNGQLRM9N9AYJJHBBINQJFNDATEPMKYDQNPKPJ9NXIUCXSOSQOC9M9SSLTBHGWLCQE9DQPLMNPCJUFBPKYGHPHBRTALLMFUHIATKTSQBNTHGRCZILLNCTSZKJHQNVYZ9LOVYYSEXJDBHBBXHOFKVWHVOKUAYPGNGRGARFGEINTOJVMDSJKENFJADXBOZMKEJGAMSQMMETTCTDWNQWKYIGVYQVFMC99N9MJDFDERJNNIKRROFSVLEBYFRJJOOSEWWBYMTIQXBQBYMSFAFBXPMVZAKU9LOGBEHKMOZDMSYXRVEZHPPZZCBNLPDUDVEPPYTCLKF9OE9YROSAJMJHNCWVYADGEYXIBPLDZBQMIESEYBJKONUUWGDDCD9SBPHTMJFBXPS9SOROVFBXDGFJFYWARMPRRMRYN9VDRKBDKHSZCPRDYBZOXCUWRZXXAYRHELLWMDTMV9VHVICXSRJVOCMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input #2, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                'AGW9TDZZYGMN9CAHSJCFOBFJCWGBEKETZPUJK9IXAWDXZTCVFTNJSHHEVTCQHBVPMFLPLDCSGPFFWWBDCTQFTG9BSWEKXKWY9ADZVHAMQQAUCEOIQPRULPHGCINEAI9ORHTTCEHU9GPIFDYMOZORWNZYUZNEFGF9WYDXK9CZSKLXVGBHOMBDBGFEMPQXOXBECKEXCQEEDRXNK9YAFEYWXPPURGPKSEXGIAOJDDRLFLGTUHTIHY9EMTOBSHJEEYN9GZ9ZUULYDHYNEQSSETKYZVQYRIPNRWGRBCFLHRUAKJODCEMYRFBP9EVFKXL9ZTERUVFCHH9KZQKBSWZHCGVWDQYMLXDFVDQESOHZVYEUHCROFERIOBOKEWHPWATWEYLCBMQUUVTEWGJBSHGNARCU9QM9QVZ9GEOUMSMMMZSBQVAYWUJPUKCLDZBHDQIGUK9DOADAVEO9GQTVHLMPXSJQZHEYDCCDHTWKPUEJBADZLKXTQKPWUJNZAEILVYCMQFQURKDVQJPOMTJHGUKPYTQHJGIMICF9RVAYQEJDADAHBOYXWRCMESMKZWZSBICV9VSEEGQFNNRJWPBSPZQLDYETZ9TBQGTCEIDEYBRXUYHUQCILZULX9NPUFFYNGIFJJGBYMUTBJMHYOWQEPUXMFKTLTFYEPNQVWRZQ9FFISZBUADRSZTRLQSQCGJXXPN9AUREQNXXGOZCYDVDJWVFDKMJG9CNGXUJQELTWJMRB9IEOGCKGE9RQDANXMTVMPXCEOEQNZG9YJCUC9HEC9QYZTNPPUO9IUKSNDAIAFIXPDONVZXIQJRQCBCTJXIDJGYHXXVUMYNFTGBOPRYRNQDVOXLDLDCACNLOJEOSDVZIDMOVPVKOARQUQNCKWKFHBSHBQXBUDBMZ9PUJBBWVSL9RPUDORRVIQCKADBUDIUVPZDHU9QHDHAWZCKNKVVHCRULLGJDSINCHUILZDWAACAIUVBIF9NRBSODKJGBMTWOBKJANMJLNDRN9FQNOGYQTMQNVS99LAIYNGSMIVRDGRRUJYZUEATJNGXBACDVHTKHGRQELJUPIUYLPFBRREZLFMFUOQGKJWJPSEAFJIALJCHPKZWGJAEVNPQCTGFJTNSBAOMUOXTURUCCKYZCAESRJHEMMYSADNYZKTMPFZAQRHYFMNXZYC9FAHDJPNSLWFUE9MRLUHQYBOLYYGMFJLCIECWPJIRAAZTB9YHLJNCVOUKKKBAHAVFOXSHLDMO9OAYLYCJWXINBHFLHGFBPIDIATUZAU9HCMQZFZLUROQQDTWPRUDEG9AUGBGFNUXIWGQZQAXQX9QFXQPJARKGEZRQFGQEEOUPCYVWHLBP9OCUZZSPOIWFJVXLWSMKORXPAYG9TVOCNNHDIS9CHZLZJBUQRKEA9BSWPYCEXKUGSXXVQAQSVVDWMEACSXHYFDRXLILR9Q9SK9VYJWQEJRJVWSL9KPEHGZPBQYNPQZVQPNYCOOJVCTOHOKQNFKDPEFMKDTTLJZTURRGOXEVUNEEKPNTQDPDWFANWZPBAJYMVYOUQYUZQWNEHEXCARMOKYQSKWEJKKKLDGKJBXQKODOGJXDSACUDHVREMWBSAUAAKUYVAHTUGVSUEVLWKQADVMKRNUYIBEO9BCSPSVFLWLTZBMFOFSGEKFTOAGHAVJ9YRSWFBXMMACGKKBLFPALET9ORLUPLQNQWWYW9EWRLSPTSPF9S9CAHGXEKDLVXFDTVVJDLQEOJNOZMUBJUHQXIUVD9ZFCIGCFCWUJUALQFDULVEHHOWWQXYHXXVSVCJCAXPTJBWOZRXNHBW9DRSBVEWHDDQJUPGZQVBDL9OATVSZKQQFNTHNFFPXJSQZXJJJZDEQZNZAMSOTXBCFPGLNJHEPJOP9IIIZXRHTMFEXXZUVKDXTEIUXKBFRTXZTMGSXRWBQQGKBSJWHEXVZL9EKECPAFTVMVVGKE9TGGTE9YLGGYMK9PKBERBILUCPIQZTKCXSATLRKBGGDSWORLQUKSMQLDLUMMML9VCMZUJZJVGHGAXDELKIAZYNAHPCYSPUYNNBZ9MBUQGRKBEKIHNIOGIWQLIS9NBBWDPWGABMIGADUMG9WKFZHQIPYKDMJTTYQRJWYXSBAPDJSKEIUJNOMNDNGUHEFBSDSNNKABHEJBKBRIRLKSQBQIRPCQJPRXWDDBIXANTCLWTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQCYZ9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input #1, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][3],
-      TryteString('HSXQRKCIYXEEEEYMESAEWHGVRBNNFUPVHVHYDUFFDCAPYCLGTMMSYVZPGMVMGZFNDAKUFEKKKMMLCDLCYPTSOEEYANVTHWJRFHRYJ9D9JIBDVQLTQFDBYLXBJWAEJPPRHOXSZP9KWKNLQCUGMOKMHJQYODRVVYOZ9DMMYLMVBCNZSWASLFGJJY9NZO9XAIAIOWBYDHLNIBMQJLRBPZJGJUNOKYFYD9VNESPEZNIPUABKFNIAGEWGQRGLMGLGKEHWTQZWOMIZIF9FWUUMVVWS9CWUMWCHZIRKTODTRLEJTRNA9CCRFJNCVCDCQID9UDQJHGN9ZSGJGRSBVBYBKSBZNEJGZZHIECIVPPV99PVRHUBHLGHAZNJRY9LDB9SJGTXXHG99HQAOAI9JVPIYOOWHXFDVHWOEJIVJOIKPMTCAQZZEFEL9YSOSRWWGBQEPFJNTLVWOXIEPZHHCIQF9DZOQGUKYOJSIFHARSBORDAASWFIBAYHLPUTCUPJONWNQVKIHGKUFHSYKQJCNHYBKETAGEZKMPPCOECTMFZPXPLDHMVOSSU9RMQAQNJZYOXVJLKYZJDXUO9BKZBAK9M9RL9NGNUOVZBAJKCAEEBFFGZZJHLGL9KHOQQVKJYQZJYDTCYJXBJBUZZPACRUDDGXWKVRTVNOAVMYVGPEU9IPLHWFXZEHHUMJRQSQOILKMOKTSEBKEYSFRLH9YLDGGPPLSGFCJVINBCKIMXJKWLM9HTTAIVNKGUOHGJYPPDVSYAZLIFJBKQYQLLXBQUZJMEWUPLRVUOMXBHBUJYGDEGOPWNODYSZPQGBYZKQVXFPRAJNKIMMBWJWLIZLIHPWBSJINAPLU9NYHS9ANDORELEDICPYGWQQRGCMQXSWNBIHCSXPATVHEITSOTMKPSBBACQMKLTCDNTIYBXBCGFGIIPERFKHQKOONRHFEPMRIFJBNUEQEFCVMAXHARRHZZQGYALRQHZFBUTFQRVPWWPMWFQCNFDYKFDEGLGSILJRTSVGSLURIZPERJRLSGOMESSMZDUVPBXMOCFGBUWFZBCNYOBGZWGD9HQJOOLESVVAEIWHEKZXGHBEQHAMAPCLPQQRACGTWHMDCHSDGFEOISFMWWITNNDRLJ9TVIBAWKFLQIEHBRUQHYZYCGJWQIMODPIPHFELJCWRCIIKYEQNRSYCUGWXMJSOFUEBCKPXIOCXP9OTZOIDOSWPDNUTQXEHILCONJHHJFPAJEVEBVXROKKLJCZGXMOLB9U9NLCKZ9XUVHVUMWFFPAJZYTDJ9DIXFDQYRD9LPASBDIDHRHHUPOFWUAPVTCAAPNLDPLPN9XTEMOJSBBCHWBULFNHFMMPRSDQCNP9TFMFJFUON9ORDEORLGHZA9JZTRGUTOWLO9XWMAQZXHLUPVTFRSQUDDHYQRGPBLCOHDMLFKQVJAAKWFINZKCTFOESRDVWYWUAVGVBY9RLBQIC9GNXZIRQTY9VHAOIAXXIOVIMSVVIVONDRAXXGUAKFEXLUZYXVMZXOZKHJOKUSRVBUGZXFFDIYZOCSK9OQIJYFBRVREMNRJDDHOPPITCXZYJYEAARBNUZYBVETPPZHMFCOIQLJRQYDZYBZCSHERQOZDKOSZWQJFUMPXYZWLMDZJFYBNYFSKSJUHGOVSAIIIQVDFQWLCRVKTXRAORLNWKZEQRCCTJRMRYCXUJDWFPG9U9WODMOJKYJFMFINHBQSYVGJNNTJCNGOGKIUCDKTNMGFZZLZYYXNP9HPTGPINRDBDLQOJAEOYKAKBICWYZLDSZWZGNUHVOXYLMGCOLJSCXNPMVPPRSBRVEAQDAX9CEDRXRUAJSULVKAAKRMXMMWLPTYTYZZLOUFLBRUGDREHWALIM9AYCBQQFRNNHUIKVJVIGTGIF9MUMSYJIZJAPOXHIFXH9PPOUOGAQWAKFGXNJDDISLFELAOKYBAKBDTCTZDIOCPVXGTJILYQMPOKIVPJLGPEJFQE9SBVGBDPWMPWZPCNGBOVQSJLLHPKJIKPA9AIQZVHJYYDXSSNXAUDLKEGPCGZQZRXUWXTZMBXLUYJZBEPOTCHZGSLXUDI9PGFNHOZRQLQDWFURIXMDINYQDCSCUZBIDRQOKQYTXKSDTXT9YZDQBGJLVQAM9TWRHPKPJG9OAHJNRQIHPUSDLJHSTRHSTSQURNPOKQYVTIIOY9DDMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEBN99999999999999999999999999999999999999999999999999999NYBKIVD99A99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input #1, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][2],
+            TryteString(
+                'KVTQSEYVEVEGDETHHKGCXAATAPNN9GDDCUFVOGJXFFC9HAGIMRLGXZMDUCNTJBMGDZWSGPPLZSUOKONNZKRMJQJHRNHPUX9YEIIPOKZLBZUZLDKPMVNVRLUTQFKQIRZLEBIIGBROFFMQVCPQQMGNC9RTZOURPDUNRXVDJUCLZFBEWJDVGCAEDFT9GQSRAAITNLENXSQDILMILGXYHEVCBWCWTHDAMST9IAXCLHDKKMJDWLZDGKD9SNZS9VIDJIFJNHNMHZCBINTWMWFTUPPCUAKEHAXLANHIBDSLPFLTRQSDWONBI9NYJFZVFCTRXOUMWOWDEIJBDBHIORZUVJXIIAXDWPNHXIBKPXFXMXRGWGXRQQG9NXHM9DDYUIOZMEHXTTIZQHNQGQVBKUMSCNABDWINNALMYDJHGJLCFCJ9KZZNTFPZGSLXGEVEGOWSOUAFBJAY9IOEVNLHFTIWEFURULVEFSDURVWBMNUTNAVCEOXRKBZTSCZN9IODZATCQUSPOWMWNBBNWXMA9HVAMYKYAQYHFFKFLBIWYDNDCTXPYVBNKREIGKGMTDCQKIHMAPQGWUMICACHQJODIQPVVWCPUBJC9NWAXSAXUHPMNJEJF9MQJCAJ9LMPCT9XLPLOLCDSAJYPZYUCMURTVZIOZSRMLKANEEYSJAGVVPBWTN9RDUJWEGBJSN9RDPWQDSKDXFXXIPUQATFRAFTZFUVKOKEISVCYZM9LRSLJ9BYNPLUMAQNUHXHPDLHQCUHJUNKRFSUSVWLEPCRIZHWKXVJCAPPGVMRXXXEPNELUREVCCNMEGA9LHXJZRCRWJIRYJPDRYOBG9YQUVIYJPAFQTMIKM9Y9MASZA9DALXZDXFUFJBMBPTNNENFPVGUNLXSNHTXSUVAMYEVRAHPLJDIMJCDUNN9QCJKHDXFSW9CEEAGXOUJLELTFGOQNCSSANOCDNMBMRDKNXAWLXWSTFKPYRRSBCWQJHWGPBRDQNKGHWIIJGZTANNFBUCGHJKCWPLFTVLYWBWTCASCSNHQKSOLKRJILIAVLBTYVWFMA9VWCLNQAMGUGXSLUJFDXZNMXZXNSTTQOZ9RTXF9QOUSFVTZOTRNZ9SUHXFAVITYCNYJGGOKYTWZQCFOQRCRGRSQVMZZNOIOJAELHG9JYUDLUTSOQLWNGIJTHGVELCK9VFZSFOTYHJWAFMMKDGGUSNSUCRKGYCRUFSPWEJLMLAHDNTCGVIEBSO9SC9NDIZYIMBRXCURBHYMAEB9JMAPWFUZRRCGRTLZRXJVLEPZ9QNKMERNSMFKAXPLZQIJXAAWY9SYMFXXOKGIGPF9UVTXEMSZZOINHKANZOVGSEZPGUSYKLAUJKZKNVDZJMS9CZRXCVGFUO9UMYVJZCUIKIXJTUFCRW9E9CJEPWLENSXWVMFA9PJZTLFFXYWRCWTDPICHS9IINY9ZOPNJWZ99IWJJQFRXTCEQAMBFQNXCFXNAPAGDMUJMKVDHGHSZZFQRUINOYWNXTT9FGWYAXWVXJ9YGZYEIKG9MWN99CBNOQWZVYYPZ9NPCYQQKVTWVKUBSTOYWRMFDUPDB9XGAOTEUPAFDVYAEIQHBPBHF9CXEDSOOF9DTGBJOAWHJYKNJ9CWRCATOWWAPTXQQTITZUQ9LXCFDQPCJHFVDPIVQHPJKSHRDOIOQBKECCNOOHDUYKYFYWUBJJGWQMIIMFNZZAOGXPSVZSZQPUPBVUTJNGQLRM9N9AYJJHBBINQJFNDATEPMKYDQNPKPJ9NXIUCXSOSQOC9M9SSLTBHGWLCQE9DQPLMNPCJUFBPKYGHPHBRTALLMFUHIATKTSQBNTHGRCZILLNCTSZKJHQNVYZ9LOVYYSEXJDBHBBXHOFKVWHVOKUAYPGNGRGARFGEINTOJVMDSJKENFJADXBOZMKEJGAMSQMMETTCTDWNQWKYIGVYQVFMC99N9MJDFDERJNNIKRROFSVLEBYFRJJOOSEWWBYMTIQXBQBYMSFAFBXPMVZAKU9LOGBEHKMOZDMSYXRVEZHPPZZCBNLPDUDVEPPYTCLKF9OE9YROSAJMJHNCWVYADGEYXIBPLDZBQMIESEYBJKONUUWGDDCD9SBPHTMJFBXPS9SOROVFBXDGFJFYWARMPRRMRYN9VDRKBDKHSZCPRDYBZOXCUWRZXXAYRHELLWMDTMV9VHVICXSRJVOCMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Spend transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][4],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999OJ9999999999999999999999999NYBKIVD99999999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input #1, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][3],
+            TryteString(
+                'HSXQRKCIYXEEEEYMESAEWHGVRBNNFUPVHVHYDUFFDCAPYCLGTMMSYVZPGMVMGZFNDAKUFEKKKMMLCDLCYPTSOEEYANVTHWJRFHRYJ9D9JIBDVQLTQFDBYLXBJWAEJPPRHOXSZP9KWKNLQCUGMOKMHJQYODRVVYOZ9DMMYLMVBCNZSWASLFGJJY9NZO9XAIAIOWBYDHLNIBMQJLRBPZJGJUNOKYFYD9VNESPEZNIPUABKFNIAGEWGQRGLMGLGKEHWTQZWOMIZIF9FWUUMVVWS9CWUMWCHZIRKTODTRLEJTRNA9CCRFJNCVCDCQID9UDQJHGN9ZSGJGRSBVBYBKSBZNEJGZZHIECIVPPV99PVRHUBHLGHAZNJRY9LDB9SJGTXXHG99HQAOAI9JVPIYOOWHXFDVHWOEJIVJOIKPMTCAQZZEFEL9YSOSRWWGBQEPFJNTLVWOXIEPZHHCIQF9DZOQGUKYOJSIFHARSBORDAASWFIBAYHLPUTCUPJONWNQVKIHGKUFHSYKQJCNHYBKETAGEZKMPPCOECTMFZPXPLDHMVOSSU9RMQAQNJZYOXVJLKYZJDXUO9BKZBAK9M9RL9NGNUOVZBAJKCAEEBFFGZZJHLGL9KHOQQVKJYQZJYDTCYJXBJBUZZPACRUDDGXWKVRTVNOAVMYVGPEU9IPLHWFXZEHHUMJRQSQOILKMOKTSEBKEYSFRLH9YLDGGPPLSGFCJVINBCKIMXJKWLM9HTTAIVNKGUOHGJYPPDVSYAZLIFJBKQYQLLXBQUZJMEWUPLRVUOMXBHBUJYGDEGOPWNODYSZPQGBYZKQVXFPRAJNKIMMBWJWLIZLIHPWBSJINAPLU9NYHS9ANDORELEDICPYGWQQRGCMQXSWNBIHCSXPATVHEITSOTMKPSBBACQMKLTCDNTIYBXBCGFGIIPERFKHQKOONRHFEPMRIFJBNUEQEFCVMAXHARRHZZQGYALRQHZFBUTFQRVPWWPMWFQCNFDYKFDEGLGSILJRTSVGSLURIZPERJRLSGOMESSMZDUVPBXMOCFGBUWFZBCNYOBGZWGD9HQJOOLESVVAEIWHEKZXGHBEQHAMAPCLPQQRACGTWHMDCHSDGFEOISFMWWITNNDRLJ9TVIBAWKFLQIEHBRUQHYZYCGJWQIMODPIPHFELJCWRCIIKYEQNRSYCUGWXMJSOFUEBCKPXIOCXP9OTZOIDOSWPDNUTQXEHILCONJHHJFPAJEVEBVXROKKLJCZGXMOLB9U9NLCKZ9XUVHVUMWFFPAJZYTDJ9DIXFDQYRD9LPASBDIDHRHHUPOFWUAPVTCAAPNLDPLPN9XTEMOJSBBCHWBULFNHFMMPRSDQCNP9TFMFJFUON9ORDEORLGHZA9JZTRGUTOWLO9XWMAQZXHLUPVTFRSQUDDHYQRGPBLCOHDMLFKQVJAAKWFINZKCTFOESRDVWYWUAVGVBY9RLBQIC9GNXZIRQTY9VHAOIAXXIOVIMSVVIVONDRAXXGUAKFEXLUZYXVMZXOZKHJOKUSRVBUGZXFFDIYZOCSK9OQIJYFBRVREMNRJDDHOPPITCXZYJYEAARBNUZYBVETPPZHMFCOIQLJRQYDZYBZCSHERQOZDKOSZWQJFUMPXYZWLMDZJFYBNYFSKSJUHGOVSAIIIQVDFQWLCRVKTXRAORLNWKZEQRCCTJRMRYCXUJDWFPG9U9WODMOJKYJFMFINHBQSYVGJNNTJCNGOGKIUCDKTNMGFZZLZYYXNP9HPTGPINRDBDLQOJAEOYKAKBICWYZLDSZWZGNUHVOXYLMGCOLJSCXNPMVPPRSBRVEAQDAX9CEDRXRUAJSULVKAAKRMXMMWLPTYTYZZLOUFLBRUGDREHWALIM9AYCBQQFRNNHUIKVJVIGTGIF9MUMSYJIZJAPOXHIFXH9PPOUOGAQWAKFGXNJDDISLFELAOKYBAKBDTCTZDIOCPVXGTJILYQMPOKIVPJLGPEJFQE9SBVGBDPWMPWZPCNGBOVQSJLLHPKJIKPA9AIQZVHJYYDXSSNXAUDLKEGPCGZQZRXUWXTZMBXLUYJZBEPOTCHZGSLXUDI9PGFNHOZRQLQDWFURIXMDINYQDCSCUZBIDRQOKQYTXKSDTXT9YZDQBGJLVQAM9TWRHPKPJG9OAHJNRQIHPUSDLJHSTRHSTSQURNPOKQYVTIIOY9DDMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEBN99999999999999999999999999999999999999999999999999999NYBKIVD99A99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-  def test_pass_inputs_explicit_with_change(self):
-    """
+        # Spend transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][4],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999OJ9999999999999999999999999NYBKIVD99999999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+    def test_pass_inputs_explicit_with_change(self):
+        """
     Preparing a bundle with specified inputs, change address needed.
     """
-    self.adapter.seed_response('getBalances', {
-      'balances': [86],
-      'duration': '1',
+        self.adapter.seed_response('getBalances', {
+            'balances': [86],
+            'duration': '1',
 
-      'milestone':
-        'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
-        'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
-    })
+            'milestone':
+                'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
+                'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
+        })
 
-    response = self.command(
-      seed =
-        Seed(
-          'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-          'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
-        ),
-
-      transfers = [
-        ProposedTransaction(
-          address =
-            Address(
-              'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-              'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+        response = self.command(
+            seed=Seed(
+                'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
             ),
 
-          value = 42,
-        ),
-      ],
+            transfers=[
+                ProposedTransaction(
+                    address=Address(
+                        'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                        'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                    ),
 
-      inputs = [
-        Address(
-          trytes =
-            'MQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIX'
-            'PQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB',
+                    value=42,
+                ),
+            ],
 
-          key_index      = 4,
-          security_level = 2,
-        ),
-      ],
+            inputs=[
+                Address(
+                    trytes='MQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIX'
+                    'PQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB',
 
-      changeAddress =
-        Address(
-          'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
-          'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
-        ),
-    )
+                    key_index=4,
+                    security_level=2,
+                ),
+            ],
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 4)
+            changeAddress=Address(
+                'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
+                'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
+            ),
+        )
 
-    # Note that the transactions are returned in reverse order.
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 4)
 
-    # Change transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJRBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIYQB9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Note that the transactions are returned in reverse order.
 
-    # Input, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString('RINVQCDVEUGCVRPVHTSXDJAMCTTUXOAGNEHOPRTTJOHBOMCMB9DFPQKXA9RCNNGDSDNZQSOZBTLQGHEFWPCVANMWPQRPYDDLQYFAOMQSENXSPXERDAKQLGVEENDOTQBUSSUJTG9NNBMYXEJJFWQGW9VXJWXYN9POPADKNBNVJFBNRNLDOEZULNHIZJCQ9ABVP9RWBVQRDSCWFSQSLDWUEXVWVTV9GIITYLOOZDYWLWHDIIUX9O9HIR9NBEYDNTRJGOQRGHUWFJNOQDDFIGJYQLBSWEDTOTKKGSWKG9SUKYMKCZXIDEMUKEQEUYQZXTXVKDF9HKOJKFZDQXOR9QFE9JRORKCLZ9PKNJDXKZRYWZEIDGACMRGULPJIO9CUNLCESVTQOYKYEYVSVVNOZRJXXZHPVFLKCFLBJUPWAVVKDSVZQJTFZIMLDVVTOQKFZDIISJJTTFUTCEOGWQGSDNZPLQLOHVRDFIQKDKCJTWSDCQSYXAFHKGBKPJTHHANZCDBOVBK9MLJFYMRRSPWSYIKUJGYMGWLBZVIFBGABX9HHTWTWJKPVOWKQVFXABHO9UTRMKMXVUWLPTELVSVPBSNMSHJAUDKTYWOSZJLUNUDP9PKECZ9SOYQRZHQGNBPSGKNCZDEWWFYQ9SBKBHBKMJHWHECMFOWCY9IKFZCMZBWQEGZ9PMMNGMPAEBDOQMKJDWGBKYAJZFKTPLHCXEJREIIYIFQAHWWUBRTKGZOZIHC9J9YYDSYSTDRWSGGTWMEYAKJDECPQTLUQSJOJXLTHDPEGWSVGEZSQHHIVACNMABJAZCDUNRTHEBFOJEVEPQTWYXCLTFXAVRLZVLIULKVWYYJPQUOTLFHRLXFTCMQNASKATJGQ9XDPYRH9JZU9TWWYPGDXMWMHPSLKRWUYEKOZUQGVCBWHYDMOXGIDZKIZIUDAUGJMXNISYEXMM9BBCJPSAO9YLRJNSFSEPSCOWJUJRZJCRO9KEZGNXXMREWLCW9BVHCDNZ9KTXAEWJZ9ESEAYYTLWIPVGYY9NTIICOTNDFCTLYANOLMYAYXARMLDPPFSBGBWTTLRGYFOPLEUOYUYKBWXOBTSLRXAKSNIWDDVVBMZ9QMRHYLNPIMEVYVVVDUGERRFKMTBREKFTVZMNN9MKHHBVZQGQSCQXCOXKXSLWZMHMMYXVMTXSKEWMPZYYXQJXJBJFGWHNWSQLVVZSISUJCGMBWWALQKGMTVXIDXABVLDNDRWATSJEKCPHBOL9YAJUIQJBWXSDIRADNWD9BNZGXRBRJEYIAASTQPXURHZYXYHHE99MC9EXHMGGBUJYKHFPCBHGDVNGSQLJHNUIOJDZUVZELWYWEGMLJWOMALTZQDTEDJIROH9RDP9GVXCEWTULWE9IRWLXHKWSWGMFMALPOISEGBGAUJFSVDNMPOGEHSFDSPZYF9TDQVRSZSNVWHOWABD9PHRWBCXECMSXCUAQDEXKXJZXNNEQFZI9WYZMWGLTHECXNVNALCHTKLOOKJQMOAWBNYYDFJWOPWDBZSQFI9GKOQZCGDBECV9JOIWWUSJN9KDADSHSEUK9MY9XTNJQCAPHEYJJTRWUPFWDFKZTNGUBBSPVYSGQWXQNRXYXWPIE9RWYIPTDHRFUNHZULIDHKZGHPMKIYFMBQALENPZBGXQKVAZPWQDHGPYQAMQLSDBOTYHAXFXMNHABVUNUJDJ9IPNZSIFWUPAMJEADYGRJTYNQTLNDXEXZFTFHOW9CWQ99MZ9WUXBWTGORUWFOBYLAWD9UBDCXPTBFPUWDQDTUQMXPNPEXARZQVYTNCTLBWN9DWTBMNFMIGRZVPOUCHOEZSMZRUYYAZBL9KOCKNPKEQHPOLOOURWZ9VKXAQVTIDRT9ZNOFPG9YERTSIIJGRFNIFUJJQ9IDWOSTQEXUPWOFRGJNCFYYQMVYUJSLVCKSEAI9UHILAPEJSMDB9YIBPRUGGKOVQMRINXHBHRMAEI9UTMDCAGWIGHXCECLB9UTPGJUB9IJVJBHWBECQXUSEVBTKYBXMB9IBJFV9GNINACFBUGNE9GSVGJJS9BGPFOSGSSMEOLXISUMQNQPXYVNN9P9TG9OZQIZWD9N9JUFQOAAPDJUKDCDXUCQCRAGSNAMLCSFOBMIRJFINXNGTGHXSRGFQCI9JFWNBCM9WDEWDPDGMNXMNKLITPRVXYHHCMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Change transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJRBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIYQB9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][2],
-      TryteString('TRVDSILRJBTGVOUIVTUHPJHGAFPTJFTXEZXRZQUZLVUEEWAQDC9BVGFSCBHKUVKHUXW9ONG9WWTOLKSMBFDGIZ9LPH9IOAUXBTGOGIGFDTNXNBNZDBXKWVHJUSBEQBTCYJRFEMVEDRYMKRFELUVHDCPRSR9U99RUDCKOZHLNZTWDYGKECDXTNWZQRTUWZAWYKEQKWOA9PZJMIXWQOJUVUPFEKPEYNOIVPFGTGVBCTYUXH9K9WECIWPKCEVEFETRILNWE9Z9WPIOLYHWAEROAZX9WXDMSRIZWXAHFWRAHGKCFAZFBHQTCLCVLS9OHVBCNPXXCZSGJGRSBVBYBKSBZNEJGZZHIECIVPPV99PVRHUBHLGHAZNJRY9LDB9SJGTXXHG99HQAOAI9JVPIYOOWHXCITIIZJCJXHJWCENGRVK9CNUQWERVSKADGOGROJAXXZDRWQTILHMSWEPOZK9FREBNMWHOIMRCYINWUQJXFATZPXU9SKHPHXOJSADTWBUNHDY9XCHXGEZSHUDLTZCAVGHCMZSCQGOI9CBZJYAIAKUQPXONNMMSMM9TZX9FDUSHXSTVHKKGMTAFOQGJFHNYPTIPSJOM9UYPGIM9RLTYRBYADWKCOUPJFAYKOLHSOTGJYI9MJJVBTCHUHCHYA9TKIEEJJWCLLKLOJHRXSDMXPQMLUAL9MRANVGOTHQFKRKYDPJZPPQHJAZIXQZMDTWCUJFPCXBDUHBRCTYLKJFNHICXPVKXRYFNGDRZJDVLVQWEYRLIMFMIMZIZHLLYQGFOPXEVLINAQHZEXWNUEWBYFWBBCTPWL9JXNECPRCXXMOTPNCSFYRRGCNGCGQK9XUWWKJICDELKHMVRHHWVOBAKTNXBYENITXWTDUNLJAAKUDGTFPWROHAORLBWFCMDKKTPCOMDZQVJSMZHKVUSRBGZGKAHZCTQTEWA9LQMPGNPEXCXJNBDXZRMV9BYCRBU9SCKXZWDKMCFLTGRIKESL9PVIV9XFUPAVEBWM9OWWNIEVJNRUOKEUAIFEZCNPXAQYWOMKZNMMHWOIG9WRCKUWAAFIVKIDIEXJ9YUWSHXZVFJKFR9IGYQLOVXRDBVQZAATAONPQKDKSP9RZBBXMONAOAZDIEJQAPXCJTNVCDAAQQGH9RGQASOBOEMLAMBRIXGTGULJJIRPHGEURVV9OHOOVBRBFXXXKWIDGNKWXVK9WPRVTONDYTIIOYGUNUYBL9JJI9GPTIP9FEZIGEBZCZSSVGAYDKDAMPNBCXVBZJJSJ9JGDFMDPMONUGAOFLS9GUREOWWKJHZBBXCE9NMIHZXVGPKFW9DIILQXNKCQYEENGFBRIQBX9LSZNZSRXWFKBJVKFCXSJALC9HR9CCZTHDDP9SJUSBVC9ZEDKMMSPHDDFRKJ9FVOLTE99SLVHDANNKVEA9TOGXFEFMVQUOLEWFWALQZ9VSLBR9JTGO9ZSQUIMGEQRIYEULTLVRPNXLAUGQZLSYVYEOWUID9ZDFFGJ9GEJFFDLPPZFMAXUREXHJNWPFGIDD9AMMHYBILHSBBXI9EQRUSEDLJARDFWJCVBZHBFMDXMV9GUXZDZEYPTXJAIREDJPKOZJECUWGUABAATUKQWTFBICCYAKGDPHRUOARINT9CYAQEHIPXYXJVMYWXZKKHPLTD9LLVLTCMAPSGVV9VQ9WPOOPZYLXNYHCZIUPVFCGA9CSIHHIHSGNPHEFMOGIZEB9NRXRBUWFZNGYWHVZ9O9VQFOCMVYFCRVLAWJND9SRMQRCIUBPCGLPBVDPOBAUDOYTDEPQKYUFFVOZ9NEUHVXKDMDQHZLJC9SLV9DFAVHGPRHTRCNPQDOGKVABABZN9VLMBFCSBLYIKCBREHWALIM9AYCBQQFRNNHUIKVJVIGTGIF9MUMSYJIZJAPOXHIFXH9PPOUOGAQWAKFGXNJDDISLFELAOKYBVILXCVP9RSKDEFYZJEKIFV9OCAFXQFJOQKIJBHNDDEPQTAEKIRGUHARHPYABGSJQWHWJN9PLYCQJZVDAXBZFHSMNQQ9SJXUBHBKPWODAN9MJRWGIWTCJMIATTBLFEXKGOJQRGTPIRXCLSGVBEHUTKUQVCFQTFTQBACNBPMHBGCJ9TLS9WKPGCAJDPBUNU9OMCKMZJVLTUKPZLD9HYOAFKBKLFEVPJGPAVNGRMDYYBARNZHRKULBMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEBVX9999999999999999999999999999999999999999999999999999NYBKIVD99A99999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                'RINVQCDVEUGCVRPVHTSXDJAMCTTUXOAGNEHOPRTTJOHBOMCMB9DFPQKXA9RCNNGDSDNZQSOZBTLQGHEFWPCVANMWPQRPYDDLQYFAOMQSENXSPXERDAKQLGVEENDOTQBUSSUJTG9NNBMYXEJJFWQGW9VXJWXYN9POPADKNBNVJFBNRNLDOEZULNHIZJCQ9ABVP9RWBVQRDSCWFSQSLDWUEXVWVTV9GIITYLOOZDYWLWHDIIUX9O9HIR9NBEYDNTRJGOQRGHUWFJNOQDDFIGJYQLBSWEDTOTKKGSWKG9SUKYMKCZXIDEMUKEQEUYQZXTXVKDF9HKOJKFZDQXOR9QFE9JRORKCLZ9PKNJDXKZRYWZEIDGACMRGULPJIO9CUNLCESVTQOYKYEYVSVVNOZRJXXZHPVFLKCFLBJUPWAVVKDSVZQJTFZIMLDVVTOQKFZDIISJJTTFUTCEOGWQGSDNZPLQLOHVRDFIQKDKCJTWSDCQSYXAFHKGBKPJTHHANZCDBOVBK9MLJFYMRRSPWSYIKUJGYMGWLBZVIFBGABX9HHTWTWJKPVOWKQVFXABHO9UTRMKMXVUWLPTELVSVPBSNMSHJAUDKTYWOSZJLUNUDP9PKECZ9SOYQRZHQGNBPSGKNCZDEWWFYQ9SBKBHBKMJHWHECMFOWCY9IKFZCMZBWQEGZ9PMMNGMPAEBDOQMKJDWGBKYAJZFKTPLHCXEJREIIYIFQAHWWUBRTKGZOZIHC9J9YYDSYSTDRWSGGTWMEYAKJDECPQTLUQSJOJXLTHDPEGWSVGEZSQHHIVACNMABJAZCDUNRTHEBFOJEVEPQTWYXCLTFXAVRLZVLIULKVWYYJPQUOTLFHRLXFTCMQNASKATJGQ9XDPYRH9JZU9TWWYPGDXMWMHPSLKRWUYEKOZUQGVCBWHYDMOXGIDZKIZIUDAUGJMXNISYEXMM9BBCJPSAO9YLRJNSFSEPSCOWJUJRZJCRO9KEZGNXXMREWLCW9BVHCDNZ9KTXAEWJZ9ESEAYYTLWIPVGYY9NTIICOTNDFCTLYANOLMYAYXARMLDPPFSBGBWTTLRGYFOPLEUOYUYKBWXOBTSLRXAKSNIWDDVVBMZ9QMRHYLNPIMEVYVVVDUGERRFKMTBREKFTVZMNN9MKHHBVZQGQSCQXCOXKXSLWZMHMMYXVMTXSKEWMPZYYXQJXJBJFGWHNWSQLVVZSISUJCGMBWWALQKGMTVXIDXABVLDNDRWATSJEKCPHBOL9YAJUIQJBWXSDIRADNWD9BNZGXRBRJEYIAASTQPXURHZYXYHHE99MC9EXHMGGBUJYKHFPCBHGDVNGSQLJHNUIOJDZUVZELWYWEGMLJWOMALTZQDTEDJIROH9RDP9GVXCEWTULWE9IRWLXHKWSWGMFMALPOISEGBGAUJFSVDNMPOGEHSFDSPZYF9TDQVRSZSNVWHOWABD9PHRWBCXECMSXCUAQDEXKXJZXNNEQFZI9WYZMWGLTHECXNVNALCHTKLOOKJQMOAWBNYYDFJWOPWDBZSQFI9GKOQZCGDBECV9JOIWWUSJN9KDADSHSEUK9MY9XTNJQCAPHEYJJTRWUPFWDFKZTNGUBBSPVYSGQWXQNRXYXWPIE9RWYIPTDHRFUNHZULIDHKZGHPMKIYFMBQALENPZBGXQKVAZPWQDHGPYQAMQLSDBOTYHAXFXMNHABVUNUJDJ9IPNZSIFWUPAMJEADYGRJTYNQTLNDXEXZFTFHOW9CWQ99MZ9WUXBWTGORUWFOBYLAWD9UBDCXPTBFPUWDQDTUQMXPNPEXARZQVYTNCTLBWN9DWTBMNFMIGRZVPOUCHOEZSMZRUYYAZBL9KOCKNPKEQHPOLOOURWZ9VKXAQVTIDRT9ZNOFPG9YERTSIIJGRFNIFUJJQ9IDWOSTQEXUPWOFRGJNCFYYQMVYUJSLVCKSEAI9UHILAPEJSMDB9YIBPRUGGKOVQMRINXHBHRMAEI9UTMDCAGWIGHXCECLB9UTPGJUB9IJVJBHWBECQXUSEVBTKYBXMB9IBJFV9GNINACFBUGNE9GSVGJJS9BGPFOSGSSMEOLXISUMQNQPXYVNN9P9TG9OZQIZWD9N9JUFQOAAPDJUKDCDXUCQCRAGSNAMLCSFOBMIRJFINXNGTGHXSRGFQCI9JFWNBCM9WDEWDPDGMNXMNKLITPRVXYHHCMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Spend transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][3],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999UA9999999999999999999999999NYBKIVD99999999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][2],
+            TryteString(
+                'TRVDSILRJBTGVOUIVTUHPJHGAFPTJFTXEZXRZQUZLVUEEWAQDC9BVGFSCBHKUVKHUXW9ONG9WWTOLKSMBFDGIZ9LPH9IOAUXBTGOGIGFDTNXNBNZDBXKWVHJUSBEQBTCYJRFEMVEDRYMKRFELUVHDCPRSR9U99RUDCKOZHLNZTWDYGKECDXTNWZQRTUWZAWYKEQKWOA9PZJMIXWQOJUVUPFEKPEYNOIVPFGTGVBCTYUXH9K9WECIWPKCEVEFETRILNWE9Z9WPIOLYHWAEROAZX9WXDMSRIZWXAHFWRAHGKCFAZFBHQTCLCVLS9OHVBCNPXXCZSGJGRSBVBYBKSBZNEJGZZHIECIVPPV99PVRHUBHLGHAZNJRY9LDB9SJGTXXHG99HQAOAI9JVPIYOOWHXCITIIZJCJXHJWCENGRVK9CNUQWERVSKADGOGROJAXXZDRWQTILHMSWEPOZK9FREBNMWHOIMRCYINWUQJXFATZPXU9SKHPHXOJSADTWBUNHDY9XCHXGEZSHUDLTZCAVGHCMZSCQGOI9CBZJYAIAKUQPXONNMMSMM9TZX9FDUSHXSTVHKKGMTAFOQGJFHNYPTIPSJOM9UYPGIM9RLTYRBYADWKCOUPJFAYKOLHSOTGJYI9MJJVBTCHUHCHYA9TKIEEJJWCLLKLOJHRXSDMXPQMLUAL9MRANVGOTHQFKRKYDPJZPPQHJAZIXQZMDTWCUJFPCXBDUHBRCTYLKJFNHICXPVKXRYFNGDRZJDVLVQWEYRLIMFMIMZIZHLLYQGFOPXEVLINAQHZEXWNUEWBYFWBBCTPWL9JXNECPRCXXMOTPNCSFYRRGCNGCGQK9XUWWKJICDELKHMVRHHWVOBAKTNXBYENITXWTDUNLJAAKUDGTFPWROHAORLBWFCMDKKTPCOMDZQVJSMZHKVUSRBGZGKAHZCTQTEWA9LQMPGNPEXCXJNBDXZRMV9BYCRBU9SCKXZWDKMCFLTGRIKESL9PVIV9XFUPAVEBWM9OWWNIEVJNRUOKEUAIFEZCNPXAQYWOMKZNMMHWOIG9WRCKUWAAFIVKIDIEXJ9YUWSHXZVFJKFR9IGYQLOVXRDBVQZAATAONPQKDKSP9RZBBXMONAOAZDIEJQAPXCJTNVCDAAQQGH9RGQASOBOEMLAMBRIXGTGULJJIRPHGEURVV9OHOOVBRBFXXXKWIDGNKWXVK9WPRVTONDYTIIOYGUNUYBL9JJI9GPTIP9FEZIGEBZCZSSVGAYDKDAMPNBCXVBZJJSJ9JGDFMDPMONUGAOFLS9GUREOWWKJHZBBXCE9NMIHZXVGPKFW9DIILQXNKCQYEENGFBRIQBX9LSZNZSRXWFKBJVKFCXSJALC9HR9CCZTHDDP9SJUSBVC9ZEDKMMSPHDDFRKJ9FVOLTE99SLVHDANNKVEA9TOGXFEFMVQUOLEWFWALQZ9VSLBR9JTGO9ZSQUIMGEQRIYEULTLVRPNXLAUGQZLSYVYEOWUID9ZDFFGJ9GEJFFDLPPZFMAXUREXHJNWPFGIDD9AMMHYBILHSBBXI9EQRUSEDLJARDFWJCVBZHBFMDXMV9GUXZDZEYPTXJAIREDJPKOZJECUWGUABAATUKQWTFBICCYAKGDPHRUOARINT9CYAQEHIPXYXJVMYWXZKKHPLTD9LLVLTCMAPSGVV9VQ9WPOOPZYLXNYHCZIUPVFCGA9CSIHHIHSGNPHEFMOGIZEB9NRXRBUWFZNGYWHVZ9O9VQFOCMVYFCRVLAWJND9SRMQRCIUBPCGLPBVDPOBAUDOYTDEPQKYUFFVOZ9NEUHVXKDMDQHZLJC9SLV9DFAVHGPRHTRCNPQDOGKVABABZN9VLMBFCSBLYIKCBREHWALIM9AYCBQQFRNNHUIKVJVIGTGIF9MUMSYJIZJAPOXHIFXH9PPOUOGAQWAKFGXNJDDISLFELAOKYBVILXCVP9RSKDEFYZJEKIFV9OCAFXQFJOQKIJBHNDDEPQTAEKIRGUHARHPYABGSJQWHWJN9PLYCQJZVDAXBZFHSMNQQ9SJXUBHBKPWODAN9MJRWGIWTCJMIATTBLFEXKGOJQRGTPIRXCLSGVBEHUTKUQVCFQTFTQBACNBPMHBGCJ9TLS9WKPGCAJDPBUNU9OMCKMZJVLTUKPZLD9HYOAFKBKLFEVPJGPAVNGRMDYYBARNZHRKULBMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEBVX9999999999999999999999999999999999999999999999999999NYBKIVD99A99999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-  def test_fail_inputs_explicit_insufficient(self):
-    """
+        # Spend transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][3],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999UA9999999999999999999999999NYBKIVD99999999999C99999999GZTLUWOGA9QLYBHUHB9GVUABQHPIJRWUIUOXFIBGYEJWUA9QUZVAKCFLDVUUZEFIDZIUOWUHSFOQIWJFD999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+    def test_fail_inputs_explicit_insufficient(self):
+        """
     Specified inputs are not sufficient to cover spend amount.
     """
-    self.adapter.seed_response('getBalances', {
-      'balances': [30],
-      'duration': '1',
+        self.adapter.seed_response('getBalances', {
+            'balances': [30],
+            'duration': '1',
 
-      'milestone':
-        'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
-        'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
-    })
+            'milestone':
+                'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
+                'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
+        })
 
-    with self.assertRaises(BadApiResponse):
-      self.command(
-        seed = Seed(
-          b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-          b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
-        ),
+        with self.assertRaises(BadApiResponse):
+            self.command(
+                seed=Seed(
+                    b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                    b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
+                ),
 
-        transfers = [
-          ProposedTransaction(
-            value = 42,
-            address = Address(
-              b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-              b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
-            ),
-          ),
-        ],
+                transfers=[
+                    ProposedTransaction(
+                        value=42,
+                        address=Address(
+                            b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                            b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                        ),
+                    ),
+                ],
 
-        inputs = [
-          Address(
-            trytes =
-              b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
-              b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
+                inputs=[
+                    Address(
+                        trytes=b'TESTVALUETHREE9DONTUSEINPRODUCTION99999N'
+                        b'UMQE9RGHNRRSKKAOSD9WEYBHIUM9LWUWKEFSQOCVW',
 
-            key_index      = 4,
-            security_level = 2,
-          ),
-        ],
-      )
+                        key_index=4,
+                        security_level=2,
+                    ),
+                ],
+            )
 
-  def test_pass_inputs_implicit_no_change(self):
-    """
+    def test_pass_inputs_implicit_no_change(self):
+        """
     Preparing a bundle that finds inputs to use automatically, no
     change address needed.
     """
-    # To keep the unit test focused, we will mock the ``getInputs``
-    # command that ``prepareTransfer`` calls internally.
-    #
-    # References:
-    #   - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
-    #   - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-    mock_get_inputs =\
-      mock.Mock(
-        return_value = {
-          'inputs': [
-            Address(
-              trytes =
-                'MQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIX'
-                'PQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB',
+        # To keep the unit test focused, we will mock the ``getInputs``
+        # command that ``prepareTransfer`` calls internally.
+        #
+        # References:
+        #   - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
+        #   - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
+        mock_get_inputs = \
+            mock.Mock(
+                return_value={
+                    'inputs': [
+                        Address(
+                            trytes='MQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIX'
+                            'PQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB',
 
-              balance         = 13,
-              key_index       = 4,
-              security_level  = 2,
-            ),
+                            balance=13,
+                            key_index=4,
+                            security_level=2,
+                        ),
 
-            Address(
-              trytes =
-                'TNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYR'
-                'QOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC',
+                        Address(
+                            trytes='TNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYR'
+                            'QOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC',
 
-              balance         = 29,
-              key_index       = 5,
-              security_level  = 2,
-            ),
-          ],
+                            balance=29,
+                            key_index=5,
+                            security_level=2,
+                        ),
+                    ],
 
-          'totalBalance': 42,
-        },
-      )
+                    'totalBalance': 42,
+                },
+            )
 
-    with mock.patch(
-        'iota.commands.extended.get_inputs.GetInputsCommand._execute',
-        mock_get_inputs,
-    ):
-      response =\
-        self.command(
-          seed =
-            Seed(
-              'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-              'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
-            ),
+        with mock.patch(
+                'iota.commands.extended.get_inputs.GetInputsCommand._execute',
+                mock_get_inputs,
+        ):
+            response = \
+                self.command(
+                    seed=Seed(
+                        'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                        'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
+                    ),
 
-          transfers = [
-            ProposedTransaction(
-              address =
-                Address(
-                  'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-                  'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
-                ),
+                    transfers=[
+                        ProposedTransaction(
+                            address=Address(
+                                'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                                'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                            ),
 
-              value = 42,
-            ),
-          ],
+                            value=42,
+                        ),
+                    ],
+                )
+
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 5)
+
+        # Note that the transactions are returned in reverse order.
+
+        # Input #2, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                'RQOQNTDTZWGNBTVNHUYXYELHLRDTUSHIFZBAJDYYGKPUTHMBFMZPWHYULBANOYXDHVTRKLGXKUOZAWFZWJDFVUZKONYTRYSAGTWGDBIAHHMUEEGIPSKBCJPDBSMHAWWZZU9IFKCKJMMTCGGDHPUCBBRDKTQOTQGRDXEDQAYI9WNCNIVMBSAQVCVLJILCKHOUYPJXKNVXDHXPECIPVQQIDWBGRREGYYVROBJELIWPUWSOHSAUKSYSPQMNPRBMKKUQUWGNAWAOEDDVNRJBUSRKBJKWZLGAVDASMZ9GMKKLMIKFWAIAHAW9GIRAWZFYFEOIJ9TBNAVEUSTNUNABHJ9L9GSZTBHTGTRZSIWFVGMXQS9VDTF9ZUVNLDI9MOEVRRBDBAKATS9ACTIABCDWUFNRXZQ9MOHHKMSRTXGXHERZREPSSAASILWCFDUFPXOKGTDSHWRBZSQSNCYFJZJTB9DGDJYISY9EZPLHJRMIQAQJYYRZVHKWCGQLWFDYVZKCDAIBWYQQSUKACFRBALBKMBTBG9PPZEBU9TVRU9RMBHXCNOS9QLASMCDEFWCUBMHS9LHXEYANCHLEFNVGJJKKUITNEYVLPYQIYQHAIIGSTSAURJOAL9SVATHGOVP9CQXMGCYLSYFUQDOWY9ZWJADWVQGPZZISPAWHTMNPVKKPTCSODG9WECGVUANJXZRDYPMPVCLRF9WVGWKKQQWPAKCZQVK9KHBGXJRKGD9IHKRNJQVKSXXQMVPLGVSEWPEXNLBHGOQJUWDOIEXDGIZLFIZWXSIAWWDUOBLSDGTSFLIKGBBGJWTDOMSQWNRSYOWPBJTAJDLRPCRMKNRYEATYBMAZIN9WNMRIHLXGGVIEFZQGAGUSUNQKFAFUI9FR9AIKNBCGGFFECROHFURFC9GFMAUXMPJFWQVRXPLYF99OILFIQIJYSH9HGAZPCJIFHGTZIVGENZHBCMNHOYNAESF9FNMZWLLLCCRMUUFOZVCXLN9OQSODU9QOZKBOVBLBIVZXPFOEZEEXAUBWRWPWRNRYVIKQKBBVOHI9OH9FCQAVQPVVMWFVKZKOCUUSQRZOESNVQR9ULQGQBJEKYEZLXHHIGIAINTHUAXOYJS9NFTZAQIIFPXYMGAFHKYQHADRPQNBWGQXMNSIARLUODCINRFH9CMDIQYAKNJKDSBHGBQJQVA9VHGIHFFSWAIQEHKRGITSLCDBTCHDSEAJSVGGGBCRYHOMFEYEDLDRQVQBBRFLFM9UBOYTIMBYTWTF9VUKUJDRWKJMNFPKKVHRRSJFOFMWJ9QG9SIXCFHNYFTAGQKRUIHVXJ9USSDBJGWLGDBBPRXCOAQPWSFLZXMTCWLFNPEJQFH99YPMFOZDHJYWAJOBECPWONQCPPFNLCAGNJRI9XPK9O9NPWM9WRJKQCDLVWP9HZNGNCJZVKTEUOXEDRVSFBWEREFDKPCU9QATTUXXUHWJFNJSUIHMND9EALDXYCYWEUPJITOTKACDUYCHS9GVTJGFTCLZPIARZAWNGPUWMQRDEIXDOIFUDEWXFVVGVDRKTQIQXLEVULRUJEJGTCDLAOLEFNLDOGLWHYUKGBHSSRURELGFYKTVQUVUXJLMY9ICDMPHG9INCBNABNXEEWOMWQ9J9NQSIASZJLKMXDIXMVFPCFKLM9YEMZOGZVTIF9WHYTYKTRKDXAUIIGJXKPQ9DPVEACFPLZHGVIUVJWML9IEGJXIZNSUETRYORJ9RTEAOZXMTQHAGVFZKHEQCSBZFDD9XAME9ENSFTJZDHRVSQW9XECHIZYAJXXECRBMLNCYSFOH9PNJ9UXOWBGCYIRIAOI9VVAIYOLHTLBYEKOYMOCSVBFCHHCTGIBOUDCXXOCUCRMKTANWHIIXW9LSBYWJAQOPMPMATNGUHWNCBNL9IYJEAUMWSXAKBTIPWWSGXZZCOBRIXZFZMHLGNWAHVTAKTTSN9VNZOLGJJGAHPIJZQBITVDSXNXZTRMIDLH9XFIOEYUVJWIKLLEAIYBOFFUPCBEMMXBDGTZDGFJCBGZSD9CRIGSQSJQOPFIBWSGDSVCTQUHWQWRDLMEQWNIMCSQA9QGQIRSTBXHFVLAOHUTUZBUIWHFTZEDEZGVDKIBUZ9CDJHKWLMIMQZSVIOKCLSURPXHROHGGWKF9IRA9GCOJUDKXYPNBRRDQTNLVKUGCAZHLKZTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC999999999999999999999999999999999999999999999999999999NYBKIVD99D99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
         )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 5)
+        # Input #2, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                'AGW9TDZZYGMN9CAHSJCFOBFJCWGBEKETZPUJK9IXAWDXZTCVFTNJSHHEVTCQHBVPMFLPLDCSGPFFWWBDCTQFTG9BSWEKXKWY9ADZVHAMQQAUCEOIQPRULPHGCINEAI9ORHTTCEHU9GPIFDYMOZORWNZYUZNEFGF9WYDXK9CZSKLXVGBHOMBDBGFEMPQXOXBECKEXCQEEDRXNK9YAFEYWXPPURGPKSEXGIAOJDDRLFLGTUHTIHY9EMTOBSHJEEYN9GZ9ZUULYDHYNEQSSETKYZVQYRIPNRWGRBCFLHRUAKJODCEMYRFBP9EVFKXL9ZTERUVFCHH9KZQKBSWZHCGVWDQYMLXDFVDQESOHZVYEUHCROFERIOBOKEWHPWATWEYLCBMQUUVTEWGJBSHGNARCU9QM9QVZ9GEOUMSMMMZSBQVAYWUJPUKCLDZBHDQIGUK9DOADAVEO9GQTVHLMPXSJQZHEYDCCDHTWKPUEJBADZLKXTQKPWUJNZAEILVYCMQFQURKDVQJPOMTJHGUKPYTQHJGIMICF9RVAYQEJDADAHBOYXWRCMESMKZWZSBICV9VSEEGQFNNRJWPBSPZQLDYETZ9TBQGTCEIDEYBRXUYHUQCILZULX9NPUFFYNGIFJJGBYMUTBJMHYOWQEPUXMFKTLTFYEPNQVWRZQ9FFISZBUADRSZTRLQSQCGJXXPN9AUREQNXXGOZCYDVDJWVFDKMJG9CNGXUJQELTWJMRB9IEOGCKGE9RQDANXMTVMPXCEOEQNZG9YJCUC9HEC9QYZTNPPUO9IUKSNDAIAFIXPDONVZXIQJRQCBCTJXIDJGYHXXVUMYNFTGBOPRYRNQDVOXLDLDCACNLOJEOSDVZIDMOVPVKOARQUQNCKWKFHBSHBQXBUDBMZ9PUJBBWVSL9RPUDORRVIQCKADBUDIUVPZDHU9QHDHAWZCKNKVVHCRULLGJDSINCHUILZDWAACAIUVBIF9NRBSODKJGBMTWOBKJANMJLNDRN9FQNOGYQTMQNVS99LAIYNGSMIVRDGRRUJYZUEATJNGXBACDVHTKHGRQELJUPIUYLPFBRREZLFMFUOQGKJWJPSEAFJIALJCHPKZWGJAEVNPQCTGFJTNSBAOMUOXTURUCCKYZCAESRJHEMMYSADNYZKTMPFZAQRHYFMNXZYC9FAHDJPNSLWFUE9MRLUHQYBOLYYGMFJLCIECWPJIRAAZTB9YHLJNCVOUKKKBAHAVFOXSHLDMO9OAYLYCJWXINBHFLHGFBPIDIATUZAU9HCMQZFZLUROQQDTWPRUDEG9AUGBGFNUXIWGQZQAXQX9QFXQPJARKGEZRQFGQEEOUPCYVWHLBP9OCUZZSPOIWFJVXLWSMKORXPAYG9TVOCNNHDIS9CHZLZJBUQRKEA9BSWPYCEXKUGSXXVQAQSVVDWMEACSXHYFDRXLILR9Q9SK9VYJWQEJRJVWSL9KPEHGZPBQYNPQZVQPNYCOOJVCTOHOKQNFKDPEFMKDTTLJZTURRGOXEVUNEEKPNTQDPDWFANWZPBAJYMVYOUQYUZQWNEHEXCARMOKYQSKWEJKKKLDGKJBXQKODOGJXDSACUDHVREMWBSAUAAKUYVAHTUGVSUEVLWKQADVMKRNUYIBEO9BCSPSVFLWLTZBMFOFSGEKFTOAGHAVJ9YRSWFBXMMACGKKBLFPALET9ORLUPLQNQWWYW9EWRLSPTSPF9S9CAHGXEKDLVXFDTVVJDLQEOJNOZMUBJUHQXIUVD9ZFCIGCFCWUJUALQFDULVEHHOWWQXYHXXVSVCJCAXPTJBWOZRXNHBW9DRSBVEWHDDQJUPGZQVBDL9OATVSZKQQFNTHNFFPXJSQZXJJJZDEQZNZAMSOTXBCFPGLNJHEPJOP9IIIZXRHTMFEXXZUVKDXTEIUXKBFRTXZTMGSXRWBQQGKBSJWHEXVZL9EKECPAFTVMVVGKE9TGGTE9YLGGYMK9PKBERBILUCPIQZTKCXSATLRKBGGDSWORLQUKSMQLDLUMMML9VCMZUJZJVGHGAXDELKIAZYNAHPCYSPUYNNBZ9MBUQGRKBEKIHNIOGIWQLIS9NBBWDPWGABMIGADUMG9WKFZHQIPYKDMJTTYQRJWYXSBAPDJSKEIUJNOMNDNGUHEFBSDSNNKABHEJBKBRIRLKSQBQIRPCQJPRXWDDBIXANTCLWTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQCYZ9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Note that the transactions are returned in reverse order.
+        # Input #1, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][2],
+            TryteString(
+                'KVTQSEYVEVEGDETHHKGCXAATAPNN9GDDCUFVOGJXFFC9HAGIMRLGXZMDUCNTJBMGDZWSGPPLZSUOKONNZKRMJQJHRNHPUX9YEIIPOKZLBZUZLDKPMVNVRLUTQFKQIRZLEBIIGBROFFMQVCPQQMGNC9RTZOURPDUNRXVDJUCLZFBEWJDVGCAEDFT9GQSRAAITNLENXSQDILMILGXYHEVCBWCWTHDAMST9IAXCLHDKKMJDWLZDGKD9SNZS9VIDJIFJNHNMHZCBINTWMWFTUPPCUAKEHAXLANHIBDSLPFLTRQSDWONBI9NYJFZVFCTRXOUMWOWDEIJBDBHIORZUVJXIIAXDWPNHXIBKPXFXMXRGWGXRQQG9NXHM9DDYUIOZMEHXTTIZQHNQGQVBKUMSCNABDWINNALMYDJHGJLCFCJ9KZZNTFPZGSLXGEVEGOWSOUAFBJAY9IOEVNLHFTIWEFURULVEFSDURVWBMNUTNAVCEOXRKBZTSCZN9IODZATCQUSPOWMWNBBNWXMA9HVAMYKYAQYHFFKFLBIWYDNDCTXPYVBNKREIGKGMTDCQKIHMAPQGWUMICACHQJODIQPVVWCPUBJC9NWAXSAXUHPMNJEJF9MQJCAJ9LMPCT9XLPLOLCDSAJYPZYUCMURTVZIOZSRMLKANEEYSJAGVVPBWTN9RDUJWEGBJSN9RDPWQDSKDXFXXIPUQATFRAFTZFUVKOKEISVCYZM9LRSLJ9BYNPLUMAQNUHXHPDLHQCUHJUNKRFSUSVWLEPCRIZHWKXVJCAPPGVMRXXXEPNELUREVCCNMEGA9LHXJZRCRWJIRYJPDRYOBG9YQUVIYJPAFQTMIKM9Y9MASZA9DALXZDXFUFJBMBPTNNENFPVGUNLXSNHTXSUVAMYEVRAHPLJDIMJCDUNN9QCJKHDXFSW9CEEAGXOUJLELTFGOQNCSSANOCDNMBMRDKNXAWLXWSTFKPYRRSBCWQJHWGPBRDQNKGHWIIJGZTANNFBUCGHJKCWPLFTVLYWBWTCASCSNHQKSOLKRJILIAVLBTYVWFMA9VWCLNQAMGUGXSLUJFDXZNMXZXNSTTQOZ9RTXF9QOUSFVTZOTRNZ9SUHXFAVITYCNYJGGOKYTWZQCFOQRCRGRSQVMZZNOIOJAELHG9JYUDLUTSOQLWNGIJTHGVELCK9VFZSFOTYHJWAFMMKDGGUSNSUCRKGYCRUFSPWEJLMLAHDNTCGVIEBSO9SC9NDIZYIMBRXCURBHYMAEB9JMAPWFUZRRCGRTLZRXJVLEPZ9QNKMERNSMFKAXPLZQIJXAAWY9SYMFXXOKGIGPF9UVTXEMSZZOINHKANZOVGSEZPGUSYKLAUJKZKNVDZJMS9CZRXCVGFUO9UMYVJZCUIKIXJTUFCRW9E9CJEPWLENSXWVMFA9PJZTLFFXYWRCWTDPICHS9IINY9ZOPNJWZ99IWJJQFRXTCEQAMBFQNXCFXNAPAGDMUJMKVDHGHSZZFQRUINOYWNXTT9FGWYAXWVXJ9YGZYEIKG9MWN99CBNOQWZVYYPZ9NPCYQQKVTWVKUBSTOYWRMFDUPDB9XGAOTEUPAFDVYAEIQHBPBHF9CXEDSOOF9DTGBJOAWHJYKNJ9CWRCATOWWAPTXQQTITZUQ9LXCFDQPCJHFVDPIVQHPJKSHRDOIOQBKECCNOOHDUYKYFYWUBJJGWQMIIMFNZZAOGXPSVZSZQPUPBVUTJNGQLRM9N9AYJJHBBINQJFNDATEPMKYDQNPKPJ9NXIUCXSOSQOC9M9SSLTBHGWLCQE9DQPLMNPCJUFBPKYGHPHBRTALLMFUHIATKTSQBNTHGRCZILLNCTSZKJHQNVYZ9LOVYYSEXJDBHBBXHOFKVWHVOKUAYPGNGRGARFGEINTOJVMDSJKENFJADXBOZMKEJGAMSQMMETTCTDWNQWKYIGVYQVFMC99N9MJDFDERJNNIKRROFSVLEBYFRJJOOSEWWBYMTIQXBQBYMSFAFBXPMVZAKU9LOGBEHKMOZDMSYXRVEZHPPZZCBNLPDUDVEPPYTCLKF9OE9YROSAJMJHNCWVYADGEYXIBPLDZBQMIESEYBJKONUUWGDDCD9SBPHTMJFBXPS9SOROVFBXDGFJFYWARMPRRMRYN9VDRKBDKHSZCPRDYBZOXCUWRZXXAYRHELLWMDTMV9VHVICXSRJVOCMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input #2, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('RQOQNTDTZWGNBTVNHUYXYELHLRDTUSHIFZBAJDYYGKPUTHMBFMZPWHYULBANOYXDHVTRKLGXKUOZAWFZWJDFVUZKONYTRYSAGTWGDBIAHHMUEEGIPSKBCJPDBSMHAWWZZU9IFKCKJMMTCGGDHPUCBBRDKTQOTQGRDXEDQAYI9WNCNIVMBSAQVCVLJILCKHOUYPJXKNVXDHXPECIPVQQIDWBGRREGYYVROBJELIWPUWSOHSAUKSYSPQMNPRBMKKUQUWGNAWAOEDDVNRJBUSRKBJKWZLGAVDASMZ9GMKKLMIKFWAIAHAW9GIRAWZFYFEOIJ9TBNAVEUSTNUNABHJ9L9GSZTBHTGTRZSIWFVGMXQS9VDTF9ZUVNLDI9MOEVRRBDBAKATS9ACTIABCDWUFNRXZQ9MOHHKMSRTXGXHERZREPSSAASILWCFDUFPXOKGTDSHWRBZSQSNCYFJZJTB9DGDJYISY9EZPLHJRMIQAQJYYRZVHKWCGQLWFDYVZKCDAIBWYQQSUKACFRBALBKMBTBG9PPZEBU9TVRU9RMBHXCNOS9QLASMCDEFWCUBMHS9LHXEYANCHLEFNVGJJKKUITNEYVLPYQIYQHAIIGSTSAURJOAL9SVATHGOVP9CQXMGCYLSYFUQDOWY9ZWJADWVQGPZZISPAWHTMNPVKKPTCSODG9WECGVUANJXZRDYPMPVCLRF9WVGWKKQQWPAKCZQVK9KHBGXJRKGD9IHKRNJQVKSXXQMVPLGVSEWPEXNLBHGOQJUWDOIEXDGIZLFIZWXSIAWWDUOBLSDGTSFLIKGBBGJWTDOMSQWNRSYOWPBJTAJDLRPCRMKNRYEATYBMAZIN9WNMRIHLXGGVIEFZQGAGUSUNQKFAFUI9FR9AIKNBCGGFFECROHFURFC9GFMAUXMPJFWQVRXPLYF99OILFIQIJYSH9HGAZPCJIFHGTZIVGENZHBCMNHOYNAESF9FNMZWLLLCCRMUUFOZVCXLN9OQSODU9QOZKBOVBLBIVZXPFOEZEEXAUBWRWPWRNRYVIKQKBBVOHI9OH9FCQAVQPVVMWFVKZKOCUUSQRZOESNVQR9ULQGQBJEKYEZLXHHIGIAINTHUAXOYJS9NFTZAQIIFPXYMGAFHKYQHADRPQNBWGQXMNSIARLUODCINRFH9CMDIQYAKNJKDSBHGBQJQVA9VHGIHFFSWAIQEHKRGITSLCDBTCHDSEAJSVGGGBCRYHOMFEYEDLDRQVQBBRFLFM9UBOYTIMBYTWTF9VUKUJDRWKJMNFPKKVHRRSJFOFMWJ9QG9SIXCFHNYFTAGQKRUIHVXJ9USSDBJGWLGDBBPRXCOAQPWSFLZXMTCWLFNPEJQFH99YPMFOZDHJYWAJOBECPWONQCPPFNLCAGNJRI9XPK9O9NPWM9WRJKQCDLVWP9HZNGNCJZVKTEUOXEDRVSFBWEREFDKPCU9QATTUXXUHWJFNJSUIHMND9EALDXYCYWEUPJITOTKACDUYCHS9GVTJGFTCLZPIARZAWNGPUWMQRDEIXDOIFUDEWXFVVGVDRKTQIQXLEVULRUJEJGTCDLAOLEFNLDOGLWHYUKGBHSSRURELGFYKTVQUVUXJLMY9ICDMPHG9INCBNABNXEEWOMWQ9J9NQSIASZJLKMXDIXMVFPCFKLM9YEMZOGZVTIF9WHYTYKTRKDXAUIIGJXKPQ9DPVEACFPLZHGVIUVJWML9IEGJXIZNSUETRYORJ9RTEAOZXMTQHAGVFZKHEQCSBZFDD9XAME9ENSFTJZDHRVSQW9XECHIZYAJXXECRBMLNCYSFOH9PNJ9UXOWBGCYIRIAOI9VVAIYOLHTLBYEKOYMOCSVBFCHHCTGIBOUDCXXOCUCRMKTANWHIIXW9LSBYWJAQOPMPMATNGUHWNCBNL9IYJEAUMWSXAKBTIPWWSGXZZCOBRIXZFZMHLGNWAHVTAKTTSN9VNZOLGJJGAHPIJZQBITVDSXNXZTRMIDLH9XFIOEYUVJWIKLLEAIYBOFFUPCBEMMXBDGTZDGFJCBGZSD9CRIGSQSJQOPFIBWSGDSVCTQUHWQWRDLMEQWNIMCSQA9QGQIRSTBXHFVLAOHUTUZBUIWHFTZEDEZGVDKIBUZ9CDJHKWLMIMQZSVIOKCLSURPXHROHGGWKF9IRA9GCOJUDKXYPNBRRDQTNLVKUGCAZHLKZTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQC999999999999999999999999999999999999999999999999999999NYBKIVD99D99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Input #1, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][3],
+            TryteString(
+                'HSXQRKCIYXEEEEYMESAEWHGVRBNNFUPVHVHYDUFFDCAPYCLGTMMSYVZPGMVMGZFNDAKUFEKKKMMLCDLCYPTSOEEYANVTHWJRFHRYJ9D9JIBDVQLTQFDBYLXBJWAEJPPRHOXSZP9KWKNLQCUGMOKMHJQYODRVVYOZ9DMMYLMVBCNZSWASLFGJJY9NZO9XAIAIOWBYDHLNIBMQJLRBPZJGJUNOKYFYD9VNESPEZNIPUABKFNIAGEWGQRGLMGLGKEHWTQZWOMIZIF9FWUUMVVWS9CWUMWCHZIRKTODTRLEJTRNA9CCRFJNCVCDCQID9UDQJHGN9ZSGJGRSBVBYBKSBZNEJGZZHIECIVPPV99PVRHUBHLGHAZNJRY9LDB9SJGTXXHG99HQAOAI9JVPIYOOWHXFDVHWOEJIVJOIKPMTCAQZZEFEL9YSOSRWWGBQEPFJNTLVWOXIEPZHHCIQF9DZOQGUKYOJSIFHARSBORDAASWFIBAYHLPUTCUPJONWNQVKIHGKUFHSYKQJCNHYBKETAGEZKMPPCOECTMFZPXPLDHMVOSSU9RMQAQNJZYOXVJLKYZJDXUO9BKZBAK9M9RL9NGNUOVZBAJKCAEEBFFGZZJHLGL9KHOQQVKJYQZJYDTCYJXBJBUZZPACRUDDGXWKVRTVNOAVMYVGPEU9IPLHWFXZEHHUMJRQSQOILKMOKTSEBKEYSFRLH9YLDGGPPLSGFCJVINBCKIMXJKWLM9HTTAIVNKGUOHGJYPPDVSYAZLIFJBKQYQLLXBQUZJMEWUPLRVUOMXBHBUJYGDEGOPWNODYSZPQGBYZKQVXFPRAJNKIMMBWJWLIZLIHPWBSJINAPLU9NYHS9ANDORELEDICPYGWQQRGCMQXSWNBIHCSXPATVHEITSOTMKPSBBACQMKLTCDNTIYBXBCGFGIIPERFKHQKOONRHFEPMRIFJBNUEQEFCVMAXHARRHZZQGYALRQHZFBUTFQRVPWWPMWFQCNFDYKFDEGLGSILJRTSVGSLURIZPERJRLSGOMESSMZDUVPBXMOCFGBUWFZBCNYOBGZWGD9HQJOOLESVVAEIWHEKZXGHBEQHAMAPCLPQQRACGTWHMDCHSDGFEOISFMWWITNNDRLJ9TVIBAWKFLQIEHBRUQHYZYCGJWQIMODPIPHFELJCWRCIIKYEQNRSYCUGWXMJSOFUEBCKPXIOCXP9OTZOIDOSWPDNUTQXEHILCONJHHJFPAJEVEBVXROKKLJCZGXMOLB9U9NLCKZ9XUVHVUMWFFPAJZYTDJ9DIXFDQYRD9LPASBDIDHRHHUPOFWUAPVTCAAPNLDPLPN9XTEMOJSBBCHWBULFNHFMMPRSDQCNP9TFMFJFUON9ORDEORLGHZA9JZTRGUTOWLO9XWMAQZXHLUPVTFRSQUDDHYQRGPBLCOHDMLFKQVJAAKWFINZKCTFOESRDVWYWUAVGVBY9RLBQIC9GNXZIRQTY9VHAOIAXXIOVIMSVVIVONDRAXXGUAKFEXLUZYXVMZXOZKHJOKUSRVBUGZXFFDIYZOCSK9OQIJYFBRVREMNRJDDHOPPITCXZYJYEAARBNUZYBVETPPZHMFCOIQLJRQYDZYBZCSHERQOZDKOSZWQJFUMPXYZWLMDZJFYBNYFSKSJUHGOVSAIIIQVDFQWLCRVKTXRAORLNWKZEQRCCTJRMRYCXUJDWFPG9U9WODMOJKYJFMFINHBQSYVGJNNTJCNGOGKIUCDKTNMGFZZLZYYXNP9HPTGPINRDBDLQOJAEOYKAKBICWYZLDSZWZGNUHVOXYLMGCOLJSCXNPMVPPRSBRVEAQDAX9CEDRXRUAJSULVKAAKRMXMMWLPTYTYZZLOUFLBRUGDREHWALIM9AYCBQQFRNNHUIKVJVIGTGIF9MUMSYJIZJAPOXHIFXH9PPOUOGAQWAKFGXNJDDISLFELAOKYBAKBDTCTZDIOCPVXGTJILYQMPOKIVPJLGPEJFQE9SBVGBDPWMPWZPCNGBOVQSJLLHPKJIKPA9AIQZVHJYYDXSSNXAUDLKEGPCGZQZRXUWXTZMBXLUYJZBEPOTCHZGSLXUDI9PGFNHOZRQLQDWFURIXMDINYQDCSCUZBIDRQOKQYTXKSDTXT9YZDQBGJLVQAM9TWRHPKPJG9OAHJNRQIHPUSDLJHSTRHSTSQURNPOKQYVTIIOY9DDMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEBN99999999999999999999999999999999999999999999999999999NYBKIVD99A99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input #2, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString('AGW9TDZZYGMN9CAHSJCFOBFJCWGBEKETZPUJK9IXAWDXZTCVFTNJSHHEVTCQHBVPMFLPLDCSGPFFWWBDCTQFTG9BSWEKXKWY9ADZVHAMQQAUCEOIQPRULPHGCINEAI9ORHTTCEHU9GPIFDYMOZORWNZYUZNEFGF9WYDXK9CZSKLXVGBHOMBDBGFEMPQXOXBECKEXCQEEDRXNK9YAFEYWXPPURGPKSEXGIAOJDDRLFLGTUHTIHY9EMTOBSHJEEYN9GZ9ZUULYDHYNEQSSETKYZVQYRIPNRWGRBCFLHRUAKJODCEMYRFBP9EVFKXL9ZTERUVFCHH9KZQKBSWZHCGVWDQYMLXDFVDQESOHZVYEUHCROFERIOBOKEWHPWATWEYLCBMQUUVTEWGJBSHGNARCU9QM9QVZ9GEOUMSMMMZSBQVAYWUJPUKCLDZBHDQIGUK9DOADAVEO9GQTVHLMPXSJQZHEYDCCDHTWKPUEJBADZLKXTQKPWUJNZAEILVYCMQFQURKDVQJPOMTJHGUKPYTQHJGIMICF9RVAYQEJDADAHBOYXWRCMESMKZWZSBICV9VSEEGQFNNRJWPBSPZQLDYETZ9TBQGTCEIDEYBRXUYHUQCILZULX9NPUFFYNGIFJJGBYMUTBJMHYOWQEPUXMFKTLTFYEPNQVWRZQ9FFISZBUADRSZTRLQSQCGJXXPN9AUREQNXXGOZCYDVDJWVFDKMJG9CNGXUJQELTWJMRB9IEOGCKGE9RQDANXMTVMPXCEOEQNZG9YJCUC9HEC9QYZTNPPUO9IUKSNDAIAFIXPDONVZXIQJRQCBCTJXIDJGYHXXVUMYNFTGBOPRYRNQDVOXLDLDCACNLOJEOSDVZIDMOVPVKOARQUQNCKWKFHBSHBQXBUDBMZ9PUJBBWVSL9RPUDORRVIQCKADBUDIUVPZDHU9QHDHAWZCKNKVVHCRULLGJDSINCHUILZDWAACAIUVBIF9NRBSODKJGBMTWOBKJANMJLNDRN9FQNOGYQTMQNVS99LAIYNGSMIVRDGRRUJYZUEATJNGXBACDVHTKHGRQELJUPIUYLPFBRREZLFMFUOQGKJWJPSEAFJIALJCHPKZWGJAEVNPQCTGFJTNSBAOMUOXTURUCCKYZCAESRJHEMMYSADNYZKTMPFZAQRHYFMNXZYC9FAHDJPNSLWFUE9MRLUHQYBOLYYGMFJLCIECWPJIRAAZTB9YHLJNCVOUKKKBAHAVFOXSHLDMO9OAYLYCJWXINBHFLHGFBPIDIATUZAU9HCMQZFZLUROQQDTWPRUDEG9AUGBGFNUXIWGQZQAXQX9QFXQPJARKGEZRQFGQEEOUPCYVWHLBP9OCUZZSPOIWFJVXLWSMKORXPAYG9TVOCNNHDIS9CHZLZJBUQRKEA9BSWPYCEXKUGSXXVQAQSVVDWMEACSXHYFDRXLILR9Q9SK9VYJWQEJRJVWSL9KPEHGZPBQYNPQZVQPNYCOOJVCTOHOKQNFKDPEFMKDTTLJZTURRGOXEVUNEEKPNTQDPDWFANWZPBAJYMVYOUQYUZQWNEHEXCARMOKYQSKWEJKKKLDGKJBXQKODOGJXDSACUDHVREMWBSAUAAKUYVAHTUGVSUEVLWKQADVMKRNUYIBEO9BCSPSVFLWLTZBMFOFSGEKFTOAGHAVJ9YRSWFBXMMACGKKBLFPALET9ORLUPLQNQWWYW9EWRLSPTSPF9S9CAHGXEKDLVXFDTVVJDLQEOJNOZMUBJUHQXIUVD9ZFCIGCFCWUJUALQFDULVEHHOWWQXYHXXVSVCJCAXPTJBWOZRXNHBW9DRSBVEWHDDQJUPGZQVBDL9OATVSZKQQFNTHNFFPXJSQZXJJJZDEQZNZAMSOTXBCFPGLNJHEPJOP9IIIZXRHTMFEXXZUVKDXTEIUXKBFRTXZTMGSXRWBQQGKBSJWHEXVZL9EKECPAFTVMVVGKE9TGGTE9YLGGYMK9PKBERBILUCPIQZTKCXSATLRKBGGDSWORLQUKSMQLDLUMMML9VCMZUJZJVGHGAXDELKIAZYNAHPCYSPUYNNBZ9MBUQGRKBEKIHNIOGIWQLIS9NBBWDPWGABMIGADUMG9WKFZHQIPYKDMJTTYQRJWYXSBAPDJSKEIUJNOMNDNGUHEFBSDSNNKABHEJBKBRIRLKSQBQIRPCQJPRXWDDBIXANTCLWTNNTKUYYZVIOPMQHXIYKKZVN9PELGAKAUUGKCBYRQOZJT9NLVDEVFQXIZKXIF9MOYTJTDTOQJYQLQKXQCYZ9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Spend Transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][4],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999OJ9999999999999999999999999NYBKIVD99999999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input #1, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][2],
-      TryteString('KVTQSEYVEVEGDETHHKGCXAATAPNN9GDDCUFVOGJXFFC9HAGIMRLGXZMDUCNTJBMGDZWSGPPLZSUOKONNZKRMJQJHRNHPUX9YEIIPOKZLBZUZLDKPMVNVRLUTQFKQIRZLEBIIGBROFFMQVCPQQMGNC9RTZOURPDUNRXVDJUCLZFBEWJDVGCAEDFT9GQSRAAITNLENXSQDILMILGXYHEVCBWCWTHDAMST9IAXCLHDKKMJDWLZDGKD9SNZS9VIDJIFJNHNMHZCBINTWMWFTUPPCUAKEHAXLANHIBDSLPFLTRQSDWONBI9NYJFZVFCTRXOUMWOWDEIJBDBHIORZUVJXIIAXDWPNHXIBKPXFXMXRGWGXRQQG9NXHM9DDYUIOZMEHXTTIZQHNQGQVBKUMSCNABDWINNALMYDJHGJLCFCJ9KZZNTFPZGSLXGEVEGOWSOUAFBJAY9IOEVNLHFTIWEFURULVEFSDURVWBMNUTNAVCEOXRKBZTSCZN9IODZATCQUSPOWMWNBBNWXMA9HVAMYKYAQYHFFKFLBIWYDNDCTXPYVBNKREIGKGMTDCQKIHMAPQGWUMICACHQJODIQPVVWCPUBJC9NWAXSAXUHPMNJEJF9MQJCAJ9LMPCT9XLPLOLCDSAJYPZYUCMURTVZIOZSRMLKANEEYSJAGVVPBWTN9RDUJWEGBJSN9RDPWQDSKDXFXXIPUQATFRAFTZFUVKOKEISVCYZM9LRSLJ9BYNPLUMAQNUHXHPDLHQCUHJUNKRFSUSVWLEPCRIZHWKXVJCAPPGVMRXXXEPNELUREVCCNMEGA9LHXJZRCRWJIRYJPDRYOBG9YQUVIYJPAFQTMIKM9Y9MASZA9DALXZDXFUFJBMBPTNNENFPVGUNLXSNHTXSUVAMYEVRAHPLJDIMJCDUNN9QCJKHDXFSW9CEEAGXOUJLELTFGOQNCSSANOCDNMBMRDKNXAWLXWSTFKPYRRSBCWQJHWGPBRDQNKGHWIIJGZTANNFBUCGHJKCWPLFTVLYWBWTCASCSNHQKSOLKRJILIAVLBTYVWFMA9VWCLNQAMGUGXSLUJFDXZNMXZXNSTTQOZ9RTXF9QOUSFVTZOTRNZ9SUHXFAVITYCNYJGGOKYTWZQCFOQRCRGRSQVMZZNOIOJAELHG9JYUDLUTSOQLWNGIJTHGVELCK9VFZSFOTYHJWAFMMKDGGUSNSUCRKGYCRUFSPWEJLMLAHDNTCGVIEBSO9SC9NDIZYIMBRXCURBHYMAEB9JMAPWFUZRRCGRTLZRXJVLEPZ9QNKMERNSMFKAXPLZQIJXAAWY9SYMFXXOKGIGPF9UVTXEMSZZOINHKANZOVGSEZPGUSYKLAUJKZKNVDZJMS9CZRXCVGFUO9UMYVJZCUIKIXJTUFCRW9E9CJEPWLENSXWVMFA9PJZTLFFXYWRCWTDPICHS9IINY9ZOPNJWZ99IWJJQFRXTCEQAMBFQNXCFXNAPAGDMUJMKVDHGHSZZFQRUINOYWNXTT9FGWYAXWVXJ9YGZYEIKG9MWN99CBNOQWZVYYPZ9NPCYQQKVTWVKUBSTOYWRMFDUPDB9XGAOTEUPAFDVYAEIQHBPBHF9CXEDSOOF9DTGBJOAWHJYKNJ9CWRCATOWWAPTXQQTITZUQ9LXCFDQPCJHFVDPIVQHPJKSHRDOIOQBKECCNOOHDUYKYFYWUBJJGWQMIIMFNZZAOGXPSVZSZQPUPBVUTJNGQLRM9N9AYJJHBBINQJFNDATEPMKYDQNPKPJ9NXIUCXSOSQOC9M9SSLTBHGWLCQE9DQPLMNPCJUFBPKYGHPHBRTALLMFUHIATKTSQBNTHGRCZILLNCTSZKJHQNVYZ9LOVYYSEXJDBHBBXHOFKVWHVOKUAYPGNGRGARFGEINTOJVMDSJKENFJADXBOZMKEJGAMSQMMETTCTDWNQWKYIGVYQVFMC99N9MJDFDERJNNIKRROFSVLEBYFRJJOOSEWWBYMTIQXBQBYMSFAFBXPMVZAKU9LOGBEHKMOZDMSYXRVEZHPPZZCBNLPDUDVEPPYTCLKF9OE9YROSAJMJHNCWVYADGEYXIBPLDZBQMIESEYBJKONUUWGDDCD9SBPHTMJFBXPS9SOROVFBXDGFJFYWARMPRRMRYN9VDRKBDKHSZCPRDYBZOXCUWRZXXAYRHELLWMDTMV9VHVICXSRJVOCMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEB999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Input #1, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][3],
-      TryteString('HSXQRKCIYXEEEEYMESAEWHGVRBNNFUPVHVHYDUFFDCAPYCLGTMMSYVZPGMVMGZFNDAKUFEKKKMMLCDLCYPTSOEEYANVTHWJRFHRYJ9D9JIBDVQLTQFDBYLXBJWAEJPPRHOXSZP9KWKNLQCUGMOKMHJQYODRVVYOZ9DMMYLMVBCNZSWASLFGJJY9NZO9XAIAIOWBYDHLNIBMQJLRBPZJGJUNOKYFYD9VNESPEZNIPUABKFNIAGEWGQRGLMGLGKEHWTQZWOMIZIF9FWUUMVVWS9CWUMWCHZIRKTODTRLEJTRNA9CCRFJNCVCDCQID9UDQJHGN9ZSGJGRSBVBYBKSBZNEJGZZHIECIVPPV99PVRHUBHLGHAZNJRY9LDB9SJGTXXHG99HQAOAI9JVPIYOOWHXFDVHWOEJIVJOIKPMTCAQZZEFEL9YSOSRWWGBQEPFJNTLVWOXIEPZHHCIQF9DZOQGUKYOJSIFHARSBORDAASWFIBAYHLPUTCUPJONWNQVKIHGKUFHSYKQJCNHYBKETAGEZKMPPCOECTMFZPXPLDHMVOSSU9RMQAQNJZYOXVJLKYZJDXUO9BKZBAK9M9RL9NGNUOVZBAJKCAEEBFFGZZJHLGL9KHOQQVKJYQZJYDTCYJXBJBUZZPACRUDDGXWKVRTVNOAVMYVGPEU9IPLHWFXZEHHUMJRQSQOILKMOKTSEBKEYSFRLH9YLDGGPPLSGFCJVINBCKIMXJKWLM9HTTAIVNKGUOHGJYPPDVSYAZLIFJBKQYQLLXBQUZJMEWUPLRVUOMXBHBUJYGDEGOPWNODYSZPQGBYZKQVXFPRAJNKIMMBWJWLIZLIHPWBSJINAPLU9NYHS9ANDORELEDICPYGWQQRGCMQXSWNBIHCSXPATVHEITSOTMKPSBBACQMKLTCDNTIYBXBCGFGIIPERFKHQKOONRHFEPMRIFJBNUEQEFCVMAXHARRHZZQGYALRQHZFBUTFQRVPWWPMWFQCNFDYKFDEGLGSILJRTSVGSLURIZPERJRLSGOMESSMZDUVPBXMOCFGBUWFZBCNYOBGZWGD9HQJOOLESVVAEIWHEKZXGHBEQHAMAPCLPQQRACGTWHMDCHSDGFEOISFMWWITNNDRLJ9TVIBAWKFLQIEHBRUQHYZYCGJWQIMODPIPHFELJCWRCIIKYEQNRSYCUGWXMJSOFUEBCKPXIOCXP9OTZOIDOSWPDNUTQXEHILCONJHHJFPAJEVEBVXROKKLJCZGXMOLB9U9NLCKZ9XUVHVUMWFFPAJZYTDJ9DIXFDQYRD9LPASBDIDHRHHUPOFWUAPVTCAAPNLDPLPN9XTEMOJSBBCHWBULFNHFMMPRSDQCNP9TFMFJFUON9ORDEORLGHZA9JZTRGUTOWLO9XWMAQZXHLUPVTFRSQUDDHYQRGPBLCOHDMLFKQVJAAKWFINZKCTFOESRDVWYWUAVGVBY9RLBQIC9GNXZIRQTY9VHAOIAXXIOVIMSVVIVONDRAXXGUAKFEXLUZYXVMZXOZKHJOKUSRVBUGZXFFDIYZOCSK9OQIJYFBRVREMNRJDDHOPPITCXZYJYEAARBNUZYBVETPPZHMFCOIQLJRQYDZYBZCSHERQOZDKOSZWQJFUMPXYZWLMDZJFYBNYFSKSJUHGOVSAIIIQVDFQWLCRVKTXRAORLNWKZEQRCCTJRMRYCXUJDWFPG9U9WODMOJKYJFMFINHBQSYVGJNNTJCNGOGKIUCDKTNMGFZZLZYYXNP9HPTGPINRDBDLQOJAEOYKAKBICWYZLDSZWZGNUHVOXYLMGCOLJSCXNPMVPPRSBRVEAQDAX9CEDRXRUAJSULVKAAKRMXMMWLPTYTYZZLOUFLBRUGDREHWALIM9AYCBQQFRNNHUIKVJVIGTGIF9MUMSYJIZJAPOXHIFXH9PPOUOGAQWAKFGXNJDDISLFELAOKYBAKBDTCTZDIOCPVXGTJILYQMPOKIVPJLGPEJFQE9SBVGBDPWMPWZPCNGBOVQSJLLHPKJIKPA9AIQZVHJYYDXSSNXAUDLKEGPCGZQZRXUWXTZMBXLUYJZBEPOTCHZGSLXUDI9PGFNHOZRQLQDWFURIXMDINYQDCSCUZBIDRQOKQYTXKSDTXT9YZDQBGJLVQAM9TWRHPKPJG9OAHJNRQIHPUSDLJHSTRHSTSQURNPOKQYVTIIOY9DDMQAKZPG9RTXSDGXWZRZJWGHEJIZLZWSMHBLHFFIXPQZOFFHNRIOQNJEBWZBDTZDJCUKSQDWR9ALZVDUEBN99999999999999999999999999999999999999999999999999999NYBKIVD99A99999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Spend Transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][4],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999OJ9999999999999999999999999NYBKIVD99999999999D99999999WNQNUFDDEVEKCLVLUJCFRRWBHSHXQQKSCWACHBLWXPEBWWEBJWJXQQBFJ9HSSDATPLVLL9SLSRFAVRE9Z999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-  def test_pass_inputs_implicit_with_change(self):
-    """
+    def test_pass_inputs_implicit_with_change(self):
+        """
     Preparing a bundle that finds inputs to use automatically, change
     address needed.
     """
-    # To keep the unit test focused, we will mock the ``getInputs``
-    # command that ``prepareTransfer`` calls internally.
-    #
-    # References:
-    #   - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
-    #   - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-    mock_get_inputs =\
-      mock.Mock(
-        return_value = {
-          'inputs': [
-            Address(
-              trytes =
-                'UFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMI'
-                'VEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX',
+        # To keep the unit test focused, we will mock the ``getInputs``
+        # command that ``prepareTransfer`` calls internally.
+        #
+        # References:
+        #   - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
+        #   - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
+        mock_get_inputs = \
+            mock.Mock(
+                return_value={
+                    'inputs': [
+                        Address(
+                            trytes='UFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMI'
+                            'VEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX', balance=86, key_index=6, security_level=2,
+                        ),
+                    ],
 
-              balance         = 86,
-              key_index       = 6,
-              security_level  = 2,
-            ),
-          ],
+                    'totalBalance': 86,
+                },
+            )
 
-          'totalBalance': 86,
-        },
-      )
-
-    with mock.patch(
-        'iota.commands.extended.get_inputs.GetInputsCommand._execute',
-        mock_get_inputs,
-    ):
-      response = self.command(
-        seed =
-          Seed(
-            'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-            'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK',
-          ),
-
-        transfers = [
-          ProposedTransaction(
-            address =
-              Address(
-                'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-                'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
-              ),
-
-            value = 42,
-          ),
-        ],
-
-        changeAddress =
-          Address(
-            'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
-            'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
-          ),
-      )
-
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 4)
-
-    # Note that the transactions are returned in reverse order.
-
-    # Change transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJRBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIYQB9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Input #1, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString('RRRWOYADWJHJLPCMQLIFYTHXLKTAHTTGUZEWOLVYLQLNLTECZXWCYRKDYNHVTJKANOEJVDKRFQOWSKRSCHTOSWVIABTBYJOAGGPFHWTZXURZGZXSY9TRG9XQIZOSPSVIROZDYPKSPZANCKVFRSZWITVIGTFHQD9CRWPINACBPNKQIWLQSQRRWU9LJQNEYTHPAKOBFHEJNXCXFFMSQC99SEIPJYKNMTFVDFRHSHSBYHPAEFAAC9CQQXL9FUSXGERKHQQDNTJBSAHLKYWCCQEKFZOBJ9YDT9AJRMQLLKUOKCXBASRRAPTUCYCXDZWXSBODNTG9Z9IPZI9WBFVZVCJEBKFKKKXCVLY9SSGFSFALNMXLBNWNJPE9CLI9XGILJDJNKNOZZUB9RSMFLSNBEOAVZIZKWDRKOMVVRFZTLMMZHTZJDOBYD9ACJCJOVMIWLRCKXGLLYRTUCYIDUZZHKALZHWAWQJUPKGNBMAUFICSNDLJU99U9WWCWKTEWVNAQNWDPBA9EWREQWDJDNTUDXIZYXPTHNRJJHOJTSQOIE9KOUEOTDVMUCSNZUZXJYSIO9UMQVKOTMCM9VNLWMCLHLNJXOWJTBLYU9CWSHYWNPNBWZWZLXJUXNFTOKOSUGAPTXNKEJN9YRJYDCRHNHIWNRQEFAILFYCX9IZVFVXLJFVVRMRAUBTZAGMJBLMRJEPMHFAPGOAZFCNVFABVDL9OXHSOD9QHNYPHFHCYRZRG9PCQDTDPSWZPNSFFNLRLJU9YPOTNGZWGGASLOAGQNVTWNZBFZZDBCKMXPQQJYYNLROJWGKACUEEOOTZIC9R9BWFUJPTNAEFPCWRBNLVOFQLRKFJYNGLREKVVCROUSVJBTXOINRHPKISOIUOGFEBRTAZWCJTHTJGUEVPTENCYCKBJTPZN9KQQEFNDVVC9MALGIMMPCNUYWXXNSLJNLKGFK9RCWO9UKPEXTXEVRGEZWZGOLUPRKWJF9ZEITZDJDKZXKAUWBFCLGPCAGIYTTALOKVCIZ9DFFXEZJBRVLPJXOQHCTZQXPHYHRJEWWXPSFIOTJKJUOKBMOMGHVIAAHJVUJRVPGGTITOMFIMGQKJMBUOBBOCOTDKBMDVGENDEHBCNCCNKLDEYAZZC9PSTLIPZILITHGIRZVLTAYHZVYQYBZCXBCMUPBFUPXSZVECQDCEPAHFZHLOOZKWKSQGEIAFMKYPOVRKDDAXHJOARAJBJWDUNMINSUVUCPYEERXVPBXSBJONSFDBOZNO9BUIWRMTCWSGJFKIVGDDZHRUQXIHMMFYRVZBEPTZGLZZBHROEZSXHT9PVRO9O9F9ZUGCDQIKDQKUJFTDZI9EDITJMN9MSDNXXWVOKSDFLQYEOCTAJCCY9RXEPEQNYVYWUUCD9YLVPGLDXVHS9WEZXHJEEBTMWWZRDCVP9FMMC9VQAWMZXRMYTVMDUOICCQZSIUDBBVPXVQP9LTIDDV9ERMOIXSNIDIPJYSSVGNOTECEZKMOXXUO9VFVITXOFDZKELQUCBJOGBTGBEOXDFTUEMCVXAH9TKGLM9ISCWBUEWQLLIXXWEFMIIGTZYJVYPFNBXQZSMPIQWDTVXYJHMTTTXBBS9LXO9GJQVJAONI9CODDHZOKLFYQQLOKSIGSUCOCMXJRCB9OKNTOCPLXBEKZZLCOFERMEHXQNMJAXMOPXZHQB9MCDVQLYKYMDOMCWIVGJCZGUGIXKGWNYOILFQAMRQXMFUKXMILIOE9INLAPJMUXMOMOYILRFKURQMLQPVRZYXB9NRFNFCDWLRNTFNWCCWNUKZXGYYHNMYDX9GSLN9OUVPXQPIVLPXQTMWNGOFAMYCLCRNSWALVNYTUFYZAHYAHFDWYKLWQOSFOZAQSNSMMYNBBX9WSZMJ9NHK9FNVTLAKBBTGXVBCIHSFB99KHXMTUYPMOZJFCMFFIJMAHKKXXBASKBWREAWSFCLKKDOKHFFKLMFVXTIVEBBIQJRGZFTOLOT9MDAZQNQBWZDXUFTBHVYGLYHMSHEIFYVQMPXC9ZZBXYGQEUIXYNUPXNOLYKJKMJ9XXFWCOPAYBWZSEWLMXK9KTHHMSWDWXLFNQBXMOUMYVOSFMTOQWTGZYYRZSEAGHPVHFBPG9AQBPLC9IIIKGPKCXYLVA9RLCHOPJLONGSIAYCUETOMNGNFCRETLXPHMGKXZXVM9XUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Input #1, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][2],
-      TryteString('JFSQQFKZLBCXAVCDQVFXRNSLJUQQIWCVDGWAUZLSKMYNHY9RUOKZILRZ9OW9ITKBTYHAYTTD9KEUGLCGYQJYMDAYHQMGUIOTVZXQJLTQAKV9PZLQIGDAZJTNQ9BLRMQBDVCAIBCTTNEAVECQBNUUIBVEMQAFSYUCNWQCRSICILWHWSGQCVPQBWESGVVAEWY9WLIIMUWYMGSMJORUMIJLMQIVMLBQXIWEZDYESPLXQOVJGCTRRNZEBBHHZOPAPFIWGNFOAPIR9ZSZSMHZODPTJCYVHQLTKAGU9UBA9URUOKBDUYFCTVHJXYDVVERKRPTOHNXBEG9BI9BSJSLOAWOLUUNBBWCRILOKWWD9FKOBPWXAJOLKVULWW9EEBMBPUBSRJHOMHEJJHOY9LKJCQZBZZX9KSXVHUBYXVEQJLYWGYNHDCKWHUDNAHHIJYCBADZMIIGZHOXYOQ9PNWCKZAZKWNRNM9ALALV9IOZYJSYHILATWVNKGIDTW9ONJTXFA9MXKUDPND9ONGJNMTYZUJKWRMFVNGRNIOPRWLUKMXHWKFKD9IKZSJBWBMQAXNTKERHEXELMAAXFHEJUUYCCBHNUGGE9TBJNABKO9RVFZSZNPEKBQHNIHMUCGBWDJEUXREV9YUSUVHXQXCPCPFFBZBEJMGLGVWDGINYLAJORMFTVNLSZBH9RIVOGRZKQSJYWRPHBPZ9MNVQJOFSUWZMOHUHVCNDIVDMCMWCTKEBQNKGFBRIQRRLZSQPQ9PVRKLHJODCWVPCHSLALPPOWVXCIXLDSUOL9COAPYBOVPVBUAUBCI9YKZRYMXEE9NCVYBNAIDPXIXMBLVLUXOTDUDQGNKPVJUDPPTIHCCIYQBSHNRIBBMFB9AGSNUZPSPNZEORZ9LGDEUELGFOZZEYZDT9A9XVZXLOKYL9GJXVAHEZNVYSWP9ZNWT9GOJLMELMXJDSDRMYTSVOOWMNUNQFPVXJVOXXJEVPSNPZGLGTALECVACGTBEP9FTYHWFKRCEXOKTUIFYWYRLJPJZEP9RICV9EVAFLTAXSGCRRMPEAVIGRPVPTHWKMNMNWPLTVJIRMPIUFLAIWIFTCAZOVBDQEEB9TQEPBPIJINMHQBBUBDDQDOW9RYJBAFUKZZZBTBEKVWIXMMIVHGMPDLT9FDPKFDCZGQLCJUDZXNDLIRPKAPDGCYEWPOWLSKGRAARVVHC9ZZ9QNVJGFV9IFTUQOSOXPOOMRFKNKWLANREIMEEPSRRRIELVF9UMPZNFBALDOQWALSFUGZECVFKIOIHZOVQKJAKXCCVWWWMPLLRWZXQFPQZDLOHIETRUI9HRKLFOAVEH9M9EOD9LKDY9TDZRZPAPBIUVLFJAUFDDRRTSAGRE9QDRXWFUTOR9WWWQFPBROYRCQCZEFKH9FOGTLQXJHBSKO9ADIGFZLJVOATVIHXVX9ZEVLLLWYFTHRMTVDGAFMXDSUIMXMUDDUVMSIXLCMYIDTLEO9ZGBRSAYRINB9EGDMUNFLD9GKZVLNWADRTGHNJIWWCCHH9WILBUBGDWUEOUZFRCHHHMFOFHWTQTKPXHNZQPXWEPRLGEDZTRHDXUVBGONUDXTZYFCUNCJTVGRFGUWXNZGBWYKCYTCDSJ99MSHKMKBLFZYZQQWPAAKZYKVSOYBWOHBFM9IKDLXR9WDXQFUEW9D9FQCXZJZSLAOKRBVEAYQBSFIXYEMVMQJPSITVWDCX9ZMGGHFQKPJAJHXAVWNBSNOJH9U9QWOLRYI9AQ9JIEYTSQ9BLFZSEB9PQTDGEHNUXPAHQONJRBBNWAS9CEAPIGPRFCTYCPRDUC9GQOXBIOAVCEPUSXCXDGUKCPCM9IJJHWDEOJJPL9GXIRNOMYUTPAOXEVCIWORREAKHYGAG9QCJLPKTA9SYEWLFARCXUMYMXIUAWPM9HBU9FR9XRIYJIJUILXUJETIIFFZZENYOIPQKQSFGFJHGAYXUSEMUJYKHDIKOAKGTMAZFKFN9NTUECRU9EXC9DFVCVPDGRDYVOHUSETERJWT9MGVHNV9WBVXFFIISMAVTIGESBJBHGTT9CJPROCGJZYSVGFJTJOVOMFLROFRMQVNNCXTNUIYMKWRDMFMOYYSTFKIOAEIOPZZLBDLP9WTFLDSBENOONPETOS9QHLOSPYDPRHKCIGUAGKQXVBVUSJTIOAMNAXICQ9CLPCUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNXVX9999999999999999999999999999999999999999999999999999NYBKIVD99A99999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Spend transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][3],
-      TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999BI9999999999999999999999999NYBKIVD99999999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-  def test_fail_inputs_implicit_insufficient(self):
-    """
-    Account's total balance is not enough to cover spend amount.
-    """
-    # To keep the unit test focused, we will mock the ``getInputs``
-    #   command that ``prepareTransfer`` calls internally.
-    #
-    #   References:
-    #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
-    #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
-    mock_get_inputs = mock.Mock(side_effect=BadApiResponse)
-
-    with mock.patch(
-        'iota.commands.extended.get_inputs.GetInputsCommand._execute',
-        mock_get_inputs,
-    ):
-      with self.assertRaises(BadApiResponse):
-        self.command(
-          seed = Seed(
-            b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-            b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
-          ),
-
-          transfers = [
-            ProposedTransaction(
-              value = 42,
-              address = Address(
-                b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-                b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
-              ),
-            ),
-          ],
-        )
-
-  def test_pass_change_address_auto_generated(self):
-    """
-    Preparing a bundle with an auto-generated change address.
-    """
-    # To keep the unit test focused, we will mock the ``getNewAddresses``
-    # command that ``prepareTransfer`` calls internally.
-    #
-    # References:
-    #   - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
-    #   - :py:class:`iota.commands.extended.get_new_addresses.GetNewAddressesCommand`
-    mock_get_new_addresses_command =\
-      mock.Mock(
-        return_value = {
-          'addresses': [
-            Address(
-              trytes =
-                b'CIGBBXNXQHTHYVVKADYSCOXWGKDPNMZBLCNTTLDU'
-                b'BUCZKP9GQTPWUVZEMBIAMKZKANTLYIMEABIJZLVZC',
-
-              key_index       = 7,
-              security_level  = 2,
-            ),
-          ],
-        },
-      )
-
-    self.adapter.seed_response('getBalances', {
-      'balances': [86],
-      'duration': '1',
-
-      'milestone':
-        'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
-        'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
-    })
-
-    with mock.patch(
-        'iota.commands.extended.get_new_addresses.GetNewAddressesCommand._execute',
-        mock_get_new_addresses_command,
-    ):
-      response = \
-        self.command(
-          seed =
-            Seed(
-              b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
-              b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK',
-            ),
-
-          transfers = [
-            ProposedTransaction(
-              address =
-                Address(
-                  b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
-                  b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+        with mock.patch(
+                'iota.commands.extended.get_inputs.GetInputsCommand._execute',
+                mock_get_inputs,
+        ):
+            response = self.command(
+                seed=Seed(
+                    'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                    'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK',
                 ),
 
-              value = 42,
-            ),
-          ],
+                transfers=[
+                    ProposedTransaction(
+                        address=Address(
+                            'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                            'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                        ),
 
-          inputs = [
-            Address(
-              trytes =
-                b'UFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMI'
-                b'VEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX',
+                        value=42,
+                    ),
+                ],
 
-              key_index       = 6,
-              security_level  = 2,
-            ),
-          ],
+                changeAddress=Address(
+                    'TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJ'
+                    'RBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIY',
+                ),
+            )
+
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 4)
+
+        # Note that the transactions are returned in reverse order.
+
+        # Change transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                '999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUEFOUR9DONTUSEINPRODUCTION99999WJRBOSBIMNTGDYKUDYYFJFGZOHORYSQPCWJRKHIOVIYQB9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
         )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 4)
+        # Input #1, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                'RRRWOYADWJHJLPCMQLIFYTHXLKTAHTTGUZEWOLVYLQLNLTECZXWCYRKDYNHVTJKANOEJVDKRFQOWSKRSCHTOSWVIABTBYJOAGGPFHWTZXURZGZXSY9TRG9XQIZOSPSVIROZDYPKSPZANCKVFRSZWITVIGTFHQD9CRWPINACBPNKQIWLQSQRRWU9LJQNEYTHPAKOBFHEJNXCXFFMSQC99SEIPJYKNMTFVDFRHSHSBYHPAEFAAC9CQQXL9FUSXGERKHQQDNTJBSAHLKYWCCQEKFZOBJ9YDT9AJRMQLLKUOKCXBASRRAPTUCYCXDZWXSBODNTG9Z9IPZI9WBFVZVCJEBKFKKKXCVLY9SSGFSFALNMXLBNWNJPE9CLI9XGILJDJNKNOZZUB9RSMFLSNBEOAVZIZKWDRKOMVVRFZTLMMZHTZJDOBYD9ACJCJOVMIWLRCKXGLLYRTUCYIDUZZHKALZHWAWQJUPKGNBMAUFICSNDLJU99U9WWCWKTEWVNAQNWDPBA9EWREQWDJDNTUDXIZYXPTHNRJJHOJTSQOIE9KOUEOTDVMUCSNZUZXJYSIO9UMQVKOTMCM9VNLWMCLHLNJXOWJTBLYU9CWSHYWNPNBWZWZLXJUXNFTOKOSUGAPTXNKEJN9YRJYDCRHNHIWNRQEFAILFYCX9IZVFVXLJFVVRMRAUBTZAGMJBLMRJEPMHFAPGOAZFCNVFABVDL9OXHSOD9QHNYPHFHCYRZRG9PCQDTDPSWZPNSFFNLRLJU9YPOTNGZWGGASLOAGQNVTWNZBFZZDBCKMXPQQJYYNLROJWGKACUEEOOTZIC9R9BWFUJPTNAEFPCWRBNLVOFQLRKFJYNGLREKVVCROUSVJBTXOINRHPKISOIUOGFEBRTAZWCJTHTJGUEVPTENCYCKBJTPZN9KQQEFNDVVC9MALGIMMPCNUYWXXNSLJNLKGFK9RCWO9UKPEXTXEVRGEZWZGOLUPRKWJF9ZEITZDJDKZXKAUWBFCLGPCAGIYTTALOKVCIZ9DFFXEZJBRVLPJXOQHCTZQXPHYHRJEWWXPSFIOTJKJUOKBMOMGHVIAAHJVUJRVPGGTITOMFIMGQKJMBUOBBOCOTDKBMDVGENDEHBCNCCNKLDEYAZZC9PSTLIPZILITHGIRZVLTAYHZVYQYBZCXBCMUPBFUPXSZVECQDCEPAHFZHLOOZKWKSQGEIAFMKYPOVRKDDAXHJOARAJBJWDUNMINSUVUCPYEERXVPBXSBJONSFDBOZNO9BUIWRMTCWSGJFKIVGDDZHRUQXIHMMFYRVZBEPTZGLZZBHROEZSXHT9PVRO9O9F9ZUGCDQIKDQKUJFTDZI9EDITJMN9MSDNXXWVOKSDFLQYEOCTAJCCY9RXEPEQNYVYWUUCD9YLVPGLDXVHS9WEZXHJEEBTMWWZRDCVP9FMMC9VQAWMZXRMYTVMDUOICCQZSIUDBBVPXVQP9LTIDDV9ERMOIXSNIDIPJYSSVGNOTECEZKMOXXUO9VFVITXOFDZKELQUCBJOGBTGBEOXDFTUEMCVXAH9TKGLM9ISCWBUEWQLLIXXWEFMIIGTZYJVYPFNBXQZSMPIQWDTVXYJHMTTTXBBS9LXO9GJQVJAONI9CODDHZOKLFYQQLOKSIGSUCOCMXJRCB9OKNTOCPLXBEKZZLCOFERMEHXQNMJAXMOPXZHQB9MCDVQLYKYMDOMCWIVGJCZGUGIXKGWNYOILFQAMRQXMFUKXMILIOE9INLAPJMUXMOMOYILRFKURQMLQPVRZYXB9NRFNFCDWLRNTFNWCCWNUKZXGYYHNMYDX9GSLN9OUVPXQPIVLPXQTMWNGOFAMYCLCRNSWALVNYTUFYZAHYAHFDWYKLWQOSFOZAQSNSMMYNBBX9WSZMJ9NHK9FNVTLAKBBTGXVBCIHSFB99KHXMTUYPMOZJFCMFFIJMAHKKXXBASKBWREAWSFCLKKDOKHFFKLMFVXTIVEBBIQJRGZFTOLOT9MDAZQNQBWZDXUFTBHVYGLYHMSHEIFYVQMPXC9ZZBXYGQEUIXYNUPXNOLYKJKMJ9XXFWCOPAYBWZSEWLMXK9KTHHMSWDWXLFNQBXMOUMYVOSFMTOQWTGZYYRZSEAGHPVHFBPG9AQBPLC9IIIKGPKCXYLVA9RLCHOPJLONGSIAYCUETOMNGNFCRETLXPHMGKXZXVM9XUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Note that the transactions are returned in reverse order.
+        # Input #1, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][2],
+            TryteString(
+                'JFSQQFKZLBCXAVCDQVFXRNSLJUQQIWCVDGWAUZLSKMYNHY9RUOKZILRZ9OW9ITKBTYHAYTTD9KEUGLCGYQJYMDAYHQMGUIOTVZXQJLTQAKV9PZLQIGDAZJTNQ9BLRMQBDVCAIBCTTNEAVECQBNUUIBVEMQAFSYUCNWQCRSICILWHWSGQCVPQBWESGVVAEWY9WLIIMUWYMGSMJORUMIJLMQIVMLBQXIWEZDYESPLXQOVJGCTRRNZEBBHHZOPAPFIWGNFOAPIR9ZSZSMHZODPTJCYVHQLTKAGU9UBA9URUOKBDUYFCTVHJXYDVVERKRPTOHNXBEG9BI9BSJSLOAWOLUUNBBWCRILOKWWD9FKOBPWXAJOLKVULWW9EEBMBPUBSRJHOMHEJJHOY9LKJCQZBZZX9KSXVHUBYXVEQJLYWGYNHDCKWHUDNAHHIJYCBADZMIIGZHOXYOQ9PNWCKZAZKWNRNM9ALALV9IOZYJSYHILATWVNKGIDTW9ONJTXFA9MXKUDPND9ONGJNMTYZUJKWRMFVNGRNIOPRWLUKMXHWKFKD9IKZSJBWBMQAXNTKERHEXELMAAXFHEJUUYCCBHNUGGE9TBJNABKO9RVFZSZNPEKBQHNIHMUCGBWDJEUXREV9YUSUVHXQXCPCPFFBZBEJMGLGVWDGINYLAJORMFTVNLSZBH9RIVOGRZKQSJYWRPHBPZ9MNVQJOFSUWZMOHUHVCNDIVDMCMWCTKEBQNKGFBRIQRRLZSQPQ9PVRKLHJODCWVPCHSLALPPOWVXCIXLDSUOL9COAPYBOVPVBUAUBCI9YKZRYMXEE9NCVYBNAIDPXIXMBLVLUXOTDUDQGNKPVJUDPPTIHCCIYQBSHNRIBBMFB9AGSNUZPSPNZEORZ9LGDEUELGFOZZEYZDT9A9XVZXLOKYL9GJXVAHEZNVYSWP9ZNWT9GOJLMELMXJDSDRMYTSVOOWMNUNQFPVXJVOXXJEVPSNPZGLGTALECVACGTBEP9FTYHWFKRCEXOKTUIFYWYRLJPJZEP9RICV9EVAFLTAXSGCRRMPEAVIGRPVPTHWKMNMNWPLTVJIRMPIUFLAIWIFTCAZOVBDQEEB9TQEPBPIJINMHQBBUBDDQDOW9RYJBAFUKZZZBTBEKVWIXMMIVHGMPDLT9FDPKFDCZGQLCJUDZXNDLIRPKAPDGCYEWPOWLSKGRAARVVHC9ZZ9QNVJGFV9IFTUQOSOXPOOMRFKNKWLANREIMEEPSRRRIELVF9UMPZNFBALDOQWALSFUGZECVFKIOIHZOVQKJAKXCCVWWWMPLLRWZXQFPQZDLOHIETRUI9HRKLFOAVEH9M9EOD9LKDY9TDZRZPAPBIUVLFJAUFDDRRTSAGRE9QDRXWFUTOR9WWWQFPBROYRCQCZEFKH9FOGTLQXJHBSKO9ADIGFZLJVOATVIHXVX9ZEVLLLWYFTHRMTVDGAFMXDSUIMXMUDDUVMSIXLCMYIDTLEO9ZGBRSAYRINB9EGDMUNFLD9GKZVLNWADRTGHNJIWWCCHH9WILBUBGDWUEOUZFRCHHHMFOFHWTQTKPXHNZQPXWEPRLGEDZTRHDXUVBGONUDXTZYFCUNCJTVGRFGUWXNZGBWYKCYTCDSJ99MSHKMKBLFZYZQQWPAAKZYKVSOYBWOHBFM9IKDLXR9WDXQFUEW9D9FQCXZJZSLAOKRBVEAYQBSFIXYEMVMQJPSITVWDCX9ZMGGHFQKPJAJHXAVWNBSNOJH9U9QWOLRYI9AQ9JIEYTSQ9BLFZSEB9PQTDGEHNUXPAHQONJRBBNWAS9CEAPIGPRFCTYCPRDUC9GQOXBIOAVCEPUSXCXDGUKCPCM9IJJHWDEOJJPL9GXIRNOMYUTPAOXEVCIWORREAKHYGAG9QCJLPKTA9SYEWLFARCXUMYMXIUAWPM9HBU9FR9XRIYJIJUILXUJETIIFFZZENYOIPQKQSFGFJHGAYXUSEMUJYKHDIKOAKGTMAZFKFN9NTUECRU9EXC9DFVCVPDGRDYVOHUSETERJWT9MGVHNV9WBVXFFIISMAVTIGESBJBHGTT9CJPROCGJZYSVGFJTJOVOMFLROFRMQVNNCXTNUIYMKWRDMFMOYYSTFKIOAEIOPZZLBDLP9WTFLDSBENOONPETOS9QHLOSPYDPRHKCIGUAGKQXVBVUSJTIOAMNAXICQ9CLPCUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNXVX9999999999999999999999999999999999999999999999999999NYBKIVD99A99999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Change Transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString(b'999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999CIGBBXNXQHTHYVVKADYSCOXWGKDPNMZBLCNTTLDUBUCZKP9GQTPWUVZEMBIAMKZKANTLYIMEABIJZLVZCQB9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Spend transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][3],
+            TryteString('999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999BI9999999999999999999999999NYBKIVD99999999999C99999999FWVD9JAZQGWBOFXANTLCCUHZTKWDDTBRICCOXGWGDDZSXJXKYAJJSCRWSVWVLXKNGOBUJLASABZRJXKVX999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    # Input #1, Part 2 of 2
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString(b'OQXNBXIUTA9NLEZQFH9GZBKRYAOVMSGQFQSJFPVQSIE9ZRAFYQYAP9EIFPWXCUAPMXJKXJUVXV9FFQYGWTAPCIPTHGCJTSOLMLLVYTQAO9UX9HQQZEPRYPYPRLQEXJVQWPHHWBUXMMUDY9DACDBGFWOPFSMSRUKAHZ9F9QSMYHQNNKNQIHIDFUJJBBVQGOZBRSUSMDUDDTNHIEOMMKQOX9G9SMKXLDFTNYHDBJHAWXAK9SBMMQYJLMXZPONSOERRTAZGCDRXQFIKGDGKQHPMWMCMBNRRIAONQDWFNJD9SNA9JYLVDGRQHNYONPYFHWGWFTAZOXJMCUZFDJAIOEPJPXGWELHSX9YRAGTNL9DILLVXLBVFW9NQYDAROJLBTTGYKOLRDLP9UTUZFHU9NWER9LV9DAMYOFDAZUSMIJDLQUZUYMSWFKIHQVNBSDKLOQWAWKIMMRTDZVVUDHDEEKSLPMAQEJC9QLHLIKGEWWNYOTFDYHMWEYRCPIUOKNJOIFHOKWD9ZSOBLJIXLTJSSAFNLZIPMPIMCA9RPUKZEDFLBILIBCHEBHVCNVWYEZKOUQEZJPU9ETR9OHPUCFTOYMMKEAFMNFOHQAKHQPONDWILSUZTCTLLXUSMNZVG9ELAFIENHQUTYVVCFHLZKOGLWDDUW9IMJXPLXCJBJHFNYRC9YTLTFCVZZKTGGORGZZFJXMUKRX9RMMJ9QHVRFJLKGTYOKPBDDMSDNZTSRJXICYZNQEINLANBTHZESEJYVYMXVVBK9ISOCNTQRYFUKYPMKKJLDQUSPNQLCWSFQPYWMTXWIZBJFW9VTEIYV9BGDYCOLDWVXRZKSLLKZLGGIQWYAFLERSFTCXZVUTHM9UJRAAPODOXQYPJOPGFOXXIBTADVLWBTCZLKCCWSXVHIYFRKUBZKWYKXUCGEBXUOLTKODVNMSDHWCUZEFVBCIRMEMSGTTWNXFMYSLUZYPPEWPKI9CBEMWZIMGXVEJMPXZYHLFLPIUPUTNKLHHJBRRHREGWVIIW9RKRTFNJCANKNNQGNOOIKP9LEJTEQNZPSFIOTJKJUOKBMOMGHVIAAHJVUJRVPGGTITOMFIMGQKJMBUOBBOCOTDKBMDVGENDEHBCNCCNKLDEYAZZCHSUMTGUPPHZCT9ARLQJACKGCQTKVJRXMVTO9I9YOVJVQKNLQSSTZTRWWXORSAWOWOELTYEAWMZDYVIZEAZHLRHLIX9O9M9JXUQXY9RUXTE9OXUL9MDKAJNEJBICPSXUKKIQPYZWHSIAOKTLCLGDLBDXORBPVOZGUAYDFCNLIUI9FQRSFLRV9STNZLPUCDZTJWXSPICSNKLRKFA9EFZZXLBUAMADQWUWAIZVTNZVTLEKXPHBJXOCMVNUPSXMBYGPQTSABUYSGABEARVHPUCTCB9GVGOYQSZXRQSHONPVCYKHNOJOQWZPDBARFOMYSOUTTYVCYQVGOESCB9ENRTQHXTSEGCJAXXFDWAKTSJFYTRKFAPZYLERSJYOEMAUFAEN9TGINWYTSX9YLDAUPVSPQBDJCTORJELOSDSKRHYEWKUNXIP9VXXLUXPFACKUHH9H9PHB9GDNXMGCRZBG9AMXUBLPYALESQYVOSRHMHMAXAYPJTYTIZFQRRAL9GRVGFJHXYQIKEYKIUBKEKPLKELQICSEIOOADUTZOPSTPCIK9XVWHFZXZHHBXLV9BZBMMXSCMPVD9LRZXYHKYIIHNAFQWQBPCNOAUR9NZGALOQYECWSSBGQKBRQIWOKJRGTPP9CJ9OZBGNSZUYUSGNYUG9JQTKVNFKEMILKSNGYWPEIDGQMULWLKUBC9V99DNLBCWKNFNXCZARZYAA9ALHASPAUAPNYMMXARMDTRXPDQAYDVGNKCSFTHQDHQMFBS9VTTGRXFL9ABZLB9UCNZSGP9LLPNVKMZFBXSBVTFSRNBWLRQQHG9ZUALRVJEDFL9NNQTVPQGDJUUCXLHQEMRTAWJCQDEMCQJNZKZETVWRRYPEOZQHSJDGEPZXJZBCIGQVFKPDO9IUVCBJLFDGTUUCHOWTSQMNDSL9MSTFVDRYPVQWSSDFZMWWJLSIUWPPUFQCKXIACIEZUSFYZSKZMKZPYMEINOLMCBTHEIQVFSTZSBTRMQXQ9SJQUIXGPXMXBFWKYBGHPBJTWNBLPSNNGDQUKYTKWO9HC9WDVATMEWUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Input #1, Part 1 of 2
-    self.assertEqual(
-      response['trytes'][2],
-      TryteString(b'BUKUGOBJ9OGJGTXCAYHYGZOSYEIGBBXPNYEIBIYCTACBTKXDHGMHYJNREPKPIAZCUOZFWLUXNGMKHIDQXZSQEN9JHHNMYQFGXXYQQDLYQROXZIRRDEVBEJWIJGMDFJCIRTGFTAEPLJAQBWAJMIOMPWJBBK99UYXXVBEMTOBJEUEJTVCJM9BVRLUNNGUXCCDYYRWOWDGXVR99BWZLHSDPHIDWQBIUDDYQPRFCBHRQXJTEDMZDEKWPPUZMI9DNCZVJRG9QVXNSHKDFCGXGBKMQFCRFUXFHU9HZZPIQYSVFVWUMPZHWSJCTYLDJLVPYTEWDHYGAB9ZITGNQJTAQA9Z9HSEPEVVNFEPKBWEJMCMIQPPMVWEPQARITFEAIBKGQZFEPNJQJMFOGNUZVIITFURJXRZ9DCQVTRO9WFNIBGGLFGTSRVAODAMJZRNSEJAVNUSGGIUXHNAACSYHNMJVBGFMQZ9WLDK9EJGMRNDG99KMTEZSCISLZREMLRODH9SZSNSHICAU9LOUIMM9XRPZHBCKQTMXFXJJVBUCJPEUGXG9PB9F9IGEQISYKV9GKMWSASQHDRKJLNGZXSXZRRAOBPIYXOVSQHMTJUKKWNZZOBOCAQAGTSXZLCQGP9PQRSQBXGZAVGYZDJ9DDYFMNXDNBBSYNP9OFGOISBVURNJXLUBHHJMYFSEFNQQZQYY9SXXIQRUUOXNYAOCUMKIPFQJOUUSNHMXUASYQDASQPABUAJOGKMQHZOQRR9DBMPLGITIRBAFXSSYGOSBZDCGEHBXDBRYRQOOODNPXENVWTBDETTWXN99WBDBMFOAMKOWMNJWFCAOESJUNVFOGWHSXCVRO9IEY9WS9ZUNZNTFCPU9CQPPSCQDNLUBBLHKNIRZIXMAU9ODXOWXEA99YLJPZLBHLNCOMKJUYJOCRJDW9RHBINWGMKUQAMNIAORQKSVCAGXAADQELPICDCHIGYTMAHMKFEOCLJFOYNVYBLNCQDPXJJCWZ9NZLIVJJDUKEFHPQMW9ENRAMGWERKKYPXKLXRR9SCFSGXIVTEHET9VQOKXSMDDPAOGTBMOILUWIBFOWIIM9CCIY9WOIBIYRZJVQYMUZAOMXZCEPNLJMOOXRSRRGQSWXPQDAIJACWPVNWOKW9SEVDURRCGPUHXBXVHCGLUZLBTYUBPTYQRONIHXUUXNOILJIRYYVPIOJBAROPUDUAVGRAVAXGEJPRBI9JXWXNGIPUFOKTFLWMXYEZKZYQKHYHDKXTZRGV9PSGBYBEEUOPKYICPVTW9REXXQADNTCKGYHDFD9BMVJQEUHWDJBDBANAYAGKKTHSORERI9YKH9NYCIHUZTLJTBCHETHMOVRIQY9WFUMNCOR9OAFJCVLVB9SKHRGK9JIOADMUJBGRDMGGSSIWJUMSLZIRXYBDPJZUGHEMLNZDZZUQDMDJ9NYBJTNDUWXTERPMLKVQD9SRQOZDBGVXUDJSHZIWKWOAOMWMBDOUBINNSPX9O9EMLCLDYHIVYSOYZBLFIUPZWKZWOPARINZLORQCESAOE9WGE9RRKRTHNJWGUEJNCBEOCUCBUXAYRPDHXRIST9PQPWIAKBKCPWMUEZEIAXF9QIGWLHJOTEIOYXGCNFUPJVCFYAHQIVSVRUHPPMZHJGBDKLQMMOPZJVBLNWPEAVSP9DKNJIVYH9OR9QKRXCDWKBRLRESU9LRCCZS9EHHQBXBEDLLKEFFDFCXLCFR9RFQG9ZQMJPLHDDWZKPDWFGQADZHYGYJYCVH9QPXMQSLPLIB9OA9GEDETQDJHXNTOZDLUKS9ZXDZUNHKTNLWKFAV9ALFNIBQPQLWDXIYYQXPEEZINTIHSLJBPMITNDQRPZ9YDOWWSHZLBZHDEXQHHJDJIAQMVYKMGYDIRQBGEUVBRPLTCWBLBHBXEGSOTJKFTPBJFXHPEJZBWHQWGWOKRVFPZBHXCUEYYZWVJUMHCTZIRFPZEZLPWPVSJXVTDNPJZSGDVEGRHUWYXFFXJNSPNWFIEFRJGHRPATJGLTVLYCMGVHNV9WBVXFFIISMAVTIGESBJBHGTT9CJPROCGJZYSVGFJTJOVOMFLROFRMQVNNCXTNUIYMKWRDMFMOYFRGOXZEGZJPLRRQMTWEQDZRMGRPCVAARSNJWLCKEYCCG9ULFWWTWWCVIQIUZVWCNJLIKBX9ODLO9LLKECUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNXVX9999999999999999999999999999999999999999999999999999NYBKIVD99A99999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-    # Spend Transaction, Part 1 of 1
-    self.assertEqual(
-      response['trytes'][3],
-      TryteString(b'999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999999999999999999999999999999NYBKIVD99999999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),
-    )
-
-  def test_pass_message_short(self):
+    def test_fail_inputs_implicit_insufficient(self):
+        """
+    Account's total balance is not enough to cover spend amount.
     """
+        # To keep the unit test focused, we will mock the ``getInputs``
+        #   command that ``prepareTransfer`` calls internally.
+        #
+        #   References:
+        #     - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
+        #     - :py:class:`iota.commands.extended.get_inputs.GetInputsCommand`
+        mock_get_inputs = mock.Mock(side_effect=BadApiResponse)
+
+        with mock.patch(
+                'iota.commands.extended.get_inputs.GetInputsCommand._execute',
+                mock_get_inputs,
+        ):
+            with self.assertRaises(BadApiResponse):
+                self.command(
+                    seed=Seed(
+                        b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                        b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK'
+                    ),
+
+                    transfers=[
+                        ProposedTransaction(
+                            value=42,
+                            address=Address(
+                                b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                                b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                            ),
+                        ),
+                    ],
+                )
+
+    def test_pass_change_address_auto_generated(self):
+        """
+    Preparing a bundle with an auto-generated change address.
+    """
+        # To keep the unit test focused, we will mock the ``getNewAddresses``
+        # command that ``prepareTransfer`` calls internally.
+        #
+        # References:
+        #   - :py:class:`iota.commands.extended.prepare_transfer.PrepareTransferCommand`
+        #   - :py:class:`iota.commands.extended.get_new_addresses.GetNewAddressesCommand`
+        mock_get_new_addresses_command = \
+            mock.Mock(
+                return_value={
+                    'addresses': [
+                        Address(trytes=b'CIGBBXNXQHTHYVVKADYSCOXWGKDPNMZBLCNTTLDU'
+                                       b'BUCZKP9GQTPWUVZEMBIAMKZKANTLYIMEABIJZLVZC', key_index=7, security_level=2, ),
+                    ],
+                },
+            )
+
+        self.adapter.seed_response('getBalances', {
+            'balances': [86],
+            'duration': '1',
+
+            'milestone':
+                'TESTVALUE9DONTUSEINPRODUCTION99999ZNIUXU'
+                'FIVFBBYQHFYZYIEEWZL9VPMMKIIYTEZRRHXJXKIKF',
+        })
+
+        with mock.patch(
+                'iota.commands.extended.get_new_addresses.GetNewAddressesCommand._execute',
+                mock_get_new_addresses_command,
+        ):
+            response = \
+                self.command(seed=Seed(
+                    b'TESTVALUEONE9DONTUSEINPRODUCTION99999C9V'
+                    b'C9RHFCQAIGSFICL9HIY9ZEUATFVHFGAEUHSECGQAK',
+                ),
+
+                    transfers=[
+                        ProposedTransaction(address=Address(
+                            b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                            b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                        ),
+
+                            value=42,
+                        ),
+                    ],
+
+                    inputs=[Address(trytes=b'UFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMI'
+                                           b'VEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX',
+                                    key_index=6,
+                                    security_level=2,
+                                    ),
+                            ],
+                )
+
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 4)
+
+        # Note that the transactions are returned in reverse order.
+
+        # Change Transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                b'999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999CIGBBXNXQHTHYVVKADYSCOXWGKDPNMZBLCNTTLDUBUCZKP9GQTPWUVZEMBIAMKZKANTLYIMEABIJZLVZCQB9999999999999999999999999999999999999999999999999999NYBKIVD99C99999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+        # Input #1, Part 2 of 2
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                b'OQXNBXIUTA9NLEZQFH9GZBKRYAOVMSGQFQSJFPVQSIE9ZRAFYQYAP9EIFPWXCUAPMXJKXJUVXV9FFQYGWTAPCIPTHGCJTSOLMLLVYTQAO9UX9HQQZEPRYPYPRLQEXJVQWPHHWBUXMMUDY9DACDBGFWOPFSMSRUKAHZ9F9QSMYHQNNKNQIHIDFUJJBBVQGOZBRSUSMDUDDTNHIEOMMKQOX9G9SMKXLDFTNYHDBJHAWXAK9SBMMQYJLMXZPONSOERRTAZGCDRXQFIKGDGKQHPMWMCMBNRRIAONQDWFNJD9SNA9JYLVDGRQHNYONPYFHWGWFTAZOXJMCUZFDJAIOEPJPXGWELHSX9YRAGTNL9DILLVXLBVFW9NQYDAROJLBTTGYKOLRDLP9UTUZFHU9NWER9LV9DAMYOFDAZUSMIJDLQUZUYMSWFKIHQVNBSDKLOQWAWKIMMRTDZVVUDHDEEKSLPMAQEJC9QLHLIKGEWWNYOTFDYHMWEYRCPIUOKNJOIFHOKWD9ZSOBLJIXLTJSSAFNLZIPMPIMCA9RPUKZEDFLBILIBCHEBHVCNVWYEZKOUQEZJPU9ETR9OHPUCFTOYMMKEAFMNFOHQAKHQPONDWILSUZTCTLLXUSMNZVG9ELAFIENHQUTYVVCFHLZKOGLWDDUW9IMJXPLXCJBJHFNYRC9YTLTFCVZZKTGGORGZZFJXMUKRX9RMMJ9QHVRFJLKGTYOKPBDDMSDNZTSRJXICYZNQEINLANBTHZESEJYVYMXVVBK9ISOCNTQRYFUKYPMKKJLDQUSPNQLCWSFQPYWMTXWIZBJFW9VTEIYV9BGDYCOLDWVXRZKSLLKZLGGIQWYAFLERSFTCXZVUTHM9UJRAAPODOXQYPJOPGFOXXIBTADVLWBTCZLKCCWSXVHIYFRKUBZKWYKXUCGEBXUOLTKODVNMSDHWCUZEFVBCIRMEMSGTTWNXFMYSLUZYPPEWPKI9CBEMWZIMGXVEJMPXZYHLFLPIUPUTNKLHHJBRRHREGWVIIW9RKRTFNJCANKNNQGNOOIKP9LEJTEQNZPSFIOTJKJUOKBMOMGHVIAAHJVUJRVPGGTITOMFIMGQKJMBUOBBOCOTDKBMDVGENDEHBCNCCNKLDEYAZZCHSUMTGUPPHZCT9ARLQJACKGCQTKVJRXMVTO9I9YOVJVQKNLQSSTZTRWWXORSAWOWOELTYEAWMZDYVIZEAZHLRHLIX9O9M9JXUQXY9RUXTE9OXUL9MDKAJNEJBICPSXUKKIQPYZWHSIAOKTLCLGDLBDXORBPVOZGUAYDFCNLIUI9FQRSFLRV9STNZLPUCDZTJWXSPICSNKLRKFA9EFZZXLBUAMADQWUWAIZVTNZVTLEKXPHBJXOCMVNUPSXMBYGPQTSABUYSGABEARVHPUCTCB9GVGOYQSZXRQSHONPVCYKHNOJOQWZPDBARFOMYSOUTTYVCYQVGOESCB9ENRTQHXTSEGCJAXXFDWAKTSJFYTRKFAPZYLERSJYOEMAUFAEN9TGINWYTSX9YLDAUPVSPQBDJCTORJELOSDSKRHYEWKUNXIP9VXXLUXPFACKUHH9H9PHB9GDNXMGCRZBG9AMXUBLPYALESQYVOSRHMHMAXAYPJTYTIZFQRRAL9GRVGFJHXYQIKEYKIUBKEKPLKELQICSEIOOADUTZOPSTPCIK9XVWHFZXZHHBXLV9BZBMMXSCMPVD9LRZXYHKYIIHNAFQWQBPCNOAUR9NZGALOQYECWSSBGQKBRQIWOKJRGTPP9CJ9OZBGNSZUYUSGNYUG9JQTKVNFKEMILKSNGYWPEIDGQMULWLKUBC9V99DNLBCWKNFNXCZARZYAA9ALHASPAUAPNYMMXARMDTRXPDQAYDVGNKCSFTHQDHQMFBS9VTTGRXFL9ABZLB9UCNZSGP9LLPNVKMZFBXSBVTFSRNBWLRQQHG9ZUALRVJEDFL9NNQTVPQGDJUUCXLHQEMRTAWJCQDEMCQJNZKZETVWRRYPEOZQHSJDGEPZXJZBCIGQVFKPDO9IUVCBJLFDGTUUCHOWTSQMNDSL9MSTFVDRYPVQWSSDFZMWWJLSIUWPPUFQCKXIACIEZUSFYZSKZMKZPYMEINOLMCBTHEIQVFSTZSBTRMQXQ9SJQUIXGPXMXBFWKYBGHPBJTWNBLPSNNGDQUKYTKWO9HC9WDVATMEWUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNX999999999999999999999999999999999999999999999999999999NYBKIVD99B99999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+        # Input #1, Part 1 of 2
+        self.assertEqual(
+            response['trytes'][2],
+            TryteString(
+                b'BUKUGOBJ9OGJGTXCAYHYGZOSYEIGBBXPNYEIBIYCTACBTKXDHGMHYJNREPKPIAZCUOZFWLUXNGMKHIDQXZSQEN9JHHNMYQFGXXYQQDLYQROXZIRRDEVBEJWIJGMDFJCIRTGFTAEPLJAQBWAJMIOMPWJBBK99UYXXVBEMTOBJEUEJTVCJM9BVRLUNNGUXCCDYYRWOWDGXVR99BWZLHSDPHIDWQBIUDDYQPRFCBHRQXJTEDMZDEKWPPUZMI9DNCZVJRG9QVXNSHKDFCGXGBKMQFCRFUXFHU9HZZPIQYSVFVWUMPZHWSJCTYLDJLVPYTEWDHYGAB9ZITGNQJTAQA9Z9HSEPEVVNFEPKBWEJMCMIQPPMVWEPQARITFEAIBKGQZFEPNJQJMFOGNUZVIITFURJXRZ9DCQVTRO9WFNIBGGLFGTSRVAODAMJZRNSEJAVNUSGGIUXHNAACSYHNMJVBGFMQZ9WLDK9EJGMRNDG99KMTEZSCISLZREMLRODH9SZSNSHICAU9LOUIMM9XRPZHBCKQTMXFXJJVBUCJPEUGXG9PB9F9IGEQISYKV9GKMWSASQHDRKJLNGZXSXZRRAOBPIYXOVSQHMTJUKKWNZZOBOCAQAGTSXZLCQGP9PQRSQBXGZAVGYZDJ9DDYFMNXDNBBSYNP9OFGOISBVURNJXLUBHHJMYFSEFNQQZQYY9SXXIQRUUOXNYAOCUMKIPFQJOUUSNHMXUASYQDASQPABUAJOGKMQHZOQRR9DBMPLGITIRBAFXSSYGOSBZDCGEHBXDBRYRQOOODNPXENVWTBDETTWXN99WBDBMFOAMKOWMNJWFCAOESJUNVFOGWHSXCVRO9IEY9WS9ZUNZNTFCPU9CQPPSCQDNLUBBLHKNIRZIXMAU9ODXOWXEA99YLJPZLBHLNCOMKJUYJOCRJDW9RHBINWGMKUQAMNIAORQKSVCAGXAADQELPICDCHIGYTMAHMKFEOCLJFOYNVYBLNCQDPXJJCWZ9NZLIVJJDUKEFHPQMW9ENRAMGWERKKYPXKLXRR9SCFSGXIVTEHET9VQOKXSMDDPAOGTBMOILUWIBFOWIIM9CCIY9WOIBIYRZJVQYMUZAOMXZCEPNLJMOOXRSRRGQSWXPQDAIJACWPVNWOKW9SEVDURRCGPUHXBXVHCGLUZLBTYUBPTYQRONIHXUUXNOILJIRYYVPIOJBAROPUDUAVGRAVAXGEJPRBI9JXWXNGIPUFOKTFLWMXYEZKZYQKHYHDKXTZRGV9PSGBYBEEUOPKYICPVTW9REXXQADNTCKGYHDFD9BMVJQEUHWDJBDBANAYAGKKTHSORERI9YKH9NYCIHUZTLJTBCHETHMOVRIQY9WFUMNCOR9OAFJCVLVB9SKHRGK9JIOADMUJBGRDMGGSSIWJUMSLZIRXYBDPJZUGHEMLNZDZZUQDMDJ9NYBJTNDUWXTERPMLKVQD9SRQOZDBGVXUDJSHZIWKWOAOMWMBDOUBINNSPX9O9EMLCLDYHIVYSOYZBLFIUPZWKZWOPARINZLORQCESAOE9WGE9RRKRTHNJWGUEJNCBEOCUCBUXAYRPDHXRIST9PQPWIAKBKCPWMUEZEIAXF9QIGWLHJOTEIOYXGCNFUPJVCFYAHQIVSVRUHPPMZHJGBDKLQMMOPZJVBLNWPEAVSP9DKNJIVYH9OR9QKRXCDWKBRLRESU9LRCCZS9EHHQBXBEDLLKEFFDFCXLCFR9RFQG9ZQMJPLHDDWZKPDWFGQADZHYGYJYCVH9QPXMQSLPLIB9OA9GEDETQDJHXNTOZDLUKS9ZXDZUNHKTNLWKFAV9ALFNIBQPQLWDXIYYQXPEEZINTIHSLJBPMITNDQRPZ9YDOWWSHZLBZHDEXQHHJDJIAQMVYKMGYDIRQBGEUVBRPLTCWBLBHBXEGSOTJKFTPBJFXHPEJZBWHQWGWOKRVFPZBHXCUEYYZWVJUMHCTZIRFPZEZLPWPVSJXVTDNPJZSGDVEGRHUWYXFFXJNSPNWFIEFRJGHRPATJGLTVLYCMGVHNV9WBVXFFIISMAVTIGESBJBHGTT9CJPROCGJZYSVGFJTJOVOMFLROFRMQVNNCXTNUIYMKWRDMFMOYFRGOXZEGZJPLRRQMTWEQDZRMGRPCVAARSNJWLCKEYCCG9ULFWWTWWCVIQIUZVWCNJLIKBX9ODLO9LLKECUFHYUCWLLEHDLXJWUSPODWEIFMIURCMLSUZV9BMIVEAJZBSEWOVBUBC9DZNSQUBPMPTNDD9GTVSMMQBNXVX9999999999999999999999999999999999999999999999999999NYBKIVD99A99999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+        # Spend Transaction, Part 1 of 1
+        self.assertEqual(
+            response['trytes'][3],
+            TryteString(
+                b'999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUETWO9DONTUSEINPRODUCTION99999XYYNXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOWOB9999999999999999999999999999999999999999999999999999NYBKIVD99999999999C99999999IXYSIGLOJQGEKAIDXIRITVQTDKZ9RYRXVHUJJOCTDJEEPQVLLLPWCZOQBOVZEFFFGZVI9AXQTLIZIRZGB999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+    def test_pass_message_short(self):
+        """
     Adding a message to a transaction.
     """
-    response = self.command(
-      seed =
-        Seed(
-            'TESTVALUE9DONTUSEINPRODUCTION99999HORPYY'
-            'TGKQQTQSNMSZBXYLAFXFHZVPWVGCPRGXKXREJKI9B',
-          ),
-
-      transfers = [
-        ProposedTransaction(
-          address =
-            Address(
-              'TESTVALUE9DONTUSEINPRODUCTION99999YMSWGX'
-              'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN'
+        response = self.command(
+            seed=Seed(
+                'TESTVALUE9DONTUSEINPRODUCTION99999HORPYY'
+                'TGKQQTQSNMSZBXYLAFXFHZVPWVGCPRGXKXREJKI9B',
             ),
 
-          message = TryteString.from_string('สวัสดีชาวโลก!'),
-          tag     = Tag('PYOTA9UNIT9TESTS9'),
-          value   = 0,
-        ),
-      ],
-    )
+            transfers=[
+                ProposedTransaction(
+                    address=Address(
+                        'TESTVALUE9DONTUSEINPRODUCTION99999YMSWGX'
+                        'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN'
+                    ),
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 1)
+                    message=TryteString.from_string('สวัสดีชาวโลก!'),
+                    tag=Tag('PYOTA9UNIT9TESTS9'),
+                    value=0,
+                ),
+            ],
+        )
 
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('HHVFHFHHVFEFHHVFOFHHVFHFHHVFMEHHVFSFHHVFCEHHVFPFHHVFEFHHWFVDHHVFCFHHVFUDFA9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999YAOTA9UNIT9TESTS99999999999NYBKIVD999999999999999999999DRTUWFTZIDCUOAWLSDGIAWAIOGDYWFZNJHCEXDGAHCPKOIUIICUWGPXTGCRJWZBV9AXBCBRAKLDPRKQW999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 1)
 
-  def test_pass_message_long(self):
-    """
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                'HHVFHFHHVFEFHHVFOFHHVFHFHHVFMEHHVFSFHHVFCEHHVFPFHHVFEFHHWFVDHHVFCFHHVFUDFA9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999YAOTA9UNIT9TESTS99999999999NYBKIVD999999999999999999999DRTUWFTZIDCUOAWLSDGIAWAIOGDYWFZNJHCEXDGAHCPKOIUIICUWGPXTGCRJWZBV9AXBCBRAKLDPRKQW999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
+
+    def test_pass_message_long(self):
+        """
     The message is too long to fit into a single transaction.
     """
-    response =\
-      self.command(
-        seed =
-          Seed(
-            'TESTVALUE9DONTUSEINPRODUCTION99999HORPYY'
-            'TGKQQTQSNMSZBXYLAFXFHZVPWVGCPRGXKXREJKI9B',
-          ),
+        response = \
+            self.command(
+                seed=Seed(
+                    'TESTVALUE9DONTUSEINPRODUCTION99999HORPYY'
+                    'TGKQQTQSNMSZBXYLAFXFHZVPWVGCPRGXKXREJKI9B',
+                ),
 
-        transfers = [
-          ProposedTransaction(
-            address =
-              Address(
-                'TESTVALUE9DONTUSEINPRODUCTION99999YMSWGX'
-                'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN'
-              ),
+                transfers=[
+                    ProposedTransaction(
+                        address=Address(
+                            'TESTVALUE9DONTUSEINPRODUCTION99999YMSWGX'
+                            'VNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN'
+                        ),
 
-            message =
-              TryteString.from_string(
-                'Вы не можете справиться правду! Сын, мы живем в мире, который '
-                'имеет стены. И эти стены должны быть охраняют люди с оружием. '
-                'Кто будет это делать? Вы? Вы, лейтенант Weinberg? У меня есть '
-                'большая ответственность, чем вы можете понять. Ты плачешь '
-                'Сантьяго и прокляни морских пехотинцев. У вас есть такой '
-                'роскоши. У вас есть роскошь, не зная, что я знаю: что смерть '
-                'Сантьяго, в то время как трагический, вероятно, спас жизнь. И '
-                'мое существование, в то время как гротеск и непонятными для '
-                'вас, спасает жизни ... Вы не хотите знать правду. Потому что '
-                'в глубине души, в тех местах, вы не говорите о на вечеринках, '
-                'вы хотите меня на этой стене. Вы должны меня на этой стене. '
-                'Мы используем такие слова, как честь, код, верность ... мы '
-                'используем эти слова в качестве основы к жизни провел, '
-                'защищая что-то. Вы можете использовать им, как пуанта. У меня '
-                'нет ни времени, ни желания, чтобы объясниться с человеком, '
-                'который поднимается и спит под одеялом самой свободы я '
-                'обеспечиваю, то ставит под сомнение то, каким образом я '
-                'предоставить ему! Я бы предпочел, чтобы вы просто сказал '
-                'спасибо и пошел на своем пути. В противном случае, я '
-                'предлагаю вам подобрать оружие и встать пост. В любом случае, '
-                'я не наплевать, что вы думаете, что вы имеете право!',
-              ),
+                        message=TryteString.from_string(
+                            'Вы не можете справиться правду! Сын, мы живем в мире, который '
+                            'имеет стены. И эти стены должны быть охраняют люди с оружием. '
+                            'Кто будет это делать? Вы? Вы, лейтенант Weinberg? У меня есть '
+                            'большая ответственность, чем вы можете понять. Ты плачешь '
+                            'Сантьяго и прокляни морских пехотинцев. У вас есть такой '
+                            'роскоши. У вас есть роскошь, не зная, что я знаю: что смерть '
+                            'Сантьяго, в то время как трагический, вероятно, спас жизнь. И '
+                            'мое существование, в то время как гротеск и непонятными для '
+                            'вас, спасает жизни ... Вы не хотите знать правду. Потому что '
+                            'в глубине души, в тех местах, вы не говорите о на вечеринках, '
+                            'вы хотите меня на этой стене. Вы должны меня на этой стене. '
+                            'Мы используем такие слова, как честь, код, верность ... мы '
+                            'используем эти слова в качестве основы к жизни провел, '
+                            'защищая что-то. Вы можете использовать им, как пуанта. У меня '
+                            'нет ни времени, ни желания, чтобы объясниться с человеком, '
+                            'который поднимается и спит под одеялом самой свободы я '
+                            'обеспечиваю, то ставит под сомнение то, каким образом я '
+                            'предоставить ему! Я бы предпочел, чтобы вы просто сказал '
+                            'спасибо и пошел на своем пути. В противном случае, я '
+                            'предлагаю вам подобрать оружие и встать пост. В любом случае, '
+                            'я не наплевать, что вы думаете, что вы имеете право!',
+                        ),
 
-            tag   = Tag('PYOTA9UNIT9TESTS9'),
-            value = 0,
-          ),
-        ],
-      )
+                        tag=Tag('PYOTA9UNIT9TESTS9'),
+                        value=0,
+                    ),
+                ],
+            )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
-    self.assertEqual(len(response['trytes']), 3)
+        self.assertEqual(set(iterkeys(response)), {'trytes'})
+        self.assertEqual(len(response['trytes']), 3)
 
-    # Note that the transactions are returned in reverse order.
-    self.assertEqual(
-      response['trytes'][0],
-      TryteString('EASGBGTGTDSGNFSGPFSGAGFA999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999PYOTA9UNIT9TESTS99999999999NYBKIVD99B99999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        # Note that the transactions are returned in reverse order.
+        self.assertEqual(
+            response['trytes'][0],
+            TryteString(
+                'EASGBGTGTDSGNFSGPFSGAGFA999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999TESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999PYOTA9UNIT9TESTS99999999999NYBKIVD99B99999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    self.assertEqual(
-      response['trytes'][1],
-      TryteString('FSG9GTGHEEASG9GSGNFEATGFETGVDSGAGSGWFEATGUDTGVDSGSFSG9GSGSFSAEASGKETGDEEASGRFSGAGSGYFSGTFSG9GTGDEEASGZFSGSFSG9GTGHEEASG9GSGNFEATGFETGVDSGAGSGWFEATGUDTGVDSGSFSG9GSGSFSAEASGUETGDEEASGVFTGUDSGBGSGAGSGYFTGEESGUFTGWDSGSFSGZFEATGVDSGNFSGXFSGVFSGSFEATGUDSGYFSGAGSGPFSGNFQAEASGXFSGNFSGXFEATG9ESGSFTGUDTGVDTGEEQAEASGXFSGAGSGRFQAEASGPFSGSFTGTDSG9GSGAGTGUDTGVDTGEEEASASASAEASGZFTGDEEASGVFTGUDSGBGSGAGSGYFTGEESGUFTGWDSGSFSGZFEATGFETGVDSGVFEATGUDSGYFSGAGSGPFSGNFEASGPFEASGXFSGNFTG9ESGSFTGUDTGVDSGPFSGSFEASGAGTGUDSG9GSGAGSGPFTGDEEASGXFEASGTFSGVFSGUFSG9GSGVFEASGBGTGTDSGAGSGPFSGSFSGYFQAEASGUFSGNFTGBESGVFTGBESGNFTGHEEATG9ETGVDSGAGRATGVDSGAGSAEASGKETGDEEASGZFSGAGSGTFSGSFTGVDSGSFEASGVFTGUDSGBGSGAGSGYFTGEESGUFSGAGSGPFSGNFTGVDTGEEEASGVFSGZFQAEASGXFSGNFSGXFEASGBGTGWDSGNFSG9GTGVDSGNFSAEASGAFEASGZFSGSFSG9GTGHEEASG9GSGSFTGVDEASG9GSGVFEASGPFTGTDSGSFSGZFSGSFSG9GSGVFQAEASG9GSGVFEASGTFSGSFSGYFSGNFSG9GSGVFTGHEQAEATG9ETGVDSGAGSGOFTGDEEASGAGSGOFTGCETGHETGUDSG9GSGVFTGVDTGEETGUDTGHEEATGUDEATG9ESGSFSGYFSGAGSGPFSGSFSGXFSGAGSGZFQAEASGXFSGAGTGVDSGAGTGTDTGDESGWFEASGBGSGAGSGRFSG9GSGVFSGZFSGNFSGSFTGVDTGUDTGHEEASGVFEATGUDSGBGSGVFTGVDEASGBGSGAGSGRFEASGAGSGRFSGSFTGHESGYFSGAGSGZFEATGUDSGNFSGZFSGAGSGWFEATGUDSGPFSGAGSGOFSGAGSGRFTGDEEATGHEEASGAGSGOFSGSFTGUDSGBGSGSFTG9ESGVFSGPFSGNFTGGEQAEATGVDSGAGEATGUDTGVDSGNFSGPFSGVFTGVDEASGBGSGAGSGRFEATGUDSGAGSGZFSG9GSGSFSG9GSGVFSGSFEATGVDSGAGQAEASGXFSGNFSGXFSGVFSGZFEASGAGSGOFTGTDSGNFSGUFSGAGSGZFEATGHEEASGBGTGTDSGSFSGRFSGAGTGUDTGVDSGNFSGPFSGVFTGVDTGEEEASGSFSGZFTGWDFAEASGMFEASGOFTGDEEASGBGTGTDSGSFSGRFSGBGSGAGTG9ESGSFSGYFQAEATG9ETGVDSGAGSGOFTGDEEASGPFTGDEEASGBGTGTDSGAGTGUDTGVDSGAGEATGUDSGXFSGNFSGUFSGNFSGYFEATGUDSGBGSGNFTGUDSGVFSGOFSGAGEASGVFEASGBGSGAGTGAESGSFSGYFEASG9GSGNFEATGUDSGPFSGAGSGSFSGZFEASGBGTGWDTGVDSGVFSAEASGKEEASGBGTGTDSGAGTGVDSGVFSGPFSG9GSGAGSGZFEATGUDSGYFTGWDTG9ESGNFSGSFQAEATGHEEASGBGTGTDSGSFSGRFSGYFSGNFSGQFSGNFTGGEEASGPFSGNFSGZFEASGBGSGAGSGRFSGAGSGOFTGTDSGNFTGVDTGEEEASGAGTGTDTGWDSGTFSGVFSGSFEASGVFEASGPFTGUDTGVDSGNFTGVDTGEEEASGBGSGAGTGUDTGVDSAEASGKEEASGYFTGGESGOFSGAGSGZFEATGUDSGYFTGWDTG9ESGNFSGSFQAEATGHEEASG9GSGSFEASG9GSGNFSGBGSGYFSGSFSGPFSGNFTGVDTGEEQAEATG9ETGVDSGAGEASGPFTGDEEASGRFTGWDSGZFSGNFSGSFTGVDSGSFQAEATG9ETGVDSGAGEASGPFTGDEEASGVFSGZFSGSFSGSFTGVDSGSFTESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999PYOTA9UNIT9TESTS99999999999NYBKIVD99A99999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        self.assertEqual(
+            response['trytes'][1],
+            TryteString(
+                'FSG9GTGHEEASG9GSGNFEATGFETGVDSGAGSGWFEATGUDTGVDSGSFSG9GSGSFSAEASGKETGDEEASGRFSGAGSGYFSGTFSG9GTGDEEASGZFSGSFSG9GTGHEEASG9GSGNFEATGFETGVDSGAGSGWFEATGUDTGVDSGSFSG9GSGSFSAEASGUETGDEEASGVFTGUDSGBGSGAGSGYFTGEESGUFTGWDSGSFSGZFEATGVDSGNFSGXFSGVFSGSFEATGUDSGYFSGAGSGPFSGNFQAEASGXFSGNFSGXFEATG9ESGSFTGUDTGVDTGEEQAEASGXFSGAGSGRFQAEASGPFSGSFTGTDSG9GSGAGTGUDTGVDTGEEEASASASAEASGZFTGDEEASGVFTGUDSGBGSGAGSGYFTGEESGUFTGWDSGSFSGZFEATGFETGVDSGVFEATGUDSGYFSGAGSGPFSGNFEASGPFEASGXFSGNFTG9ESGSFTGUDTGVDSGPFSGSFEASGAGTGUDSG9GSGAGSGPFTGDEEASGXFEASGTFSGVFSGUFSG9GSGVFEASGBGTGTDSGAGSGPFSGSFSGYFQAEASGUFSGNFTGBESGVFTGBESGNFTGHEEATG9ETGVDSGAGRATGVDSGAGSAEASGKETGDEEASGZFSGAGSGTFSGSFTGVDSGSFEASGVFTGUDSGBGSGAGSGYFTGEESGUFSGAGSGPFSGNFTGVDTGEEEASGVFSGZFQAEASGXFSGNFSGXFEASGBGTGWDSGNFSG9GTGVDSGNFSAEASGAFEASGZFSGSFSG9GTGHEEASG9GSGSFTGVDEASG9GSGVFEASGPFTGTDSGSFSGZFSGSFSG9GSGVFQAEASG9GSGVFEASGTFSGSFSGYFSGNFSG9GSGVFTGHEQAEATG9ETGVDSGAGSGOFTGDEEASGAGSGOFTGCETGHETGUDSG9GSGVFTGVDTGEETGUDTGHEEATGUDEATG9ESGSFSGYFSGAGSGPFSGSFSGXFSGAGSGZFQAEASGXFSGAGTGVDSGAGTGTDTGDESGWFEASGBGSGAGSGRFSG9GSGVFSGZFSGNFSGSFTGVDTGUDTGHEEASGVFEATGUDSGBGSGVFTGVDEASGBGSGAGSGRFEASGAGSGRFSGSFTGHESGYFSGAGSGZFEATGUDSGNFSGZFSGAGSGWFEATGUDSGPFSGAGSGOFSGAGSGRFTGDEEATGHEEASGAGSGOFSGSFTGUDSGBGSGSFTG9ESGVFSGPFSGNFTGGEQAEATGVDSGAGEATGUDTGVDSGNFSGPFSGVFTGVDEASGBGSGAGSGRFEATGUDSGAGSGZFSG9GSGSFSG9GSGVFSGSFEATGVDSGAGQAEASGXFSGNFSGXFSGVFSGZFEASGAGSGOFTGTDSGNFSGUFSGAGSGZFEATGHEEASGBGTGTDSGSFSGRFSGAGTGUDTGVDSGNFSGPFSGVFTGVDTGEEEASGSFSGZFTGWDFAEASGMFEASGOFTGDEEASGBGTGTDSGSFSGRFSGBGSGAGTG9ESGSFSGYFQAEATG9ETGVDSGAGSGOFTGDEEASGPFTGDEEASGBGTGTDSGAGTGUDTGVDSGAGEATGUDSGXFSGNFSGUFSGNFSGYFEATGUDSGBGSGNFTGUDSGVFSGOFSGAGEASGVFEASGBGSGAGTGAESGSFSGYFEASG9GSGNFEATGUDSGPFSGAGSGSFSGZFEASGBGTGWDTGVDSGVFSAEASGKEEASGBGTGTDSGAGTGVDSGVFSGPFSG9GSGAGSGZFEATGUDSGYFTGWDTG9ESGNFSGSFQAEATGHEEASGBGTGTDSGSFSGRFSGYFSGNFSGQFSGNFTGGEEASGPFSGNFSGZFEASGBGSGAGSGRFSGAGSGOFTGTDSGNFTGVDTGEEEASGAGTGTDTGWDSGTFSGVFSGSFEASGVFEASGPFTGUDTGVDSGNFTGVDTGEEEASGBGSGAGTGUDTGVDSAEASGKEEASGYFTGGESGOFSGAGSGZFEATGUDSGYFTGWDTG9ESGNFSGSFQAEATGHEEASG9GSGSFEASG9GSGNFSGBGSGYFSGSFSGPFSGNFTGVDTGEEQAEATG9ETGVDSGAGEASGPFTGDEEASGRFTGWDSGZFSGNFSGSFTGVDSGSFQAEATG9ETGVDSGAGEASGPFTGDEEASGVFSGZFSGSFSGSFTGVDSGSFTESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999PYOTA9UNIT9TESTS99999999999NYBKIVD99A99999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )
 
-    self.assertEqual(
-      response['trytes'][2],
-      TryteString('SGKETGDEEASG9GSGSFEASGZFSGAGSGTFSGSFTGVDSGSFEATGUDSGBGTGTDSGNFSGPFSGVFTGVDTGEETGUDTGHEEASGBGTGTDSGNFSGPFSGRFTGWDFAEASGZETGDESG9GQAEASGZFTGDEEASGTFSGVFSGPFSGSFSGZFEASGPFEASGZFSGVFTGTDSGSFQAEASGXFSGAGTGVDSGAGTGTDTGDESGWFEASGVFSGZFSGSFSGSFTGVDEATGUDTGVDSGSFSG9GTGDESAEASGQEEATGFETGVDSGVFEATGUDTGVDSGSFSG9GTGDEEASGRFSGAGSGYFSGTFSG9GTGDEEASGOFTGDETGVDTGEEEASGAGTGYDTGTDSGNFSG9GTGHETGGETGVDEASGYFTGGESGRFSGVFEATGUDEASGAGTGTDTGWDSGTFSGVFSGSFSGZFSAEASGSETGVDSGAGEASGOFTGWDSGRFSGSFTGVDEATGFETGVDSGAGEASGRFSGSFSGYFSGNFTGVDTGEEIBEASGKETGDEIBEASGKETGDEQAEASGYFSGSFSGWFTGVDSGSFSG9GSGNFSG9GTGVDEAFCTCXCBDQCTCFDVCIBEASGAFEASGZFSGSFSG9GTGHEEASGSFTGUDTGVDTGEEEASGOFSGAGSGYFTGEETGAESGNFTGHEEASGAGTGVDSGPFSGSFTGVDTGUDTGVDSGPFSGSFSG9GSG9GSGAGTGUDTGVDTGEEQAEATG9ESGSFSGZFEASGPFTGDEEASGZFSGAGSGTFSGSFTGVDSGSFEASGBGSGAGSG9GTGHETGVDTGEESAEASG9FTGDEEASGBGSGYFSGNFTG9ESGSFTGAETGEEEASGZESGNFSG9GTGVDTGEETGHESGQFSGAGEASGVFEASGBGTGTDSGAGSGXFSGYFTGHESG9GSGVFEASGZFSGAGTGTDTGUDSGXFSGVFTGYDEASGBGSGSFTGYDSGAGTGVDSGVFSG9GTGZDSGSFSGPFSAEASGAFEASGPFSGNFTGUDEASGSFTGUDTGVDTGEEEATGVDSGNFSGXFSGAGSGWFEATGTDSGAGTGUDSGXFSGAGTGAESGVFSAEASGAFEASGPFSGNFTGUDEASGSFTGUDTGVDTGEEEATGTDSGAGTGUDSGXFSGAGTGAETGEEQAEASG9GSGSFEASGUFSG9GSGNFTGHEQAEATG9ETGVDSGAGEATGHEEASGUFSG9GSGNFTGGEDBEATG9ETGVDSGAGEATGUDSGZFSGSFTGTDTGVDTGEEEASGZESGNFSG9GTGVDTGEETGHESGQFSGAGQAEASGPFEATGVDSGAGEASGPFTGTDSGSFSGZFTGHEEASGXFSGNFSGXFEATGVDTGTDSGNFSGQFSGVFTG9ESGSFTGUDSGXFSGVFSGWFQAEASGPFSGSFTGTDSGAGTGHETGVDSG9GSGAGQAEATGUDSGBGSGNFTGUDEASGTFSGVFSGUFSG9GTGEESAEASGQEEASGZFSGAGSGSFEATGUDTGWDTGBESGSFTGUDTGVDSGPFSGAGSGPFSGNFSG9GSGVFSGSFQAEASGPFEATGVDSGAGEASGPFTGTDSGSFSGZFTGHEEASGXFSGNFSGXFEASGQFTGTDSGAGTGVDSGSFTGUDSGXFEASGVFEASG9GSGSFSGBGSGAGSG9GTGHETGVDSG9GTGDESGZFSGVFEASGRFSGYFTGHEEASGPFSGNFTGUDQAEATGUDSGBGSGNFTGUDSGNFSGSFTGVDEASGTFSGVFSGUFSG9GSGVFEASASASAEASGKETGDEEASG9GSGSFEATGYDSGAGTGVDSGVFTGVDSGSFEASGUFSG9GSGNFTGVDTGEEEASGBGTGTDSGNFSGPFSGRFTGWDSAEASGXESGAGTGVDSGAGSGZFTGWDEATG9ETGVDSGAGEASGPFEASGQFSGYFTGWDSGOFSGVFSG9GSGSFEASGRFTGWDTGAESGVFQAEASGPFEATGVDSGSFTGYDEASGZFSGSFTGUDTGVDSGNFTGYDQAEASGPFTGDEEASG9GSGSFEASGQFSGAGSGPFSGAGTGTDSGVFTGVDSGSFEASGAGEASG9GSGNFEASGPFSGSFTG9ESGSFTGTDSGVFSG9GSGXFSGNFTGYDQAEASGPFTGDEEATGYDSGAGTGVDSGVFTGVDSGSFEASGZFSGSTESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999GFOTA9UNIT9TESTS99999999999NYBKIVD99999999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),
-    )
+        self.assertEqual(
+            response['trytes'][2],
+            TryteString(
+                'SGKETGDEEASG9GSGSFEASGZFSGAGSGTFSGSFTGVDSGSFEATGUDSGBGTGTDSGNFSGPFSGVFTGVDTGEETGUDTGHEEASGBGTGTDSGNFSGPFSGRFTGWDFAEASGZETGDESG9GQAEASGZFTGDEEASGTFSGVFSGPFSGSFSGZFEASGPFEASGZFSGVFTGTDSGSFQAEASGXFSGAGTGVDSGAGTGTDTGDESGWFEASGVFSGZFSGSFSGSFTGVDEATGUDTGVDSGSFSG9GTGDESAEASGQEEATGFETGVDSGVFEATGUDTGVDSGSFSG9GTGDEEASGRFSGAGSGYFSGTFSG9GTGDEEASGOFTGDETGVDTGEEEASGAGTGYDTGTDSGNFSG9GTGHETGGETGVDEASGYFTGGESGRFSGVFEATGUDEASGAGTGTDTGWDSGTFSGVFSGSFSGZFSAEASGSETGVDSGAGEASGOFTGWDSGRFSGSFTGVDEATGFETGVDSGAGEASGRFSGSFSGYFSGNFTGVDTGEEIBEASGKETGDEIBEASGKETGDEQAEASGYFSGSFSGWFTGVDSGSFSG9GSGNFSG9GTGVDEAFCTCXCBDQCTCFDVCIBEASGAFEASGZFSGSFSG9GTGHEEASGSFTGUDTGVDTGEEEASGOFSGAGSGYFTGEETGAESGNFTGHEEASGAGTGVDSGPFSGSFTGVDTGUDTGVDSGPFSGSFSG9GSG9GSGAGTGUDTGVDTGEEQAEATG9ESGSFSGZFEASGPFTGDEEASGZFSGAGSGTFSGSFTGVDSGSFEASGBGSGAGSG9GTGHETGVDTGEESAEASG9FTGDEEASGBGSGYFSGNFTG9ESGSFTGAETGEEEASGZESGNFSG9GTGVDTGEETGHESGQFSGAGEASGVFEASGBGTGTDSGAGSGXFSGYFTGHESG9GSGVFEASGZFSGAGTGTDTGUDSGXFSGVFTGYDEASGBGSGSFTGYDSGAGTGVDSGVFSG9GTGZDSGSFSGPFSAEASGAFEASGPFSGNFTGUDEASGSFTGUDTGVDTGEEEATGVDSGNFSGXFSGAGSGWFEATGTDSGAGTGUDSGXFSGAGTGAESGVFSAEASGAFEASGPFSGNFTGUDEASGSFTGUDTGVDTGEEEATGTDSGAGTGUDSGXFSGAGTGAETGEEQAEASG9GSGSFEASGUFSG9GSGNFTGHEQAEATG9ETGVDSGAGEATGHEEASGUFSG9GSGNFTGGEDBEATG9ETGVDSGAGEATGUDSGZFSGSFTGTDTGVDTGEEEASGZESGNFSG9GTGVDTGEETGHESGQFSGAGQAEASGPFEATGVDSGAGEASGPFTGTDSGSFSGZFTGHEEASGXFSGNFSGXFEATGVDTGTDSGNFSGQFSGVFTG9ESGSFTGUDSGXFSGVFSGWFQAEASGPFSGSFTGTDSGAGTGHETGVDSG9GSGAGQAEATGUDSGBGSGNFTGUDEASGTFSGVFSGUFSG9GTGEESAEASGQEEASGZFSGAGSGSFEATGUDTGWDTGBESGSFTGUDTGVDSGPFSGAGSGPFSGNFSG9GSGVFSGSFQAEASGPFEATGVDSGAGEASGPFTGTDSGSFSGZFTGHEEASGXFSGNFSGXFEASGQFTGTDSGAGTGVDSGSFTGUDSGXFEASGVFEASG9GSGSFSGBGSGAGSG9GTGHETGVDSG9GTGDESGZFSGVFEASGRFSGYFTGHEEASGPFSGNFTGUDQAEATGUDSGBGSGNFTGUDSGNFSGSFTGVDEASGTFSGVFSGUFSG9GSGVFEASASASAEASGKETGDEEASG9GSGSFEATGYDSGAGTGVDSGVFTGVDSGSFEASGUFSG9GSGNFTGVDTGEEEASGBGTGTDSGNFSGPFSGRFTGWDSAEASGXESGAGTGVDSGAGSGZFTGWDEATG9ETGVDSGAGEASGPFEASGQFSGYFTGWDSGOFSGVFSG9GSGSFEASGRFTGWDTGAESGVFQAEASGPFEATGVDSGSFTGYDEASGZFSGSFTGUDTGVDSGNFTGYDQAEASGPFTGDEEASG9GSGSFEASGQFSGAGSGPFSGAGTGTDSGVFTGVDSGSFEASGAGEASG9GSGNFEASGPFSGSFTG9ESGSFTGTDSGVFSG9GSGXFSGNFTGYDQAEASGPFTGDEEATGYDSGAGTGVDSGVFTGVDSGSFEASGZFSGSTESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999GFOTA9UNIT9TESTS99999999999NYBKIVD99999999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),  # noqa:E501
+        )

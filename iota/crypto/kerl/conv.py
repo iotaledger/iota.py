@@ -1,43 +1,43 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
+    unicode_literals
 
 BYTE_HASH_LENGTH = 48
 TRIT_HASH_LENGTH = 243
 
 tryte_table = {
-        '9': [ 0,  0,  0],  #   0
-        'A': [ 1,  0,  0],  #   1
-        'B': [-1,  1,  0],  #   2
-        'C': [ 0,  1,  0],  #   3
-        'D': [ 1,  1,  0],  #   4
-        'E': [-1, -1,  1],  #   5
-        'F': [ 0, -1,  1],  #   6
-        'G': [ 1, -1,  1],  #   7
-        'H': [-1,  0,  1],  #   8
-        'I': [ 0,  0,  1],  #   9
-        'J': [ 1,  0,  1],  #  10
-        'K': [-1,  1,  1],  #  11
-        'L': [ 0,  1,  1],  #  12
-        'M': [ 1,  1,  1],  #  13
-        'N': [-1, -1, -1],  # -13
-        'O': [ 0, -1, -1],  # -12
-        'P': [ 1, -1, -1],  # -11
-        'Q': [-1,  0, -1],  # -10
-        'R': [ 0,  0, -1],  #  -9
-        'S': [ 1,  0, -1],  #  -8
-        'T': [-1,  1, -1],  #  -7
-        'U': [ 0,  1, -1],  #  -6
-        'V': [ 1,  1, -1],  #  -5
-        'W': [-1, -1,  0],  #  -4
-        'X': [ 0, -1,  0],  #  -3
-        'Y': [ 1, -1,  0],  #  -2
-        'Z': [-1,  0,  0],  #  -1
-        }
+    '9': [0, 0, 0],  # 0
+    'A': [1, 0, 0],  # 1
+    'B': [-1, 1, 0],  # 2
+    'C': [0, 1, 0],  # 3
+    'D': [1, 1, 0],  # 4
+    'E': [-1, -1, 1],  # 5
+    'F': [0, -1, 1],  # 6
+    'G': [1, -1, 1],  # 7
+    'H': [-1, 0, 1],  # 8
+    'I': [0, 0, 1],  # 9
+    'J': [1, 0, 1],  # 10
+    'K': [-1, 1, 1],  # 11
+    'L': [0, 1, 1],  # 12
+    'M': [1, 1, 1],  # 13
+    'N': [-1, -1, -1],  # -13
+    'O': [0, -1, -1],  # -12
+    'P': [1, -1, -1],  # -11
+    'Q': [-1, 0, -1],  # -10
+    'R': [0, 0, -1],  # -9
+    'S': [1, 0, -1],  # -8
+    'T': [-1, 1, -1],  # -7
+    'U': [0, 1, -1],  # -6
+    'V': [1, 1, -1],  # -5
+    'W': [-1, -1, 0],  # -4
+    'X': [0, -1, 0],  # -3
+    'Y': [1, -1, 0],  # -2
+    'Z': [-1, 0, 0],  # -1
+}
 
 # Invert for trit -> tryte lookup
 trit_table = {tuple(v): k for k, v in tryte_table.items()}
+
 
 def trytes_to_trits(trytes):
     trits = []
@@ -45,6 +45,7 @@ def trytes_to_trits(trytes):
         trits.extend(tryte_table[tryte])
 
     return trits
+
 
 def trits_to_trytes(trits):
     trytes = []
@@ -55,15 +56,18 @@ def trits_to_trytes(trits):
 
     return ''.join(trytes)
 
+
 def convertToTrits(bytes_k):
     bigInt = convertBytesToBigInt(bytes_k)
     trits = convertBigintToBase(bigInt, 3, TRIT_HASH_LENGTH)
     return trits
 
+
 def convertToBytes(trits):
     bigInt = convertBaseToBigint(trits, 3)
     bytes_k = convertBigintToBytes(bigInt)
     return bytes_k
+
 
 def convertBytesToBigInt(ba):
     # copy of array
@@ -94,7 +98,7 @@ def convertBigintToBytes(big):
 
     # big endian and balanced
     bytesArray = list(map(lambda x: (x if x <= 0x7F else x - 0x100),
-                     reversed(bytesArrayTemp)))
+                          reversed(bytesArrayTemp)))
 
     if big < 0:
         # 1-compliment
@@ -109,6 +113,7 @@ def convertBigintToBytes(big):
 
     return bytesArray
 
+
 def convertBaseToBigint(array, base):
     bigint = 0
 
@@ -117,13 +122,14 @@ def convertBaseToBigint(array, base):
 
     return bigint
 
+
 def convertBigintToBase(bigInt, base, length):
     result = []
 
     is_negative = bigInt < 0
     quotient = abs(bigInt)
 
-    MAX = (base-1) // 2
+    MAX = (base - 1) // 2
     if is_negative:
         MAX = base // 2
 
@@ -141,6 +147,7 @@ def convertBigintToBase(bigInt, base, length):
         result.append(remainder)
 
     return result
+
 
 def convert_sign(byte):
     """

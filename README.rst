@@ -45,8 +45,6 @@ To install this extension, use the following command::
    pip install pyota[ccurl]
 
 
-.. _readme-installing-from-source:
-
 Installing from Source
 ======================
 
@@ -70,7 +68,7 @@ Documentation
 =============
 PyOTA's documentation is available on `ReadTheDocs`_.
 
-If you are :ref:`installing from source <readme-installing-from-source>`, you
+If you are installing from source (see above), you
 can also build the documentation locally:
 
 #. Install extra dependencies (you only have to do this once)::

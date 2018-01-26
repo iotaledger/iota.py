@@ -22,9 +22,13 @@ def find_transaction_objects(adapter, **kwargs):
     Finds transactions matching the specified criteria, fetches the
     corresponding trytes and converts them into Transaction objects.
     """
-    ft_response = FindTransactionsCommand(adapter)(**kwargs)
 
-    hashes = ft_response['hashes']
+    if 'hashes' in kwargs:
+        hashes = kwargs['hashes']
+    else:
+        ft_response = FindTransactionsCommand(adapter)(**kwargs)
+
+        hashes = ft_response['hashes']
 
     if hashes:
       gt_response = GetTrytesCommand(adapter)(hashes=hashes)

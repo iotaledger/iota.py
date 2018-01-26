@@ -1,5 +1,5 @@
 Core API
-============
+========
 
 The Core API includes all of the core API calls that are made
 available by the current `IOTA Reference

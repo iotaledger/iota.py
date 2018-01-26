@@ -14,24 +14,24 @@ from iota.crypto.addresses import AddressGenerator
 
 
 def find_transaction_objects(adapter, **kwargs):
-        # type: (BaseAdapter, **Iterable) -> List[Transaction]
-        """
-        Finds transactions matching the specified criteria, fetches the
-        corresponding trytes and converts them into Transaction objects.
-        """
-        ft_response = FindTransactionsCommand(adapter)(**kwargs)
+    # type: (BaseAdapter, **Iterable) -> List[Transaction]
+    """
+    Finds transactions matching the specified criteria, fetches the
+    corresponding trytes and converts them into Transaction objects.
+    """
+    ft_response = FindTransactionsCommand(adapter)(**kwargs)
 
-        hashes = ft_response['hashes']
+    hashes = ft_response['hashes']
 
-        if hashes:
-            gt_response = GetTrytesCommand(adapter)(hashes=hashes)
+    if hashes:
+        gt_response = GetTrytesCommand(adapter)(hashes=hashes)
 
-            return list(map(
-                Transaction.from_tryte_string,
-                gt_response.get('trytes') or []
-            ))  # type: List[Transaction]
+        return list(map(
+            Transaction.from_tryte_string,
+            gt_response.get('trytes') or []
+        ))  # type: List[Transaction]
 
-        return []
+    return []
 
 
 def iter_used_addresses(adapter, seed, start):

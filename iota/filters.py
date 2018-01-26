@@ -2,13 +2,13 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import filters as f
+import filters as flt
 from six import binary_type, moves as compat, text_type
 
 from iota import Address, TryteString
 
 
-class GeneratedAddress(f.BaseFilter):
+class GeneratedAddress(flt.BaseFilter):
     """
     Validates an incoming value as a generated :py:class:`Address` (must
     have ``key_index`` set).
@@ -25,7 +25,7 @@ class GeneratedAddress(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(Address))  # type: Address
+        value = self._filter(value, flt.Type(Address))  # type: Address
 
         if self._has_errors:
             return None
@@ -39,7 +39,7 @@ class GeneratedAddress(f.BaseFilter):
         return value
 
 
-class NodeUri(f.BaseFilter):
+class NodeUri(flt.BaseFilter):
     """
     Validates a string as a node URI.
     """
@@ -55,7 +55,7 @@ class NodeUri(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(text_type))  # type: Text
+        value = self._filter(value, flt.Type(text_type))  # type: Text
 
         if self._has_errors:
             return None
@@ -68,7 +68,7 @@ class NodeUri(f.BaseFilter):
         return value
 
 
-class Trytes(f.BaseFilter):
+class Trytes(flt.BaseFilter):
     """
     Validates a sequence as a sequence of trytes.
     """
@@ -111,8 +111,8 @@ class Trytes(f.BaseFilter):
         # noinspection PyTypeChecker
         value =\
             self._filter(
-                filter_chain=f.Type((binary_type, bytearray,
-                                     text_type, TryteString)),
+                filter_chain=flt.Type((binary_type, bytearray,
+                                       text_type, TryteString)),
                 value=value,
             )  # type: TrytesCompatible
 

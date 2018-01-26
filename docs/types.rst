@@ -65,13 +65,13 @@ Encoding
 
     from iota import TryteString
 
-    message_trytes = TryteString.from_string('Hello, IOTA!')
+    message_trytes = TryteString.from_unicode('Hello, IOTA!')
 
 To encode character data into trytes, use the
-``TryteString.from_string`` method.
+``TryteString.from_unicode`` method.
 
 You can also convert a tryte sequence into characters using
-``TryteString.as_string``. Note that not every tryte sequence can be
+``TryteString.decode``. Note that not every tryte sequence can be
 converted; garbage in, garbage out!
 
 .. code:: python
@@ -79,7 +79,7 @@ converted; garbage in, garbage out!
     from iota import TryteString
 
     trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
-    message = trytes.as_string()
+    message = trytes.decode()
 
 .. note::
 
@@ -158,6 +158,9 @@ Each ``Transaction`` has the following attributes:
 -  ``address: Address``: The address associated with this transaction.
    Depending on the transaction's ``value``, this address may be a
    sender or a recipient.
+-  ``attachment_timestamp: int``: Estimated epoch time of the attachment to the tangle.
+-  ``attachment_time_lower_bound: int``: The lowest possible epoch time of the attachment to the tangle.
+-  ``attachment_time_upper_bound: int``: The highest possible epoch time of the attachment to the tangle.
 -  ``branch_transaction_hash: TransactionHash``: An unrelated
    transaction that this transaction "approves". Refer to the Basic
    Concepts section for more information.
@@ -179,6 +182,7 @@ Each ``Transaction`` has the following attributes:
 -  ``last_index: int``: The index of the final transaction in the
    bundle. This value is attached to every transaction to make it easier
    to traverse and verify bundles.
+-  ``legacy_tag: Tag``: A short message attached to the transaction. Deprecated, use ``tag`` instead.
 -  ``nonce: Hash``: This is the product of the PoW process.
 -  ``signature_message_fragment: Fragment``: Additional data attached to
    the transaction:
@@ -222,7 +226,7 @@ hasn't been broadcast yet.
             b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
           ),
 
-        message = TryteString.from_string('thx fur cheezburgers'),
+        message = TryteString.from_unicode('thx fur cheezburgers'),
         tag     = Tag(b'KITTEHS'),
         value   = 42,
       )

@@ -4,8 +4,12 @@ python:
   - '2.7'
   - '3.5'
   - '3.6'
-install: pip install .
-script: nosetests
+install:
+  - pip install .
+  - pip install docutils # Used to check package metadata.
+script:
+  - python setup.py check --strict --metadata --restructuredtext
+  - nosetests
 deploy:
   on:
     python: '3.6'

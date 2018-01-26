@@ -16,7 +16,7 @@ Join the Discussion
 ===================
 If you want to get involved in the community, need help with getting setup,
 have any issues related with the library or just want to discuss Blockchain,
-Distributed Ledgers and IoT with other people, feel free to join our `Slack`_.
+Distributed Ledgers and IoT with other people, feel free to join our `Discord`_.
 
 You can also ask questions on our `dedicated forum`_.
 
@@ -45,8 +45,6 @@ To install this extension, use the following command::
    pip install pyota[ccurl]
 
 
-.. _readme-installing-from-source:
-
 Installing from Source
 ======================
 
@@ -60,17 +58,24 @@ To run unit tests after installing from source::
 
   python setup.py test
 
-PyOTA is also compatible with `tox`_::
+PyOTA is also compatible with `tox`_, which will run the unit tests in different
+virtual environments (one for each supported version of Python).
 
-  pip install tox
-  tox
+To run the unit tests, it is recommended that you use the `detox`_ library.
+detox speeds up the tests by running them in parallel.
+
+Install PyOTA with the ``test-runner`` extra to set up the necessary
+dependencies, and then you can run the tests with the ``detox`` command::
+
+  pip install -e .[test-runner]
+  detox -v
 
 =============
 Documentation
 =============
 PyOTA's documentation is available on `ReadTheDocs`_.
 
-If you are :ref:`installing from source <readme-installing-from-source>`, you
+If you are installing from source (see above), you
 can also build the documentation locally:
 
 #. Install extra dependencies (you only have to do this once)::
@@ -93,9 +98,10 @@ can also build the documentation locally:
       make html
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
+.. _Discord: https://discordapp.com/invite/yxve4wu
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
-.. _Slack: https://slack.iota.org/
 .. _dedicated forum: https://forum.iota.org/
+.. _detox: https://pypi.python.org/pypi/detox
 .. _official API: https://iota.readme.io/
 .. _tox: https://tox.readthedocs.io/

@@ -340,8 +340,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             sponge = Kerl()
             last_index = len(self) - 1
 
-            # type: Tuple[int, ProposedTransaction]
-            for (i, txn) in enumerate(self):
+            for (i, txn) in enumerate(self):  # type: Tuple[int, ProposedTransaction]
                 txn.current_index = i
                 txn.last_index = last_index
 

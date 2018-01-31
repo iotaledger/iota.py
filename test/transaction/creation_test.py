@@ -864,3 +864,20 @@ They both licked their dry lips.
 
     with self.assertRaises(ValueError):
       self.bundle.sign_input_at(1, private_key)
+
+  def test_create_tag_from_string(self):
+    """
+    Check if string value of tag is converted into a Tag object
+    """
+
+    transaction = ProposedTransaction(
+      address=
+      Address(
+        b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+        b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+      ),
+      tag="AAAZZZZ999",
+      value=42,
+    )
+
+    self.assertEqual(type(transaction.tag), type(Tag(b'')))

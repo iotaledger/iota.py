@@ -8,7 +8,7 @@ from iota import Bundle
 from iota.crypto.types import Seed, Digest
 
 
-class FlashUser:
+class FlashUser(object):
   """
   Object representing a user withing a Flash channel
   """
@@ -25,7 +25,7 @@ class FlashUser:
     self.partial_digests = []  # type: List[Digest]
 
 
-class FlashState:
+class FlashState(object):
   """
   Object storing information of the current state of the channel
   """

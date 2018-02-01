@@ -3,7 +3,7 @@ from typing import Iterable
 from iota.commands import discover_commands
 from iota.crypto.types import Digest
 from iota.flash.commands.create_transaction import CreateFlashTransactionCommand
-from iota.flash.commands.multisig.compose_address import ComposeAddressNodeCommand
+from iota.flash.commands.multisig.compose_address_node import ComposeAddressNodeCommand
 from iota.flash.types import FlashUser
 from iota.multisig import MultisigIota
 
@@ -56,7 +56,7 @@ class FlashIota(MultisigIota):
     """
 
     :param user: Flash object of user storing relevant metadata of the channel
-    :param transactions: list of transaction, wnich should be executed
+    :param transactions: list of transaction, which should be executed
     :param close: Flag indicating a closing of the channel
     :return:
       Dict with the following items::

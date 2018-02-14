@@ -189,8 +189,8 @@ class PrivateKey(TryteString):
       sponge.absorb(key_fragment)
       sponge.squeeze(hash_trits)
 
-      fragment_start  = i * FRAGMENT_LENGTH
-      fragment_end    = fragment_start + FRAGMENT_LENGTH
+      fragment_start  = i * HASH_LENGTH
+      fragment_end    = fragment_start + HASH_LENGTH
 
       digest[fragment_start:fragment_end] = hash_trits
 

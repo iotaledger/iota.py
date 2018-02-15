@@ -25,3 +25,4 @@ from .get_trytes import *
 from .interrupt_attaching_to_tangle import *
 from .remove_neighbors import *
 from .store_transactions import *
+from .were_addresses_spent_from import *

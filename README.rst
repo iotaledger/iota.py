@@ -98,7 +98,7 @@ can also build the documentation locally:
       make html
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
-.. _Discord: https://discordapp.com/invite/yxve4wu
+.. _Discord: https://discord.gg/7Gu2mG5
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
 .. _dedicated forum: https://forum.iota.org/

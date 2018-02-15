@@ -417,6 +417,22 @@ class StrictIota(with_metaclass(ApiMeta)):
     """
     return core.StoreTransactionsCommand(self.adapter)(trytes=trytes)
 
+  def were_addresses_spent_from(self, addresses):
+    # type: (Iterable[Address]) -> dict
+    """
+    Check if a list of addresses was ever spent from, in the current
+    epoch, or in previous epochs.
+
+    :param addresses:
+      List of addresses to check.
+
+    References:
+      - https://iota.readme.io/docs/wereaddressesspentfrom
+    """
+    return core.WereAddressesSpentFromCommand(self.adapter)(
+      addresses = addresses,
+    )
+
 
 class Iota(StrictIota):
   """

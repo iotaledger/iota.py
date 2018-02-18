@@ -11,6 +11,7 @@ from sys import stderr
 
 from six import text_type
 from six.moves import http_client
+from typing import Any  # noqa
 
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
@@ -26,7 +27,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
     Creates an IOTA API instance and drops the user into a REPL.
     """
     def execute(self, api, **arguments):
-        # type: (Iota, ...) -> int
+        # type: (Iota, **Any) -> int
         debug_requests = arguments['debug_requests']
         pow_uri = arguments['pow_uri']
 
@@ -85,12 +86,13 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
         """
         Starts the REPL.
         """
-        _banner = (
-            'IOTA API client for {uri} ({testnet})'
-            ' initialized as variable `api`.\n'
-            'Type `help(api)` for list of API commands.'.format(
-                testnet='testnet' if api.testnet else 'mainnet',
-                uri=api.adapter.get_uri()))
+        banner = (
+          'IOTA API client for {uri} ({testnet}) initialized as variable `api`.\n'
+          'Type `help(api)` for list of API commands.'.format(
+              testnet='testnet' if api.testnet else 'mainnet',
+              uri=api.adapter.get_uri()))
+
+        scope_vars = {'api': api}
 
         try:
             # noinspection PyUnresolvedReferences
@@ -98,10 +100,10 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
         except ImportError:
             # IPython not available; use regular Python REPL.
             from code import InteractiveConsole
-            InteractiveConsole(locals={'api': api}).interact(_banner)
+            InteractiveConsole(locals=scope_vars).interact(banner, '')
         else:
-            # Launch IPython REPL.
-            IPython.embed(header=_banner)
+            print(banner)
+            IPython.start_ipython(argv=[], user_ns=scope_vars)
 
 
 def main():

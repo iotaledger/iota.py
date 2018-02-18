@@ -4,22 +4,22 @@ from __future__ import absolute_import, division, print_function, \
 
 
 def with_context(exc, context):
-  # type: (Exception, dict) -> Exception
-  """
-  Attaches a ``context`` value to an Exception.
+    # type: (Exception, dict) -> Exception
+    """
+    Attaches a ``context`` value to an Exception.
 
-  Before::
+    Before::
 
-     exc = Exception('Frog blast the vent core!')
-     exc.context = { ... }
-     raise exc
+       exc = Exception('Frog blast the vent core!')
+       exc.context = { ... }
+       raise exc
 
-  After::
+    After::
 
-     raise with_context(Exception('Frog blast the vent core!'), { ... })
-  """
-  if not hasattr(exc, 'context'):
-    exc.context = {}
+       raise with_context(Exception('Frog blast the vent core!'), { ... })
+    """
+    if not hasattr(exc, 'context'):
+        exc.context = {}
 
-  exc.context.update(context)
-  return exc
+    exc.context.update(context)
+    return exc

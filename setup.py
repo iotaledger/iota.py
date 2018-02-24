@@ -27,13 +27,23 @@ with open('README.rst', 'r', 'utf-8') as f: # type: StreamReader
 
 
 ##
+# Declare test dependencies separately, so that they can be installed
+# either automatically (``python setup.py test``) or manually
+# (``pip install -e .[test-runner]``).
+tests_require = [
+  'mock; python_version < "3.0"',
+  'nose',
+]
+
+
+##
 # Off we go!
 # noinspection SpellCheckingInspection
 setup(
   name        = 'PyOTA',
   description = 'IOTA API library for Python',
   url         = 'https://github.com/iotaledger/iota.lib.py',
-  version     = '2.0.4',
+  version     = '2.0.5',
 
   long_description = long_description,
 
@@ -67,15 +77,12 @@ setup(
   extras_require = {
     'ccurl': ['pyota-ccurl'],
     'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
-    'test-runner': ['detox'],
+    'test-runner': ['detox'] + tests_require,
   },
 
   test_suite    = 'test',
   test_loader   = 'nose.loader:TestLoader',
-  tests_require = [
-    'mock; python_version < "3.0"',
-    'nose',
-  ],
+  tests_require = tests_require,
 
   license = 'MIT',
 

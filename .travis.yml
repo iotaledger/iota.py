@@ -6,7 +6,7 @@ python:
   - '3.6'
 install:
   - pip install .
-  - pip install docutils # Used to check package metadata.
+  - pip install docutils pygments  # Used to check package metadata.
 script:
   - python setup.py check --strict --metadata --restructuredtext
   - nosetests

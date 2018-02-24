@@ -89,7 +89,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
     """
     Starts the REPL.
     """
-    _banner = (
+    banner = (
       'IOTA API client for {uri} ({testnet}) initialized as variable `api`.\n'
       'Type `help(api)` for list of API commands.'.format(
         testnet = 'testnet' if api.testnet else 'mainnet',
@@ -97,16 +97,18 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
       )
     )
 
+    scope_vars = {'api': api}
+
     try:
       # noinspection PyUnresolvedReferences
       import IPython
     except ImportError:
       # IPython not available; use regular Python REPL.
       from code import InteractiveConsole
-      InteractiveConsole(locals={'api': api}).interact(_banner)
+      InteractiveConsole(locals=scope_vars).interact(banner, '')
     else:
-      # Launch IPython REPL.
-      IPython.embed(header=_banner)
+      print(banner)
+      IPython.start_ipython(argv=[], user_ns=scope_vars)
 
 
 def main():

@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from getpass import getpass as secure_input
 from io import StringIO
 from sys import exit
-from typing import Optional, Text
+from typing import Any, Optional, Text
 
 from six import text_type, with_metaclass
 
@@ -39,7 +39,7 @@ class IotaCommandLineApp(with_metaclass(ABCMeta)):
 
   @abstract_method
   def execute(self, api, **arguments):
-    # type: (Iota, ...) -> Optional[int]
+    # type: (Iota, **Any) -> Optional[int]
     """
     Executes the command and (optionally) returns an exit code (used by
     the shell to determine if the application exited cleanly).

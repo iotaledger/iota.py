@@ -28,7 +28,8 @@ We're pretty open about how people contribute to PyOTA, but there are a few thin
 
 - Please do not post support requests here.  Use the ``#iota-libs-pyota`` channel on `Slack`_ or post in the `forum`_ to ask for help.
 - Please do not propose new API methods here.  There are multiple IOTA API libraries out there, and they must all have the same functionality.
-    - That said, if you have an idea for a new API method, please share it on the ``#developers`` channel in `Slack`_ so that IOTA Foundation members can evaluate it!
+
+  - That said, if you have an idea for a new API method, please share it on the ``#developers`` channel in `Slack`_ so that IOTA Foundation members can evaluate it!
 
 
 Need Some Inspiration?
@@ -54,29 +55,43 @@ Found a bug in the PyOTA code?  Great!  We can't fix bugs we don't know about; y
 Instructions
 ------------
 1. Make sure it really is a PyOTA bug.
-    - Check the traceback, and see if you can narrow down the cause of the bug.
-    - If the error is not directly caused by PyOTA, or if you are unable to figure out what is causing the problem, we're still here for for you!  Post in the ``#iota-libs-pyota`` channel in `Slack`_ for assistance.
+
+   - Check the traceback, and see if you can narrow down the cause of the bug.
+   - If the error is not directly caused by PyOTA, or if you are unable to figure out what is causing the problem, we're still here for for you!  Post in the ``#iota-libs-pyota`` channel in `Slack`_ for assistance.
+
 2. Is it safe to publish details about this bug publicly?
-    - If the bug is security-related (e.g., could compromise a user's seed if exploited), or if it requires sensitive information in order to reproduce (e.g., the private key for an address), please do not post in in the PyOTA Bug Tracker!
-    - To report security-related bugs, please contact ``@phx`` directly in `Slack`_.
+
+   - If the bug is security-related (e.g., could compromise a user's seed if exploited), or if it requires sensitive information in order to reproduce (e.g., the private key for an address), please do not post in in the PyOTA Bug Tracker!
+   - To report security-related bugs, please contact ``@phx`` directly in `Slack`_.
+
 3. Is this a known issue?
-    - Before posting a bug report, check the `PyOTA Bug Tracker`_ to see if there is an existing issue for this bug.
+
+   - Before posting a bug report, check the `PyOTA Bug Tracker`_ to see if there is an existing issue for this bug.
+
 4. Create a new issue in the `PyOTA Bug Tracker`_.
-    - Be sure to include the following information:
-        - Which version of PyOTA you are using.
-        - Which version of Python you are using.
-        - Which operating system you are using.
-        - Instructions to reproduce the bug.
-        - The expected behavior, if applicable.
-        - The full exception traceback, if available.
-            - If the exception also has a context object, please include it.
+
+   - Be sure to include the following information:
+
+     - Which version of PyOTA you are using.
+     - Which version of Python you are using.
+     - Which operating system you are using.
+     - Instructions to reproduce the bug.
+     - The expected behavior, if applicable.
+     - The full exception traceback, if available.
+       - If the exception also has a context object, please include it.
+
 5. Please be nice!
-    - It's frustrating when things don't work the way you expect them to.  We promise we didn't put that bug in there on purpose; we're all human, and we all make mistakes sometimes.
+
+   - It's frustrating when things don't work the way you expect them to.  We promise we didn't put that bug in there on purpose; we're all human, and we all make mistakes sometimes.
+
 6. Please be patient!
-    - We're committed to making to making PyOTA better, but we've also got jobs and other commitments.  We'll respond as soon as we can, but it might be a few days.
+
+   - We're committed to making to making PyOTA better, but we've also got jobs and other commitments.  We'll respond as soon as we can, but it might be a few days.
+
 7. Please be responsive if follow-up is needed.
-    - We may request additional information to help us identify/fix the bug.  The faster you respond to follow-up comments in your bug report, the sooner we can squash that bug!
-    - If someone adds a comment to your bug report, it will appear in the `Notifications`_ page in GitHub.  You can also configure GitHub to `email you`_ when a new comment is posted.
+
+   - We may request additional information to help us identify/fix the bug.  The faster you respond to follow-up comments in your bug report, the sooner we can squash that bug!
+   - If someone adds a comment to your bug report, it will appear in the `Notifications`_ page in GitHub.  You can also configure GitHub to `email you`_ when a new comment is posted.
 
 What You Can Expect
 -------------------
@@ -93,10 +108,14 @@ If you would like to contribute code to the PyOTA project, this section is for y
 Instructions
 ------------
 1. Find an issue in the `PyOTA Bug Tracker`_ to work on.
-    - If you want to work on a bug or feature that doesn't have a GitHub issue yet, create a new one before starting to work on it.  That will give other developers an opportunity to provide feedback and/or suggest changes that will make it integrate better with the rest of the code.
+
+   - If you want to work on a bug or feature that doesn't have a GitHub issue yet, create a new one before starting to work on it.  That will give other developers an opportunity to provide feedback and/or suggest changes that will make it integrate better with the rest of the code.
+
 2. Create a fork of the PyOTA repository.
 3. Create a new branch just for the bug/feature you are working on.
-    - If you want to work on multiple bugs/features, you can use branches to keep them separate, so that you can submit a separate Pull Request for each one.
+
+   - If you want to work on multiple bugs/features, you can use branches to keep them separate, so that you can submit a separate Pull Request for each one.
+
 4. Once you have completed your work, create a Pull Request, ensuring that it meets the requirements listed below.
 
 Requirements for Pull Requests
@@ -110,16 +129,24 @@ If you have any questions, please feel free to post in the ``#iota-libs-pyota`` 
 - Please create Pull Requests against the ``develop`` branch.
 - Please limit each Pull Request to a single bugfix/enhancement.
 - Please limit the scope of each Pull Request to just the changes needed for that bugfix/enhancement.
-    - If you would like to refactor existing code, please create separate Pull Request(s) just for the refactoring.
+
+  - If you would like to refactor existing code, please create separate Pull Request(s) just for the refactoring.
+
 - Please ensure your code works in all supported versions of Python (this includes versions of Python 2 and Python 3).
-    - See ``README.rst`` for the list of supported Python versions.
+
+  - See ``README.rst`` for the list of supported Python versions.
+
 - Please ensure that your Pull Request includes full test coverage.
 - Please do not introduce new dependencies unless absolutely necessary.
 - When introducing new classes/functions, please write comprehensive and meaningful docstrings.  It should be clear to anyone reading your code what your new class/function does and why it exists.
-    - Similarly, please be liberal about adding comments to your code.  If you have any knowledge and/or had to do any research that would make your code easier to understand, add it as comment.  Future developers will be very grateful for the extra context!
-    - Please ensure that your comments and docstrings use proper English grammar and spelling.
+  - Similarly, please be liberal about adding comments to your code.  If you have any knowledge and/or had to do any research that would make your code easier to understand, add it as comment.  Future developers will be very grateful for the extra context!
+
+  - Please ensure that your comments and docstrings use proper English grammar and spelling.
+
 - Please ensure that your code conforms to `PEP-8`_.
-    - You may deviate from PEP-8 if you feel that your changes improve readability, but be aware that you may be asked to justify your decision.
+
+  - Much of the existing code is not currently formatted for PEP-8; where practical, you may prefer PEP-8 over being consistent with the existing code.
+  - We are currently converting the codebase over to PEP-8; `come on over and help us out!`_
 
 What You Can Expect
 -------------------
@@ -129,6 +156,7 @@ When you submit a Pull Request, here is what you can expect from the individual 
 - If any changes are needed, or if we cannot accept your submission, we will provide a respectful and constructive explanation.
 
 
+.. _come on over and help us out!: https://github.com/iotaledger/iota.lib.py/issues/145
 .. _email you: https://help.github.com/articles/managing-notification-delivery-methods/
 .. _forum: https://forum.iota.org
 .. _help wanted: https://github.com/iotaledger/iota.lib.py/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22

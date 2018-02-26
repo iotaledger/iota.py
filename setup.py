@@ -76,6 +76,8 @@ setup(
 
   extras_require = {
     'ccurl': ['pyota-ccurl'],
+    'ckerl': ['ckerl'],
+    'speedups': ['pyota-ccurl', 'ckerl'],
     'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
     'test-runner': ['detox'] + tests_require,
   },

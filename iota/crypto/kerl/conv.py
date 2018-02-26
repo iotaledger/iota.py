@@ -57,13 +57,13 @@ def trits_to_trytes(trits):
     return ''.join(trytes)
 
 
-def convertToTrits(bytes_k):
+def bytes_to_trits(bytes_k):
     bigInt = convertBytesToBigInt(bytes_k)
     trits = convertBigintToBase(bigInt, 3, TRIT_HASH_LENGTH)
     return trits
 
 
-def convertToBytes(trits):
+def trits_to_bytes(trits):
     bigInt = convertBaseToBigint(trits, 3)
     bytes_k = convertBigintToBytes(bigInt)
     return bytes_k

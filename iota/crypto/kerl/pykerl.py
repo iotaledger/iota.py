@@ -66,7 +66,7 @@ class Kerl(object):
             if stop - offset == TRIT_HASH_LENGTH:
                 trits[stop - 1] = 0
 
-            signed_nums = conv.convertToBytes(trits[offset:stop])
+            signed_nums = conv.trits_to_bytes(trits[offset:stop])
 
             # Convert signed bytes into their equivalent unsigned
             # representation, in order to use Python's built-in bytes
@@ -127,7 +127,7 @@ class Kerl(object):
 
             signed_hash = [conv.convert_sign(b) for b in unsigned_hash]
 
-            trits_from_hash = conv.convertToTrits(signed_hash)
+            trits_from_hash = conv.bytes_to_trits(signed_hash)
             trits_from_hash[TRIT_HASH_LENGTH - 1] = 0
 
             stop = min(TRIT_HASH_LENGTH, length - offset)

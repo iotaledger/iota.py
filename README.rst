@@ -37,12 +37,12 @@ To install the latest version::
 
 Optional C Extension
 ====================
-PyOTA has an optional C extension that improves the performance of its
+PyOTA has optional C extensions that improve the performance of its
 cryptography features significantly (speedups of **60x** are common!).
 
-To install this extension, use the following command::
+To install these extensions, use the following command::
 
-   pip install pyota[ccurl]
+   pip install pyota[speedups]
 
 
 Installing from Source

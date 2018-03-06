@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 from codecs import StreamReader, open
 
 import setuptools
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup, Extension
 
 
 ##
@@ -36,6 +36,11 @@ tests_require = [
 ]
 
 
+ext_modules = [
+  Extension('iota.crypto.kerl.conv', ['iota/crypto/kerl/conv.c']),
+]
+
+
 ##
 # Off we go!
 # noinspection SpellCheckingInspection
@@ -54,6 +59,8 @@ setup(
     )),
 
   include_package_data  = True,
+
+  ext_modules = ext_modules,
 
   # http://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
   entry_points = {

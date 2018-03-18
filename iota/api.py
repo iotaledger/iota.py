@@ -964,7 +964,7 @@ class Iota(StrictIota):
     # type: (Iterable[Address]) -> dict
     """
     This API function helps you to determine whether you should replay a
-     transaction or make a completely new transaction with a different seed.
+     transaction or make a new one (either with the same input, or a different one).
      What this function does, is it takes one or more input addresses (i.e. from spent transactions)
      as input and then checks whether any transactions with a value transferred are confirmed.
      If yes, it means that this input address has already been successfully used in a different

@@ -44,17 +44,17 @@ Using the API
     addresses = gna_result['addresses']
 
     # Generate 1 address, starting with index 42:
-    gna_result = api.get_new_addresses(start=42)
+    gna_result = api.get_new_addresses(index=42)
     addresses = gna_result['addresses']
 
     # Find the first unused address, starting with index 86:
-    gna_result = api.get_new_addresses(start=86, count=None)
+    gna_result = api.get_new_addresses(index=86, count=None)
     addresses = gna_result['addresses']
 
 To generate addresses using the API, invoke its ``get_new_addresses``
 method, using the following parameters:
 
--  ``start: int``: The starting index (defaults to 0). This can be used
+-  ``index: int``: The starting index (defaults to 0). This can be used
    to skip over addresses that have already been generated.
 -  ``count: Optional[int]``: The number of addresses to generate
    (defaults to 1).
@@ -80,13 +80,13 @@ Using AddressGenerator
     generator = AddressGenerator(b'SEED9GOES9HERE')
 
     # Generate a list of addresses:
-    addresses = generator.get_addresses(start=0, count=5)
+    addresses = generator.get_addresses(index=0, count=5)
 
     # Generate a list of addresses in reverse order:
-    addresses = generator.get_addresses(start=42, count=10, step=-1)
+    addresses = generator.get_addresses(index=42, count=10, step=-1)
 
     # Create an iterator, advancing 5 indices each iteration.
-    iterator = generator.create_iterator(start=86, step=5)
+    iterator = generator.create_iterator(index=86, step=5)
     for address in iterator:
       ...
 

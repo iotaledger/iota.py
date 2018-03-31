@@ -554,7 +554,7 @@ class Iota(StrictIota):
     """
     return extended.GetBundlesCommand(self.adapter)(transaction=transaction)
 
-  def get_inputs(self, start=0, stop=None, threshold=None):
+  def get_inputs(self, start=0, stop=None, threshold=None, security_level=None):
     # type: (int, Optional[int], Optional[int]) -> dict
     """
     Gets all possible inputs of a seed and returns them with the total
@@ -595,6 +595,11 @@ class Iota(StrictIota):
       If ``threshold`` is ``None`` (default), this method will return
       **all** inputs in the specified key range.
 
+    :param security_level:
+      Number of iterations to use when generating new addresses (see get_new_addresses).
+      This value must be between 1 and 3, inclusive.
+      If not set, defaults to AddressGenerator.DEFAULT_SECURITY_LEVEL = 2
+
     :return:
       Dict with the following structure::
 
@@ -629,6 +634,7 @@ class Iota(StrictIota):
       start     = start,
       stop      = stop,
       threshold = threshold,
+      securityLevel=security_level
     )
 
   def get_latest_inclusion(self, hashes):

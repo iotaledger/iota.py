@@ -38,13 +38,14 @@ class GetInputsCommand(FilterCommand):
     seed      = request['seed'] # type: Seed
     start     = request['start'] # type: int
     threshold = request['threshold'] # type: Optional[int]
+    security_level = request['securityLevel'] # type: Optional[int]
 
     # Determine the addresses we will be scanning.
     if stop is None:
       addresses =\
         [addy for addy, _ in iter_used_addresses(self.adapter, seed, start)]
     else:
-      addresses = AddressGenerator(seed).get_addresses(start, stop)
+      addresses = AddressGenerator(seed, security_level).get_addresses(start, stop)
 
     if addresses:
       # Load balances for the addresses that we generated.
@@ -111,15 +112,17 @@ class GetInputsRequestFilter(RequestFilter):
         'stop':       f.Type(int) | f.Min(0),
         'start':      f.Type(int) | f.Min(0) | f.Optional(0),
         'threshold':  f.Type(int) | f.Min(0),
+        'securityLevel': f.Type(int) | f.Min(1) | f.Max(3) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
         # These arguments are required.
         'seed': f.Required | Trytes(result_type=Seed),
       },
 
-      allow_missing_keys = {
+      allow_missing_keys={
         'stop',
         'start',
         'threshold',
+        'securityLevel',
       }
     )
 

@@ -38,6 +38,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       'start':      0,
       'stop':       10,
       'threshold':  100,
+      "securityLevel": 3,
     }
 
     filter_ = self._filter(request)
@@ -59,6 +60,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       'start':      42,
       'stop':       86,
       'threshold':  99,
+      "securityLevel": 3,
     })
 
     self.assertFilterPasses(filter_)
@@ -70,6 +72,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
         'start':      42,
         'stop':       86,
         'threshold':  99,
+        "securityLevel": 3,
       },
     )
 
@@ -90,6 +93,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
         'start':      0,
         'stop':       None,
         'threshold':  None,
+        "securityLevel": 2,
       }
     )
 
@@ -348,6 +352,51 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'threshold': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_small(self):
+    """
+    ``securityLevel`` is < 1.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_big(self):
+    """
+    ``securityLevel`` is > 3.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  4,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Max.CODE_TOO_BIG],
+      },
+    )
+
+  def test_fail_security_level_wrong_type(self):
+    """
+    ``securityLevel`` is not an int.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  '2',
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
@@ -818,3 +867,4 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0, self.addy1)
     self.assertEqual(input0.balance, 86)
     self.assertEqual(input0.key_index, 1)
+

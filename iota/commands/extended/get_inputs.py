@@ -43,7 +43,7 @@ class GetInputsCommand(FilterCommand):
     # Determine the addresses we will be scanning.
     if stop is None:
       addresses =\
-        [addy for addy, _ in iter_used_addresses(self.adapter, seed, start)]
+        [addy for addy, _ in iter_used_addresses(self.adapter, seed, start, security_level=security_level)]
     else:
       addresses = AddressGenerator(seed, security_level).get_addresses(start, stop)
 

@@ -913,7 +913,7 @@ class GetInputsCommandTestCase(TestCase):
       3: Address(b"UTCDSWGXUXHYJFPECRBURCLNHVHRZTQPPERHGZDXQQTTYEHIMFCEMUSZEQT9HKGK9EVBZEDAORKDRLE9W")
     }
     for securityLevel in [1, 2, 3]:
-      for stop in [0, 1]:
+      for stop in [True, False]:
         response = invoke_cmd(seed, stop, securityLevel)
         self.assertEqual(response['totalBalance'], 86)
         self.assertEqual(len(response['inputs']), 1)

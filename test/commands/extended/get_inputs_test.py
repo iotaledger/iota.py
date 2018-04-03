@@ -868,3 +868,42 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0.balance, 86)
     self.assertEqual(input0.key_index, 1)
 
+  def test_security_level(self):
+    """
+    Testing if it is working with all three security_levels
+    """
+    def invoke_cmd(seed, securityLevel):
+      self.adapter.seed_response('getBalances', {
+        'balances': [86],
+      })
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [
+          TransactionHash(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+            b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+          ),
+        ],
+      })
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [],
+      })
+      return GetInputsCommand(self.adapter)(
+        seed=seed,
+        securityLevel=securityLevel,
+      )
+
+    seed = "TESTSEED99999DONT9USE9IT"
+    addrs ={
+      1: Address(b"XKWESBIIE9KHL9V9QZOWSEZSSWFITGXVYWQUNSUR9XMEDNMLSSZ9OCTGTEZLLYIDWIYSIJFFETZYQPJDX"),
+      2: Address(b"DNISWI9BUURXYBPTOKLMOGI9ALCRMWHLQGYBNZAMN9REGWZBKFPX99CRCFCWKPHEVFRBFNREJYOWBGVXX"),
+      3: Address(b"UTCDSWGXUXHYJFPECRBURCLNHVHRZTQPPERHGZDXQQTTYEHIMFCEMUSZEQT9HKGK9EVBZEDAORKDRLE9W")
+    }
+    for securityLevel in [1, 2, 3]:
+      response = invoke_cmd(seed, securityLevel)
+      self.assertEqual(response['totalBalance'], 86)
+      self.assertEqual(len(response['inputs']), 1)
+      input0 = response['inputs'][0]
+      self.assertIsInstance(input0, Address)
+      self.assertEqual(input0, addrs[securityLevel])
+      self.assertEqual(input0.balance, 86)
+      self.assertEqual(input0.key_index, 0)

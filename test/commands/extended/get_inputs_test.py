@@ -871,11 +871,15 @@ class GetInputsCommandTestCase(TestCase):
   def test_security_level(self):
     """
     Testing if it is working with all three security_levels
+    and with stop and withoutto cover both branches in the command
     """
-    def invoke_cmd(seed, securityLevel):
+    def invoke_cmd(seed, stopYN, securityLevel):
       self.adapter.seed_response('getBalances', {
         'balances': [86],
       })
+      # ``getInputs`` uses ``findTransactions`` to identify unused
+      # addresses.
+      # noinspection SpellCheckingInspection
       self.adapter.seed_response('findTransactions', {
         'hashes': [
           TransactionHash(
@@ -887,23 +891,34 @@ class GetInputsCommandTestCase(TestCase):
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })
-      return GetInputsCommand(self.adapter)(
-        seed=seed,
-        securityLevel=securityLevel,
-      )
+      if stopYN:
+        ret = GetInputsCommand(self.adapter)(
+              seed=seed,
+              stop=1,
+              securityLevel=securityLevel,
+            )
+      else:
+        ret = GetInputsCommand(self.adapter)(
+          seed=seed,
+          securityLevel=securityLevel,
+        )
+      return ret
 
     seed = "TESTSEED99999DONT9USE9IT"
+    # one address with index 0 for each security level for the seed.
+    # to check with respective outputs from command
     addrs ={
       1: Address(b"XKWESBIIE9KHL9V9QZOWSEZSSWFITGXVYWQUNSUR9XMEDNMLSSZ9OCTGTEZLLYIDWIYSIJFFETZYQPJDX"),
       2: Address(b"DNISWI9BUURXYBPTOKLMOGI9ALCRMWHLQGYBNZAMN9REGWZBKFPX99CRCFCWKPHEVFRBFNREJYOWBGVXX"),
       3: Address(b"UTCDSWGXUXHYJFPECRBURCLNHVHRZTQPPERHGZDXQQTTYEHIMFCEMUSZEQT9HKGK9EVBZEDAORKDRLE9W")
     }
     for securityLevel in [1, 2, 3]:
-      response = invoke_cmd(seed, securityLevel)
-      self.assertEqual(response['totalBalance'], 86)
-      self.assertEqual(len(response['inputs']), 1)
-      input0 = response['inputs'][0]
-      self.assertIsInstance(input0, Address)
-      self.assertEqual(input0, addrs[securityLevel])
-      self.assertEqual(input0.balance, 86)
-      self.assertEqual(input0.key_index, 0)
+      for stop in [0, 1]:
+        response = invoke_cmd(seed, stop, securityLevel)
+        self.assertEqual(response['totalBalance'], 86)
+        self.assertEqual(len(response['inputs']), 1)
+        input0 = response['inputs'][0]
+        self.assertIsInstance(input0, Address)
+        self.assertEqual(input0, addrs[securityLevel])
+        self.assertEqual(input0.balance, 86)
+        self.assertEqual(input0.key_index, 0)

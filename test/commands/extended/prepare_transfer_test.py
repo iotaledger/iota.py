@@ -12,6 +12,7 @@ from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
 from test import mock
@@ -81,7 +82,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         Address(self.trytes3, key_index=3, security_level=2),
         Address(self.trytes4, key_index=4, security_level=2),
       ],
-
+      'securityLevel': 3
     }
 
     filter_ = self._filter(request)
@@ -123,6 +124,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
           Address(self.trytes3),
           Address(self.trytes4),
         ],
+        'securityLevel': AddressGenerator.DEFAULT_SECURITY_LEVEL
       },
     )
 
@@ -146,6 +148,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         # These parameters are set to their default values.
         'changeAddress':  None,
         'inputs':         None,
+        "securityLevel": AddressGenerator.DEFAULT_SECURITY_LEVEL,
       },
     )
 

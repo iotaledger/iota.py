@@ -45,7 +45,7 @@ class GetInputsCommand(FilterCommand):
       addresses =\
         [addy for addy, _ in iter_used_addresses(self.adapter, seed, start, security_level=security_level)]
     else:
-      addresses = AddressGenerator(seed, security_level).get_addresses(start, stop)
+      addresses = AddressGenerator(seed, security_level).get_addresses(start, stop - start)
 
     if addresses:
       # Load balances for the addresses that we generated.

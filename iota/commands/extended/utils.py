@@ -38,7 +38,7 @@ def find_transaction_objects(adapter, **kwargs):
 
 
 def iter_used_addresses(adapter, seed, start, security_level=None):
-  # type: (BaseAdapter, Seed, int) -> Generator[Tuple[Address, List[TransactionHash]]]
+  # type: (BaseAdapter, Seed, int, int) -> Generator[Tuple[Address, List[TransactionHash]]]
   """
   Scans the Tangle for used addresses.
 

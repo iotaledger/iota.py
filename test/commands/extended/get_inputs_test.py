@@ -901,17 +901,22 @@ class GetInputsCommandTestCase(TestCase):
         response = self.command(
           seed  = Seed.random(),
           start = 1,
-          stop = 2,
+          stop = 3,
         )
 
-    self.assertEqual(len(response['inputs']), 1)  # 2 - 1 = 1 address expected
-    self.assertEqual(response['totalBalance'], 11)
+    self.assertEqual(len(response['inputs']), 2)  # 3 - 1 = 2 address expected
+    self.assertEqual(response['totalBalance'], 22)
 
     input0 = response['inputs'][0]
+    input1 = response['inputs'][1]
     self.assertIsInstance(input0, Address)
+    self.assertIsInstance(input1, Address)
     self.assertEqual(input0, self.addy1)
+    self.assertEqual(input1, self.addy2)
     self.assertEqual(input0.balance, 11)
     self.assertEqual(input0.key_index, 1)
+    self.assertEqual(input1.balance, 11)
+    self.assertEqual(input1.key_index, 2)
 
 
   def test_security_level(self):

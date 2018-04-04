@@ -868,6 +868,52 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0.balance, 86)
     self.assertEqual(input0.key_index, 1)
 
+  def test_start_stop(self):
+    """
+    Using ``start`` and ``stop`` at once.
+    Checking if correct number of addresses is returned. Must be stop - start
+    """
+    # mocking get_balances to get number of returned balances
+    # equal to number of addresses
+    # returns {"balances": [11] } for one address, {"balances": [11, 11]} for two etc
+
+    def mock_get_balances_execute(adapter, request):
+      return dict(balances=[11] * len(request["addresses"]))
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+
+    def mock_address_generator(ag, start, step=1):
+      # returning up to 3 addresses, depending on stop value
+      for addy in [self.addy0, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    with mock.patch(
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
+        mock_address_generator,
+    ):
+      with mock.patch(
+        'iota.commands.core.GetBalancesCommand._execute',
+        mock_get_balances_execute,
+      ):
+        response = self.command(
+          seed  = Seed.random(),
+          start = 1,
+          stop = 2,
+        )
+
+    self.assertEqual(len(response['inputs']), 1)  # 2 - 1 = 1 address expected
+    self.assertEqual(response['totalBalance'], 11)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+    self.assertEqual(input0, self.addy1)
+    self.assertEqual(input0.balance, 11)
+    self.assertEqual(input0.key_index, 1)
+
+
   def test_security_level(self):
     """
     Testing GetInputsCoommand  with selected security_levels

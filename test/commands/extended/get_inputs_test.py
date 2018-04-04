@@ -870,8 +870,8 @@ class GetInputsCommandTestCase(TestCase):
 
   def test_security_level(self):
     """
-    Testing if it is working with all three security_levels
-    and with stop and withoutto cover both branches in the command
+    Testing GetInputsCoommand  with non default security_levels
+    with and without `stop` parameter to cover both branches in the command
     """
     def invoke_cmd(seed, stopYN, securityLevel):
       self.adapter.seed_response('getBalances', {
@@ -904,15 +904,13 @@ class GetInputsCommandTestCase(TestCase):
         )
       return ret
 
-    seed = "TESTSEED99999DONT9USE9IT"
-    # one address with index 0 for each security level for the seed.
+    # one address with index 0 for nondefault security levels for the random seed.
     # to check with respective outputs from command
-    addrs ={
-      1: Address(b"XKWESBIIE9KHL9V9QZOWSEZSSWFITGXVYWQUNSUR9XMEDNMLSSZ9OCTGTEZLLYIDWIYSIJFFETZYQPJDX"),
-      2: Address(b"DNISWI9BUURXYBPTOKLMOGI9ALCRMWHLQGYBNZAMN9REGWZBKFPX99CRCFCWKPHEVFRBFNREJYOWBGVXX"),
-      3: Address(b"UTCDSWGXUXHYJFPECRBURCLNHVHRZTQPPERHGZDXQQTTYEHIMFCEMUSZEQT9HKGK9EVBZEDAORKDRLE9W")
-    }
-    for securityLevel in [1, 2, 3]:
+    seed = Seed.random()
+    security_levels_to_test = [l for l in [1, 2, 3] if l != AddressGenerator.DEFAULT_SECURITY_LEVEL]   # nondefault
+    addrs = {l: AddressGenerator(seed, l).get_addresses(0)[0] for l in security_levels_to_test}
+
+    for securityLevel in security_levels_to_test:
       for stop in [True, False]:
         response = invoke_cmd(seed, stop, securityLevel)
         self.assertEqual(response['totalBalance'], 86)

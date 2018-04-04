@@ -870,7 +870,7 @@ class GetInputsCommandTestCase(TestCase):
 
   def test_security_level(self):
     """
-    Testing GetInputsCoommand  with non default security_levels
+    Testing GetInputsCoommand  with selected security_levels
     with and without `stop` parameter to cover both branches in the command
     """
     def invoke_cmd(seed, stopYN, securityLevel):
@@ -904,10 +904,10 @@ class GetInputsCommandTestCase(TestCase):
         )
       return ret
 
-    # one address with index 0 for nondefault security levels for the random seed.
+    # one address with index 0 for selected security levels for the random seed.
     # to check with respective outputs from command
     seed = Seed.random()
-    security_levels_to_test = [l for l in [1, 2, 3] if l != AddressGenerator.DEFAULT_SECURITY_LEVEL]   # nondefault
+    security_levels_to_test = [1, 2] # at least one is non-default
     addrs = {l: AddressGenerator(seed, l).get_addresses(0)[0] for l in security_levels_to_test}
 
     for securityLevel in security_levels_to_test:

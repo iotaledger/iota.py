@@ -904,7 +904,7 @@ class GetInputsCommandTestCase(TestCase):
           stop = 3,
         )
 
-    self.assertEqual(len(response['inputs']), 2)  # 3 - 1 = 2 address expected
+    self.assertEqual(len(response['inputs']), 2)  # 3 - 1 = 2 addresses expected
     self.assertEqual(response['totalBalance'], 22)
 
     input0 = response['inputs'][0]

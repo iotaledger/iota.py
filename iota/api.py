@@ -881,6 +881,7 @@ class Iota(StrictIota):
       inputs                = None,
       change_address        = None,
       min_weight_magnitude  = None,
+      security_level        = None,
   ):
     # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> dict
     """
@@ -932,6 +933,7 @@ class Iota(StrictIota):
       inputs              = inputs,
       changeAddress       = change_address,
       minWeightMagnitude  = min_weight_magnitude,
+      securityLevel       = security_level,
     )
 
   def send_trytes(self, trytes, depth, min_weight_magnitude=None):
@@ -951,6 +953,11 @@ class Iota(StrictIota):
       Work.
 
       If not provided, a default value will be used.
+
+    :param security_level:
+      Number of iterations to use when generating new addresses (see get_new_addresses).
+      This value must be between 1 and 3, inclusive.
+      If not set, defaults to AddressGenerator.DEFAULT_SECURITY_LEVEL = 2
 
     :return:
       Dict containing the following values::

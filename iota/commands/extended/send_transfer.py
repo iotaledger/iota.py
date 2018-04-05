@@ -10,6 +10,7 @@ from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
+from iota.crypto.addresses import AddressGenerator
 from iota.filters import Trytes
 
 __all__ = [
@@ -39,12 +40,14 @@ class SendTransferCommand(FilterCommand):
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]
     reference             = request['reference'] # type: Optional[TransactionHash]
+    security_level        = request['securityLevel'] # type: Optional[int]
 
     pt_response = PrepareTransferCommand(self.adapter)(
       changeAddress   = change_address,
       inputs          = inputs,
       seed            = seed,
       transfers       = transfers,
+      securityLevel   = security_level,
     )
 
     st_response = SendTrytesCommand(self.adapter)(
@@ -79,7 +82,7 @@ class SendTransferRequestFilter(RequestFilter):
 
         # Optional parameters.
         'changeAddress': Trytes(result_type=Address),
-
+        'securityLevel': f.Choice([1, 2, 3]) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
@@ -92,5 +95,6 @@ class SendTransferRequestFilter(RequestFilter):
         'changeAddress',
         'inputs',
         'reference',
+        'securityLevel',
       },
     )

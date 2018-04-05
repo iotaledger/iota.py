@@ -102,7 +102,7 @@ class PrepareTransferCommand(FilterCommand):
       if bundle.balance < 0:
         if not change_address:
           change_address =\
-            GetNewAddressesCommand(self.adapter)(seed=seed)['addresses'][0]
+            GetNewAddressesCommand(self.adapter)(seed=seed, securityLevel=security_level)['addresses'][0]
 
         bundle.send_unspent_inputs_to(change_address)
 
@@ -133,8 +133,7 @@ class PrepareTransferRequestFilter(RequestFilter):
 
         # Optional parameters.
         'changeAddress': Trytes(result_type=Address),
-        'securityLevel': f.Type(int) | f.Min(1) | f.Max(3) | f.Optional(
-          default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
+        'securityLevel': f.Choice([1, 2, 3]) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':

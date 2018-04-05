@@ -9,7 +9,7 @@ from filters.test import BaseFilterTestCase
 from six import binary_type, iterkeys
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
-  TryteString, Transaction
+  TryteString, Transaction, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.crypto.addresses import AddressGenerator
@@ -1276,7 +1276,7 @@ class PrepareTransferCommandTestCase(TestCase):
     for security_level in SECURITY_LEVELS_TO_TEST:
 
       # get_new_addresses uses `find_transactions` internaly.
-      # The following means all addresses are considered unused
+      # The following means requested address is considered unused
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })
@@ -1315,4 +1315,84 @@ class PrepareTransferCommandTestCase(TestCase):
       change_tx = Transaction.from_tryte_string(response['trytes'][0])
       self.assertEqual(change_tx.value, EXPECTED_CHANGE_VALUE)
 
+
+  def test_security_level_no_inputs(self):
+    """
+    testing use of security_level when neither inputs nor change address is given.
+    """
+    # will be sending SEND_VALUE.
+    # balances of input addresses returned by the mock will be equal to SEND_VALUE + security_level * 11
+    # expected result of the command depends on security_level
+    # will be testing for at least two security levels
+
+    SECURITY_LEVELS_TO_TEST = [1, 2] # at least one is non-default. With [1,2,3] it takes much longer
+    SEND_VALUE = 42
+
+    # pre-generating addresses, one for each security_level.
+    # they will be generated again by GetInputs internally
+    seed = Seed.random()
+    addresses = {}
+    for sl in SECURITY_LEVELS_TO_TEST:
+      addresses[sl] = AddressGenerator(seed, security_level=sl).get_addresses(0, count=1)[0]
+
+    # mock get_balances returns balance, depending on security_level of mock addresses
+    def mock_get_balances_execute(adapter, request):
+      # returns balances of input addresses equal to SEND_VALUE + security_level * 11
+      addr = request["addresses"][0]
+      security_level = [l for l, a in addresses.items() if str(a) == addr][0]
+      return dict(balances=[SEND_VALUE + security_level * 11], milestone=None)
+
+    # testing several security levels
+    for security_level in SECURITY_LEVELS_TO_TEST:
+
+      # get_inputs use iter_used_addresses and findTransactions.
+      # until address without tx found
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [
+          TransactionHash(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+            b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+          ),
+        ],
+      })
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [],
+      })
+
+      # get_new_addresses uses `find_transactions` internaly.
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [],
+      })
+
+      self.command.reset()
+
+      with mock.patch(
+        'iota.commands.core.GetBalancesCommand._execute',
+        mock_get_balances_execute,
+      ):
+        response = \
+          self.command(
+            seed=seed,
+            transfers=[
+              ProposedTransaction(
+                address=
+                  Address(
+                    b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                    b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                  ),
+                value=SEND_VALUE,
+              ),
+            ],
+            securityLevel=security_level
+          )
+
+      self.assertEqual(set(iterkeys(response)), {'trytes'})
+
+      EXPECTED_NUMBER_OF_TX = 2 + security_level   # signature requires as many transactions as security_level
+      EXPECTED_CHANGE_VALUE = security_level * 11  # what has left depends on security_level
+
+      self.assertEqual(len(response['trytes']), EXPECTED_NUMBER_OF_TX)
+
+      change_tx = Transaction.from_tryte_string(response['trytes'][0])
+      self.assertEqual(change_tx.value, EXPECTED_CHANGE_VALUE)
 

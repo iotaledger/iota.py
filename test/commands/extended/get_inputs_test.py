@@ -914,55 +914,92 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input1.key_index, 2)
 
 
-  def test_security_level(self):
+  def test_security_level_1_no_stop(self):
     """
-    Testing GetInputsCoommand  with selected security_levels
-    with and without `stop` parameter to cover both branches in the command
+    Testing GetInputsCoommand:
+      - with security_level = 1 (non default)
+      - without `stop` parameter
     """
-    def invoke_cmd(seed, stopYN, securityLevel):
-      self.adapter.seed_response('getBalances', {
-        'balances': [86],
-      })
-      # ``getInputs`` uses ``findTransactions`` to identify unused
-      # addresses.
-      # noinspection SpellCheckingInspection
-      self.adapter.seed_response('findTransactions', {
-        'hashes': [
-          TransactionHash(
-            b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
-            b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
-          ),
-        ],
-      })
-      self.adapter.seed_response('findTransactions', {
-        'hashes': [],
-      })
-      if stopYN:
-        ret = GetInputsCommand(self.adapter)(
-              seed=seed,
-              stop=1,
-              securityLevel=securityLevel,
-            )
-      else:
-        ret = GetInputsCommand(self.adapter)(
-          seed=seed,
-          securityLevel=securityLevel,
-        )
-      return ret
 
     # one address with index 0 for selected security levels for the random seed.
     # to check with respective outputs from command
     seed = Seed.random()
-    security_levels_to_test = [1, 2] # at least one is non-default
-    addrs = {l: AddressGenerator(seed, l).get_addresses(0)[0] for l in security_levels_to_test}
+    address = AddressGenerator(seed, security_level=1).get_addresses(0)[0]
 
-    for securityLevel in security_levels_to_test:
-      for stop in [True, False]:
-        response = invoke_cmd(seed, stop, securityLevel)
-        self.assertEqual(response['totalBalance'], 86)
-        self.assertEqual(len(response['inputs']), 1)
-        input0 = response['inputs'][0]
-        self.assertIsInstance(input0, Address)
-        self.assertEqual(input0, addrs[securityLevel])
-        self.assertEqual(input0.balance, 86)
-        self.assertEqual(input0.key_index, 0)
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
+    })
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    response = GetInputsCommand(self.adapter)(
+      seed=seed,
+      securityLevel=1,
+    )
+
+    self.assertEqual(response['totalBalance'], 86)
+    self.assertEqual(len(response['inputs']), 1)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+    self.assertEqual(input0, address)
+    self.assertEqual(input0.balance, 86)
+    self.assertEqual(input0.key_index, 0)
+
+  def test_security_level_1_with_stop(self):
+    """
+    Testing GetInputsCoommand:
+      - with security_level = 1 (non default)
+      - with `stop` parameter
+    """
+
+    # one address with index 0 for selected security levels for the random seed.
+    # to check with respective outputs from command
+    seed = Seed.random()
+    address = AddressGenerator(seed, security_level=1).get_addresses(0)[0]
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
+    })
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    response = GetInputsCommand(self.adapter)(
+      seed=seed,
+      securityLevel=1,
+      stop=1,    # <<<<< here
+    )
+
+    self.assertEqual(response['totalBalance'], 86)
+    self.assertEqual(len(response['inputs']), 1)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+    self.assertEqual(input0, address)
+    self.assertEqual(input0.balance, 86)
+    self.assertEqual(input0.key_index, 0)
+

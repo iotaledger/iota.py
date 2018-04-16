@@ -399,25 +399,57 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_wrong_security_level(self):
+  def test_fail_security_level_too_small(self):
     """
-    ``security_level`` is not one of integers 1, 2 or 3.
+    ``securityLevel`` is < 1.
     """
     self.assertFilterErrors(
       {
-        # Must be an array, even if there's only one input.
-        'inputs': None,
-
-        'seed': Seed(self.trytes1),
-
         'transfers': [
           ProposedTransaction(address=Address(self.trytes2), value=42),
         ],
-        "securityLevel": 0,
+        'securityLevel':  0,
+        'seed':           Seed(self.trytes1),
       },
 
       {
-        'securityLevel': [f.Choice.CODE_INVALID],
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_big(self):
+    """
+    ``securityLevel`` is > 3.
+    """
+    self.assertFilterErrors(
+      {
+        'transfers': [
+          ProposedTransaction(address=Address(self.trytes2), value=42),
+        ],
+        'securityLevel':  4,
+        'seed':           Seed(self.trytes1),
+      },
+
+      {
+        'securityLevel': [f.Max.CODE_TOO_BIG],
+      },
+    )
+
+  def test_fail_security_level_wrong_type(self):
+    """
+    ``securityLevel`` is not an int.
+    """
+    self.assertFilterErrors(
+      {
+        'transfers': [
+          ProposedTransaction(address=Address(self.trytes2), value=42),
+        ],
+        'securityLevel':  '2',
+        'seed':           Seed(self.trytes1),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
       },
     )
 

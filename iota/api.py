@@ -954,11 +954,6 @@ class Iota(StrictIota):
 
       If not provided, a default value will be used.
 
-    :param security_level:
-      Number of iterations to use when generating new addresses (see get_new_addresses).
-      This value must be between 1 and 3, inclusive.
-      If not set, defaults to AddressGenerator.DEFAULT_SECURITY_LEVEL = 2
-
     :return:
       Dict containing the following values::
 

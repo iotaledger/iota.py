@@ -133,7 +133,7 @@ class PrepareTransferRequestFilter(RequestFilter):
 
         # Optional parameters.
         'changeAddress': Trytes(result_type=Address),
-        'securityLevel': f.Choice([1, 2, 3]) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
+        'securityLevel': f.Type(int) | f.Min(1) | f.Max(3) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':

@@ -9,9 +9,10 @@ from filters.test import BaseFilterTestCase
 from six import binary_type, iterkeys
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
-  TryteString
+  TryteString, Transaction, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
 from test import mock
@@ -81,7 +82,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         Address(self.trytes3, key_index=3, security_level=2),
         Address(self.trytes4, key_index=4, security_level=2),
       ],
-
+      'securityLevel': 3
     }
 
     filter_ = self._filter(request)
@@ -108,6 +109,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
 
       # These still have to have the correct type, however.
       'transfers': [self.transfer1, self.transfer2],
+      'securityLevel': None
     })
 
     self.assertFilterPasses(filter_)
@@ -123,6 +125,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
           Address(self.trytes3),
           Address(self.trytes4),
         ],
+        'securityLevel': AddressGenerator.DEFAULT_SECURITY_LEVEL
       },
     )
 
@@ -146,6 +149,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         # These parameters are set to their default values.
         'changeAddress':  None,
         'inputs':         None,
+        "securityLevel": AddressGenerator.DEFAULT_SECURITY_LEVEL,
       },
     )
 
@@ -392,6 +396,60 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
         'inputs.1': [f.Type.CODE_WRONG_TYPE],
         'inputs.3': [GeneratedAddress.CODE_NO_KEY_INDEX],
         'inputs.4': [GeneratedAddress.CODE_NO_SECURITY_LEVEL],
+      },
+    )
+
+  def test_fail_security_level_too_small(self):
+    """
+    ``securityLevel`` is < 1.
+    """
+    self.assertFilterErrors(
+      {
+        'transfers': [
+          ProposedTransaction(address=Address(self.trytes2), value=42),
+        ],
+        'securityLevel':  0,
+        'seed':           Seed(self.trytes1),
+      },
+
+      {
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_big(self):
+    """
+    ``securityLevel`` is > 3.
+    """
+    self.assertFilterErrors(
+      {
+        'transfers': [
+          ProposedTransaction(address=Address(self.trytes2), value=42),
+        ],
+        'securityLevel':  4,
+        'seed':           Seed(self.trytes1),
+      },
+
+      {
+        'securityLevel': [f.Max.CODE_TOO_BIG],
+      },
+    )
+
+  def test_fail_security_level_wrong_type(self):
+    """
+    ``securityLevel`` is not an int.
+    """
+    self.assertFilterErrors(
+      {
+        'transfers': [
+          ProposedTransaction(address=Address(self.trytes2), value=42),
+        ],
+        'securityLevel':  '2',
+        'seed':           Seed(self.trytes1),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
@@ -1216,3 +1274,157 @@ class PrepareTransferCommandTestCase(TestCase):
       response['trytes'][2],
       TryteString('SGKETGDEEASG9GSGSFEASGZFSGAGSGTFSGSFTGVDSGSFEATGUDSGBGTGTDSGNFSGPFSGVFTGVDTGEETGUDTGHEEASGBGTGTDSGNFSGPFSGRFTGWDFAEASGZETGDESG9GQAEASGZFTGDEEASGTFSGVFSGPFSGSFSGZFEASGPFEASGZFSGVFTGTDSGSFQAEASGXFSGAGTGVDSGAGTGTDTGDESGWFEASGVFSGZFSGSFSGSFTGVDEATGUDTGVDSGSFSG9GTGDESAEASGQEEATGFETGVDSGVFEATGUDTGVDSGSFSG9GTGDEEASGRFSGAGSGYFSGTFSG9GTGDEEASGOFTGDETGVDTGEEEASGAGTGYDTGTDSGNFSG9GTGHETGGETGVDEASGYFTGGESGRFSGVFEATGUDEASGAGTGTDTGWDSGTFSGVFSGSFSGZFSAEASGSETGVDSGAGEASGOFTGWDSGRFSGSFTGVDEATGFETGVDSGAGEASGRFSGSFSGYFSGNFTGVDTGEEIBEASGKETGDEIBEASGKETGDEQAEASGYFSGSFSGWFTGVDSGSFSG9GSGNFSG9GTGVDEAFCTCXCBDQCTCFDVCIBEASGAFEASGZFSGSFSG9GTGHEEASGSFTGUDTGVDTGEEEASGOFSGAGSGYFTGEETGAESGNFTGHEEASGAGTGVDSGPFSGSFTGVDTGUDTGVDSGPFSGSFSG9GSG9GSGAGTGUDTGVDTGEEQAEATG9ESGSFSGZFEASGPFTGDEEASGZFSGAGSGTFSGSFTGVDSGSFEASGBGSGAGSG9GTGHETGVDTGEESAEASG9FTGDEEASGBGSGYFSGNFTG9ESGSFTGAETGEEEASGZESGNFSG9GTGVDTGEETGHESGQFSGAGEASGVFEASGBGTGTDSGAGSGXFSGYFTGHESG9GSGVFEASGZFSGAGTGTDTGUDSGXFSGVFTGYDEASGBGSGSFTGYDSGAGTGVDSGVFSG9GTGZDSGSFSGPFSAEASGAFEASGPFSGNFTGUDEASGSFTGUDTGVDTGEEEATGVDSGNFSGXFSGAGSGWFEATGTDSGAGTGUDSGXFSGAGTGAESGVFSAEASGAFEASGPFSGNFTGUDEASGSFTGUDTGVDTGEEEATGTDSGAGTGUDSGXFSGAGTGAETGEEQAEASG9GSGSFEASGUFSG9GSGNFTGHEQAEATG9ETGVDSGAGEATGHEEASGUFSG9GSGNFTGGEDBEATG9ETGVDSGAGEATGUDSGZFSGSFTGTDTGVDTGEEEASGZESGNFSG9GTGVDTGEETGHESGQFSGAGQAEASGPFEATGVDSGAGEASGPFTGTDSGSFSGZFTGHEEASGXFSGNFSGXFEATGVDTGTDSGNFSGQFSGVFTG9ESGSFTGUDSGXFSGVFSGWFQAEASGPFSGSFTGTDSGAGTGHETGVDSG9GSGAGQAEATGUDSGBGSGNFTGUDEASGTFSGVFSGUFSG9GTGEESAEASGQEEASGZFSGAGSGSFEATGUDTGWDTGBESGSFTGUDTGVDSGPFSGAGSGPFSGNFSG9GSGVFSGSFQAEASGPFEATGVDSGAGEASGPFTGTDSGSFSGZFTGHEEASGXFSGNFSGXFEASGQFTGTDSGAGTGVDSGSFTGUDSGXFEASGVFEASG9GSGSFSGBGSGAGSG9GTGHETGVDSG9GTGDESGZFSGVFEASGRFSGYFTGHEEASGPFSGNFTGUDQAEATGUDSGBGSGNFTGUDSGNFSGSFTGVDEASGTFSGVFSGUFSG9GSGVFEASASASAEASGKETGDEEASG9GSGSFEATGYDSGAGTGVDSGVFTGVDSGSFEASGUFSG9GSGNFTGVDTGEEEASGBGTGTDSGNFSGPFSGRFTGWDSAEASGXESGAGTGVDSGAGSGZFTGWDEATG9ETGVDSGAGEASGPFEASGQFSGYFTGWDSGOFSGVFSG9GSGSFEASGRFTGWDTGAESGVFQAEASGPFEATGVDSGSFTGYDEASGZFSGSFTGUDTGVDSGNFTGYDQAEASGPFTGDEEASG9GSGSFEASGQFSGAGSGPFSGAGTGTDSGVFTGVDSGSFEASGAGEASG9GSGNFEASGPFSGSFTG9ESGSFTGTDSGVFSG9GSGXFSGNFTGYDQAEASGPFTGDEEATGYDSGAGTGVDSGVFTGVDSGSFEASGZFSGSTESTVALUE9DONTUSEINPRODUCTION99999YMSWGXVNDMLXPT9HMVAOWUUZMLSJZFWGKDVGXPSQAWAEBJN999999999999999999999999999GFOTA9UNIT9TESTS99999999999NYBKIVD99999999999B99999999EKHBGESJFZXE9PY9UVFIPRHGGFKDFKQOQFKQAYISJOWCXIVBSGHOZGT9DZEQPPLTYHKTWBQZOFX9BEAID999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999PYOTA9UNIT9TESTS99999999999999999999999999999999999999999999999999999999999999999'),
     )
+
+  def test_security_level(self):
+    """
+    testing use of security_level when inputs are given and change address is not given.
+    """
+    # will be sending SEND_VALUE.
+    # balances of input addresses returned by the mock will be equal to SEND_VALUE + security_level * 11
+    # expected result of the command depends on security_level
+    # will be testing for at least two security levels
+
+    SECURITY_LEVELS_TO_TEST = [1, 2] # at least one is non-default. With [1,2,3] it takes much longer
+    SEND_VALUE = 42
+
+    # creating fake addresses, one for each security_level.
+    seed = Seed.random()
+    mock_addresses = {}
+    for sl in SECURITY_LEVELS_TO_TEST:
+      mock_addresses[sl] = Address(
+          trytes=Address.random(81),
+          key_index=0,
+          security_level=sl
+        )
+
+    # mock get_balances returns balance, depending on security_level of mock addresses
+    def mock_get_balances_execute(adapter, request):
+      # returns balances of input addresses equal to SEND_VALUE + security_level * 11
+      addr = request["addresses"][0]
+      security_level = [l for l, a in mock_addresses.items() if str(a) == addr][0]
+      return dict(balances=[SEND_VALUE + security_level * 11], milestone=None)
+
+    # testing for several security levels
+    for security_level in SECURITY_LEVELS_TO_TEST:
+
+      # get_new_addresses uses `find_transactions` internaly.
+      # The following means requested address is considered unused
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [],
+      })
+
+      self.command.reset()
+      with mock.patch(
+        'iota.commands.core.GetBalancesCommand._execute',
+        mock_get_balances_execute,
+      ):
+        response = \
+          self.command(
+            seed=seed,
+            transfers=[
+              ProposedTransaction(
+                address=
+                  Address(
+                    b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                    b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                  ),
+                value = SEND_VALUE,
+              ),
+            ],
+            inputs=[
+              mock_addresses[security_level]
+            ],
+            securityLevel=security_level
+          )
+
+      self.assertEqual(set(iterkeys(response)), {'trytes'})
+
+      EXPECTED_NUMBER_OF_TX = 2 + security_level   # signature requires as many transactions as security_level
+      EXPECTED_CHANGE_VALUE = security_level * 11  # what has left depends on security_level
+
+      self.assertEqual(len(response['trytes']), EXPECTED_NUMBER_OF_TX)
+
+      change_tx = Transaction.from_tryte_string(response['trytes'][0])
+      self.assertEqual(change_tx.value, EXPECTED_CHANGE_VALUE)
+
+
+  def test_security_level_no_inputs(self):
+    """
+    testing use of security_level when neither inputs nor change address is given.
+    """
+    # will be sending SEND_VALUE.
+    # balances of input addresses returned by the mock will be equal to SEND_VALUE + security_level * 11
+    # expected result of the command depends on security_level
+    # will be testing for at least two security levels
+
+    SECURITY_LEVELS_TO_TEST = [1, 2] # at least one is non-default. With [1,2,3] it takes much longer
+    SEND_VALUE = 42
+
+    # pre-generating addresses, one for each security_level.
+    # they will be generated again by GetInputs internally
+    seed = Seed.random()
+    addresses = {}
+    for sl in SECURITY_LEVELS_TO_TEST:
+      addresses[sl] = AddressGenerator(seed, security_level=sl).get_addresses(0, count=1)[0]
+
+    # mock get_balances returns balance, depending on security_level of mock addresses
+    def mock_get_balances_execute(adapter, request):
+      # returns balances of input addresses equal to SEND_VALUE + security_level * 11
+      addr = request["addresses"][0]
+      security_level = [l for l, a in addresses.items() if str(a) == addr][0]
+      return dict(balances=[SEND_VALUE + security_level * 11], milestone=None)
+
+    # testing several security levels
+    for security_level in SECURITY_LEVELS_TO_TEST:
+
+      # get_inputs use iter_used_addresses and findTransactions.
+      # until address without tx found
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [
+          TransactionHash(
+            b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+            b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+          ),
+        ],
+      })
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [],
+      })
+
+      # get_new_addresses uses `find_transactions` internaly.
+      self.adapter.seed_response('findTransactions', {
+        'hashes': [],
+      })
+
+      self.command.reset()
+
+      with mock.patch(
+        'iota.commands.core.GetBalancesCommand._execute',
+        mock_get_balances_execute,
+      ):
+        response = \
+          self.command(
+            seed=seed,
+            transfers=[
+              ProposedTransaction(
+                address=
+                  Address(
+                    b'TESTVALUETWO9DONTUSEINPRODUCTION99999XYY'
+                    b'NXZLKBYNFPXA9RUGZVEGVPLLFJEM9ZZOUINE9ONOW'
+                  ),
+                value=SEND_VALUE,
+              ),
+            ],
+            securityLevel=security_level
+          )
+
+      self.assertEqual(set(iterkeys(response)), {'trytes'})
+
+      EXPECTED_NUMBER_OF_TX = 2 + security_level   # signature requires as many transactions as security_level
+      EXPECTED_CHANGE_VALUE = security_level * 11  # what has left depends on security_level
+
+      self.assertEqual(len(response['trytes']), EXPECTED_NUMBER_OF_TX)
+
+      change_tx = Transaction.from_tryte_string(response['trytes'][0])
+      self.assertEqual(change_tx.value, EXPECTED_CHANGE_VALUE)
+

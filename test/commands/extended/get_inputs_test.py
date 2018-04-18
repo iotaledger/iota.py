@@ -9,8 +9,8 @@ from filters.test import BaseFilterTestCase
 
 from iota import Address, BadApiResponse, Iota, TransactionHash
 from iota.adapter import MockAdapter
-from iota.commands.extended.get_inputs import GetInputsCommand, \
-  GetInputsRequestFilter
+from iota.commands.extended.get_inputs import GetInputsCommand, GetInputsRequestFilter
+from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
@@ -38,6 +38,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       'start':      0,
       'stop':       10,
       'threshold':  100,
+      "securityLevel": 3,
     }
 
     filter_ = self._filter(request)
@@ -59,6 +60,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
       'start':      42,
       'stop':       86,
       'threshold':  99,
+      "securityLevel": 3,
     })
 
     self.assertFilterPasses(filter_)
@@ -70,6 +72,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
         'start':      42,
         'stop':       86,
         'threshold':  99,
+        "securityLevel": 3,
       },
     )
 
@@ -90,6 +93,7 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
         'start':      0,
         'stop':       None,
         'threshold':  None,
+        "securityLevel": AddressGenerator.DEFAULT_SECURITY_LEVEL,
       }
     )
 
@@ -348,6 +352,51 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'threshold': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_small(self):
+    """
+    ``securityLevel`` is < 1.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  0,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
+      },
+    )
+
+  def test_fail_security_level_too_big(self):
+    """
+    ``securityLevel`` is > 3.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  4,
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Max.CODE_TOO_BIG],
+      },
+    )
+
+  def test_fail_security_level_wrong_type(self):
+    """
+    ``securityLevel`` is not an int.
+    """
+    self.assertFilterErrors(
+      {
+        'securityLevel':  '2',
+        'seed':           Seed(self.seed),
+      },
+
+      {
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
       },
     )
 
@@ -818,3 +867,139 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0, self.addy1)
     self.assertEqual(input0.balance, 86)
     self.assertEqual(input0.key_index, 1)
+
+  def test_start_stop(self):
+    """
+    Using ``start`` and ``stop`` at once.
+    Checking if correct number of addresses is returned. Must be stop - start
+    """
+
+    # To keep the unit test nice and speedy, we will mock the address
+    # generator.  We already have plenty of unit tests for that
+    # functionality, so we can get away with mocking it here.
+    # noinspection PyUnusedLocal
+
+    def mock_address_generator(ag, start, step=1):
+      # returning up to 3 addresses, depending on stop value
+      for addy in [self.addy0, self.addy1, self.addy2][start::step]:
+        yield addy
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [11, 11],
+    })
+
+    with mock.patch(
+        'iota.crypto.addresses.AddressGenerator.create_iterator',
+        mock_address_generator,
+    ):
+      response = self.command(
+        seed  = Seed.random(),
+        start = 1,
+        stop = 3,
+      )
+
+    self.assertEqual(len(response['inputs']), 2)  # 3 - 1 = 2 addresses expected
+    self.assertEqual(response['totalBalance'], 22)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+    self.assertEqual(input0, self.addy1)
+    self.assertEqual(input0.balance, 11)
+    self.assertEqual(input0.key_index, 1)
+
+    input1 = response['inputs'][1]
+    self.assertIsInstance(input1, Address)
+    self.assertEqual(input1, self.addy2)
+    self.assertEqual(input1.balance, 11)
+    self.assertEqual(input1.key_index, 2)
+
+
+  def test_security_level_1_no_stop(self):
+    """
+    Testing GetInputsCoommand:
+      - with security_level = 1 (non default)
+      - without `stop` parameter
+    """
+
+    # one address with index 0 for selected security levels for the random seed.
+    # to check with respective outputs from command
+    seed = Seed.random()
+    address = AddressGenerator(seed, security_level=1).get_addresses(0)[0]
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
+    })
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    response = GetInputsCommand(self.adapter)(
+      seed=seed,
+      securityLevel=1,
+    )
+
+    self.assertEqual(response['totalBalance'], 86)
+    self.assertEqual(len(response['inputs']), 1)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+    self.assertEqual(input0, address)
+    self.assertEqual(input0.balance, 86)
+    self.assertEqual(input0.key_index, 0)
+
+  def test_security_level_1_with_stop(self):
+    """
+    Testing GetInputsCoommand:
+      - with security_level = 1 (non default)
+      - with `stop` parameter
+    """
+
+    # one address with index 0 for selected security levels for the random seed.
+    # to check with respective outputs from command
+    seed = Seed.random()
+    address = AddressGenerator(seed, security_level=1).get_addresses(0)[0]
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
+    })
+    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # addresses.
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [
+        TransactionHash(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999YFXGOD'
+          b'GISBJAX9PDJIRDMDV9DCRDCAEG9FN9KECCBDDFZ9H'
+        ),
+      ],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes': [],
+    })
+
+    response = GetInputsCommand(self.adapter)(
+      seed=seed,
+      securityLevel=1,
+      stop=1,    # <<<<< here
+    )
+
+    self.assertEqual(response['totalBalance'], 86)
+    self.assertEqual(len(response['inputs']), 1)
+
+    input0 = response['inputs'][0]
+    self.assertIsInstance(input0, Address)
+    self.assertEqual(input0, address)
+    self.assertEqual(input0.balance, 86)
+    self.assertEqual(input0.key_index, 0)
+

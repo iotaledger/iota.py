@@ -554,8 +554,8 @@ class Iota(StrictIota):
     """
     return extended.GetBundlesCommand(self.adapter)(transaction=transaction)
 
-  def get_inputs(self, start=0, stop=None, threshold=None):
-    # type: (int, Optional[int], Optional[int]) -> dict
+  def get_inputs(self, start=0, stop=None, threshold=None, security_level=None):
+    # type: (int, Optional[int], Optional[int], Optional[int]) -> dict
     """
     Gets all possible inputs of a seed and returns them with the total
     balance.
@@ -595,6 +595,11 @@ class Iota(StrictIota):
       If ``threshold`` is ``None`` (default), this method will return
       **all** inputs in the specified key range.
 
+    :param security_level:
+      Number of iterations to use when generating new addresses (see get_new_addresses).
+      This value must be between 1 and 3, inclusive.
+      If not set, defaults to AddressGenerator.DEFAULT_SECURITY_LEVEL = 2
+
     :return:
       Dict with the following structure::
 
@@ -629,6 +634,7 @@ class Iota(StrictIota):
       start     = start,
       stop      = stop,
       threshold = threshold,
+      securityLevel=security_level
     )
 
   def get_latest_inclusion(self, hashes):
@@ -747,8 +753,8 @@ class Iota(StrictIota):
       inclusionStates = inclusion_states,
     )
 
-  def prepare_transfer(self, transfers, inputs=None, change_address=None):
-    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address]) -> dict
+  def prepare_transfer(self, transfers, inputs=None, change_address=None, security_level=None):
+    # type: (Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> dict
     """
     Prepares transactions to be broadcast to the Tangle, by generating
     the correct bundle, as well as choosing and signing the inputs (for
@@ -772,6 +778,11 @@ class Iota(StrictIota):
       If not specified, a change address will be generated
       automatically.
 
+    :param security_level:
+      Number of iterations to use when generating new addresses (see get_new_addresses).
+      This value must be between 1 and 3, inclusive.
+      If not set, defaults to AddressGenerator.DEFAULT_SECURITY_LEVEL = 2
+
     :return:
       Dict containing the following values::
 
@@ -789,6 +800,7 @@ class Iota(StrictIota):
       transfers     = transfers,
       inputs        = inputs,
       changeAddress = change_address,
+      securityLevel = security_level,
     )
 
   def promote_transaction(
@@ -869,6 +881,7 @@ class Iota(StrictIota):
       inputs                = None,
       change_address        = None,
       min_weight_magnitude  = None,
+      security_level        = None,
   ):
     # type: (int, Iterable[ProposedTransaction], Optional[Iterable[Address]], Optional[Address], Optional[int]) -> dict
     """
@@ -920,6 +933,7 @@ class Iota(StrictIota):
       inputs              = inputs,
       changeAddress       = change_address,
       minWeightMagnitude  = min_weight_magnitude,
+      securityLevel       = security_level,
     )
 
   def send_trytes(self, trytes, depth, min_weight_magnitude=None):

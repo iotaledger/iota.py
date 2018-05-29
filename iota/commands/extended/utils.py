@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterable, List, Tuple
+from typing import Generator, Iterable, List, Optional, Tuple
 
 from iota import Address, Bundle, Transaction, \
   TransactionHash

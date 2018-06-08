@@ -6,12 +6,12 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import Address, AddressChecksum
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
-from iota.filters import Trytes
+from iota.filters import SecurityLevel, Trytes
 
 __all__ = [
   'GetNewAddressesCommand',
@@ -40,7 +40,7 @@ class GetNewAddressesCommand(FilterCommand):
     seed            = request['seed'] # type: Seed
 
     return {
-      'addresses': 
+      'addresses':
          self._find_addresses(seed, index, count, security_level, checksum),
     }
 
@@ -85,11 +85,7 @@ class GetNewAddressesRequestFilter(RequestFilter):
         'count':     f.Type(int) | f.Min(1),
         'index':     f.Type(int) | f.Min(0) | f.Optional(default=0),
 
-        'securityLevel':
-              f.Type(int)
-            | f.Min(1)
-            | f.Max(self.MAX_SECURITY_LEVEL)
-            | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
+        'securityLevel': SecurityLevel,
 
         'seed': f.Required | Trytes(result_type=Seed),
       },

@@ -5,17 +5,17 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
+
 from iota import Address, BadApiResponse, ProposedBundle, \
   ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_balances import GetBalancesCommand
 from iota.commands.extended.get_inputs import GetInputsCommand
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
-from iota.crypto.addresses import AddressGenerator
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
-from iota.filters import GeneratedAddress, Trytes
+from iota.filters import GeneratedAddress, SecurityLevel, Trytes
 
 __all__ = [
   'PrepareTransferCommand',
@@ -133,7 +133,7 @@ class PrepareTransferRequestFilter(RequestFilter):
 
         # Optional parameters.
         'changeAddress': Trytes(result_type=Address),
-        'securityLevel': f.Type(int) | f.Min(1) | f.Max(3) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
+        'securityLevel': SecurityLevel,
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':

@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Optional
 
 import filters as f
+
 from iota import BadApiResponse
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_balances import GetBalancesCommand
@@ -12,7 +13,7 @@ from iota.commands.extended.utils import iter_used_addresses
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
-from iota.filters import Trytes
+from iota.filters import SecurityLevel, Trytes
 
 __all__ = [
   'GetInputsCommand',
@@ -112,7 +113,8 @@ class GetInputsRequestFilter(RequestFilter):
         'stop':       f.Type(int) | f.Min(0),
         'start':      f.Type(int) | f.Min(0) | f.Optional(0),
         'threshold':  f.Type(int) | f.Min(0),
-        'securityLevel': f.Type(int) | f.Min(1) | f.Max(3) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
+
+        'securityLevel': SecurityLevel,
 
         # These arguments are required.
         'seed': f.Required | Trytes(result_type=Seed),

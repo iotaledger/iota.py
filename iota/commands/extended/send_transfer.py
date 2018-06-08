@@ -5,13 +5,13 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
+
 from iota import Address, Bundle, ProposedTransaction, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
-from iota.crypto.addresses import AddressGenerator
-from iota.filters import Trytes
+from iota.filters import SecurityLevel, Trytes
 
 __all__ = [
   'SendTransferCommand',
@@ -82,7 +82,7 @@ class SendTransferRequestFilter(RequestFilter):
 
         # Optional parameters.
         'changeAddress': Trytes(result_type=Address),
-        'securityLevel': f.Choice([1, 2, 3]) | f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL),
+        'securityLevel': SecurityLevel,
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':

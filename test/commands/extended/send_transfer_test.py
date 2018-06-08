@@ -6,10 +6,10 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
+from six import binary_type
 
-from iota import Address, Bundle, Iota, ProposedTransaction, \
-  TransactionTrytes, TryteString, TransactionHash
+from iota import Address, Bundle, Iota, ProposedTransaction, TransactionHash, \
+  TransactionTrytes, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.crypto.addresses import AddressGenerator
@@ -175,13 +175,13 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
 
         'depth':              100,
         'minWeightMagnitude': 13,
+        'securityLevel':      AddressGenerator.DEFAULT_SECURITY_LEVEL,
         'seed':               Seed(self.trytes2),
 
         'transfers': [
           self.transfer1,
           self.transfer2
         ],
-        'securityLevel': AddressGenerator.DEFAULT_SECURITY_LEVEL,
       }
     )
 
@@ -635,7 +635,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       },
 
       {
-        'securityLevel': [f.Choice.CODE_INVALID],
+        'securityLevel': [f.Min.CODE_TOO_SMALL],
       },
     )
 
@@ -656,7 +656,7 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
       },
 
       {
-        'securityLevel': [f.Choice.CODE_INVALID],
+        'securityLevel': [f.Type.CODE_WRONG_TYPE],
       },
     )
 

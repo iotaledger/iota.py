@@ -5,9 +5,11 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Text
 
 import filters as f
+from filters.macros import filter_macro
 from six import binary_type, moves as compat, text_type
 
 from iota import Address, TryteString, TrytesCompatible
+from iota.crypto.addresses import AddressGenerator
 
 
 class GeneratedAddress(f.BaseFilter):
@@ -68,6 +70,19 @@ class NodeUri(f.BaseFilter):
       return self._invalid_value(value, self.CODE_NOT_NODE_URI)
 
     return value
+
+
+@filter_macro
+def SecurityLevel():
+  """
+  Generates a filter chain for validating a security level.
+  """
+  return (
+      f.Type(int) |
+      f.Min(1) |
+      f.Max(3) |
+      f.Optional(default=AddressGenerator.DEFAULT_SECURITY_LEVEL)
+  )
 
 
 class Trytes(f.BaseFilter):

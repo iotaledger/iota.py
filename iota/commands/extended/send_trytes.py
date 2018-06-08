@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import List
+from typing import List, Optional
 
 import filters as f
 from iota import TransactionTrytes, TryteString, TransactionHash

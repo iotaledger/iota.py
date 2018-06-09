@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
-from typing import Generator, Iterable, List, Tuple
+from typing import Generator, Iterable, List, Optional, Tuple
 
 from iota import Address, Bundle, Transaction, \
   TransactionHash
@@ -37,17 +37,20 @@ def find_transaction_objects(adapter, **kwargs):
     return []
 
 
-def iter_used_addresses(adapter, seed, start):
-  # type: (BaseAdapter, Seed, int) -> Generator[Tuple[Address, List[TransactionHash]]]
+def iter_used_addresses(adapter, seed, start, security_level=None):
+  # type: (BaseAdapter, Seed, int, Optional[int]) -> Generator[Tuple[Address, List[TransactionHash]]]
   """
   Scans the Tangle for used addresses.
 
   This is basically the opposite of invoking ``getNewAddresses`` with
   ``stop=None``.
   """
+  if security_level is None:
+    security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL
+
   ft_command = FindTransactionsCommand(adapter)
 
-  for addy in AddressGenerator(seed).create_iterator(start):
+  for addy in AddressGenerator(seed, security_level=security_level).create_iterator(start):
     ft_response = ft_command(addresses=[addy])
 
     if ft_response['hashes']:

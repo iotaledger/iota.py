@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Optional
 
 import filters as f
+
 from iota import BadApiResponse
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_balances import GetBalancesCommand
@@ -12,7 +13,7 @@ from iota.commands.extended.utils import iter_used_addresses
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
-from iota.filters import Trytes
+from iota.filters import SecurityLevel, Trytes
 
 __all__ = [
   'GetInputsCommand',
@@ -38,13 +39,14 @@ class GetInputsCommand(FilterCommand):
     seed      = request['seed'] # type: Seed
     start     = request['start'] # type: int
     threshold = request['threshold'] # type: Optional[int]
+    security_level = request['securityLevel'] # int
 
     # Determine the addresses we will be scanning.
     if stop is None:
       addresses =\
-        [addy for addy, _ in iter_used_addresses(self.adapter, seed, start)]
+        [addy for addy, _ in iter_used_addresses(self.adapter, seed, start, security_level=security_level)]
     else:
-      addresses = AddressGenerator(seed).get_addresses(start, stop)
+      addresses = AddressGenerator(seed, security_level).get_addresses(start, stop - start)
 
     if addresses:
       # Load balances for the addresses that we generated.
@@ -112,14 +114,17 @@ class GetInputsRequestFilter(RequestFilter):
         'start':      f.Type(int) | f.Min(0) | f.Optional(0),
         'threshold':  f.Type(int) | f.Min(0),
 
+        'securityLevel': SecurityLevel,
+
         # These arguments are required.
         'seed': f.Required | Trytes(result_type=Seed),
       },
 
-      allow_missing_keys = {
+      allow_missing_keys={
         'stop',
         'start',
         'threshold',
+        'securityLevel',
       }
     )
 

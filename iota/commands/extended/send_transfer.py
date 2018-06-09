@@ -40,7 +40,7 @@ class SendTransferCommand(FilterCommand):
     seed                  = request['seed'] # type: Seed
     transfers             = request['transfers'] # type: List[ProposedTransaction]
     reference             = request['reference'] # type: Optional[TransactionHash]
-    security_level        = request['securityLevel'] # type: Optional[int]
+    security_level        = request['securityLevel'] # int
 
     pt_response = PrepareTransferCommand(self.adapter)(
       changeAddress   = change_address,

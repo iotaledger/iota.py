@@ -44,7 +44,7 @@ class PrepareTransferCommand(FilterCommand):
     # Optional parameters.
     change_address  = request.get('changeAddress') # type: Optional[Address]
     proposed_inputs = request.get('inputs') # type: Optional[List[Address]]
-    security_level = request['securityLevel'] # type: Optional[int]
+    security_level = request['securityLevel'] # type: int
 
     want_to_spend = bundle.balance
     if want_to_spend > 0:

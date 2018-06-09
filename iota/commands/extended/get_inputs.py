@@ -39,7 +39,7 @@ class GetInputsCommand(FilterCommand):
     seed      = request['seed'] # type: Seed
     start     = request['start'] # type: int
     threshold = request['threshold'] # type: Optional[int]
-    security_level = request['securityLevel'] # type: Optional[int]
+    security_level = request['securityLevel'] # int
 
     # Determine the addresses we will be scanning.
     if stop is None:

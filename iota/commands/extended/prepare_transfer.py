@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List, Optional
 
 import filters as f
+
 from iota import Address, BadApiResponse, ProposedBundle, \
   ProposedTransaction
 from iota.commands import FilterCommand, RequestFilter
@@ -14,7 +15,7 @@ from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
-from iota.filters import GeneratedAddress, Trytes
+from iota.filters import GeneratedAddress, SecurityLevel, Trytes
 
 __all__ = [
   'PrepareTransferCommand',
@@ -43,6 +44,7 @@ class PrepareTransferCommand(FilterCommand):
     # Optional parameters.
     change_address  = request.get('changeAddress') # type: Optional[Address]
     proposed_inputs = request.get('inputs') # type: Optional[List[Address]]
+    security_level = request['securityLevel'] # type: int
 
     want_to_spend = bundle.balance
     if want_to_spend > 0:
@@ -52,6 +54,7 @@ class PrepareTransferCommand(FilterCommand):
         gi_response = GetInputsCommand(self.adapter)(
           seed      = seed,
           threshold = want_to_spend,
+          securityLevel=security_level,
         )
 
         confirmed_inputs = gi_response['inputs']
@@ -99,7 +102,7 @@ class PrepareTransferCommand(FilterCommand):
       if bundle.balance < 0:
         if not change_address:
           change_address =\
-            GetNewAddressesCommand(self.adapter)(seed=seed)['addresses'][0]
+            GetNewAddressesCommand(self.adapter)(seed=seed, securityLevel=security_level)['addresses'][0]
 
         bundle.send_unspent_inputs_to(change_address)
 
@@ -130,6 +133,7 @@ class PrepareTransferRequestFilter(RequestFilter):
 
         # Optional parameters.
         'changeAddress': Trytes(result_type=Address),
+        'securityLevel': SecurityLevel,
 
         # Note that ``inputs`` is allowed to be an empty array.
         'inputs':
@@ -139,5 +143,6 @@ class PrepareTransferRequestFilter(RequestFilter):
       allow_missing_keys = {
         'changeAddress',
         'inputs',
+        'securityLevel',
       },
     )

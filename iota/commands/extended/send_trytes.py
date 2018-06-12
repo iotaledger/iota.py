@@ -1,85 +1,86 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from typing import List, Optional
 
 import filters as f
-from iota import TransactionTrytes, TryteString, TransactionHash
+
+from iota import TransactionHash, TransactionTrytes, TryteString
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.commands.core.get_transactions_to_approve import \
-  GetTransactionsToApproveCommand
+    GetTransactionsToApproveCommand
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 from iota.filters import Trytes
 
 __all__ = [
-  'SendTrytesCommand',
+    'SendTrytesCommand',
 ]
 
 
 class SendTrytesCommand(FilterCommand):
-  """
-  Executes `sendTrytes` extended API command.
+    """
+    Executes `sendTrytes` extended API command.
 
-  See :py:meth:`iota.api.IotaApi.send_trytes` for more info.
-  """
-  command = 'sendTrytes'
+    See :py:meth:`iota.api.IotaApi.send_trytes` for more info.
+    """
+    command = 'sendTrytes'
 
-  def get_request_filter(self):
-    return SendTrytesRequestFilter()
+    def get_request_filter(self):
+        return SendTrytesRequestFilter()
 
-  def get_response_filter(self):
-    pass
+    def get_response_filter(self):
+        pass
 
-  def _execute(self, request):
-    depth                 = request['depth'] # type: int
-    min_weight_magnitude  = request['minWeightMagnitude'] # type: int
-    trytes                = request['trytes'] # type: List[TryteString]
-    reference             = request['reference'] # type: Optional[TransactionHash]
+    def _execute(self, request):
+        depth = request['depth']  # type: int
+        min_weight_magnitude = request['minWeightMagnitude']  # type: int
+        trytes = request['trytes']  # type: List[TryteString]
+        reference = request['reference']  # type: Optional[TransactionHash]
 
-    # Call ``getTransactionsToApprove`` to locate trunk and branch
-    # transactions so that we can attach the bundle to the Tangle.
-    gta_response = GetTransactionsToApproveCommand(self.adapter)(
-      depth=depth,
-      reference=reference,
-    )
+        # Call ``getTransactionsToApprove`` to locate trunk and branch
+        # transactions so that we can attach the bundle to the Tangle.
+        gta_response = GetTransactionsToApproveCommand(self.adapter)(
+            depth=depth,
+            reference=reference,
+        )
 
-    att_response = AttachToTangleCommand(self.adapter)(
-      branchTransaction   = gta_response.get('branchTransaction'),
-      trunkTransaction    = gta_response.get('trunkTransaction'),
+        att_response = AttachToTangleCommand(self.adapter)(
+            branchTransaction=gta_response.get('branchTransaction'),
+            trunkTransaction=gta_response.get('trunkTransaction'),
 
-      minWeightMagnitude  = min_weight_magnitude,
-      trytes              = trytes,
-    )
+            minWeightMagnitude=min_weight_magnitude,
+            trytes=trytes,
+        )
 
-    # ``trytes`` now have POW!
-    trytes = att_response['trytes']
+        # ``trytes`` now have POW!
+        trytes = att_response['trytes']
 
-    BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
+        BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
-    return {
-      'trytes': trytes,
-    }
+        return {
+            'trytes': trytes,
+        }
 
 
 class SendTrytesRequestFilter(RequestFilter):
-  def __init__(self):
-    super(SendTrytesRequestFilter, self).__init__({
-      'depth': f.Required | f.Type(int) | f.Min(1),
+    def __init__(self):
+        super(SendTrytesRequestFilter, self).__init__({
+            'depth': f.Required | f.Type(int) | f.Min(1),
 
-      'trytes':
-          f.Required
-        | f.Array
-        | f.FilterRepeater(f.Required | Trytes(result_type=TransactionTrytes)),
+            'trytes':
+                f.Required | f.Array | f.FilterRepeater(
+                    f.Required | Trytes(TransactionTrytes),
+                ),
 
-      # Loosely-validated; testnet nodes require a different value than
-      # mainnet.
-      'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
+            # Loosely-validated; testnet nodes require a different value
+            # than mainnet.
+            'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
 
-      'reference': Trytes(result_type=TransactionHash),
-    },
+            'reference': Trytes(TransactionHash),
+        },
 
-    allow_missing_keys = {
-      'reference',
-    })
+            allow_missing_keys={
+                'reference',
+            })

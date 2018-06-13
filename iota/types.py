@@ -321,7 +321,7 @@ class TryteString(JsonSerializable):
     return len(self._trytes)
 
   def __iter__(self):
-    # type: () -> Generator[binary_type]
+    # type: () -> Generator[binary_type, None, None]
     # :see: http://stackoverflow.com/a/14267935/
     return (binary_type(self._trytes[i:i + 1]) for i in range(len(self)))
 

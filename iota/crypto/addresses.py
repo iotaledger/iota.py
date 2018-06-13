@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from typing import Generator, Iterable, List, MutableSequence
+from typing import Generator, Iterable, List
 
 from iota import Address, TRITS_PER_TRYTE, TrytesCompatible
 from iota.crypto.kerl import Kerl
@@ -132,7 +132,7 @@ class AddressGenerator(Iterable[Address]):
         return addresses
 
     def create_iterator(self, start=0, step=1):
-        # type: (int, int) -> Generator[Address]
+        # type: (int, int) -> Generator[Address, None, None]
         """
         Creates an iterator that can be used to progressively generate new
         addresses.

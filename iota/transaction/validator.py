@@ -68,7 +68,7 @@ class BundleValidator(object):
     return not self._errors
 
   def _create_validator(self):
-    # type: () -> Generator[Text]
+    # type: () -> Generator[Text, None, None]
     """
     Creates a generator that does all the work.
     """

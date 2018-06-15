@@ -16,6 +16,7 @@ from iota.trits import add_trits, trits_from_int
 __all__ = [
     'KeyGenerator',
     'KeyIterator',
+    'normalize',
     'SignatureFragmentGenerator',
     'validate_signature_fragments',
 ]

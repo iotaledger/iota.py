@@ -11,12 +11,12 @@ References:
 """
 
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from typing import List
 
 from iota import Address, Bundle, BundleValidator, ProposedTransaction, Tag, \
-  TransactionTrytes, TryteString
+    TransactionTrytes, TryteString
 from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.multisig import MultisigIota
 from iota.multisig.types import MultisigAddress
@@ -36,75 +36,67 @@ participants don't have to share their seeds.
 # Create digest 1 of 3.
 #
 # noinspection SpellCheckingInspection
-api_1 =\
-  MultisigIota(
-    adapter = 'http://localhost:14265',
+api_1 = MultisigIota(
+    adapter='http://localhost:14265',
 
-    seed =
-      Seed(
+    seed=Seed(
         b'TESTVALUE9DONTUSEINPRODUCTION99999XKMYQP'
         b'OIFGQSMIIWCQVMBSOKZASRQOFSIUSSHNDKVL9PJVS',
-      ),
-  )
+    ),
+)
 
-gd_result =\
-  api_1.get_digests(
+gd_result = api_1.get_digests(
     # Starting key index.
-    index = 0,
+    index=0,
 
     # Number of digests to generate.
-    count = 1,
+    count=1,
 
     # Security level of the resulting digests.
     # Must be a value between 1 (faster) and 3 (more secure).
-    security_level = 3,
-  )
+    security_level=3,
+)
 
 # ``get_digests`` returns a dict which contains 1 or more digests,
 # depending on what value we used for ``count``.
-digest_1 = gd_result['digests'][0] # type: Digest
+digest_1 = gd_result['digests'][0]  # type: Digest
 
 ##
 # Create digest 2 of 3.
 #
 # noinspection SpellCheckingInspection
-api_2 =\
-  MultisigIota(
-    adapter = 'http://localhost:14265',
+api_2 = MultisigIota(
+    adapter='http://localhost:14265',
 
-    seed =
-      Seed(
+    seed=Seed(
         b'TESTVALUE9DONTUSEINPRODUCTION99999DDWDKI'
         b'FFBZVQHHINYDWRSMGGPZUERNLEAYMLFPHRXEWRNST',
-      ),
-  )
+    ),
+)
 
 # You can use any starting index that you want.
 # For maximum security, each index should be used only once.
 gd_result = api_2.get_digests(index=42, count=1, security_level=3)
 
-digest_2 = gd_result['digests'][0] # type: Digest
+digest_2 = gd_result['digests'][0]  # type: Digest
 
 ##
 # Create digest 3 of 3.
 #
 # noinspection SpellCheckingInspection
-api_3 =\
-  MultisigIota(
-    adapter = 'http://localhost:14265',
+api_3 = MultisigIota(
+    adapter='http://localhost:14265',
 
-    seed =
-      Seed(
+    seed=Seed(
         b'TESTVALUE9DONTUSEINPRODUCTION99999JYFRTI'
         b'WMKVVBAIEIYZDWLUVOYTZBKPKLLUMPDF9PPFLO9KT',
-      ),
-  )
+    ),
+)
 
 # It is not necessary for every digest to have the same security level.
 gd_result = api_3.get_digests(index=8, count=1, security_level=2)
 
-digest_3 = gd_result['digests'][0] # type: Digest
-
+digest_3 = gd_result['digests'][0]  # type: Digest
 
 """
 Step 2:  Collect the digests and create a multisig address.
@@ -116,13 +108,13 @@ IMPORTANT: Keep track of the order that digests are used; you will
 need to ensure that the same order is used to sign inputs!
 """
 
-cma_result =\
-  api_1.create_multisig_address(digests=[digest_1, digest_2, digest_3])
+cma_result = api_1.create_multisig_address(
+    digests=[digest_1, digest_2, digest_3],
+)
 
 # For consistency, every API command returns a dict, even if it only
 # has a single value.
-multisig_address = cma_result['address'] # type: MultisigAddress
-
+multisig_address = cma_result['address']  # type: MultisigAddress
 
 """
 Step 3:  Prepare the bundle.
@@ -137,44 +129,41 @@ the change from the transaction!
 """
 
 # noinspection SpellCheckingInspection
-pmt_result =\
-  api_1.prepare_multisig_transfer(
+pmt_result = api_1.prepare_multisig_transfer(
     # These are the transactions that will spend the IOTAs.
     # You can divide up the IOTAs to send to multiple addresses if you
     # want, but to keep this example focused, we will only include a
     # single spend transaction.
-    transfers = [
-      ProposedTransaction(
-        address =
-          Address(
-            b'TESTVALUE9DONTUSEINPRODUCTION99999NDGYBC'
-            b'QZJFGGWZ9GBQFKDOLWMVILARZRHJMSYFZETZTHTZR',
-          ),
+    transfers=[
+        ProposedTransaction(
+            address=Address(
+                b'TESTVALUE9DONTUSEINPRODUCTION99999NDGYBC'
+                b'QZJFGGWZ9GBQFKDOLWMVILARZRHJMSYFZETZTHTZR',
+            ),
 
-        value = 42,
+            value=42,
 
-        # If you'd like, you may include an optional tag and/or
-        # message.
-        tag = Tag(b'KITTEHS'),
-        message = TryteString.from_string('thanx fur cheezburgers'),
-      ),
+            # If you'd like, you may include an optional tag and/or
+            # message.
+            tag=Tag(b'KITTEHS'),
+            message=TryteString.from_string('thanx fur cheezburgers'),
+        ),
     ],
 
     # Specify our multisig address as the input for the spend
     # transaction(s).
     # Note that PyOTA currently only allows one multisig input per
-    # bundle (although the protocol does not impose a limit).
-    multisig_input = multisig_address,
+    # bundle (although the protocol itself does not impose a limit).
+    multisig_input=multisig_address,
 
     # If there will be change from this transaction, you MUST specify
     # the change address!  Unlike regular transfers, multisig transfers
-    # will NOT automatically generate a change address; that wouldn't
-    # be fair to the other participants!
-    change_address = None,
-  )
+    # will NOT automatically generate a change address; that wouldn't be
+    # fair to the other participants!
+    change_address=None,
+)
 
-prepared_trytes = pmt_result['trytes'] # type: List[TransactionTrytes]
-
+prepared_trytes = pmt_result['trytes']  # type: List[TransactionTrytes]
 
 """
 Step 4:  Sign the inputs.
@@ -205,15 +194,15 @@ bundle = Bundle.from_tryte_strings(prepared_trytes)
 # ``get_digests`` method, in order to generate the correct value to
 # sign the input!
 gpk_result = api_1.get_private_keys(index=0, count=1, security_level=3)
-private_key_1 = gpk_result['keys'][0] # type: PrivateKey
+private_key_1 = gpk_result['keys'][0]  # type: PrivateKey
 private_key_1.sign_input_transactions(bundle, 1)
 
 gpk_result = api_2.get_private_keys(index=42, count=1, security_level=3)
-private_key_2 = gpk_result['keys'][0] # type: PrivateKey
+private_key_2 = gpk_result['keys'][0]  # type: PrivateKey
 private_key_2.sign_input_transactions(bundle, 4)
 
 gpk_result = api_3.get_private_keys(index=8, count=1, security_level=2)
-private_key_3 = gpk_result['keys'][0] # type: PrivateKey
+private_key_3 = gpk_result['keys'][0]  # type: PrivateKey
 private_key_3.sign_input_transactions(bundle, 7)
 
 # Once we've applied the signatures, convert the Bundle back into tryte
@@ -229,11 +218,11 @@ valid.
 """
 validator = BundleValidator(bundle)
 if not validator.is_valid():
-  raise ValueError(
-    'Bundle failed validation:\n{errors}'.format(
-      errors = '\n'.join(('  - ' + e) for e in validator.errors),
-    ),
-  )
+    raise ValueError(
+        'Bundle failed validation:\n{errors}'.format(
+            errors='\n'.join(('  - ' + e) for e in validator.errors),
+        ),
+    )
 
 """
 Step 5:  Broadcast the bundle.

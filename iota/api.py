@@ -7,7 +7,7 @@ from typing import Dict, Iterable, Optional, Text
 from six import with_metaclass
 
 from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
-    TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
+  BundleHash, TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
     discover_commands, extended
@@ -242,7 +242,7 @@ class StrictIota(with_metaclass(ApiMeta)):
 
     def find_transactions(
             self,
-            bundles=None,  # type: Optional[Iterable[TransactionHash]]
+            bundles=None,  # type: Optional[Iterable[BundleHash]]
             addresses=None,  # type: Optional[Iterable[Address]]
             tags=None,  # type: Optional[Iterable[Tag]]
             approvees=None,  # type: Optional[Iterable[TransactionHash]]
@@ -260,7 +260,7 @@ class StrictIota(with_metaclass(ApiMeta)):
         the values.
 
         :param bundles:
-            List of transaction IDs.
+          List of bundle IDs.
 
         :param addresses:
             List of addresses.

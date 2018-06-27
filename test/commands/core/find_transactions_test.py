@@ -8,7 +8,7 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import text_type
 
-from iota import Address, Iota, Tag, TransactionHash, TryteString
+from iota import Address, Iota, Tag, BundleHash, TransactionHash, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.find_transactions import FindTransactionsCommand, \
   FindTransactionsRequestFilter
@@ -36,8 +36,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     # Raw trytes are extracted to match the IRI's JSON protocol.
     request = {
       'bundles': [
-        text_type(TransactionHash(self.trytes1)),
-        text_type(TransactionHash(self.trytes2)),
+        text_type(BundleHash(self.trytes1)),
+        text_type(BundleHash(self.trytes2)),
       ],
 
       'addresses': [
@@ -69,7 +69,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       'bundles': [
         self.trytes1.encode('ascii'),
-        TransactionHash(self.trytes2),
+        BundleHash(self.trytes2),
       ],
 
       'addresses': [
@@ -95,8 +95,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         # Raw trytes are extracted to match the IRI's JSON protocol.
         'bundles': [
-          text_type(TransactionHash(self.trytes1)),
-          text_type(TransactionHash(self.trytes2)),
+          text_type(BundleHash(self.trytes1)),
+          text_type(BundleHash(self.trytes2)),
         ],
 
         'addresses': [
@@ -122,8 +122,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """
     request = {
       'bundles': [
-        TransactionHash(self.trytes1),
-        TransactionHash(self.trytes2),
+        BundleHash(self.trytes1),
+        BundleHash(self.trytes2),
       ],
     }
 
@@ -135,8 +135,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'bundles': [
-          text_type(TransactionHash(self.trytes1)),
-          text_type(TransactionHash(self.trytes2)),
+          text_type(BundleHash(self.trytes1)),
+          text_type(BundleHash(self.trytes2)),
         ],
 
         # Null criteria are not included in the request.
@@ -292,7 +292,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'addresses':  [Address(self.trytes1)],
         'approvees':  [TransactionHash(self.trytes1)],
-        'bundles':    [TransactionHash(self.trytes1)],
+        'bundles':    [BundleHash(self.trytes1)],
         'tags':       [Tag(self.trytes1)],
 
         # Hey, you're not allowed in he-argh!
@@ -310,7 +310,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'bundles': TransactionHash(self.trytes1),
+        'bundles': BundleHash(self.trytes1),
       },
 
       {

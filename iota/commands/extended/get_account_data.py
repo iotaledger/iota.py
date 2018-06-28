@@ -15,7 +15,7 @@ from iota.commands.extended.utils import get_bundles_from_transaction_hashes, \
     iter_used_addresses
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
-from iota.filters import Trytes
+from iota.filters import Trytes, SecurityLevel
 
 __all__ = [
     'GetAccountDataCommand',
@@ -41,19 +41,20 @@ class GetAccountDataCommand(FilterCommand):
         seed = request['seed']  # type: Seed
         start = request['start']  # type: int
         stop = request['stop']  # type: Optional[int]
+        security_level = request['security_level']  # type: Optional[int]
 
         if stop is None:
             my_addresses = []  # type: List[Address]
             my_hashes = []  # type: List[TransactionHash]
 
-            for addy, hashes in iter_used_addresses(self.adapter, seed, start):
+            for addy, hashes in iter_used_addresses(self.adapter, seed, start, security_level):
                 my_addresses.append(addy)
                 my_hashes.extend(hashes)
         else:
             ft_command = FindTransactionsCommand(self.adapter)
 
             my_addresses = (
-                AddressGenerator(seed).get_addresses(start, stop - start)
+                AddressGenerator(seed, security_level).get_addresses(start, stop - start)
             )
             my_hashes = ft_command(addresses=my_addresses).get('hashes') or []
 
@@ -103,14 +104,15 @@ class GetAccountDataRequestFilter(RequestFilter):
                 # Optional parameters.
                 'stop': f.Type(int) | f.Min(0),
                 'start': f.Type(int) | f.Min(0) | f.Optional(0),
-
                 'inclusionStates': f.Type(bool) | f.Optional(False),
+                'security_level': SecurityLevel
             },
 
             allow_missing_keys={
                 'stop',
-                'inclusionStates',
                 'start',
+                'inclusionStates',
+                'security_level'
             },
         )
 

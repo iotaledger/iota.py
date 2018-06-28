@@ -511,8 +511,8 @@ class Iota(StrictIota):
         """
         return extended.BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
-    def get_account_data(self, start=0, stop=None, inclusion_states=False):
-        # type: (int, Optional[int], bool) -> dict
+    def get_account_data(self, start=0, stop=None, inclusion_states=False, security_level=None):
+        # type: (int, Optional[int], bool, Optional[int]) -> dict
         """
         More comprehensive version of :py:meth:`get_transfers` that
         returns addresses and account balance in addition to bundles.
@@ -539,6 +539,15 @@ class Iota(StrictIota):
             This requires an additional API call to the node, so it is
             disabled by default.
 
+        :param security_level:
+            Number of iterations to use when generating new addresses
+            (see :py:meth:`get_new_addresses`).
+
+            This value must be between 1 and 3, inclusive.
+
+            If not set, defaults to
+            :py:attr:`AddressGenerator.DEFAULT_SECURITY_LEVEL`.
+
         :return:
             Dict with the following structure::
 
@@ -562,6 +571,7 @@ class Iota(StrictIota):
             start=start,
             stop=stop,
             inclusionStates=inclusion_states,
+            security_level=security_level
         )
 
     def get_bundles(self, transaction):

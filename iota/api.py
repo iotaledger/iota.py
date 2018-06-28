@@ -6,8 +6,8 @@ from typing import Dict, Iterable, Optional, Text
 
 from six import with_metaclass
 
-from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
-  BundleHash, TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
+from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
+    TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
     discover_commands, extended

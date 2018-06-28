@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from six import iteritems
 
-from iota import Tag, TransactionHash
+from iota import Tag, TransactionHash, BundleHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import AddressNoChecksum, Trytes
 
@@ -56,7 +56,7 @@ class FindTransactionsRequestFilter(RequestFilter):
                 'bundles':
                     f.Array | f.FilterRepeater(
                         f.Required |
-                        Trytes(TransactionHash) |
+                        Trytes(BundleHash) |
                         f.Unicode(encoding='ascii', normalize=False),
                     ),
 

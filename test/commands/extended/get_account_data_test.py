@@ -37,6 +37,7 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
       'start':            0,
       'stop':             10,
       'inclusionStates':  True,
+      'security_level':   2
     }
 
     filter_ = self._filter(request)
@@ -58,6 +59,7 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
       'start':            42,
       'stop':             86,
       'inclusionStates':  True,
+      'security_level':   2
     })
 
     self.assertFilterPasses(filter_)
@@ -69,6 +71,7 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
         'start':            42,
         'stop':             86,
         'inclusionStates':  True,
+        'security_level':   2
       },
     )
 
@@ -89,6 +92,7 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
         'start':            0,
         'stop':             None,
         'inclusionStates':  False,
+        'security_level':   2
       }
     )
 
@@ -369,7 +373,7 @@ class GetAccountDataCommandTestCase(TestCase):
     Loading account data for an account.
     """
     # noinspection PyUnusedLocal
-    def mock_iter_used_addresses(adapter, seed, start):
+    def mock_iter_used_addresses(adapter, seed, start, security_level):
       """
       Mocks the ``iter_used_addresses`` function, so that we can
       simulate its functionality without actually connecting to the

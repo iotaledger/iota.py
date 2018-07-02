@@ -10,7 +10,7 @@ from unittest import TestCase
 from sha3 import keccak_384
 
 from iota.crypto.kerl import Kerl
-from iota.crypto.kerl.conv import convertToBytes, convertToTrits, \
+from iota.crypto.kerl import trits_to_bytes, bytes_to_trits, \
   trits_to_trytes, trytes_to_trits
 
 
@@ -105,16 +105,16 @@ class TestKerl(TestCase):
     def test_all_bytes(self):
         for i in range(-128, 128):
             in_bytes = [i] * 48
-            trits = convertToTrits(in_bytes)
-            out_bytes = convertToBytes(trits)
+            trits = bytes_to_trits(in_bytes)
+            out_bytes = trits_to_bytes(trits)
 
             self.assertEqual(in_bytes, out_bytes)
 
     def test_random_trits(self):
         in_trits = [randrange(-1,2) for _ in range(243)]
         in_trits[242] = 0
-        in_bytes = convertToBytes(in_trits)
-        out_trits = convertToTrits(in_bytes)
+        in_bytes = trits_to_bytes(in_trits)
+        out_trits = bytes_to_trits(in_bytes)
 
         self.assertEqual(in_trits, out_trits)
 

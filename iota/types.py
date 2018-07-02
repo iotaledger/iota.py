@@ -61,10 +61,14 @@ class TryteString(JsonSerializable):
     generator = SystemRandom()
 
     try:
-      length = length or cls.LEN
+      if length is None:
+        length = cls.LEN
+
+      if length <= 0:
+        raise TypeError("length parameter needs to be greater than zero")
     except AttributeError:  # class has no LEN attribute
       if length is None:
-        raise TypeError("random() missing 1 required positional argument: 'length'")
+        raise TypeError("{class_name} does not define a length property".format(class_name=cls.__name__))
 
     # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
     # for compatibility, we will continue to use ``choice`` in a loop.

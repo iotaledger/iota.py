@@ -34,7 +34,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'depth':              100,
+      'depth':              3,
       'minWeightMagnitude': 18,
       'transaction':        TransactionHash(self.trytes1),
     }
@@ -54,7 +54,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       'transaction': binary_type(self.trytes1),
 
       # These values must still be ints, however.
-      'depth':              100,
+      'depth':              3,
       'minWeightMagnitude': 18,
     })
 
@@ -63,7 +63,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'depth':              100,
+        'depth':              3,
         'minWeightMagnitude': 18,
         'transaction':        TransactionHash(self.trytes1),
       },
@@ -89,7 +89,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':              100,
+        'depth':              3,
         'minWeightMagnitude': 18,
         'transaction':        TransactionHash(self.trytes1),
 
@@ -110,7 +110,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': None,
 
-        'depth':              100,
+        'depth':              3,
         'minWeightMagnitude': 18,
       },
 
@@ -127,7 +127,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': 42,
 
-        'depth':              100,
+        'depth':              3,
         'minWeightMagnitude': 18,
       },
 
@@ -144,7 +144,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': b'not valid; must contain only uppercase and "9"',
 
-        'depth':              100,
+        'depth':              3,
         'minWeightMagnitude': 18,
       },
 
@@ -231,7 +231,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'minWeightMagnitude': None,
 
-        'depth':        100,
+        'depth':        3,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -249,7 +249,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
         # It's gotta be an int!
         'minWeightMagnitude': '18',
 
-        'depth':        100,
+        'depth':        3,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -267,7 +267,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, float values are not valid.
         'minWeightMagnitude': 18.0,
 
-        'depth':        100,
+        'depth':        3,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -284,7 +284,7 @@ class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
       {
         'minWeightMagnitude': 0,
 
-        'depth':        100,
+        'depth':        3,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -616,7 +616,7 @@ class ReplayBundleCommandTestCase(TestCase):
           mock_send_trytes,
       ):
         response = self.command(
-          depth               = 100,
+          depth               = 3,
           minWeightMagnitude  = 18,
           transaction         = bundle[0].hash,
         )

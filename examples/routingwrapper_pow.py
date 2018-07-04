@@ -19,7 +19,7 @@ api =\
 
 # Example of sending a transfer using the adapter.
 bundle = api.send_transfer(
-  depth = 100,
+  depth = 3,
   transfers = [
     ProposedTransaction(
       # Recipient of the transfer.

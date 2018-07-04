@@ -32,7 +32,7 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     Request is valid without reference.
     """
     request = {
-      'depth': 100,
+      'depth': 3,
     }
 
     filter_ = self._filter(request)
@@ -72,7 +72,7 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth': 100,
+        'depth': 3,
 
         # I knew I should have taken that left turn at Albuquerque.
         'foo': 'bar',
@@ -103,7 +103,7 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth': 100.0,
+        'depth': 3.0,
       },
 
       {
@@ -117,7 +117,7 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth': '100',
+        'depth': '3',
       },
 
       {
@@ -147,7 +147,7 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
       {
         'reference': 42,
 
-        'depth': 100,
+        'depth': 3,
       },
 
       {
@@ -163,7 +163,7 @@ class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
       {
         'reference': b'not valid; must contain only uppercase and "9"',
 
-        'depth': 100,
+        'depth': 3,
       },
 
       {

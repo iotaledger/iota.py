@@ -33,7 +33,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'depth':              3,
+      'depth':              100,
       'minWeightMagnitude': 18,
 
       'trytes': [
@@ -63,7 +63,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       'reference': binary_type(self.trytes2),
 
       # These still have to be ints, however.
-      'depth':              3,
+      'depth':              100,
       'minWeightMagnitude': 18,
     })
 
@@ -72,7 +72,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
 
         'trytes': [
@@ -103,7 +103,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
         'trytes':             [TryteString(self.trytes1)],
 
@@ -194,7 +194,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'minWeightMagnitude': None,
 
-        'depth':  3,
+        'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
@@ -212,7 +212,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # It's gotta be an int!
         'minWeightMagnitude': '18',
 
-        'depth':  3,
+        'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
@@ -230,7 +230,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, float values are not valid.
         'minWeightMagnitude': 18.0,
 
-        'depth':  3,
+        'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
@@ -247,7 +247,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'minWeightMagnitude': 0,
 
-        'depth':  3,
+        'depth':  100,
         'trytes': [TryteString(self.trytes1)],
       },
 
@@ -264,7 +264,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': None,
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -283,7 +283,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
         # send.
         'trytes': TryteString(self.trytes1),
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -300,7 +300,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [],
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -330,7 +330,7 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
           b'9' * (TransactionTrytes.LEN + 1),
         ],
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -403,7 +403,7 @@ class SendTrytesCommandTestCase(TestCase):
 
     response = self.command(
       trytes              = trytes,
-      depth               = 3,
+      depth               = 100,
       minWeightMagnitude  = 18,
     )
 

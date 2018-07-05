@@ -33,7 +33,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
     Request is valid.
     """
     request = {
-      'depth':              3,
+      'depth':              100,
       'minWeightMagnitude': 18,
       'transaction':        TransactionHash(self.trytes1),
     }
@@ -53,7 +53,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
       'transaction': binary_type(self.trytes1),
 
       # These values must still be ints, however.
-      'depth':              3,
+      'depth':              100,
       'minWeightMagnitude': 18,
     })
 
@@ -88,7 +88,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
     """
     self.assertFilterErrors(
       {
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
         'transaction':        TransactionHash(self.trytes1),
 
@@ -109,7 +109,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': None,
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -126,7 +126,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': 42,
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -143,7 +143,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
       {
         'transaction': b'not valid; must contain only uppercase and "9"',
 
-        'depth':              3,
+        'depth':              100,
         'minWeightMagnitude': 18,
       },
 
@@ -230,7 +230,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
       {
         'minWeightMagnitude': None,
 
-        'depth':        3,
+        'depth':        100,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -248,7 +248,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
         # It's gotta be an int!
         'minWeightMagnitude': '18',
 
-        'depth':        3,
+        'depth':        100,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -266,7 +266,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
         # Even with an empty fpart, float values are not valid.
         'minWeightMagnitude': 18.0,
 
-        'depth':        3,
+        'depth':        100,
         'transaction':  TransactionHash(self.trytes1),
       },
 
@@ -283,7 +283,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
       {
         'minWeightMagnitude': 0,
 
-        'depth':        3,
+        'depth':        100,
         'transaction':  TransactionHash(self.trytes1),
       },
 

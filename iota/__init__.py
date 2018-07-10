@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 # Define a few magic constants.
 DEFAULT_PORT = 14265
@@ -26,7 +26,6 @@ STANDARD_UNITS = {
     'Ti': 1000000000000,
     'Pi': 1000000000000000
 }
-
 
 # Activate codecs.
 from .codecs import *

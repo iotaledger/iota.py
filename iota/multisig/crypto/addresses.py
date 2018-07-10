@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from typing import List, Optional
 
@@ -10,76 +10,83 @@ from iota.crypto.types import Digest
 from iota.multisig.types import MultisigAddress
 
 __all__ = [
-  'MultisigAddressBuilder',
+    'MultisigAddressBuilder',
 ]
 
 
 class MultisigAddressBuilder(object):
-  """
-  Creates multisig addresses.
-
-  Note that this class generates a single address from multiple inputs,
-  (digests) unlike :py:class:`iota.crypto.addresses.AddressGenerator`
-  which generates multiple addresses from a single input (seed).
-  """
-  def __init__(self):
-    super(MultisigAddressBuilder, self).__init__()
-
-    self._digests = [] # type: List[Digest]
     """
-    Keeps track of digests that were added, so that we can attach them
-    to the final :py:class:`MultisigAddress` object.
+    Creates multisig addresses.
+
+    Note that this class generates a single address from multiple
+    inputs (digests), unlike
+    :py:class:`iota.crypto.addresses.AddressGenerator` which generates
+    multiple addresses from a single input (seed).
     """
 
-    self._address = None # type: Optional[MultisigAddress]
-    """
-    Caches the generated address.
+    def __init__(self):
+        super(MultisigAddressBuilder, self).__init__()
 
-    Generating the address modifies the internal state of the curl
-    sponge, so each :py:class:`MultisigAddressBuilder` instance can
-    only generate a single address.
-    """
+        self._digests = []  # type: List[Digest]
+        """
+        Keeps track of digests that were added, so that we can attach
+        them to the final :py:class:`MultisigAddress` object.
+        """
 
-    self._sponge = Kerl()
+        self._address = None  # type: Optional[MultisigAddress]
+        """
+        Caches the generated address.
 
-  def add_digest(self, digest):
-    # type: (Digest) -> None
-    """
-    Absorbs a digest into the sponge.
+        Generating the address modifies the internal state of the curl
+        sponge, so each :py:class:`MultisigAddressBuilder` instance can
+        only generate a single address.
+        """
 
-    IMPORTANT: Keep track of the order that digests are added!
-    To spend inputs from a multisig address, you must provide the
-    private keys in the same order!
+        self._sponge = Kerl()
 
-    References:
-      - https://github.com/iotaledger/wiki/blob/master/multisigs.md#spending-inputs
-    """
-    if self._address:
-      raise ValueError('Cannot add digests once an address is extracted.')
+    def add_digest(self, digest):
+        # type: (Digest) -> None
+        """
+        Absorbs a digest into the sponge.
 
-    self._sponge.absorb(digest.as_trits())
-    self._digests.append(digest)
+        .. important::
+            Keep track of the order that digests are added!
 
-  def get_address(self):
-    # type: () -> MultisigAddress
-    """
-    Returns the new multisig address.
+            To spend inputs from a multisig address, you must provide
+            the private keys in the same order!
 
-    Note that you can continue to add digests after extracting an
-    address; the next address will use *all* of the digests that have
-    been added so far.
-    """
-    if not self._digests:
-      raise ValueError(
-        'Must call ``add_digest`` at least once '
-        'before calling ``get_address``.',
-      )
+        References:
 
-    if not self._address:
-      address_trits = [0] * HASH_LENGTH
-      self._sponge.squeeze(address_trits)
+        - https://github.com/iotaledger/wiki/blob/master/multisigs.md#spending-inputs
+        """
+        if self._address:
+            raise ValueError('Cannot add digests once an address is extracted.')
 
-      self._address =\
-        MultisigAddress.from_trits(address_trits, digests=self._digests[:])
+        self._sponge.absorb(digest.as_trits())
+        self._digests.append(digest)
 
-    return self._address
+    def get_address(self):
+        # type: () -> MultisigAddress
+        """
+        Returns the new multisig address.
+
+        Note that you can continue to add digests after extracting an
+        address; the next address will use *all* of the digests that
+        have been added so far.
+        """
+        if not self._digests:
+            raise ValueError(
+                'Must call ``add_digest`` at least once '
+                'before calling ``get_address``.',
+            )
+
+        if not self._address:
+            address_trits = [0] * HASH_LENGTH
+            self._sponge.squeeze(address_trits)
+
+            self._address = MultisigAddress.from_trits(
+                address_trits,
+                digests=self._digests[:],
+            )
+
+        return self._address

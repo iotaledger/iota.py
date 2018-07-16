@@ -21,7 +21,7 @@ api = Iota(
 
 # For more information, see :py:meth:`Iota.send_transfer`.
 api.send_transfer(
-    depth=100,
+    depth=3,
 
     # One or more :py:class:`ProposedTransaction` objects to add to the
     # bundle.

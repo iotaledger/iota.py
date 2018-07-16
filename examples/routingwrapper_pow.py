@@ -20,7 +20,7 @@ api = Iota(router, seed=b'SEED9GOES9HERE')
 # Example of sending a transfer using the adapter.
 # noinspection SpellCheckingInspection
 bundle = api.send_transfer(
-    depth=100,
+    depth=3,
 
     transfers=[
         ProposedTransaction(

@@ -4,14 +4,15 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Dict, Iterable, Optional, Text
 
-from iota import AdapterSpec, Address, ProposedTransaction, Tag, \
-  TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
+from iota import AdapterSpec, Address, Tag, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, \
   discover_commands, extended
 from iota.commands.extended.helpers import Helpers
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
+from iota.transaction.types import TransactionHash, TransactionTrytes
+from iota.transaction.creation import ProposedTransaction
 from six import with_metaclass
 
 __all__ = [

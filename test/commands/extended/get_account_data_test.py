@@ -8,12 +8,14 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type
 
-from iota import Address, Bundle, Iota, TransactionHash
+from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_account_data import GetAccountDataCommand, \
   GetAccountDataRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from iota.transaction.base import Bundle
+from iota.transaction.types import TransactionHash
 from test import mock
 
 

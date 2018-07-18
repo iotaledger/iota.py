@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import Iota, TransactionHash
+from iota import Iota
 from iota.adapter import MockAdapter
 
 

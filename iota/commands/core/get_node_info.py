@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'GetNodeInfoCommand',

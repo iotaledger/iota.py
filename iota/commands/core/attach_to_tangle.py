@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-from iota import TransactionHash, TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.transaction.types import TransactionHash, TransactionTrytes
 from iota.filters import Trytes
 
 __all__ = [

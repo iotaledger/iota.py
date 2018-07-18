@@ -4,10 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import Address, ProposedTransaction
+from iota import Address
 from iota.crypto.types import Digest
 from iota.multisig.transaction import ProposedMultisigBundle
 from iota.multisig.types import MultisigAddress
+from iota.transaction.creation import ProposedTransaction
 
 
 class ProposedMultisigBundleTestCase(TestCase):

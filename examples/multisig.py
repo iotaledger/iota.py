@@ -15,11 +15,14 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import List
 
-from iota import Address, Bundle, BundleValidator, ProposedTransaction, Tag, \
-  TransactionTrytes, TryteString
+from iota import Address, Tag, TryteString
 from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.multisig import MultisigIota
 from iota.multisig.types import MultisigAddress
+from iota.transaction.base import Bundle
+from iota.transaction.creation import ProposedTransaction, TransactionTrytes
+from iota.transaction.types import TransactionTrytes
+from iota.transaction.validator import BundleValidator
 
 """
 Step 1:  Each participant generates one or more digests that will be

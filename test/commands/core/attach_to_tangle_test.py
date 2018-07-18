@@ -2,15 +2,16 @@
 from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
+from six import binary_type, text_type
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash, TransactionTrytes, TryteString
+from iota import Iota, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
+from iota.transaction.types import TransactionHash, TransactionTrytes
 
 
 class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):

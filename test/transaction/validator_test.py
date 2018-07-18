@@ -4,7 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import Address, Bundle, BundleHash, BundleValidator, TransactionTrytes
+from iota import Address
+from iota.transaction.base import Bundle
+from iota.transaction.types import BundleHash, TransactionTrytes
+from iota.transaction.validator import BundleValidator
 
 
 class BundleValidatorTestCase(TestCase):

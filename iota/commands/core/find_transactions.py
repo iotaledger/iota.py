@@ -5,9 +5,10 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from six import iteritems
 
-from iota import Address, Tag, TransactionHash
+from iota import Address, Tag
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import AddressNoChecksum, Trytes
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'FindTransactionsCommand',

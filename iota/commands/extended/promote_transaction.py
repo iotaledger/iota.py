@@ -3,13 +3,13 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-from iota import (
-  Bundle, TransactionHash, Address, ProposedTransaction, BadApiResponse,
-)
+from iota import Address, BadApiResponse
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.check_consistency import CheckConsistencyCommand
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.filters import Trytes
+from iota.transaction.creation import ProposedTransaction
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'PromoteTransactionCommand',

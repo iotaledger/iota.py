@@ -6,7 +6,7 @@ from operator import attrgetter
 from typing import List, Optional
 
 import filters as f
-from iota import Address, TransactionHash
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_balances import GetBalancesCommand
@@ -15,6 +15,7 @@ from iota.commands.extended.utils import get_bundles_from_transaction_hashes, \
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'GetAccountDataCommand',

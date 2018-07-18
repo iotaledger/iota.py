@@ -5,11 +5,11 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List
 
 import filters as f
-from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_inclusion_states import GetInclusionStatesCommand
 from iota.commands.core.get_node_info import GetNodeInfoCommand
 from iota.filters import Trytes
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'GetLatestInclusionCommand',

@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from six import binary_type
 
-from iota import TransactionHash
+from iota.transaction.types import TransactionHash
 
 
 class TransactionHashTestCase(TestCase):

@@ -7,10 +7,11 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Iota, TransactionHash, TryteString
+from iota import Iota, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.filters import Trytes
+from iota.transaction.types import TransactionHash
 
 
 class GetTrytesRequestFilterTestCase(BaseFilterTestCase):

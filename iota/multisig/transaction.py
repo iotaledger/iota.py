@@ -4,9 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Iterable
 
-from iota import ProposedBundle
 from iota.exceptions import with_context
 from iota.multisig.types import MultisigAddress
+from iota.transaction.creation import ProposedBundle
 
 __all__ = [
   'ProposedMultisigBundle',

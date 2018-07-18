@@ -8,12 +8,13 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type
 
-from iota import Address, Bundle, Iota, Tag, Transaction, TryteString
+from iota import Address, Iota, Tag, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from iota.transaction.base import Bundle, Transaction
 from test import mock
 
 

@@ -6,13 +6,14 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import TransactionHash, TransactionTrytes, TryteString
+from iota import TryteString
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.commands.core.get_transactions_to_approve import \
     GetTransactionsToApproveCommand
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 from iota.filters import Trytes
+from iota.transaction.types import TransactionTrytes, TransactionHash
 
 __all__ = [
     'SendTrytesCommand',

@@ -6,8 +6,7 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import Address, BadApiResponse, ProposedBundle, \
-    ProposedTransaction
+from iota import Address, BadApiResponse
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_balances import GetBalancesCommand
 from iota.commands.extended.get_inputs import GetInputsCommand
@@ -16,6 +15,7 @@ from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
 from iota.exceptions import with_context
 from iota.filters import GeneratedAddress, SecurityLevel, Trytes
+from iota.transaction.creation import ProposedBundle, ProposedTransaction
 
 __all__ = [
     'PrepareTransferCommand',

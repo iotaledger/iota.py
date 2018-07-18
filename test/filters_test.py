@@ -5,8 +5,9 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Address, TransactionHash, TryteString
+from iota import Address, TryteString
 from iota.filters import AddressNoChecksum, GeneratedAddress, NodeUri, Trytes
+from iota.transaction.types import TransactionHash
 
 
 class GeneratedAddressTestCase(BaseFilterTestCase):

@@ -806,7 +806,7 @@ class Iota(StrictIota):
   def promote_transaction(
       self,
       transaction,
-      depth,
+      depth = 3,
       min_weight_magnitude = None,
   ):
     # type: (TransactionHash, int, Optional[int]) -> dict
@@ -833,7 +833,7 @@ class Iota(StrictIota):
   def replay_bundle(
       self,
       transaction,
-      depth,
+      depth = 3,
       min_weight_magnitude = None,
   ):
     # type: (TransactionHash, int, Optional[int]) -> dict
@@ -876,8 +876,8 @@ class Iota(StrictIota):
 
   def send_transfer(
       self,
-      depth,
       transfers,
+      depth                 = 3,
       inputs                = None,
       change_address        = None,
       min_weight_magnitude  = None,
@@ -889,11 +889,11 @@ class Iota(StrictIota):
     the bundle to the Tangle, and broadcasts and stores the
     transactions.
 
-    :param depth:
-      Depth at which to attach the bundle.
-
     :param transfers:
       Transfers to include in the bundle.
+
+    :param depth:
+      Depth at which to attach the bundle.
 
     :param inputs:
       List of inputs used to fund the transfer.
@@ -941,7 +941,7 @@ class Iota(StrictIota):
       securityLevel       = security_level,
     )
 
-  def send_trytes(self, trytes, depth, min_weight_magnitude=None):
+  def send_trytes(self, trytes, depth=3, min_weight_magnitude=None):
     # type: (Iterable[TransactionTrytes], int, Optional[int]) -> dict
     """
     Attaches transaction trytes to the Tangle, then broadcasts and

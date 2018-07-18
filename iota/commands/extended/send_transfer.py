@@ -6,12 +6,15 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import Address, Bundle, ProposedTransaction, TransactionHash
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.prepare_transfer import PrepareTransferCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.crypto.types import Seed
 from iota.filters import SecurityLevel, Trytes
+from iota.transaction.base import Bundle
+from iota.transaction.creation import ProposedTransaction
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'SendTransferCommand',

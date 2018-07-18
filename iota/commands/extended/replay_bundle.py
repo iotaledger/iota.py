@@ -5,12 +5,12 @@ from __future__ import absolute_import, division, print_function, \
 from typing import List
 
 import filters as f
-from iota import Bundle
-from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
+from iota.transaction.base import Bundle
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'ReplayBundleCommand',

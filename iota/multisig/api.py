@@ -4,12 +4,13 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Iterable, Optional
 
-from iota import Address, Iota, ProposedTransaction
+from iota import Address, Iota
 from iota.commands import discover_commands
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest
 from iota.multisig import commands
 from iota.multisig.types import MultisigAddress
+from iota.transaction.creation import ProposedTransaction
 
 __all__ = [
   'MultisigIota',

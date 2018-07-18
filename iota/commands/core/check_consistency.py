@@ -3,9 +3,10 @@ from __future__ import absolute_import, division, print_function, \
   unicode_literals
 
 import filters as f
-from iota import Transaction, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.filters import Trytes
+from iota.transaction.base import Transaction
+from iota.transaction.types import TransactionHash
 
 __all__ = [
   'CheckConsistencyCommand',

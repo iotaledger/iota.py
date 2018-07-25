@@ -2,7 +2,8 @@
 """
 Example script that shows how to use PyOTA to send a transfer to an address.
 """
-from iota import Address, Iota, ProposedTransaction, Tag, TryteString
+from iota import Address, Iota, Tag, TryteString
+from iota.transaction.creation import ProposedTransaction
 
 SEED1 = b"THE9SEED9OF9THE9WALLET9SENDING9GOES9HERE"
 

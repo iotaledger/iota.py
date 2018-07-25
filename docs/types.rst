@@ -265,7 +265,7 @@ Bundle
 
 .. code:: python
 
-    from iota import Bundle
+    from iota.transaction.base import Bundle
 
     bundle = Bundle.from_tryte_strings([
       b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC...',

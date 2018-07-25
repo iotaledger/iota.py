@@ -3,21 +3,19 @@
 Example script that shows how to use PyOTA to send a transfer to an address.
 """
 
-from iota import Address, Iota, Tag, TryteString
-from iota.transaction.creation import ProposedTransaction
 from argparse import ArgumentParser
+from six import text_type
 from sys import argv
 
+from address_generator import get_seed, output_seed
 from iota import (
   __version__,
   Address,
   Iota,
-  ProposedTransaction,
   Tag,
   TryteString,
 )
-from six import text_type
-from address_generator import get_seed, output_seed
+from iota.transaction.creation import ProposedTransaction
 
 
 def main(address, depth, message, tag, uri, value):

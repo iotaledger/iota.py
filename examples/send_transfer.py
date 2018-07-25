@@ -2,46 +2,118 @@
 """
 Example script that shows how to use PyOTA to send a transfer to an address.
 """
+
 from iota import Address, Iota, Tag, TryteString
 from iota.transaction.creation import ProposedTransaction
+from argparse import ArgumentParser
+from sys import argv
 
-SEED1 = b"THE9SEED9OF9THE9WALLET9SENDING9GOES9HERE"
-
-ADDRESS_WITH_CHECKSUM_SECURITY_LEVEL_2 = (
-    b"RECEIVING9WALLET9ADDRESS9GOES9HERE9WITH9CHECKSUM9AND9SECURITY9LEVEL9B"
+from iota import (
+  __version__,
+  Address,
+  Iota,
+  ProposedTransaction,
+  Tag,
+  TryteString,
 )
+from six import text_type
+from address_generator import get_seed, output_seed
 
-# Create the API instance.
-api = Iota(
-    # URI of a locally running node.
-    'http://localhost:14265/',
 
-    # Seed used for cryptographic functions.
-    seed=SEED1,
-)
+def main(address, depth, message, tag, uri, value):
+    # Ensure seed is not displayed in cleartext.
+    seed = get_seed()
+    # Create the API instance.
+    api = Iota(uri, seed)
 
-# For more information, see :py:meth:`Iota.send_transfer`.
-api.send_transfer(
-    depth=3,
+    if not seed:
+        print('A random seed has been generated. Press return to see it.')
+        output_seed(api.seed)
 
-    # One or more :py:class:`ProposedTransaction` objects to add to the
-    # bundle.
-    transfers=[
-        ProposedTransaction(
-            # Recipient of the transfer.
-            address=Address(
-                ADDRESS_WITH_CHECKSUM_SECURITY_LEVEL_2,
+    print('Starting transfer.')
+    # For more information, see :py:meth:`Iota.send_transfer`.
+    api.send_transfer(
+        depth=depth,
+        # One or more :py:class:`ProposedTransaction` objects to add to the
+        # bundle.
+        transfers=[
+            ProposedTransaction(
+                # Recipient of the transfer.
+                address=Address(address),
+
+                # Amount of IOTA to transfer.
+                # By default this is a zero value transfer.
+                value=value,
+
+                # Optional tag to attach to the transfer.
+                tag=Tag(tag),
+
+                # Optional message to include with the transfer.
+                message=TryteString.from_string(message),
             ),
+        ],
+    )
+    print('Transfer complete.')
 
-            # Amount of IOTA to transfer.
-            # This value may be zero.
-            value=1,
+if __name__ == '__main__':
+    parser = ArgumentParser(
+        description=__doc__,
+        epilog='PyOTA v{version}'.format(version=__version__),
+    )
 
-            # Optional tag to attach to the transfer.
-            tag=Tag(b'EXAMPLE'),
+    parser.add_argument(
+        '--address',
+        type=text_type,
+        default=b'RECEIVINGWALLETADDRESSGOESHERE9WITHCHECKSUMANDSECURITYLEVELB999999999999999999999999999999',
+        help=
+        'Receiving address'
+        '(defaults to RECEIVINGWALLETADDRESSGOESHERE9WITHCHECKSUMANDSECURITYLEVELB999999999999999999999999999999).',
+    )
 
-            # Optional message to include with the transfer.
-            message=TryteString.from_string('Hello!'),
-        ),
-    ],
-)
+    parser.add_argument(
+        '--depth',
+        type=int,
+        default=3,
+        help=
+        'Depth at which to attach the bundle.'
+        '(defaults to 3).',
+    )
+
+    parser.add_argument(
+        '--message',
+        type=text_type,
+        default='Hello World!',
+        help=
+        'Transfer message.'
+        '(defaults to Hello World!).',
+    )
+
+    parser.add_argument(
+        '--tag',
+        type=text_type,
+        default=b'EXAMPLE',
+        help=
+        'Transfer tag'
+        '(defaults to EXAMPLE).',
+    )
+
+    parser.add_argument(
+        '--uri',
+        type=text_type,
+        default='http://localhost:14265/',
+        help=
+        'URI of the node to connect to.'
+        '(defaults to http://localhost:14265/).',
+    )
+
+    parser.add_argument(
+        '--value',
+        type=int,
+        default=0,
+        help=
+        'Value to transfer'
+        '(defaults to 0).',
+    )
+
+    main(**vars(parser.parse_args(argv[1:])))
+

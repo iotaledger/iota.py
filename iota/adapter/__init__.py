@@ -21,7 +21,11 @@ __all__ = [
     'API_VERSION',
     'AdapterSpec',
     'BadApiResponse',
+    'BaseAdapter',
+    'HttpAdapter',
     'InvalidUri',
+    'MockAdapter',
+    'resolve_adapter',
 ]
 
 if PY2:

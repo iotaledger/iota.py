@@ -895,7 +895,7 @@ class Iota(StrictIota):
     def promote_transaction(
             self,
             transaction,
-            depth,
+            depth=3,
             min_weight_magnitude=None,
     ):
         # type: (TransactionHash, int, Optional[int]) -> dict
@@ -922,7 +922,7 @@ class Iota(StrictIota):
     def replay_bundle(
             self,
             transaction,
-            depth,
+            depth=3,
             min_weight_magnitude=None,
     ):
         # type: (TransactionHash, int, Optional[int]) -> dict
@@ -936,6 +936,7 @@ class Iota(StrictIota):
 
         :param depth:
             Depth at which to attach the bundle.
+            Defaults to 3.
 
         :param min_weight_magnitude:
             Min weight magnitude, used by the node to calibrate Proof of
@@ -966,8 +967,8 @@ class Iota(StrictIota):
 
     def send_transfer(
             self,
-            depth,  # type: int
             transfers,  # type: Iterable[ProposedTransaction]
+            depth=3,  # type: int
             inputs=None,  # type: Optional[Iterable[Address]]
             change_address=None,  # type: Optional[Address]
             min_weight_magnitude=None,  # type: Optional[int]
@@ -979,11 +980,12 @@ class Iota(StrictIota):
         attaches the bundle to the Tangle, and broadcasts and stores the
         transactions.
 
-        :param depth:
-            Depth at which to attach the bundle.
-
         :param transfers:
             Transfers to include in the bundle.
+
+        :param depth:
+            Depth at which to attach the bundle.
+            Defaults to 3.
 
         :param inputs:
             List of inputs used to fund the transfer.
@@ -1036,7 +1038,7 @@ class Iota(StrictIota):
             securityLevel=security_level,
         )
 
-    def send_trytes(self, trytes, depth, min_weight_magnitude=None):
+    def send_trytes(self, trytes, depth=3, min_weight_magnitude=None):
         # type: (Iterable[TransactionTrytes], int, Optional[int]) -> dict
         """
         Attaches transaction trytes to the Tangle, then broadcasts and
@@ -1047,6 +1049,7 @@ class Iota(StrictIota):
 
         :param depth:
             Depth at which to attach the bundle.
+            Defaults to 3.
 
         :param min_weight_magnitude:
             Min weight magnitude, used by the node to calibrate Proof of

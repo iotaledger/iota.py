@@ -2,8 +2,9 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from iota import Address, Iota, ProposedTransaction, Tag, TryteString
+from iota import Address, Iota, Tag, TryteString
 from iota.adapter.sandbox import SandboxAdapter
+from iota.transaction.creation import ProposedTransaction
 
 # Create the API client.
 api = Iota(

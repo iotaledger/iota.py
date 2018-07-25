@@ -7,13 +7,16 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Address, Bundle, Fragment, ProposedTransaction
+from iota import Address
 from iota.adapter import MockAdapter
 from iota.commands.core import GetBalancesCommand
 from iota.crypto.types import Digest
 from iota.multisig import MultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
 from iota.multisig.types import MultisigAddress
+from iota.transaction.base import Bundle
+from iota.transaction.creation import ProposedTransaction
+from iota.transaction.types import Fragment
 
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):

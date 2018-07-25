@@ -8,10 +8,12 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type
 
-from iota import Bundle, Iota, TransactionHash, TransactionTrytes, BadApiResponse
+from iota import Iota, BadApiResponse
 from iota.adapter import MockAdapter
 from iota.commands.extended.promote_transaction import PromoteTransactionCommand
 from iota.filters import Trytes
+from iota.transaction.base import Bundle
+from iota.transaction.types import TransactionHash, TransactionTrytes
 from test import mock
 
 

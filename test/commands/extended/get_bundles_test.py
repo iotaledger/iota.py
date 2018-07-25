@@ -7,11 +7,13 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
-  Iota, Tag, Transaction, TransactionHash, TransactionTrytes, Nonce
+from iota import Address, BadApiResponse, Iota, Tag
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.filters import Trytes
+from iota.transaction.base import Bundle, Transaction
+from iota.transaction.types import BundleHash, Fragment, \
+  Nonce, TransactionHash, TransactionTrytes
 
 
 class GetBundlesRequestFilterTestCase(BaseFilterTestCase):

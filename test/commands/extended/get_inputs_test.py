@@ -7,12 +7,13 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Address, BadApiResponse, Iota, TransactionHash
+from iota import Address, BadApiResponse, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.get_inputs import GetInputsCommand, GetInputsRequestFilter
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from iota.transaction.types import TransactionHash
 from test import mock
 
 

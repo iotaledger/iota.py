@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import Address, Fragment, ProposedBundle, ProposedTransaction, Tag, \
-  TryteString
+from iota import Address, Tag, TryteString
 from iota.crypto.signing import KeyGenerator
 from iota.crypto.types import Seed
-from iota.transaction.types import BundleHash
+from iota.transaction.types import BundleHash, Fragment
+from iota.transaction.creation import ProposedBundle, ProposedTransaction
 
 
 class ProposedBundleTestCase(TestCase):

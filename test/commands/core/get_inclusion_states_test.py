@@ -6,11 +6,11 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash, TryteString
+from iota import Iota, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.get_inclusion_states import GetInclusionStatesCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
+from iota.transaction.types import TransactionHash
 
 
 class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):

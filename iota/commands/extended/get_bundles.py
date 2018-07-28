@@ -6,12 +6,13 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import BadApiResponse, Bundle, BundleHash, Transaction, \
-    TransactionHash, TryteString
+from iota import BadApiResponse, TryteString
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.exceptions import with_context
 from iota.filters import Trytes
+from iota.transaction.base import Bundle, Transaction
+from iota.transaction.types import BundleHash, TransactionHash
 from iota.transaction.validator import BundleValidator
 
 __all__ = [

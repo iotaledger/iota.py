@@ -107,6 +107,12 @@ class StrictIota(with_metaclass(ApiMeta)):
             # noinspection PyTypeChecker
             return None
 
+        # Fix an error when invoking dunder methods.
+        # https://github.com/iotaledger/iota.lib.py/issues/206
+        if command.startswith("__"):
+            # noinspection PyUnresolvedReferences
+            return super(StrictIota, self).__getattr__(command)
+
         try:
             command_class = self.commands[command]
         except KeyError:

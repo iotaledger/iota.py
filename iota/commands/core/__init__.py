@@ -3,12 +3,12 @@
 Core commands are defined by the node API.
 
 References:
-  - https://iota.readme.io/docs/getting-started
+
+- https://iota.readme.io/docs/getting-started
 """
 
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
+    unicode_literals
 
 from .add_neighbors import *
 from .attach_to_tangle import *

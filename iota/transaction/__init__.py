@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 # Import symbols to package namespace, for backwards-compatibility with
 # PyOTA 1.1.x.

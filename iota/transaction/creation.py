@@ -2,8 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from typing import Iterable, Iterator, List, MutableSequence, Optional, \
-    Sequence, Tuple
+from typing import Iterable, Iterator, List, Optional, Sequence
 
 from six import PY2
 
@@ -33,8 +32,14 @@ class ProposedTransaction(Transaction):
     tangle and publish/store.
     """
 
-    def __init__(self, address, value, tag=None, message=None, timestamp=None):
-        # type: (Address, int, Optional[Tag], Optional[TryteString], Optional[int]) -> None
+    def __init__(
+            self,
+            address,  # type: Address
+            value,  # type: int
+            tag=None,  # type: Optional[Tag]
+            message=None,  # type: Optional[TryteString]
+            timestamp=None,  # type: Optional[int]
+    ):
         if not timestamp:
             timestamp = get_current_timestamp()
 
@@ -44,7 +49,8 @@ class ProposedTransaction(Transaction):
             timestamp=timestamp,
             value=value,
 
-            # These values will be populated when the bundle is finalized.
+            # These values will be populated when the bundle is
+            # finalized.
             bundle_hash=None,
             current_index=None,
             hash_=None,
@@ -54,8 +60,8 @@ class ProposedTransaction(Transaction):
             attachment_timestamp_lower_bound=0,
             attachment_timestamp_upper_bound=0,
 
-            # These values start out empty; they will be populated when the
-            # node does PoW.
+            # These values start out empty; they will be populated when
+            # the node does PoW.
             branch_transaction_hash=TransactionHash(b''),
             nonce=Nonce(b''),
             trunk_transaction_hash=TransactionHash(b''),
@@ -91,10 +97,12 @@ class ProposedTransaction(Transaction):
         bundle hashes when finalizing a bundle.
 
         References:
-          - https://github.com/iotaledger/iota.lib.py/issues/84
+
+        - https://github.com/iotaledger/iota.lib.py/issues/84
         """
-        self._legacy_tag =\
+        self._legacy_tag = (
             Tag.from_trits(add_trits(self.legacy_tag.as_trits(), [1]))
+        )
 
 
 Transfer = ProposedTransaction
@@ -110,8 +118,12 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
     unit when attached to the Tangle.
     """
 
-    def __init__(self, transactions=None, inputs=None, change_address=None):
-        # type: (Optional[Iterable[ProposedTransaction]], Optional[Iterable[Address]], Optional[Address]) -> None
+    def __init__(
+            self,
+            transactions=None,  # type: Optional[Iterable[ProposedTransaction]]
+            inputs=None,  # type: Optional[Iterable[Address]]
+            change_address=None,  # type: Optional[Address]
+    ):
         super(ProposedBundle, self).__init__()
 
         self._transactions = []  # type: List[ProposedTransaction]
@@ -168,12 +180,13 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         Returns the bundle balance.
         In order for a bundle to be valid, its balance must be 0:
 
-          - A positive balance means that there aren't enough inputs to
-            cover the spent amount.
-            Add more inputs using :py:meth:`add_inputs`.
-          - A negative balance means that there are unspent inputs.
-            Use :py:meth:`send_unspent_inputs_to` to send the unspent
-            inputs to a "change" address.
+        - A positive balance means that there aren't enough inputs to
+          cover the spent amount; add more inputs using
+          :py:meth:`add_inputs`.
+
+        - A negative balance means that there are unspent inputs; use
+          :py:meth:`send_unspent_inputs_to` to send the unspent inputs
+          to a "change" address.
         """
         return sum(t.value for t in self._transactions)
 
@@ -185,7 +198,6 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         """
         for txn in reversed(self):  # type: ProposedTransaction
             if txn.tag:
-                # noinspection PyTypeChecker
                 return txn.tag
 
         return Tag(b'')
@@ -196,7 +208,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         Returns a JSON-compatible representation of the object.
 
         References:
-          - :py:class:`iota.json.JsonEncoder`.
+
+        - :py:class:`iota.json.JsonEncoder`.
         """
         return [txn.as_json_compatible() for txn in self]
 
@@ -242,14 +255,15 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         """
         Adds inputs to spend in the bundle.
 
-        Note that each input may require multiple transactions, in order to
-        hold the entire signature.
+        Note that each input may require multiple transactions, in order
+        to hold the entire signature.
 
         :param inputs:
-          Addresses to use as the inputs for this bundle.
+            Addresses to use as the inputs for this bundle.
 
-          IMPORTANT: Must have ``balance`` and ``key_index`` attributes!
-          Use :py:meth:`iota.api.get_inputs` to prepare inputs.
+            .. important::
+                Must have ``balance`` and ``key_index`` attributes!
+                Use :py:meth:`iota.api.get_inputs` to prepare inputs.
         """
         if self.hash:
             raise RuntimeError('Bundle is already finalized.')
@@ -340,13 +354,13 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             sponge = Kerl()
             last_index = len(self) - 1
 
-            for (i, txn) in enumerate(self):  # type: Tuple[int, ProposedTransaction]
+            for i, txn in enumerate(self):
                 txn.current_index = i
                 txn.last_index = last_index
 
                 sponge.absorb(txn.get_signature_validation_trytes().as_trits())
 
-            bundle_hash_trits = [0] * HASH_LENGTH  # type: MutableSequence[int]
+            bundle_hash_trits = [0] * HASH_LENGTH
             sponge.squeeze(bundle_hash_trits)
 
             bundle_hash = BundleHash.from_trits(bundle_hash_trits)
@@ -355,7 +369,9 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             # https://github.com/iotaledger/iota.lib.py/issues/84
             if any(13 in part for part in normalize(bundle_hash)):
                 # Increment the legacy tag and try again.
-                tail_transaction = self.tail_transaction  # type: ProposedTransaction
+                tail_transaction = (
+                    self.tail_transaction
+                )  # type: ProposedTransaction
                 tail_transaction.increment_legacy_tag()
             else:
                 break
@@ -381,12 +397,13 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             txn = self[i]
 
             if txn.value < 0:
-                # In order to sign the input, we need to know the index of
-                # the private key used to generate it.
+                # In order to sign the input, we need to know the index
+                # of the private key used to generate it.
                 if txn.address.key_index is None:
                     raise with_context(
                         exc=ValueError(
-                            'Unable to sign input {input}; ``key_index`` is None '
+                            'Unable to sign input {input}; '
+                            '``key_index`` is None '
                             '(``exc.context`` has more info).'.format(
                                 input=txn.address,
                             ),
@@ -400,7 +417,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
                 if txn.address.security_level is None:
                     raise with_context(
                         exc=ValueError(
-                            'Unable to sign input {input}; ``security_level`` is None '
+                            'Unable to sign input {input}; '
+                            '``security_level`` is None '
                             '(``exc.context`` has more info).'.format(
                                 input=txn.address,
                             ),
@@ -415,8 +433,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
                 i += txn.address.security_level
             else:
-                # No signature needed (nor even possible, in some cases); skip
-                # this transaction.
+                # No signature needed (nor even possible, in some
+                # cases); skip this transaction.
                 i += 1
 
     def sign_input_at(self, start_index, private_key):
@@ -425,18 +443,20 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         Signs the input at the specified index.
 
         :param start_index:
-          The index of the first input transaction.
+            The index of the first input transaction.
 
-          If necessary, the resulting signature will be split across
-          multiple transactions automatically (i.e., if an input has
-          ``security_level=2``, you still only need to call
-          :py:meth:`sign_input_at` once).
+            If necessary, the resulting signature will be split across
+            multiple transactions automatically (i.e., if an input has
+            ``security_level=2``, you still only need to call
+            :py:meth:`sign_input_at` once).
 
         :param private_key:
-          The private key that will be used to generate the signature.
+            The private key that will be used to generate the signature.
 
-          Important: be sure that the private key was generated using the
-          correct seed, or the resulting signature will be invalid!
+            .. important::
+                Be sure that the private key was generated using the
+                correct seed, or the resulting signature will be
+                invalid!
         """
         if not self.hash:
             raise RuntimeError('Cannot sign inputs until bundle is finalized.')
@@ -452,8 +472,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             address=addy,
             tag=self.tag,
 
-            # Spend the entire address balance; if necessary, we will add a
-            # change transaction to the bundle.
+            # Spend the entire address balance; if necessary, we will
+            # add a change transaction to the bundle.
             value=-addy.balance,
         ))
 

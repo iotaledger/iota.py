@@ -57,7 +57,6 @@ class RoutingWrapper(BaseWrapper):
           RoutingWrapper('http://12.34.56.78:14265')
             .add_route('attachToTangle', 'http://localhost:14265')
             .add_route('interruptAttachingToTangle', 'http://localhost:14265')
-          ),
         )
     """
 

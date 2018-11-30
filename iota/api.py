@@ -907,6 +907,19 @@ class Iota(StrictIota):
         """
         Promotes a transaction by adding spam on top of it.
 
+        :param transaction:
+            Transaction hash.  Must be a tail transaction.
+
+        :param depth:
+            Depth at which to attach the bundle.
+            Defaults to 3.
+
+        :param min_weight_magnitude:
+            Min weight magnitude, used by the node to calibrate Proof of
+            Work.
+
+            If not provided, a default value will be used.
+
         :return:
             Dict with the following structure::
 

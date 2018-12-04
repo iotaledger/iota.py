@@ -12,11 +12,13 @@ from typing import List, Optional, Text
 import filters as f
 from six import binary_type, text_type
 
-from iota import Bundle, Iota, TransactionTrytes
+from iota import Iota
 from iota.bin import IotaCommandLineApp
 from iota.crypto.addresses import AddressGenerator
 from iota.filters import Trytes
 from iota.json import JsonEncoder
+from iota.transaction.base import Bundle
+from iota.transaction.types import TransactionTrytes
 
 
 class IotaMamExample(IotaCommandLineApp):

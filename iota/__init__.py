@@ -33,7 +33,6 @@ from .codecs import *
 # Make some imports accessible from the top level of the package.
 # Note that order is important, to prevent circular imports.
 from .types import *
-from .transaction import *
 from .adapter import *
 from .api import *
 from .trits import *

@@ -101,7 +101,9 @@ Transaction
 
 .. code:: python
 
-    from iota import Address, ProposedTransaction, Tag, Transaction
+    from iota import Address, Tag
+    from iota.transaction.base import Transaction
+    from iota.transaction.creation import ProposedTransaction
 
     txn_1 =\
       Transaction.from_tryte_string(
@@ -263,7 +265,7 @@ Bundle
 
 .. code:: python
 
-    from iota import Bundle
+    from iota.transaction.base import Bundle
 
     bundle = Bundle.from_tryte_strings([
       b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC...',
@@ -293,7 +295,8 @@ ProposedBundle
 
 .. code:: python
 
-    from iota import Address, ProposedBundle, ProposedTransaction
+    from iota import Address
+    from iota.transaction.creation import ProposedBundle, ProposedTransaction
     from iota.crypto.signing import KeyGenerator
 
     bundle = ProposedBundle()

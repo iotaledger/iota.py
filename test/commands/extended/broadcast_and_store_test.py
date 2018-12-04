@@ -6,9 +6,10 @@ from unittest import TestCase
 
 from six import text_type
 
-from iota import Iota, TransactionTrytes
+from iota import Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
+from iota.transaction.types import TransactionTrytes
 
 
 class BroadcastAndStoreCommandTestCase(TestCase):

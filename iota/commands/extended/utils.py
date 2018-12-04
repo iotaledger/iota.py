@@ -4,8 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Generator, Iterable, List, Optional, Tuple
 
-from iota import Address, Bundle, Transaction, \
-    TransactionHash
+from iota import Address
 from iota.adapter import BaseAdapter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_trytes import GetTrytesCommand
@@ -14,6 +13,8 @@ from iota.commands.extended.get_latest_inclusion import \
     GetLatestInclusionCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
+from iota.transaction.base import Bundle, Transaction
+from iota.transaction.types import TransactionHash
 
 
 def find_transaction_objects(adapter, **kwargs):

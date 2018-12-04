@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-from iota import convert_value_to_standard_unit
+from iota.transaction.utils import convert_value_to_standard_unit
 
 
 class ConvertValueToStandardUnitTestCase(TestCase):

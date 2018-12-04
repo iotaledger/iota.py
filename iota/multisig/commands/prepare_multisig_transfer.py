@@ -6,13 +6,14 @@ from typing import List, Optional
 
 import filters as f
 
-from iota import Address, ProposedTransaction
+from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core import GetBalancesCommand
 from iota.exceptions import with_context
 from iota.filters import Trytes
 from iota.multisig.transaction import ProposedMultisigBundle
 from iota.multisig.types import MultisigAddress
+from iota.transaction.creation import ProposedTransaction
 
 __all__ = [
     'PrepareMultisigTransferCommand',

@@ -4,9 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota import TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter
 from iota.filters import Trytes
+from iota.transaction.types import TransactionTrytes
 
 __all__ = [
     'StoreTransactionsCommand',

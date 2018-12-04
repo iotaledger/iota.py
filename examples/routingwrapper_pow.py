@@ -7,8 +7,9 @@ References:
 
 - https://pyota.readthedocs.io/en/develop/adapters.html#routingwrapper
 """
-from iota import Address, Iota, ProposedTransaction, Tag, TryteString
+from iota import Address, Iota, Tag, TryteString
 from iota.adapter.wrappers import RoutingWrapper
+from iota.transaction.creation import ProposedTransaction
 
 # Send PoW requests to local node.
 # All other requests go to light wallet node.

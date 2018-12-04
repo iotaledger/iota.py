@@ -8,11 +8,12 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import binary_type, text_type
 
-from iota import Iota, TransactionTrytes, TryteString
+from iota import Iota, TryteString
 from iota.adapter import MockAdapter
 from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
+from iota.transaction.types import TransactionTrytes
 
 
 class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):

@@ -11,7 +11,7 @@ from types import ModuleType
 from typing import Any, Dict, Mapping, Optional, Text, Union
 
 import filters as f
-from six import string_types, with_metaclass
+import six
 
 from iota.adapter import BaseAdapter
 from iota.exceptions import with_context
@@ -48,7 +48,7 @@ def discover_commands(package, recursively=True):
     command name (note: not class name).
   """
   # http://stackoverflow.com/a/25562415/
-  if isinstance(package, string_types):
+  if isinstance(package, six.string_types):
     package = import_module(package) # type: ModuleType
 
   commands = {}
@@ -87,8 +87,8 @@ class CommandMeta(ABCMeta):
       if command:
         command_registry[command] = cls
 
-
-class BaseCommand(with_metaclass(CommandMeta)):
+@six.add_metaclass(CommandMeta)
+class BaseCommand():
   """
   An API command ready to send to the node.
   """
@@ -260,7 +260,8 @@ class ResponseFilter(f.FilterChain):
     return self._apply({})
 
 
-class FilterCommand(with_metaclass(ABCMeta, BaseCommand)):
+@six.add_metaclass(ABCMeta)
+class FilterCommand(BaseCommand):
   """
   Uses filters to manipulate request/response values.
   """

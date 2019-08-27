@@ -39,7 +39,7 @@ setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
     url='https://github.com/iotaledger/iota.lib.py',
-    version='2.0.7',
+    version='2.0.8',
 
     long_description=long_description,
 
@@ -56,9 +56,13 @@ setuptools.setup(
             'pyota-cli=iota.bin.repl:main',
         ],
     },
+    
+    # Class Registry dependancy of filters module overwriten to support Python 3.7
+    # This module is no longer maintained so used a forked version. 
 
     install_requires=[
         'filters',
+        'class-registry @ git+https://github.com/todofixthis/class-registry@2.1.3#egg=class-registry'
         'pysha3',
 
         # ``security`` extra wasn't introduced until 2.4.1
@@ -90,6 +94,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 

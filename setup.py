@@ -57,12 +57,12 @@ setuptools.setup(
         ],
     },
     
-    # Class Registry dependancy of filters module overwriten to support Python 3.7
-    # This module is no longer maintained so used a forked version. 
+    # The filter module is no longer maintained and does not support Python 3.7
+    # phx-filters is a fork that supports 3.7 and 3.8 but not 2.7
 
     install_requires=[
-        'filters',
-        'class-registry @ git+https://github.com/todofixthis/class-registry@2.1.3#egg=class-registry'
+        'filters; python_version < "3.0"',
+        'phx-filters; python_version >= "3.5"',
         'pysha3',
 
         # ``security`` extra wasn't introduced until 2.4.1

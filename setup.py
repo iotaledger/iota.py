@@ -57,11 +57,11 @@ setuptools.setup(
         ],
     },
     
-    # The filter module is no longer maintained and does not support Python 3.7
+    # filters is no longer maintained and does not support Python 3.7
     # phx-filters is a fork that supports 3.7 and 3.8 but not 2.7
 
     install_requires=[
-        'filters; python_version < "3.0"',
+        'filters; python_version < "3.5"',
         'phx-filters; python_version >= "3.5"',
         'pysha3',
 

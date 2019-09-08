@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from abc import ABCMeta, abstractmethod as abstract_method
 from typing import Dict, Text
 
-from six import with_metaclass
+from six import add_metaclass
 
 from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
 
@@ -14,7 +14,8 @@ __all__ = [
 ]
 
 
-class BaseWrapper(with_metaclass(ABCMeta, BaseAdapter)):
+@add_metaclass(ABCMeta)
+class BaseWrapper(BaseAdapter):
     """
     Base functionality for "adapter wrappers", used to extend the
     functionality of IOTA adapters.

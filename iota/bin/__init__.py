@@ -10,7 +10,7 @@ from io import StringIO
 from sys import exit
 from typing import Any, Optional, Text
 
-from six import text_type, with_metaclass
+from six import text_type, add_metaclass
 
 from iota import Iota, __version__
 from iota.crypto.types import Seed
@@ -20,7 +20,8 @@ __all__ = [
 ]
 
 
-class IotaCommandLineApp(with_metaclass(ABCMeta)):
+@add_metaclass(ABCMeta)
+class IotaCommandLineApp(object):
     """
     Base functionality for a PyOTA-powered command-line application.
     """

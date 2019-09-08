@@ -88,7 +88,7 @@ class CommandMeta(ABCMeta):
         command_registry[command] = cls
 
 @six.add_metaclass(CommandMeta)
-class BaseCommand():
+class BaseCommand(object):
   """
   An API command ready to send to the node.
   """

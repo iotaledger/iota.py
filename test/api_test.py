@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 from abc import ABCMeta
 from unittest import TestCase
 
-from six import with_metaclass
+from six import add_metaclass
 
 from iota import InvalidCommand, StrictIota
 from iota.adapter import MockAdapter
@@ -150,5 +150,6 @@ class IotaApiTestCase(TestCase):
         # This statement will raise an exception if the regression is
         # present; no assertions necessary.
         # noinspection PyUnusedLocal
-        class CustomClient(with_metaclass(ABCMeta)):
+        @add_metaclass(ABCMeta)
+        class CustomClient(object):
             client = StrictIota(MockAdapter())

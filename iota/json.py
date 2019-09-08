@@ -6,10 +6,11 @@ from abc import ABCMeta, abstractmethod as abstract_method
 from json.encoder import JSONEncoder as BaseJsonEncoder
 from typing import Iterable, Mapping
 
-from six import with_metaclass
+from six import add_metaclass
 
 
-class JsonSerializable(with_metaclass(ABCMeta)):
+@add_metaclass(ABCMeta)
+class JsonSerializable(object):
     """
     Interface for classes that can be safely converted to JSON.
     """

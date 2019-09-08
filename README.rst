@@ -26,7 +26,7 @@ If you encounter any issues while using PyOTA, please report them using the
 ============
 Dependencies
 ============
-PyOTA is compatible with Python 3.6, 3.5 and 2.7.
+PyOTA is compatible with Python 3.7, 3.6, 3.5 and 2.7
 
 ============
 Installation

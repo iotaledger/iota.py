@@ -204,6 +204,34 @@ This method returns a ``dict`` with the following items:
 -  ``bundles: List[Bundle]``: Matching bundles, sorted by tail
    transaction timestamp.
 
+``is_reattachable``
+-------------------
+
+This API function helps you to determine whether you should replay a
+transaction or make a new one (either with the same input, or a
+different one).
+
+This method takes one or more input addresses (i.e. from spent
+transactions) as input and then checks whether any transactions with a
+value transferred are confirmed.
+
+If yes, it means that this input address has already been successfully
+used in a different transaction, and as such you should no longer replay
+the transaction.
+
+Parameters
+~~~~~~~~~~
+
+- ``address: Iterable[Address]``: List of addresses.
+
+Return
+~~~~~~
+
+This method returns a ``dict`` with the following items:
+
+- ``reattachable: List[Bool]``: Always a list, even if only one address
+  was queried.
+
 ``prepare_transfer``
 --------------------
 
@@ -231,6 +259,24 @@ This method returns a ``dict`` with the following items:
 
 -  ``trytes: List[TransactionTrytes]``: Raw trytes for the transactions
    in the bundle, ready to be provided to ``send_trytes``.
+
+``promote_transaction``
+-----------------------
+
+Promotes a transaction by adding spam on top of it.
+
+-  ``transaction: TransactionHash``: Transaction hash. Must be a tail.
+-  ``depth: int``: Depth at which to attach the bundle.
+-  ``min_weight_magnitude: Optional[int]``: Min weight magnitude, used
+   by the node to calibrate Proof of Work.
+-  If not provided, a default value will be used.
+
+Return
+~~~~~~
+
+This method returns a ``dict`` with the following items:
+
+-  ``bundle: Bundle``: The newly-published bundle.
 
 ``replay_bundle``
 -----------------

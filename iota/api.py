@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Dict, Iterable, Optional, Text
 
-from six import with_metaclass
+from six import add_metaclass
 
 from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
     TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
@@ -53,7 +53,8 @@ class ApiMeta(type):
             cls.commands = commands
 
 
-class StrictIota(with_metaclass(ApiMeta)):
+@add_metaclass(ApiMeta)
+class StrictIota(object):
     """
     API to send HTTP requests for communicating with an IOTA node.
 
@@ -906,6 +907,19 @@ class Iota(StrictIota):
         # type: (TransactionHash, int, Optional[int]) -> dict
         """
         Promotes a transaction by adding spam on top of it.
+
+        :param transaction:
+            Transaction hash.  Must be a tail transaction.
+
+        :param depth:
+            Depth at which to attach the bundle.
+            Defaults to 3.
+
+        :param min_weight_magnitude:
+            Min weight magnitude, used by the node to calibrate Proof of
+            Work.
+
+            If not provided, a default value will be used.
 
         :return:
             Dict with the following structure::

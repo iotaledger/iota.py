@@ -39,7 +39,7 @@ setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
     url='https://github.com/iotaledger/iota.lib.py',
-    version='2.0.7',
+    version='2.0.8',
 
     long_description=long_description,
 
@@ -57,8 +57,12 @@ setuptools.setup(
         ],
     },
 
+    # filters is no longer maintained and does not support Python 3.7
+    # phx-filters is a fork that supports 3.7 and 3.8 but not 2.7
+
     install_requires=[
-        'filters',
+        'filters; python_version < "3.5"',
+        'phx-filters; python_version >= "3.5"',
         'pysha3',
 
         # ``security`` extra wasn't introduced until 2.4.1
@@ -90,6 +94,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 

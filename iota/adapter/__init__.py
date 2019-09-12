@@ -12,7 +12,7 @@ from typing import Container, Dict, List, Optional, Text, Tuple, Union
 
 from requests import Response, auth, codes, request
 from six import PY2, binary_type, iteritems, moves as compat, text_type, \
-    with_metaclass
+    add_metaclass
 
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
@@ -139,7 +139,8 @@ class AdapterMeta(ABCMeta):
         return cls(parsed)
 
 
-class BaseAdapter(with_metaclass(AdapterMeta)):
+@add_metaclass(AdapterMeta)
+class BaseAdapter(object):
     """
     Interface for IOTA API adapters.
 

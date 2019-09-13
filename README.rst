@@ -61,14 +61,14 @@ To run unit tests after installing from source::
 PyOTA is also compatible with `tox`_, which will run the unit tests in different
 virtual environments (one for each supported version of Python).
 
-To run the unit tests, it is recommended that you use the `detox`_ library.
-detox speeds up the tests by running them in parallel.
+To run the unit tests, it is recommended that you use the ``-p`` argument.
+This speeds up the tests by running them in parallel.
 
 Install PyOTA with the ``test-runner`` extra to set up the necessary
-dependencies, and then you can run the tests with the ``detox`` command::
+dependencies, and then you can run the tests with the ``tox`` command::
 
   pip install -e .[test-runner]
-  detox -v
+  tox -v -p all
 
 =============
 Documentation
@@ -102,6 +102,5 @@ can also build the documentation locally:
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
 .. _dedicated forum: https://forum.iota.org/
-.. _detox: https://pypi.python.org/pypi/detox
 .. _official API: https://iota.readme.io/
 .. _tox: https://tox.readthedocs.io/

@@ -18,8 +18,6 @@ If you want to get involved in the community, need help with getting setup,
 have any issues related with the library or just want to discuss Blockchain,
 Distributed Ledgers and IoT with other people, feel free to join our `Discord`_.
 
-You can also ask questions on our `dedicated forum`_.
-
 If you encounter any issues while using PyOTA, please report them using the
 `PyOTA Bug Tracker`_.
 
@@ -98,9 +96,8 @@ can also build the documentation locally:
       make html
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
-.. _Discord: https://discord.gg/7Gu2mG5
+.. _Discord: https://discord.iota.org/
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
-.. _dedicated forum: https://forum.iota.org/
-.. _official API: https://iota.readme.io/
+.. _official API: https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 .. _tox: https://tox.readthedocs.io/

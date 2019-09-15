@@ -9,32 +9,12 @@ from iota import Address, Bundle, Transaction, \
 from iota.adapter import BaseAdapter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_trytes import GetTrytesCommand
+from iota.commands.extended import FindTransactionObjectsCommand
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.commands.extended.get_latest_inclusion import \
     GetLatestInclusionCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
-
-
-def find_transaction_objects(adapter, **kwargs):
-    # type: (BaseAdapter, **Iterable) -> List[Transaction]
-    """
-    Finds transactions matching the specified criteria, fetches the
-    corresponding trytes and converts them into Transaction objects.
-    """
-    ft_response = FindTransactionsCommand(adapter)(**kwargs)
-
-    hashes = ft_response['hashes']
-
-    if hashes:
-        gt_response = GetTrytesCommand(adapter)(hashes=hashes)
-
-        return list(map(
-            Transaction.from_tryte_string,
-            gt_response.get('trytes') or [],
-        ))  # type: List[Transaction]
-
-    return []
 
 
 def iter_used_addresses(
@@ -103,10 +83,9 @@ def get_bundles_from_transaction_hashes(
             non_tail_bundle_hashes.add(txn.bundle_hash)
 
     if non_tail_bundle_hashes:
-        for txn in find_transaction_objects(
-                adapter=adapter,
+        for txn in FindTransactionObjectsCommand(adapter=adapter)(
                 bundles=list(non_tail_bundle_hashes),
-        ):
+        )['transactions']:
             if txn.is_tail:
                 if txn.hash not in tail_transaction_hashes:
                     all_transactions.append(txn)

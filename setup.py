@@ -76,7 +76,8 @@ setuptools.setup(
     extras_require={
         'ccurl': ['pyota-ccurl'],
         'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
-        'test-runner': ['detox'] + tests_require,
+        # tox is able to run the tests in parallel since version 3.7
+        'test-runner': ['tox >= 3.7'] + tests_require,
     },
 
     test_suite='test',

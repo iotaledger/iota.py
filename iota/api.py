@@ -518,6 +518,50 @@ class Iota(StrictIota):
         """
         return extended.BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
+    def find_transaction_objects(
+            self,
+            bundles=None,  # type: Optional[Iterable[BundleHash]]
+            addresses=None,  # type: Optional[Iterable[Address]]
+            tags=None,  # type: Optional[Iterable[Tag]]
+            approvees=None,  # type: Optional[Iterable[TransactionHash]]
+    ):
+        # type: (...) -> dict
+        """
+        A more extensive version of :py:meth:`find_transactions` that
+        returns transaction objects instead of hashes.
+
+        Effectively, this is ``find_transactions`` + ``get_trytes`` +
+        converting the trytes into transaction objects.
+
+        It accepts the same parameters as :py:meth:`find_transactions`
+
+        :param bundles:
+          List of bundle IDs.
+
+        :param addresses:
+            List of addresses.
+
+        :param tags:
+            List of tags.
+
+        :param approvees:
+            List of approvee transaction IDs.
+
+        :return:
+            Dict with the following structure::
+
+                {
+                    'transactions': List[Transaction],
+                        List of Transaction objects that match the input.
+                }
+        """
+        return extended.FindTransactionObjectsCommand(self.adapter)(
+            bundles=bundles,
+            addresses=addresses,
+            tags=tags,
+            approvees=approvees,
+        )
+
     def get_account_data(self, start=0, stop=None, inclusion_states=False, security_level=None):
         # type: (int, Optional[int], bool, Optional[int]) -> dict
         """

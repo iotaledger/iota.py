@@ -78,14 +78,14 @@ can also build the documentation locally:
 
 #. Install extra dependencies (you only have to do this once)::
 
-      pip install '.[docs-builder]'
+      pip install .[docs-builder]
 
    .. tip::
 
       To install the CCurl extension and the documentation builder tools
       together, use the following command::
 
-         pip install '.[ccurl,docs-builder]'
+         pip install .[ccurl,docs-builder]
 
 #. Switch to the ``docs`` directory::
 

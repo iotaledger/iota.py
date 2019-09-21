@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function, \
-  unicode_literals
+    unicode_literals
 
 from unittest import TestCase
 
@@ -14,234 +14,273 @@ from iota.filters import Trytes
 
 
 class CheckConsistencyRequestFilterTestCase(BaseFilterTestCase):
-  filter_type = CheckConsistencyCommand(MockAdapter()).get_request_filter
-  skip_value_check = True
+    filter_type = CheckConsistencyCommand(MockAdapter()).get_request_filter
+    skip_value_check = True
 
-  # noinspection SpellCheckingInspection
-  def setUp(self):
-    super(CheckConsistencyRequestFilterTestCase, self).setUp()
+    # noinspection SpellCheckingInspection
+    def setUp(self):
+        super(CheckConsistencyRequestFilterTestCase, self).setUp()
 
-    self.hash1 = (
-      'TESTVALUE9DONTUSEINPRODUCTION99999DXSCAD'
-      'YBVDCTTBLHFYQATFZPYPCBG9FOUKIGMYIGLHM9NEZ'
-    )
+        self.hash1 = (
+            'TESTVALUE9DONTUSEINPRODUCTION99999DXSCAD'
+            'YBVDCTTBLHFYQATFZPYPCBG9FOUKIGMYIGLHM9NEZ'
+        )
 
-    self.hash2 = (
-      'TESTVALUE9DONTUSEINPRODUCTION99999EMFYSM'
-      'HWODIAPUTTFDLQRLYIDAUIPJXXEXZZSBVKZEBWGAN'
-    )
+        self.hash2 = (
+            'TESTVALUE9DONTUSEINPRODUCTION99999EMFYSM'
+            'HWODIAPUTTFDLQRLYIDAUIPJXXEXZZSBVKZEBWGAN'
+        )
 
-  def test_pass_happy_path(self):
-    """
-    Request is valid.
-    """
-    request = {
-      # Raw trytes are extracted to match the IRI's JSON protocol.
-      'tails': [self.hash1, self.hash2],
-    }
+    def test_pass_happy_path(self):
+        """
+        Request is valid.
+        """
+        request = {
+            # Raw trytes are extracted to match the IRI's JSON protocol.
+            'tails': [self.hash1, self.hash2],
+        }
 
-    filter_ = self._filter(request)
+        filter_ = self._filter(request)
 
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(filter_.cleaned_data, request)
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(filter_.cleaned_data, request)
 
-  def test_pass_compatible_types(self):
-    """
-    Request contains values that can be converted to the expected
-    types.
-    """
-    filter_ = self._filter({
-      'tails': [
-        # Any TrytesCompatible value can be used here.
-        TransactionHash(self.hash1),
-        bytearray(self.hash2.encode('ascii')),
-      ],
-    })
+    def test_pass_compatible_types(self):
+        """
+        Request contains values that can be converted to the expected
+        types.
+        """
+        filter_ = self._filter({
+            'tails': [
+                # Any TrytesCompatible value can be used here.
+                TransactionHash(self.hash1),
+                bytearray(self.hash2.encode('ascii')),
+            ],
+        })
 
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(
+            filter_.cleaned_data,
 
-      {
-        # Raw trytes are extracted to match the IRI's JSON protocol.
-        'tails': [self.hash1, self.hash2],
-      },
-    )
+            {
+                # Raw trytes are extracted to match the IRI's JSON protocol.
+                'tails': [self.hash1, self.hash2],
+            },
+        )
 
-  def test_fail_empty(self):
-    """
-    Request is empty.
-    """
-    self.assertFilterErrors(
-      {},
+    def test_fail_empty(self):
+        """
+        Request is empty.
+        """
+        self.assertFilterErrors(
+            {},
 
-      {
-        'tails': [f.FilterMapper.CODE_MISSING_KEY],
-      },
-    )
+            {
+                'tails': [f.FilterMapper.CODE_MISSING_KEY],
+            },
+        )
 
-  def test_fail_unexpected_parameters(self):
-    """
-    Request contains unexpected parameters.
-    """
-    self.assertFilterErrors(
-      {
-        'tails': [TransactionHash(self.hash1)],
-        'foo': 'bar',
-      },
+    def test_fail_unexpected_parameters(self):
+        """
+        Request contains unexpected parameters.
+        """
+        self.assertFilterErrors(
+            {
+                'tails': [TransactionHash(self.hash1)],
+                'foo': 'bar',
+            },
 
-      {
-        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
-      },
-    )
+            {
+                'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+            },
+        )
 
-  def test_fail_tails_null(self):
-    """
-    ``tails`` is null.
-    """
-    self.assertFilterErrors(
-      {
-        'tails': None,
-      },
+    def test_fail_tails_null(self):
+        """
+        ``tails`` is null.
+        """
+        self.assertFilterErrors(
+            {
+                'tails': None,
+            },
 
-      {
-        'tails': [f.Required.CODE_EMPTY],
-      },
-    )
+            {
+                'tails': [f.Required.CODE_EMPTY],
+            },
+        )
 
-  def test_fail_tails_wrong_type(self):
-    """
-    ``tails`` is not an array.
-    """
-    self.assertFilterErrors(
-      {
-        # It's gotta be an array, even if there's only one hash.
-        'tails': TransactionHash(self.hash1),
-      },
+    def test_fail_tails_wrong_type(self):
+        """
+        ``tails`` is not an array.
+        """
+        self.assertFilterErrors(
+            {
+                # It's gotta be an array, even if there's only one hash.
+                'tails': TransactionHash(self.hash1),
+            },
 
-      {
-        'tails': [f.Type.CODE_WRONG_TYPE],
-      },
-    )
+            {
+                'tails': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
 
-  def test_fail_tails_empty(self):
-    """
-    ``tails`` is an array, but it is empty.
-    """
-    self.assertFilterErrors(
-      {
-        'tails': [],
-      },
+    def test_fail_tails_empty(self):
+        """
+        ``tails`` is an array, but it is empty.
+        """
+        self.assertFilterErrors(
+            {
+                'tails': [],
+            },
 
-      {
-        'tails': [f.Required.CODE_EMPTY],
-      },
-    )
+            {
+                'tails': [f.Required.CODE_EMPTY],
+            },
+        )
 
-  def test_fail_tails_contents_invalid(self):
-    """
-    ``tails`` is a non-empty array, but it contains invalid values.
-    """
-    self.assertFilterErrors(
-      {
-        'tails': [
-          b'',
-          True,
-          None,
-          b'not valid trytes',
+    def test_fail_tails_contents_invalid(self):
+        """
+        ``tails`` is a non-empty array, but it contains invalid values.
+        """
+        self.assertFilterErrors(
+            {
+                'tails': [
+                    b'',
+                    True,
+                    None,
+                    b'not valid trytes',
 
-          # This is actually valid; I just added it to make sure the
-          #   filter isn't cheating!
-          TryteString(self.hash1),
+                    # This is actually valid; I just added it to make sure the
+                    #   filter isn't cheating!
+                    TryteString(self.hash1),
 
-          2130706433,
-          b'9' * 82,
-        ],
-      },
+                    2130706433,
+                    b'9' * 82,
+                    ],
+            },
 
-      {
-        'tails.0':  [f.Required.CODE_EMPTY],
-        'tails.1':  [f.Type.CODE_WRONG_TYPE],
-        'tails.2':  [f.Required.CODE_EMPTY],
-        'tails.3':  [Trytes.CODE_NOT_TRYTES],
-        'tails.5':  [f.Type.CODE_WRONG_TYPE],
-        'tails.6':  [Trytes.CODE_WRONG_FORMAT],
-      },
-    )
+            {
+                'tails.0':  [f.Required.CODE_EMPTY],
+                'tails.1':  [f.Type.CODE_WRONG_TYPE],
+                'tails.2':  [f.Required.CODE_EMPTY],
+                'tails.3':  [Trytes.CODE_NOT_TRYTES],
+                'tails.5':  [f.Type.CODE_WRONG_TYPE],
+                'tails.6':  [Trytes.CODE_WRONG_FORMAT],
+            },
+        )
+
+
+class CheckConsistencyResponseFilterTestCase(BaseFilterTestCase):
+    filter_type = CheckConsistencyCommand(MockAdapter()).get_response_filter
+    skip_value_check = True
+
+    def test_check_consistency_is_true_response(self):
+        """
+        Typical ``checkConsistency`` is true response
+        """
+        filter_ = self._filter({
+            'state': True
+        })
+
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(
+            filter_.cleaned_data,
+
+            {
+                'state': True
+            },
+        )
+
+    def test_check_consistency_is_false_response(self):
+        """
+        Typical ``checkConsistency`` is false response
+        """
+        filter_ = self._filter({
+            'state': False
+        })
+
+        self.assertFilterPasses(filter_)
+        self.assertDictEqual(
+            filter_.cleaned_data,
+
+            {
+                'state': False
+            },
+        )
 
 
 class CheckConsistencyCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
-  def setUp(self):
-    super(CheckConsistencyCommandTestCase, self).setUp()
+    # noinspection SpellCheckingInspection
+    def setUp(self):
+        super(CheckConsistencyCommandTestCase, self).setUp()
 
-    self.adapter = MockAdapter()
-    self.command = CheckConsistencyCommand(self.adapter)
+        self.adapter = MockAdapter()
+        self.command = CheckConsistencyCommand(self.adapter)
 
-    # Define some tryte sequences that we can re-use across tests.
-    self.milestone =\
-      TransactionHash(
-        b'TESTVALUE9DONTUSEINPRODUCTION99999W9KDIH'
-        b'BALAYAFCADIDU9HCXDKIXEYDNFRAKHN9IEIDZFWGJ'
-      )
+        # Define some tryte sequences that we can re-use across tests.
+        self.milestone = \
+            TransactionHash(
+                b'TESTVALUE9DONTUSEINPRODUCTION99999W9KDIH'
+                b'BALAYAFCADIDU9HCXDKIXEYDNFRAKHN9IEIDZFWGJ'
+            )
 
-    self.hash1 =\
-      TransactionHash(
-        b'TESTVALUE9DONTUSEINPRODUCTION99999TBPDM9'
-        b'ADFAWCKCSFUALFGETFIFG9UHIEFE9AYESEHDUBDDF'
-      )
+        self.hash1 = \
+            TransactionHash(
+                b'TESTVALUE9DONTUSEINPRODUCTION99999TBPDM9'
+                b'ADFAWCKCSFUALFGETFIFG9UHIEFE9AYESEHDUBDDF'
+            )
 
-    self.hash2 =\
-      TransactionHash(
-        b'TESTVALUE9DONTUSEINPRODUCTION99999CIGCCF'
-        b'KIUFZF9EP9YEYGQAIEXDTEAAUGAEWBBASHYCWBHDX'
-      )
+        self.hash2 = \
+            TransactionHash(
+                b'TESTVALUE9DONTUSEINPRODUCTION99999CIGCCF'
+                b'KIUFZF9EP9YEYGQAIEXDTEAAUGAEWBBASHYCWBHDX'
+            )
 
-  def test_wireup(self):
-    """
-    Verify that the command is wired up correctly.
-    """
-    self.assertIsInstance(
-      Iota(self.adapter).checkConsistency,
-      CheckConsistencyCommand,
-    )
+    def test_wireup(self):
+        """
+        Verify that the command is wired up correctly.
+        """
+        self.assertIsInstance(
+            Iota(self.adapter).checkConsistency,
+            CheckConsistencyCommand,
+        )
 
-  def test_happy_path(self):
-    """
-    Successfully checking consistency.
-    """
+    def test_happy_path(self):
+        """
+        Successfully checking consistency.
+        """
 
-    self.adapter.seed_response('checkConsistency', {
-      'state': True,
-    })
+        self.adapter.seed_response('checkConsistency', {
+            'state': True,
+        })
 
-    response = self.command(tails=[self.hash1, self.hash2])
+        response = self.command(tails=[self.hash1, self.hash2])
 
-    self.assertDictEqual(
-      response,
+        self.assertDictEqual(
+            response,
 
-      {
-        'state': True,
-      }
-    )
+            {
+                'state': True,
+            }
+        )
 
-  def test_info_with_false_state(self):
-    """
-    `info` field exists when `state` is False.
-    """
+    def test_info_with_false_state(self):
+        """
+        `info` field exists when `state` is False.
+        """
 
-    self.adapter.seed_response('checkConsistency', {
-      'state': False,
-      'info': 'Additional information',
-    })
+        self.adapter.seed_response('checkConsistency', {
+            'state': False,
+            'info': 'Additional information',
+        })
 
-    response = self.command(tails=[self.hash1, self.hash2])
+        response = self.command(tails=[self.hash1, self.hash2])
 
-    self.assertDictEqual(
-      response,
+        self.assertDictEqual(
+            response,
 
-      {
-        'state': False,
-        'info': 'Additional information',
-      }
-    )
+            {
+                'state': False,
+                'info': 'Additional information',
+            }
+        )

@@ -1,6 +1,6 @@
 Installation
 ============
-PyOTA is compatible with Python 3.6, 3.5 and 2.7.
+PyOTA is compatible with Python 3.7, 3.6, 3.5 and 2.7.
 
 Install PyOTA using `pip`:
 
@@ -76,7 +76,7 @@ your API requests so that they contain the necessary authentication metadata.
    )
 
 .. _forum: https://forum.iota.org/
-.. _official api: https://iota.readme.io/
+.. _official api: https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 .. _pyota-ccurl extension: https://pypi.python.org/pypi/PyOTA-CCurl
 .. _run your own node.: http://iotasupport.com/headlessnode.shtml
 .. _slack: http://slack.iota.org/

@@ -9,7 +9,8 @@ These methods are "low level" and generally do not need to be called
 directly.
 
 For the full documentation of all the Core API calls, please refer
-to the `official documentation <https://iota.readme.io/>`__.
+to the `official documentation <https://docs.iota.org/docs/node-software/0.1/
+iri/references/api-reference>`__.
 
 Extended API
 ============

@@ -3,8 +3,9 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import filters as f
+from six import iteritems
 
-from iota import Address
+from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import AddressNoChecksum, Trytes
 
@@ -44,12 +45,37 @@ class GetBalancesRequestFilter(RequestFilter):
                     f.Min(0) |
                     f.Max(100) |
                     f.Optional(default=100),
+
+                'tips':
+                    f.Array | f.FilterRepeater(
+                        f.Required |
+                        Trytes(TransactionHash) |
+                        f.Unicode(encoding='ascii', normalize=False),
+                    )
             },
 
             allow_missing_keys={
-                'threshold',
+                'threshold', 'tips',
             },
         )
+
+    def _apply(self, value):
+        value = super(GetBalancesRequestFilter, self)._apply(
+            value
+        )  # type: dict
+
+        if self._has_errors:
+            return value
+
+        # Remove null search terms.
+        # Note: We will assume that empty lists are intentional.
+        search_terms = {
+            term: query
+            for term, query in iteritems(value)
+            if query is not None
+        }
+
+        return search_terms
 
 
 class GetBalancesResponseFilter(ResponseFilter):
@@ -57,6 +83,12 @@ class GetBalancesResponseFilter(ResponseFilter):
         super(GetBalancesResponseFilter, self).__init__({
             'balances': f.Array | f.FilterRepeater(f.Int),
 
-            'milestone':
-                f.ByteString(encoding='ascii') | Trytes(Address),
+            'milestoneIndex': f.Int,
+
+            'references':
+                f.Array | f.FilterRepeater(
+                    f.Required |
+                    Trytes(TransactionHash) |
+                    f.Unicode(encoding='ascii', normalize=False),
+                ),
         })

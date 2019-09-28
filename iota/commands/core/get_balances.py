@@ -83,8 +83,6 @@ class GetBalancesResponseFilter(ResponseFilter):
         super(GetBalancesResponseFilter, self).__init__({
             'balances': f.Array | f.FilterRepeater(f.Int),
 
-            'milestoneIndex': f.Int,
-
             'references':
                 f.Array | f.FilterRepeater(
                     f.Required |

@@ -160,46 +160,6 @@ class WereAddressesSpentFromRequestFilterTestCase(BaseFilterTestCase):
         )
 
 
-class WereAddressesSpentFromResponseFilterTestCase(BaseFilterTestCase):
-    filter_type = \
-        WereAddressesSpentFromCommand(MockAdapter()).get_response_filter
-    skip_value_check = True
-
-    def test_single_address(self):
-        """
-        Typical ``wereAddressesSpentFrom`` response for a single address
-        """
-        filter_ = self._filter({
-            'states': [True, ]
-        })
-
-        self.assertFilterPasses(filter_)
-        self.assertDictEqual(
-            filter_.cleaned_data,
-
-            {
-                'states': [True, ]
-            },
-        )
-
-    def test_multiple_addresses(self):
-        """
-        Typical ``wereAddressesSpentFrom`` response for a multiple address
-        """
-        filter_ = self._filter({
-            'states': [True, False, False, True]
-        })
-
-        self.assertFilterPasses(filter_)
-        self.assertDictEqual(
-            filter_.cleaned_data,
-
-            {
-                'states': [True, False, False, True]
-            },
-        )
-
-
 class WereAddressesSpentFromCommandTestCase(TestCase):
     def setUp(self):
         super(WereAddressesSpentFromCommandTestCase, self).setUp()

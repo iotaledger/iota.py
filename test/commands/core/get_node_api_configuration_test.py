@@ -19,7 +19,7 @@ class GetNodeAPIConfigurationRequestFilterTestCase(BaseFilterTestCase):
 
     def test_pass_empty(self):
         """
-        The incoming response is (correctly) empty.
+        The incoming request is (correctly) empty.
         """
         request = {}
 
@@ -30,7 +30,7 @@ class GetNodeAPIConfigurationRequestFilterTestCase(BaseFilterTestCase):
 
     def test_fail_unexpected_parameters(self):
         """
-        The incoming response contains unexpected parameters.
+        The incoming request contains unexpected parameters.
         """
         self.assertFilterErrors(
             {
@@ -41,41 +41,6 @@ class GetNodeAPIConfigurationRequestFilterTestCase(BaseFilterTestCase):
             {
                 'foo': [f.FilterMapper.CODE_EXTRA_KEY],
             },
-        )
-
-
-class GetNodeAPIConfigurationFilterTestCase(BaseFilterTestCase):
-    filter_type = \
-        GetNodeAPIConfigurationCommand(MockAdapter()).get_response_filter
-    skip_value_check = True
-
-    # noinspection SpellCheckingInspection
-    def test_pass_happy_path(self):
-        """
-        The incoming response contains valid values.
-        """
-        response = {
-            'maxFindTransactions': 100000,
-            'maxRequestsList': 1000,
-            'maxGetTrytes': 10000,
-            'maxBodyLength': 1000000,
-            'testNet': False,
-            'milestoneStartIndex': 1050000,
-        }
-
-        filter_ = self._filter(response)
-
-        self.assertFilterPasses(filter_)
-        self.assertDictEqual(
-            filter_.cleaned_data,
-            {
-                'maxFindTransactions': 100000,
-                'maxRequestsList': 1000,
-                'maxGetTrytes': 10000,
-                'maxBodyLength': 1000000,
-                'testNet': False,
-                'milestoneStartIndex': 1050000,
-            }
         )
 
 

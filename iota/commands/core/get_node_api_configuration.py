@@ -2,9 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import filters as f
-
-from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.commands import FilterCommand, RequestFilter
 
 __all__ = [
     'GetNodeAPIConfigurationCommand',
@@ -23,7 +21,7 @@ class GetNodeAPIConfigurationCommand(FilterCommand):
         return GetNodeAPIConfigurationRequestFilter()
 
     def get_response_filter(self):
-        return GetNodeAPIConfigurationResponseFilter()
+        pass
 
 
 class GetNodeAPIConfigurationRequestFilter(RequestFilter):
@@ -31,15 +29,3 @@ class GetNodeAPIConfigurationRequestFilter(RequestFilter):
         # ``getNodeAPIConfiguration`` does not accept any parameters.
         # Using a filter here just to enforce that the request is empty.
         super(GetNodeAPIConfigurationRequestFilter, self).__init__({})
-
-
-class GetNodeAPIConfigurationResponseFilter(ResponseFilter):
-    def __init__(self):
-        super(GetNodeAPIConfigurationResponseFilter, self).__init__({
-            'maxFindTransactions': f.Type(int),
-            'maxRequestsList': f.Type(int),
-            'maxGetTrytes': f.Type(int),
-            'maxBodyLength': f.Type(int),
-            'testNet': f.Type(bool),
-            'milestoneStartIndex': f.Type(int),
-        })

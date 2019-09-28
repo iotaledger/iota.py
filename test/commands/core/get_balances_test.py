@@ -62,7 +62,7 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
 
             'threshold': 80,
 
-            'tips': [self.trytes3, ],
+            'tips': [self.trytes3],
         }
 
         filter_ = self._filter(request)
@@ -277,7 +277,7 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
         """
         self.assertFilterErrors(
             {
-                'addresses': [self.trytes1, ],
+                'addresses': [self.trytes1],
                 'tips': [
                     b'',
                     True,
@@ -326,7 +326,7 @@ class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
             'balances':       ['114544444', '0', '8175737'],
             'duration':       42,
             'milestoneIndex': 128,
-            'references':     [self.trytes1, ]
+            'references':     [self.trytes1]
         })
 
         self.assertFilterPasses(filter_)
@@ -337,7 +337,7 @@ class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
                 'balances':       [114544444, 0, 8175737],
                 'duration':       42,
                 'milestoneIndex': 128,
-                'references':     [self.trytes1, ]
+                'references':     [self.trytes1]
             },
         )
 

@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, \
 import filters as f
 
 from iota import TransactionHash
-from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.commands import FilterCommand, RequestFilter
 from iota.filters import Trytes
 
 __all__ = [
@@ -25,7 +25,7 @@ class CheckConsistencyCommand(FilterCommand):
         return CheckConsistencyRequestFilter()
 
     def get_response_filter(self):
-        return CheckConsistencyResponseFilter()
+        pass
 
 
 class CheckConsistencyRequestFilter(RequestFilter):
@@ -35,11 +35,4 @@ class CheckConsistencyRequestFilter(RequestFilter):
                 f.Required |
                 f.Array |
                 f.FilterRepeater(f.Required | Trytes(TransactionHash)),
-        })
-
-
-class CheckConsistencyResponseFilter(ResponseFilter):
-    def __init__(self):
-        super(CheckConsistencyResponseFilter, self).__init__({
-            'state': f.Required | f.Type(bool),
         })

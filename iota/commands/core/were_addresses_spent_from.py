@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import filters as f
 
-from iota.commands import FilterCommand, RequestFilter, ResponseFilter
+from iota.commands import FilterCommand, RequestFilter
 from iota.filters import AddressNoChecksum
 
 __all__ = [
@@ -24,7 +24,7 @@ class WereAddressesSpentFromCommand(FilterCommand):
         return WereAddressesSpentFromRequestFilter()
 
     def get_response_filter(self):
-        return WereAddressesSpentFromResponseFilter()
+        pass
 
 
 class WereAddressesSpentFromRequestFilter(RequestFilter):
@@ -35,16 +35,5 @@ class WereAddressesSpentFromRequestFilter(RequestFilter):
                     f.Required |
                     AddressNoChecksum() |
                     f.Unicode(encoding='ascii', normalize=False),
-                ),
-        })
-
-
-class WereAddressesSpentFromResponseFilter(ResponseFilter):
-    def __init__(self):
-        super(WereAddressesSpentFromResponseFilter, self).__init__({
-            'states':
-                f.Array | f.FilterRepeater(
-                    f.Required |
-                    f.Type(bool),
                 ),
         })

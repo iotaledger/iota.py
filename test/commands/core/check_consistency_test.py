@@ -170,45 +170,6 @@ class CheckConsistencyRequestFilterTestCase(BaseFilterTestCase):
         )
 
 
-class CheckConsistencyResponseFilterTestCase(BaseFilterTestCase):
-    filter_type = CheckConsistencyCommand(MockAdapter()).get_response_filter
-    skip_value_check = True
-
-    def test_check_consistency_is_true_response(self):
-        """
-        Typical ``checkConsistency`` is true response
-        """
-        filter_ = self._filter({
-            'state': True
-        })
-
-        self.assertFilterPasses(filter_)
-        self.assertDictEqual(
-            filter_.cleaned_data,
-
-            {
-                'state': True
-            },
-        )
-
-    def test_check_consistency_is_false_response(self):
-        """
-        Typical ``checkConsistency`` is false response
-        """
-        filter_ = self._filter({
-            'state': False
-        })
-
-        self.assertFilterPasses(filter_)
-        self.assertDictEqual(
-            filter_.cleaned_data,
-
-            {
-                'state': False
-            },
-        )
-
-
 class CheckConsistencyCommandTestCase(TestCase):
     # noinspection SpellCheckingInspection
     def setUp(self):

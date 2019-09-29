@@ -85,8 +85,7 @@ class GetBalancesResponseFilter(ResponseFilter):
 
             'references':
                 f.Array | f.FilterRepeater(
-                    f.Required |
-                    Trytes(TransactionHash) |
-                    f.Unicode(encoding='ascii', normalize=False),
+                    f.ByteString(encoding='ascii') |
+                    Trytes(TransactionHash)
                 ),
         })

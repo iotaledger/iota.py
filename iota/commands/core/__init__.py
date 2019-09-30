@@ -4,7 +4,7 @@ Core commands are defined by the node API.
 
 References:
 
-- https://iota.readme.io/docs/getting-started
+- https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 """
 
 from __future__ import absolute_import, division, print_function, \
@@ -17,7 +17,9 @@ from .check_consistency import *
 from .find_transactions import *
 from .get_balances import *
 from .get_inclusion_states import *
+from .get_missing_transactions import *
 from .get_neighbors import *
+from .get_node_api_configuration import *
 from .get_node_info import *
 from .get_tips import *
 from .get_transactions_to_approve import *

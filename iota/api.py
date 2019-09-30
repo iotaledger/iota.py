@@ -63,7 +63,7 @@ class StrictIota(object):
 
     References:
 
-    - https://iota.readme.io/docs/getting-started
+    - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
     """
     commands = discover_commands('iota.commands.core')
 
@@ -100,7 +100,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/making-requests
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
         """
         # Fix an error when invoking :py:func:`help`.
         # https://github.com/iotaledger/iota.lib.py/issues/41
@@ -165,7 +165,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/addneighors
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#addneighbors
         """
         return core.AddNeighborsCommand(self.adapter)(uris=uris)
 
@@ -190,7 +190,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/attachtotangle
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#attachtotangle
         """
         if min_weight_magnitude is None:
             min_weight_magnitude = self.default_min_weight_magnitude
@@ -212,7 +212,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/broadcasttransactions
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#broadcasttransactions
         """
         return core.BroadcastTransactionsCommand(self.adapter)(trytes=trytes)
 
@@ -242,6 +242,10 @@ class StrictIota(object):
                         This field will only exist set if ``state`` is
                         ``False``.
                 }
+
+        References:
+
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#checkconsistency
         """
         return core.CheckConsistencyCommand(self.adapter)(
             tails=tails,
@@ -280,7 +284,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/findtransactions
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#findtransactions
         """
         return core.FindTransactionsCommand(self.adapter)(
             bundles=bundles,
@@ -289,8 +293,13 @@ class StrictIota(object):
             approvees=approvees,
         )
 
-    def get_balances(self, addresses, threshold=100):
-        # type: (Iterable[Address], int) -> dict
+    def get_balances(
+            self,
+            addresses,  # type: Iterable[Address]
+            threshold=100,  # type: int
+            tips=None,  # type: Optional[Iterable[TransactionHash]]
+    ):
+        # type: (...) -> dict
         """
         Similar to :py:meth:`get_inclusion_states`. Returns the
         confirmed balance which a list of addresses have at the latest
@@ -305,15 +314,19 @@ class StrictIota(object):
             List of addresses to get the confirmed balance for.
 
         :param threshold:
-            Confirmation threshold.
+            Confirmation threshold between 0 and 100.
+
+        :param tips:
+            Tips whose history of transactions to traverse to find the balance.
 
         References:
 
-        - https://iota.readme.io/docs/getbalances
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getbalances
         """
         return core.GetBalancesCommand(self.adapter)(
             addresses=addresses,
             threshold=threshold,
+            tips=tips,
         )
 
     def get_inclusion_states(self, transactions, tips):
@@ -334,12 +347,24 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/getinclusionstates
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getinclusionstates
         """
         return core.GetInclusionStatesCommand(self.adapter)(
             transactions=transactions,
             tips=tips,
         )
+
+    def get_missing_transactions(self):
+        # type: () -> dict
+        """
+        Returns all transaction hashes that a node is currently requesting
+        from its neighbors.
+
+        References:
+
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getmissingtransactions
+        """
+        return core.GetMissingTransactionsCommand(self.adapter)()
 
     def get_neighbors(self):
         # type: () -> dict
@@ -351,9 +376,20 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/getneighborsactivity
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getneighbors
         """
         return core.GetNeighborsCommand(self.adapter)()
+
+    def get_node_api_configuration(self):
+        # type: () -> dict
+        """
+        Returns a node's API configuration settings.
+
+        References:
+
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getnodeapiconfiguration
+        """
+        return core.GetNodeAPIConfigurationCommand(self.adapter)()
 
     def get_node_info(self):
         # type: () -> dict
@@ -362,7 +398,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/getnodeinfo
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getnodeinfo
         """
         return core.GetNodeInfoCommand(self.adapter)()
 
@@ -374,13 +410,13 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/gettips
-        - https://iota.readme.io/docs/glossary#iota-terms
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettips
+        - https://docs.iota.org/docs/dev-essentials/0.1/references/glossary
         """
         return core.GetTipsCommand(self.adapter)()
 
-    def get_transactions_to_approve(self, depth):
-        # type: (int) -> dict
+    def get_transactions_to_approve(self, depth, reference=None):
+        # type: (int, Optional[TransactionHash]) -> dict
         """
         Tip selection which returns ``trunkTransaction`` and
         ``branchTransaction``.
@@ -393,11 +429,19 @@ class StrictIota(object):
           will perform for the network (as it will confirm more
           transactions that way).
 
+        :param reference:
+          Transaction hash from which to start the weighted random walk.
+          Use this parameter to make sure the returned tip transaction hashes
+          approve a given reference transaction.
+
         References:
 
-        - https://iota.readme.io/docs/gettransactionstoapprove
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettransactionstoapprove
         """
-        return core.GetTransactionsToApproveCommand(self.adapter)(depth=depth)
+        return core.GetTransactionsToApproveCommand(self.adapter)(
+            depth=depth,
+            reference=reference,
+        )
 
     def get_trytes(self, hashes):
         # type: (Iterable[TransactionHash]) -> dict
@@ -407,7 +451,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/gettrytes
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettrytes
         """
         return core.GetTrytesCommand(self.adapter)(hashes=hashes)
 
@@ -419,7 +463,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/interruptattachingtotangle
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#interruptattachingtotangle
         """
         return core.InterruptAttachingToTangleCommand(self.adapter)()
 
@@ -435,7 +479,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/removeneighors
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#removeneighbors
         """
         return core.RemoveNeighborsCommand(self.adapter)(uris=uris)
 
@@ -449,7 +493,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/storetransactions
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#storetransactions
         """
         return core.StoreTransactionsCommand(self.adapter)(trytes=trytes)
 
@@ -464,7 +508,7 @@ class StrictIota(object):
 
         References:
 
-        - https://iota.readme.io/docs/wereaddressesspentfrom
+        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#wereaddressesspentfrom
         """
         return core.WereAddressesSpentFromCommand(self.adapter)(
             addresses=addresses,
@@ -478,7 +522,7 @@ class Iota(StrictIota):
 
     References:
 
-    - https://iota.readme.io/docs/getting-started
+    - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
     """
     commands = discover_commands('iota.commands.extended')

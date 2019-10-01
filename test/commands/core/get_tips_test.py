@@ -19,7 +19,7 @@ class GetTipsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_pass_empty(self):
     """
-    The incoming response is (correctly) empty.
+    The incoming request is (correctly) empty.
     """
     request = {}
 
@@ -30,7 +30,7 @@ class GetTipsRequestFilterTestCase(BaseFilterTestCase):
 
   def test_fail_unexpected_parameters(self):
     """
-    The incoming response contains unexpected parameters.
+    The incoming request contains unexpected parameters.
     """
     self.assertFilterErrors(
       {

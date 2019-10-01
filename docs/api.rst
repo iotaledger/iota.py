@@ -9,7 +9,8 @@ These methods are "low level" and generally do not need to be called
 directly.
 
 For the full documentation of all the Core API calls, please refer
-to the `official documentation <https://iota.readme.io/>`__.
+to the `official documentation <https://docs.iota.org/docs/node-software/0.1/
+iri/references/api-reference>`__.
 
 Extended API
 ============
@@ -35,6 +36,40 @@ This method returns a ``dict`` with the following items:
 -  ``trytes: List[TransactionTrytes]``: Transaction trytes that were
    broadcast/stored. Should be the same as the value of the ``trytes``
    parameter.
+
+
+``find_transaction_objects``
+----------------------------
+
+A more extensive version of the core API ``find_transactions`` that returns
+transaction objects instead of hashes.
+
+Effectively, this is ``find_transactions`` + ``get_trytes`` + converting
+the trytes into transaction objects. It accepts the same parameters
+as ``find_transactions``
+
+Find the transactions which match the specified input.
+All input values are lists, for which a list of return values
+(transaction hashes), in the same order, is returned for all
+individual elements. Using multiple of these input fields returns the
+intersection of the values.
+
+Parameters
+~~~~~~~~~~
+
+-  ``bundles: Optional[Iterable[BundleHash]]``: List of bundle IDs.
+-  ``addresses: Optional[Iterable[Address]]``: List of addresses.
+-  ``tags: Optional[Iterable[Tag]]``: List of tags.
+-  ``param: Optional[Iterable[TransactionHash]]``: List of approvee
+   transaction IDs.
+
+Return
+~~~~~~
+
+This method returns a ``dict`` with the following items:
+
+-  ``transactions: List[Transaction]``: List of Transaction objects that
+   match the input
 
 ``get_account_data``
 --------------------

@@ -80,13 +80,13 @@ Using AddressGenerator
     generator = AddressGenerator(b'SEED9GOES9HERE')
 
     # Generate a list of addresses:
-    addresses = generator.get_addresses(index=0, count=5)
+    addresses = generator.get_addresses(start=0, count=5)
 
     # Generate a list of addresses in reverse order:
-    addresses = generator.get_addresses(index=42, count=10, step=-1)
+    addresses = generator.get_addresses(start=42, count=10, step=-1)
 
     # Create an iterator, advancing 5 indices each iteration.
-    iterator = generator.create_iterator(index=86, step=5)
+    iterator = generator.create_iterator(start=86, step=5)
     for address in iterator:
       ...
 

@@ -8,8 +8,8 @@ import filters as f
 
 from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.commands.extended import GetLatestInclusionCommand
-from iota.commands.extended.utils import find_transaction_objects
+from iota.commands.extended import FindTransactionObjectsCommand, \
+    GetLatestInclusionCommand
 from iota.filters import Trytes
 
 __all__ = [
@@ -33,10 +33,9 @@ class IsReattachableCommand(FilterCommand):
         addresses = request['addresses']  # type: List[Address]
 
         # fetch full transaction objects
-        transactions = find_transaction_objects(
-            adapter=self.adapter,
+        transactions = FindTransactionObjectsCommand(adapter=self.adapter)(
             addresses=addresses,
-        )
+        )['transactions']
 
         # Map and filter transactions which have zero value.
         # If multiple transactions for the same address are returned,

@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/iotaledger/iota.lib.py.svg?branch=master
-   :target: https://travis-ci.org/iotaledger/iota.lib.py
+.. image:: https://travis-ci.org/iotaledger/iota.py.svg?branch=master
+   :target: https://travis-ci.org/iotaledger/iota.py
 
 .. image:: https://readthedocs.org/projects/pyota/badge/?version=latest
    :target: http://pyota.readthedocs.io/en/latest/?badge=latest
@@ -47,7 +47,7 @@ Installing from Source
 ======================
 
 #. `Create virtualenv`_ (recommended, but not required).
-#. ``git clone https://github.com/iotaledger/iota.lib.py.git``
+#. ``git clone https://github.com/iotaledger/iota.py.git``
 #. ``pip install -e .``
 
 Running Unit Tests
@@ -97,7 +97,7 @@ can also build the documentation locally:
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
 .. _Discord: https://discord.iota.org/
-.. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
+.. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
 .. _official API: https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 .. _tox: https://tox.readthedocs.io/

@@ -83,7 +83,7 @@ class TryteString(JsonSerializable):
         :param codec:
             Reserved for future use.
 
-            See https://github.com/iotaledger/iota.lib.py/issues/62 for
+            See https://github.com/iotaledger/iota.py/issues/62 for
             more information.
 
         :param args:
@@ -121,7 +121,7 @@ class TryteString(JsonSerializable):
         """
         Deprecated; use :py:meth:`from_unicode` instead.
 
-        https://github.com/iotaledger/iota.lib.py/issues/90
+        https://github.com/iotaledger/iota.py/issues/90
         """
         warn(
             category=DeprecationWarning,
@@ -499,7 +499,7 @@ class TryteString(JsonSerializable):
         :param codec:
             Reserved for future use.
 
-            See https://github.com/iotaledger/iota.lib.py/issues/62 for
+            See https://github.com/iotaledger/iota.py/issues/62 for
             more information.
 
         :raise:
@@ -511,7 +511,7 @@ class TryteString(JsonSerializable):
         # :py:class:`AsciiTrytesCodec`.
         #
         # Once we add more codecs, we may need to revisit this.
-        # See https://github.com/iotaledger/iota.lib.py/issues/62 for
+        # See https://github.com/iotaledger/iota.py/issues/62 for
         # more information.
         return decode(self._trytes, codec, errors)
 
@@ -519,7 +519,7 @@ class TryteString(JsonSerializable):
         """
         Deprecated; use :py:meth:`encode` instead.
 
-        https://github.com/iotaledger/iota.lib.py/issues/90
+        https://github.com/iotaledger/iota.py/issues/90
         """
         warn(
             category=DeprecationWarning,
@@ -570,7 +570,7 @@ class TryteString(JsonSerializable):
         """
         Deprecated; use :py:meth:`decode` instead.
 
-        https://github.com/iotaledger/iota.lib.py/issues/90
+        https://github.com/iotaledger/iota.py/issues/90
         """
         warn(
             category=DeprecationWarning,

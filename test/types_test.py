@@ -777,7 +777,7 @@ class TryteStringTestCase(TestCase):
     :py:meth:`TryteString.from_string` is deprecated in favor of
     :py:meth:`TryteString.from_unicode`.
 
-    https://github.com/iotaledger/iota.lib.py/issues/90
+    https://github.com/iotaledger/iota.py/issues/90
     """
     with catch_warnings(record=True) as caught_warnings:
       simple_filter('always', category=DeprecationWarning)

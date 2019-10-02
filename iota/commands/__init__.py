@@ -59,7 +59,7 @@ def discover_commands(package, recursively=True):
 
     # Prefix in name module move to function "walk_packages" for fix
     # conflict with names importing packages
-    # Bug https://github.com/iotaledger/iota.lib.py/issues/63
+    # Bug https://github.com/iotaledger/iota.py/issues/63
     sub_package = import_module(name)
 
     # Index any command classes that we find.

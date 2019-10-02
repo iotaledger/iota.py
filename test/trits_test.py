@@ -19,7 +19,7 @@ class TritsFromIntTestCase(TestCase):
     """
     Zero is represented as ``[0]`` by default.
 
-    https://github.com/iotaledger/iota.lib.py/issues/49
+    https://github.com/iotaledger/iota.py/issues/49
     """
     self.assertEqual(trits_from_int(0), [0])
 

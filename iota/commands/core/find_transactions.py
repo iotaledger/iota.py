@@ -84,7 +84,7 @@ class FindTransactionsRequestFilter(RequestFilter):
 
         # Remove null search terms.
         # Note: We will assume that empty lists are intentional.
-        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # https://github.com/iotaledger/iota.py/issues/96
         search_terms = {
             term: query
             for term, query in iteritems(value)

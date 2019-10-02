@@ -32,7 +32,7 @@ class SeedTestCase(TestCase):
     self.assertIsInstance(seed, Seed)
 
     # Regression test: Random seed must be exactly 81 trytes long.
-    # https://github.com/iotaledger/iota.lib.py/issues/44
+    # https://github.com/iotaledger/iota.py/issues/44
     self.assertEqual(len(seed), Hash.LEN)
 
   def test_random_seed_too_long(self):

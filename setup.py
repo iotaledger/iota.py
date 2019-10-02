@@ -38,7 +38,7 @@ tests_require = [
 setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
-    url='https://github.com/iotaledger/iota.lib.py',
+    url='https://github.com/iotaledger/iota.py',
     version='2.0.9',
 
     long_description=long_description,

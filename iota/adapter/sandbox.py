@@ -35,7 +35,7 @@ class SandboxAdapter(HttpAdapter):
     completed successfully.
 
     References:
-        - https://github.com/iotaledger/iota.lib.py/issues/19
+        - https://github.com/iotaledger/iota.py/issues/19
         - https://github.com/iotaledger/documentation/blob/sandbox/source/index.html.md
     """
     DEFAULT_POLL_INTERVAL = 15

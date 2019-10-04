@@ -98,7 +98,7 @@ class ProposedTransaction(Transaction):
 
         References:
 
-        - https://github.com/iotaledger/iota.lib.py/issues/84
+        - https://github.com/iotaledger/iota.py/issues/84
         """
         self._legacy_tag = (
             Tag.from_trits(add_trits(self.legacy_tag.as_trits(), [1]))
@@ -108,7 +108,7 @@ class ProposedTransaction(Transaction):
 Transfer = ProposedTransaction
 """
 Follow naming convention of other libs.
-https://github.com/iotaledger/iota.lib.py/issues/72
+https://github.com/iotaledger/iota.py/issues/72
 """
 
 
@@ -366,7 +366,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             bundle_hash = BundleHash.from_trits(bundle_hash_trits)
 
             # Check that we generated a secure bundle hash.
-            # https://github.com/iotaledger/iota.lib.py/issues/84
+            # https://github.com/iotaledger/iota.py/issues/84
             if any(13 in part for part in normalize(bundle_hash)):
                 # Increment the legacy tag and try again.
                 tail_transaction = (

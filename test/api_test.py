@@ -145,7 +145,7 @@ class IotaApiTestCase(TestCase):
         class definition raises an exception.
 
         References:
-            - https://github.com/iotaledger/iota.lib.py/issues/206
+            - https://github.com/iotaledger/iota.py/issues/206
         """
         # This statement will raise an exception if the regression is
         # present; no assertions necessary.

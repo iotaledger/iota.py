@@ -602,7 +602,7 @@ class ReplayBundleCommandTestCase(TestCase):
       to replay the bundle.
 
       References:
-        - https://github.com/iotaledger/iota.lib.py/issues/74
+        - https://github.com/iotaledger/iota.py/issues/74
       """
       self.assertEqual(request['trytes'], send_trytes_response['trytes'])
       return send_trytes_response

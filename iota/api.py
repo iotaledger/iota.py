@@ -103,13 +103,13 @@ class StrictIota(object):
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
         """
         # Fix an error when invoking :py:func:`help`.
-        # https://github.com/iotaledger/iota.lib.py/issues/41
+        # https://github.com/iotaledger/iota.py/issues/41
         if command == '__name__':
             # noinspection PyTypeChecker
             return None
 
         # Fix an error when invoking dunder methods.
-        # https://github.com/iotaledger/iota.lib.py/issues/206
+        # https://github.com/iotaledger/iota.py/issues/206
         if command.startswith("__"):
             # noinspection PyUnresolvedReferences
             return super(StrictIota, self).__getattr__(command)

@@ -153,7 +153,7 @@ class HttpAdapterTestCase(TestCase):
 
     self.assertEqual(result, expected_result)
 
-    # https://github.com/iotaledger/iota.lib.py/issues/84
+    # https://github.com/iotaledger/iota.py/issues/84
     mocked_sender.assert_called_once_with(
       headers = {
         'Content-type':       'application/json',

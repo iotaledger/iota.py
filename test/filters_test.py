@@ -80,7 +80,7 @@ class NodeUriTestCase(BaseFilterTestCase):
     """
     The incoming value is a valid TCP URI.
 
-    https://github.com/iotaledger/iota.lib.py/issues/111
+    https://github.com/iotaledger/iota.py/issues/111
     """
     self.assertFilterPasses('tcp://localhost:14265/node')
 

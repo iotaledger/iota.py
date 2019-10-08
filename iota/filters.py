@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from typing import Text
+from typing import Text, Type
 
 import filters as f
 from filters.macros import filter_macro
@@ -181,8 +181,10 @@ class Trytes(f.BaseFilter):
             )
 
 
+# noinspection PyPep8Naming
 @filter_macro
 def StringifiedTrytesArray(trytes_type=TryteString):
+    # type: (Type[TryteString]) -> f.FilterChain
     """
     Validates that the incoming value is an array containing tryte
     strings corresponding to the specified type (e.g.,

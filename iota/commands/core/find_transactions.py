@@ -7,7 +7,7 @@ from six import iteritems
 
 from iota import BundleHash, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import AddressNoChecksum, Trytes
+from iota.filters import AddressNoChecksum, StringifiedTrytesArray, Trytes
 
 __all__ = [
     'FindTransactionsCommand',
@@ -46,26 +46,9 @@ class FindTransactionsRequestFilter(RequestFilter):
                         f.Unicode(encoding='ascii', normalize=False),
                     ),
 
-                'approvees':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(TransactionHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
-
-                'bundles':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(BundleHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
-
-                'tags':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(Tag) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
+                'approvees': StringifiedTrytesArray(TransactionHash),
+                'bundles': StringifiedTrytesArray(BundleHash),
+                'tags': StringifiedTrytesArray(Tag),
             },
 
             # Technically, all of the parameters for this command are

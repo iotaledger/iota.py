@@ -10,7 +10,7 @@ from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.commands.extended import FindTransactionObjectsCommand, \
     GetLatestInclusionCommand
-from iota.filters import Trytes
+from iota.filters import Trytes, StringifiedTrytesArray
 
 __all__ = [
     'IsReattachableCommand',
@@ -69,12 +69,7 @@ class IsReattachableRequestFilter(RequestFilter):
     def __init__(self):
         super(IsReattachableRequestFilter, self).__init__(
             {
-                'addresses':
-                    f.Required | f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(Address) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
+                'addresses': StringifiedTrytesArray(Address) | f.Required,
             },
         )
 

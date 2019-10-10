@@ -6,7 +6,7 @@ import filters as f
 
 from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import Trytes
+from iota.filters import StringifiedTrytesArray, Trytes
 
 __all__ = [
     'GetTrytesCommand',
@@ -32,11 +32,7 @@ class GetTrytesRequestFilter(RequestFilter):
     def __init__(self):
         super(GetTrytesRequestFilter, self).__init__({
             'hashes':
-                f.Required | f.Array | f.FilterRepeater(
-                    f.Required |
-                    Trytes(TransactionHash) |
-                    f.Unicode(encoding='ascii', normalize=False),
-                ),
+                StringifiedTrytesArray(TransactionHash) | f.Required,
         })
 
 

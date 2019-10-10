@@ -6,7 +6,7 @@ import filters as f
 
 from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter
-from iota.filters import Trytes
+from iota.filters import StringifiedTrytesArray
 
 __all__ = [
     'GetInclusionStatesCommand',
@@ -34,19 +34,11 @@ class GetInclusionStatesRequestFilter(RequestFilter):
             {
                 # Required parameters.
                 'transactions':
-                    f.Required | f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(TransactionHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
+                    StringifiedTrytesArray(TransactionHash) | f.Required,
 
                 # Optional parameters.
                 'tips':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(TransactionHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ) |
+                    StringifiedTrytesArray(TransactionHash) |
                     f.Optional(default=[]),
             },
 

@@ -9,7 +9,7 @@ import filters as f
 from iota import Transaction, TransactionHash
 from iota.commands.core import GetTrytesCommand
 from iota.commands import FilterCommand, RequestFilter
-from iota.filters import Trytes
+from iota.filters import StringifiedTrytesArray
 
 __all__ = [
     'GetTransactionObjectsCommand',
@@ -20,7 +20,7 @@ class GetTransactionObjectsCommand(FilterCommand):
     """
     Executes `GetTransactionObjectsCommand` command.
 
-    See :py:meth:`iota.api.StrictIota.get_transaction_objects`.
+    See :py:meth:`iota.api.Iota.get_transaction_objects`.
     """
     command = 'getTransactionObjects'
 
@@ -32,7 +32,7 @@ class GetTransactionObjectsCommand(FilterCommand):
 
     def _execute(self, request):
         hashes = request\
-            .get('hashes') # type: Optional[Iterable[TransactionHash]]
+            .get('hashes') # type: Iterable[TransactionHash]
 
         transactions = []
         if hashes:
@@ -51,9 +51,5 @@ class GetTransactionObjectsRequestFilter(RequestFilter):
     def __init__(self):
         super(GetTransactionObjectsRequestFilter, self).__init__({
             'hashes':
-                f.Required | f.Array | f.FilterRepeater(
-                    f.Required |
-                    Trytes(TransactionHash) |
-                    f.Unicode(encoding='ascii', normalize=False),
-                ),
+                StringifiedTrytesArray(TransactionHash) | f.Required
         })

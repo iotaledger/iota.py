@@ -877,6 +877,36 @@ class Iota(StrictIota):
             seed=self.seed,
         )
 
+    def get_transaction_objects(
+            self,
+            hashes,  # type: [Iterable[TransactionHash]]
+    ):
+        # type: (...) -> dict
+        """
+        Fetches transaction objects from the Tangle given their
+        transaction IDs (hashes).
+
+        Effectively, this is ``get_trytes`` +
+        converting the trytes into transaction objects.
+
+        Similar to :py:meth:`find_transaction_objects`, but accepts
+        list of trnsaction hashes as input.
+
+        :param hashes:
+          List of transaction IDs (transaction hashes).
+
+        :return:
+            Dict with the following structure::
+
+                {
+                    'transactions': List[Transaction],
+                        List of Transaction objects that match the input.
+                }
+        """
+        return extended.GetTransactionObjectsCommand(self.adapter)(
+            hashes=hashes,
+        )
+
     def get_transfers(self, start=0, stop=None, inclusion_states=False):
         # type: (int, Optional[int], bool) -> dict
         """

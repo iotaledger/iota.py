@@ -59,7 +59,7 @@ class GetAccountDataCommand(FilterCommand):
             my_hashes = ft_command(addresses=my_addresses).get('hashes') or []
 
         account_balance = 0
-        if my_hashes:
+        if my_addresses:
             # Load balances for the addresses that we generated.
             gb_response = (
                 GetBalancesCommand(self.adapter)(addresses=my_addresses)

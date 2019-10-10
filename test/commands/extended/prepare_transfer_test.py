@@ -1301,16 +1301,25 @@ class PrepareTransferCommandTestCase(TestCase):
     def mock_get_balances_execute(adapter, request):
       # returns balances of input addresses equal to SEND_VALUE + security_level * 11
       addr = request["addresses"][0]
-      security_level = [l for l, a in mock_addresses.items() if str(a) == addr][0]
-      return dict(balances=[SEND_VALUE + security_level * 11], milestone=None)
+      if addr in [str(a) for a in mock_addresses.values()]:
+        security_level = [l for l, a in mock_addresses.items() if str(a) == addr][0]
+        balance = SEND_VALUE + security_level * 11
+      else:
+        # Return 0 if getBalances is called in get_new_addresses
+        balance = 0
+      return dict(balances=[balance], milestone=None)
 
     # testing for several security levels
     for security_level in SECURITY_LEVELS_TO_TEST:
 
-      # get_new_addresses uses `find_transactions` internaly.
+      # get_new_addresses uses `find_transactions`, `get_balances` and
+      # `were_addresses_spent_from` internally.
       # The following means requested address is considered unused
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
+      })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
       })
 
       self.command.reset()
@@ -1371,14 +1380,20 @@ class PrepareTransferCommandTestCase(TestCase):
     def mock_get_balances_execute(adapter, request):
       # returns balances of input addresses equal to SEND_VALUE + security_level * 11
       addr = request["addresses"][0]
-      security_level = [l for l, a in addresses.items() if str(a) == addr][0]
-      return dict(balances=[SEND_VALUE + security_level * 11], milestone=None)
+      if addr in [str(a) for a in addresses.values()]:
+        security_level = [l for l, a in addresses.items() if str(a) == addr][0]
+        balance = SEND_VALUE + security_level * 11
+      else:
+        # Return 0 if getBalances is called in iter_used_addresses or
+        # get_new_addresses
+        balance = 0
+      return dict(balances=[balance], milestone=None)
 
     # testing several security levels
     for security_level in SECURITY_LEVELS_TO_TEST:
 
-      # get_inputs use iter_used_addresses and findTransactions.
-      # until address without tx found
+      # get_inputs uses iter_used_addresses, findTransactions,
+      # wereAddressesSpentfrom and getBalances until an unused address is found
       self.adapter.seed_response('findTransactions', {
         'hashes': [
           TransactionHash(
@@ -1390,8 +1405,18 @@ class PrepareTransferCommandTestCase(TestCase):
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
 
-      # get_new_addresses uses `find_transactions` internaly.
+      # get_new_addresses uses `find_transactions`, `get_balances` and
+      # `were_addresses_spent_from` internally.
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })

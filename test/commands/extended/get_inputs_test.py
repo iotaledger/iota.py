@@ -590,12 +590,9 @@ class GetInputsCommandTestCase(TestCase):
     """
     No ``stop`` provided, balance meets ``threshold``.
     """
-    self.adapter.seed_response('getBalances', {
-      'balances': [42, 29],
-    })
 
-    # ``getInputs`` uses ``findTransactions`` to identify unused
-    # addresses.
+    # ``getInputs`` uses ``findTransactions``, ``getBalances`` and
+    # ``wereAddressesSpentFrom`` to identify unused addresses.
     # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
@@ -618,6 +615,18 @@ class GetInputsCommandTestCase(TestCase):
 
     self.adapter.seed_response('findTransactions', {
       'hashes': [],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
     })
 
     # To keep the unit test nice and speedy, we will mock the address
@@ -686,12 +695,9 @@ class GetInputsCommandTestCase(TestCase):
     """
     No ``stop`` provided, ``threshold`` is 0.
     """
-    # Note that the first address has a zero balance.
-    self.adapter.seed_response('getBalances', {
-      'balances': [0, 1],
-    })
 
-    # ``getInputs`` uses ``findTransactions`` to identify unused
+    # ``getInputs`` uses ``findTransactions``, ``getBalances`` and
+    # ``wereAddressesSpentFrom`` to identify unused addresses.
     # addresses.
     # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
@@ -715,6 +721,19 @@ class GetInputsCommandTestCase(TestCase):
 
     self.adapter.seed_response('findTransactions', {
       'hashes': [],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+
+    # Note that the first address has a zero balance.
+    self.adapter.seed_response('getBalances', {
+      'balances': [0, 1],
     })
 
     # To keep the unit test nice and speedy, we will mock the address
@@ -750,12 +769,9 @@ class GetInputsCommandTestCase(TestCase):
     """
     No ``stop`` provided, no ``threshold``.
     """
-    self.adapter.seed_response('getBalances', {
-      'balances': [42, 29],
-    })
 
-    # ``getInputs`` uses ``findTransactions`` to identify unused
-    # addresses.
+    # ``getInputs`` uses ``findTransactions``, ``getBalances`` and
+    # ``wereAddressesSpentFrom`` to identify unused addresses.
     # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
@@ -778,6 +794,18 @@ class GetInputsCommandTestCase(TestCase):
 
     self.adapter.seed_response('findTransactions', {
       'hashes': [],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [42, 29],
     })
 
     # To keep the unit test nice and speedy, we will mock the address
@@ -818,12 +846,9 @@ class GetInputsCommandTestCase(TestCase):
     """
     Using ``start`` to offset the key range.
     """
-    self.adapter.seed_response('getBalances', {
-      'balances': [86],
-    })
 
-    # ``getInputs`` uses ``findTransactions`` to identify unused
-    # addresses.
+    # ``getInputs`` uses ``findTransactions``, ``getBalances`` and
+    # ``wereAddressesSpentFrom`` to identify unused addresses.
     # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
@@ -836,6 +861,18 @@ class GetInputsCommandTestCase(TestCase):
 
     self.adapter.seed_response('findTransactions', {
       'hashes': [],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
     })
 
     # To keep the unit test nice and speedy, we will mock the address
@@ -926,11 +963,8 @@ class GetInputsCommandTestCase(TestCase):
     seed = Seed.random()
     address = AddressGenerator(seed, security_level=1).get_addresses(0)[0]
 
-    self.adapter.seed_response('getBalances', {
-      'balances': [86],
-    })
-    # ``getInputs`` uses ``findTransactions`` to identify unused
-    # addresses.
+    # ``getInputs`` uses ``findTransactions``, ``getBalances`` and
+    # ``wereAddressesSpentFrom`` to identify unused addresses.
     # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
@@ -942,6 +976,18 @@ class GetInputsCommandTestCase(TestCase):
     })
     self.adapter.seed_response('findTransactions', {
       'hashes': [],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+
+    self.adapter.seed_response('getBalances', {
+      'balances': [86],
     })
 
     response = GetInputsCommand(self.adapter)(

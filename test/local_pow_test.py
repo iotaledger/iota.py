@@ -8,8 +8,12 @@ from iota.adapter.sandbox import SandboxAdapter
 from iota.adapter.wrappers import RoutingWrapper
 from unittest import TestCase
 import sys
+from six import PY2
 
-from unittest.mock import MagicMock, patch
+if PY2:
+    from mock import MagicMock, patch
+else:
+    from unittest.mock import MagicMock, patch
 
 # Load mocked package on import from pow pkg.
 # Therefore we can test without having to install it.

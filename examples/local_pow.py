@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, \
 
 import iota
 from pprint import pprint
-from datetime import datetime
 
 # Generate a random seed.
 myseed = iota.crypto.types.Seed.random()

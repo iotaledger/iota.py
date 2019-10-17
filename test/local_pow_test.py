@@ -81,7 +81,7 @@ class LocalPowTestCase(TestCase):
         Test if local_pow feature works with HttpAdapter.
         """
         # Note that we need correct return value to pass the
-        # repsonse filter.
+        # response filter.
         with patch('pow.ccurl_interface.attach_to_tangle',
                     MagicMock(return_value=self.bundle)) as mocked_ccurl:
             api = Iota(HttpAdapter('http://localhost:14265/'),local_pow=True)
@@ -98,7 +98,7 @@ class LocalPowTestCase(TestCase):
         Test if local_pow feature works with MockAdapter.
         """
         # Note that we need correct return value to pass the
-        # repsonse filter.
+        # response filter.
         with patch('pow.ccurl_interface.attach_to_tangle',
                     MagicMock(return_value=self.bundle)) as mocked_ccurl:
             api = Iota(MockAdapter(),local_pow=True)
@@ -115,7 +115,7 @@ class LocalPowTestCase(TestCase):
         Test if local_pow feature works with SandboxAdapter.
         """
         # Note that we need correct return value to pass the
-        # repsonse filter.
+        # response filter.
         with patch('pow.ccurl_interface.attach_to_tangle',
                     MagicMock(return_value=self.bundle)) as mocked_ccurl:
             api = Iota(SandboxAdapter('https://sandbox.iota:14265/api/v1/', auth_token=None),
@@ -133,7 +133,7 @@ class LocalPowTestCase(TestCase):
         Test if local_pow feature works with RoutingWrapper.
         """
         # Note that we need correct return value to pass the
-        # repsonse filter.
+        # response filter.
         with patch('pow.ccurl_interface.attach_to_tangle',
                     MagicMock(return_value=self.bundle)) as mocked_ccurl:
             # We are trying to redirect `attach_to_tangle` calls to localhost
@@ -190,8 +190,3 @@ class LocalPowTestCase(TestCase):
             self.assertEqual(result['trytes'], self.bundle)
             # And not by mocked pow pkg
             self.assertNotEqual(result['trytes'], self.ccurl_bundle)
-
-
-
-
-

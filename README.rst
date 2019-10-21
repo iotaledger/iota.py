@@ -42,6 +42,22 @@ To install this extension, use the following command::
 
    pip install pyota[ccurl]
 
+Optional Local Pow
+==================
+To perform proof-of-work locally without relying on a node,
+you can install an extension module called `PyOTA-PoW`_ .
+
+Specifiy the ``local_pow=True`` argument when creating an
+api instance, that will redirect all ``attach_to_tangle``
+API calls to an interface function in the ``pow`` package.
+
+To install this extension, use the following command::
+
+   pip install pyota[pow]
+
+Alternativley you can take a look on the repository
+`Ccurl.interface.py`_  to install Pyota-PoW.
+Follow the steps depicted in the repo's README file.
 
 Installing from Source
 ======================
@@ -101,3 +117,5 @@ can also build the documentation locally:
 .. _ReadTheDocs: https://pyota.readthedocs.io/
 .. _official API: https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 .. _tox: https://tox.readthedocs.io/
+.. _Ccurl.interface.py: https://github.com/iotaledger/ccurl.interface.py
+.. _PyOTA-PoW: https://pypi.org/project/PyOTA-PoW/

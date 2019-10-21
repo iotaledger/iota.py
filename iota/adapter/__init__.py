@@ -157,6 +157,7 @@ class BaseAdapter(object):
         super(BaseAdapter, self).__init__()
 
         self._logger = None  # type: Logger
+        self.local_pow = False # type: boolean
 
     @abstract_method
     def get_uri(self):
@@ -209,6 +210,15 @@ class BaseAdapter(object):
         if self._logger:
             self._logger.log(level, message, extra={'context': context or {}})
 
+    def set_local_pow(self, local_pow):
+        # type: (bool) -> None
+        """
+        Sets the local_pow attribute of the adapter. If it is true,
+        attach_to_tangle command calls external interface to perform
+        pow, instead of sending the request to a node.
+        By default, it is set to false.
+        """
+        self.local_pow = local_pow
 
 class HttpAdapter(BaseAdapter):
     """

@@ -27,6 +27,18 @@ class AttachToTangleCommand(FilterCommand):
     def get_response_filter(self):
         return AttachToTangleResponseFilter()
 
+    def _execute(self, request):
+        if self.adapter.local_pow is True:
+            from pow import ccurl_interface
+            powed_trytes = ccurl_interface.attach_to_tangle(
+                request['trytes'],
+                request['branchTransaction'],
+                request['trunkTransaction'],
+                request['minWeightMagnitude']
+            )
+            return {'trytes': powed_trytes}
+        else:
+            return super(FilterCommand, self)._execute(request)
 
 class AttachToTangleRequestFilter(RequestFilter):
     def __init__(self):

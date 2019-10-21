@@ -495,7 +495,7 @@ They both licked their dry lips.
     When finalizing, the bundle detects an insecure bundle hash.
 
     References:
-      - https://github.com/iotaledger/iota.lib.py/issues/84
+      - https://github.com/iotaledger/iota.py/issues/84
     """
     # noinspection SpellCheckingInspection
     bundle =\

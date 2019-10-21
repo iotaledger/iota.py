@@ -209,5 +209,5 @@ Never share your private keys
 
 Under no circumstances - other than wanting to reduce the requirements for a multi-signature (see section **How M-of-N works**) - should you share your private keys. Sharing your private keys with others means that they can sign your part of the multi-signature successfully.
 
-.. _example: https://github.com/iotaledger/iota.lib.py/blob/develop/examples/multisig.py
+.. _example: https://github.com/iotaledger/iota.py/blob/develop/examples/multisig.py
 .. _wiki: https://github.com/iotaledger/wiki/blob/master/multisigs.md

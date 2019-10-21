@@ -6,7 +6,7 @@ import filters as f
 
 from iota import TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter
-from iota.filters import Trytes
+from iota.filters import StringifiedTrytesArray
 
 __all__ = [
     'StoreTransactionsCommand',
@@ -32,9 +32,5 @@ class StoreTransactionsRequestFilter(RequestFilter):
     def __init__(self):
         super(StoreTransactionsRequestFilter, self).__init__({
             'trytes':
-                f.Required | f.Array | f.FilterRepeater(
-                    f.Required |
-                    Trytes(TransactionTrytes) |
-                    f.Unicode(encoding='ascii', normalize=False),
-                ),
+                StringifiedTrytesArray(TransactionTrytes) | f.Required,
         })

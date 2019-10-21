@@ -38,8 +38,8 @@ tests_require = [
 setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
-    url='https://github.com/iotaledger/iota.lib.py',
-    version='2.0.9',
+    url='https://github.com/iotaledger/iota.py',
+    version='2.1.0',
 
     long_description=long_description,
 
@@ -75,6 +75,7 @@ setuptools.setup(
 
     extras_require={
         'ccurl': ['pyota-ccurl'],
+        'pow': ['pyota-pow >= 1.0.2'],
         'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
         # tox is able to run the tests in parallel since version 3.7
         'test-runner': ['tox >= 3.7'] + tests_require,

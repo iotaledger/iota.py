@@ -140,7 +140,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
         ],
 
         # Null criteria are not included in the request.
-        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # https://github.com/iotaledger/iota.py/issues/96
         # 'addresses':  [],
         # 'approvees':  [],
         # 'tags':       [],
@@ -171,7 +171,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
         ],
 
         # Null criteria are not included in the request.
-        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # https://github.com/iotaledger/iota.py/issues/96
         # 'approvees':  [],
         # 'bundles':    [],
         # 'tags':       [],
@@ -202,7 +202,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
         ],
 
         # Null criteria are not included in the request.
-        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # https://github.com/iotaledger/iota.py/issues/96
         # 'addresses':  [],
         # 'approvees':  [],
         # 'bundles':    [],
@@ -233,7 +233,7 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
         ],
 
         # Null criteria are not included in the request.
-        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # https://github.com/iotaledger/iota.py/issues/96
         # 'addresses':  [],
         # 'bundles':    [],
         # 'tags':       [],

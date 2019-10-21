@@ -33,13 +33,13 @@ if PY2:
     # (note: ``imp`` is deprecated since Python 3.4 in favor of
     # ``importlib``).
     # https://docs.python.org/3/library/imp.html
-    # https://travis-ci.org/iotaledger/iota.lib.py/jobs/191974244
+    # https://travis-ci.org/iotaledger/iota.py/jobs/191974244
     __all__ = map(binary_type, __all__)
 
 API_VERSION = '1'
 """
 API protocol version.
-https://github.com/iotaledger/iota.lib.py/issues/84
+https://github.com/iotaledger/iota.py/issues/84
 """
 
 # Custom types for type hints and docstrings.
@@ -157,6 +157,7 @@ class BaseAdapter(object):
         super(BaseAdapter, self).__init__()
 
         self._logger = None  # type: Logger
+        self.local_pow = False # type: boolean
 
     @abstract_method
     def get_uri(self):
@@ -209,6 +210,15 @@ class BaseAdapter(object):
         if self._logger:
             self._logger.log(level, message, extra={'context': context or {}})
 
+    def set_local_pow(self, local_pow):
+        # type: (bool) -> None
+        """
+        Sets the local_pow attribute of the adapter. If it is true,
+        attach_to_tangle command calls external interface to perform
+        pow, instead of sending the request to a node.
+        By default, it is set to false.
+        """
+        self.local_pow = local_pow
 
 class HttpAdapter(BaseAdapter):
     """
@@ -219,7 +229,7 @@ class HttpAdapter(BaseAdapter):
     DEFAULT_HEADERS = {
         'Content-type': 'application/json',
 
-        # https://github.com/iotaledger/iota.lib.py/issues/84
+        # https://github.com/iotaledger/iota.py/issues/84
         'X-IOTA-API-Version': API_VERSION,
     }
     """

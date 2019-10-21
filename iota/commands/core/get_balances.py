@@ -7,7 +7,7 @@ from six import iteritems
 
 from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import AddressNoChecksum, Trytes
+from iota.filters import AddressNoChecksum, StringifiedTrytesArray, Trytes
 
 __all__ = [
     'GetBalancesCommand',
@@ -46,12 +46,7 @@ class GetBalancesRequestFilter(RequestFilter):
                     f.Max(100) |
                     f.Optional(default=100),
 
-                'tips':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(TransactionHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    )
+                'tips': StringifiedTrytesArray(TransactionHash),
             },
 
             allow_missing_keys={

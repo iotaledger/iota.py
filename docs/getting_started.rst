@@ -6,7 +6,7 @@ Install PyOTA using `pip`:
 
 .. code-block:: bash
 
-   pip install pyota[ccurl]
+   pip install pyota[ccurl,pow]
 
 .. note::
 
@@ -14,6 +14,21 @@ Install PyOTA using `pip`:
 
    This extension boosts the performance of certain crypto operations
    significantly (speedups of 60x are common).
+
+.. note::
+
+   The ``[pow]`` extra installs the optional `PyOTA-PoW extension`_.
+
+   This extension makes it possible to perform proof-of-work
+   (api call ``attach_to_tangle``) locally, without relying on an iota node.
+   Use the ``local_pow`` parameter at api instantiation:
+
+   .. code::
+
+      api = Iota('https://nodes.thetangle.org:443', local_pow=True)
+
+   Or the ``set_local_pow`` method of the api class to dynamically enable/disable
+   the local proof-of-work feature.
 
 Getting Started
 ===============
@@ -78,6 +93,7 @@ your API requests so that they contain the necessary authentication metadata.
 .. _forum: https://forum.iota.org/
 .. _official api: https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 .. _pyota-ccurl extension: https://pypi.python.org/pypi/PyOTA-CCurl
+.. _pyota-pow extension: https://pypi.org/project/PyOTA-PoW/
 .. _run your own node.: http://iotasupport.com/headlessnode.shtml
 .. _slack: http://slack.iota.org/
 .. _use a light wallet node.: http://iotasupport.com/lightwallet.shtml

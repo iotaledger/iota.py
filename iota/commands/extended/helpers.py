@@ -10,7 +10,7 @@ class Helpers(object):
     Adds additional helper functions that aren't part of the core or
     extended API.
 
-    See https://github.com/iotaledger/iota.lib.py/pull/124 for more
+    See https://github.com/iotaledger/iota.py/pull/124 for more
     context.
     """
 

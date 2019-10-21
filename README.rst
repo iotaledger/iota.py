@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/iotaledger/iota.lib.py.svg?branch=master
-   :target: https://travis-ci.org/iotaledger/iota.lib.py
+.. image:: https://travis-ci.org/iotaledger/iota.py.svg?branch=master
+   :target: https://travis-ci.org/iotaledger/iota.py
 
 .. image:: https://readthedocs.org/projects/pyota/badge/?version=latest
    :target: http://pyota.readthedocs.io/en/latest/?badge=latest
@@ -42,12 +42,28 @@ To install this extension, use the following command::
 
    pip install pyota[ccurl]
 
+Optional Local Pow
+==================
+To perform proof-of-work locally without relying on a node,
+you can install an extension module called `PyOTA-PoW`_ .
+
+Specifiy the ``local_pow=True`` argument when creating an
+api instance, that will redirect all ``attach_to_tangle``
+API calls to an interface function in the ``pow`` package.
+
+To install this extension, use the following command::
+
+   pip install pyota[pow]
+
+Alternativley you can take a look on the repository
+`Ccurl.interface.py`_  to install Pyota-PoW.
+Follow the steps depicted in the repo's README file.
 
 Installing from Source
 ======================
 
 #. `Create virtualenv`_ (recommended, but not required).
-#. ``git clone https://github.com/iotaledger/iota.lib.py.git``
+#. ``git clone https://github.com/iotaledger/iota.py.git``
 #. ``pip install -e .``
 
 Running Unit Tests
@@ -97,7 +113,9 @@ can also build the documentation locally:
 
 .. _Create virtualenv: https://realpython.com/blog/python/python-virtual-environments-a-primer/
 .. _Discord: https://discord.iota.org/
-.. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.lib.py/issues
+.. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _ReadTheDocs: https://pyota.readthedocs.io/
 .. _official API: https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 .. _tox: https://tox.readthedocs.io/
+.. _Ccurl.interface.py: https://github.com/iotaledger/ccurl.interface.py
+.. _PyOTA-PoW: https://pypi.org/project/PyOTA-PoW/

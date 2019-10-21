@@ -130,7 +130,7 @@ class GetTipsCommandTestCase(TestCase):
     """
     The result is coerced to the proper type.
 
-    https://github.com/iotaledger/iota.lib.py/issues/130
+    https://github.com/iotaledger/iota.py/issues/130
     """
     # noinspection SpellCheckingInspection
     self.adapter.seed_response('getTips', {

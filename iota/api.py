@@ -67,8 +67,8 @@ class StrictIota(object):
     """
     commands = discover_commands('iota.commands.core')
 
-    def __init__(self, adapter, testnet=False):
-        # type: (AdapterSpec, bool) -> None
+    def __init__(self, adapter, testnet=False, local_pow=False):
+        # type: (AdapterSpec, bool, bool) -> None
         """
         :param adapter:
             URI string or BaseAdapter instance.
@@ -82,6 +82,17 @@ class StrictIota(object):
             adapter = resolve_adapter(adapter)
 
         self.adapter = adapter  # type: BaseAdapter
+        # Note that the `local_pow` parameter is passed to adapter,
+        # the api class has no notion about it. The reason being,
+        # that this parameter is used in `AttachToTangeCommand` calls,
+        # that is called from various api calls (`attach_to_tangle`,
+        # `send_trytes` or `send_transfer`). Inside `AttachToTangeCommand`,
+        # we no longer have access to the attributes of the API class, therefore
+        # `local_pow` needs to be associated with the adapter.
+        # Logically, `local_pow` will decide if the api call does pow
+        # via pyota-pow extension, or sends the request to a node.
+        # But technically, the parameter belongs to the adapter.
+        self.adapter.set_local_pow(local_pow)
         self.testnet = testnet
 
     def __getattr__(self, command):
@@ -103,13 +114,13 @@ class StrictIota(object):
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
         """
         # Fix an error when invoking :py:func:`help`.
-        # https://github.com/iotaledger/iota.lib.py/issues/41
+        # https://github.com/iotaledger/iota.py/issues/41
         if command == '__name__':
             # noinspection PyTypeChecker
             return None
 
         # Fix an error when invoking dunder methods.
-        # https://github.com/iotaledger/iota.lib.py/issues/206
+        # https://github.com/iotaledger/iota.py/issues/206
         if command.startswith("__"):
             # noinspection PyUnresolvedReferences
             return super(StrictIota, self).__getattr__(command)
@@ -138,6 +149,18 @@ class StrictIota(object):
             The name of the command to create.
         """
         return CustomCommand(self.adapter, command)
+
+    def set_local_pow(self, local_pow):
+        # type: (bool) -> None
+        """
+        Sets the local_pow attribute of the adapter of the api instance.
+        If it is true, attach_to_tangle command calls external interface
+        to perform pow, instead of sending the request to a node.
+        By default, it is set to false.
+        This particular method is needed if one wants to change
+        local_pow behavior dynamically.
+        """
+        self.adapter.set_local_pow(local_pow)
 
     @property
     def default_min_weight_magnitude(self):
@@ -527,8 +550,8 @@ class Iota(StrictIota):
     """
     commands = discover_commands('iota.commands.extended')
 
-    def __init__(self, adapter, seed=None, testnet=False):
-        # type: (AdapterSpec, Optional[TrytesCompatible], bool) -> None
+    def __init__(self, adapter, seed=None, testnet=False, local_pow=False):
+        # type: (AdapterSpec, Optional[TrytesCompatible], bool, bool) -> None
         """
         :param seed:
             Seed used to generate new addresses.
@@ -537,7 +560,7 @@ class Iota(StrictIota):
             .. note::
                 This value is never transferred to the node/network.
         """
-        super(Iota, self).__init__(adapter, testnet)
+        super(Iota, self).__init__(adapter, testnet, local_pow)
 
         self.seed = Seed(seed) if seed else Seed.random()
         self.helpers = Helpers(self)
@@ -875,6 +898,36 @@ class Iota(StrictIota):
             securityLevel=security_level,
             checksum=checksum,
             seed=self.seed,
+        )
+
+    def get_transaction_objects(
+            self,
+            hashes,  # type: [Iterable[TransactionHash]]
+    ):
+        # type: (...) -> dict
+        """
+        Fetches transaction objects from the Tangle given their
+        transaction IDs (hashes).
+
+        Effectively, this is ``get_trytes`` +
+        converting the trytes into transaction objects.
+
+        Similar to :py:meth:`find_transaction_objects`, but accepts
+        list of trnsaction hashes as input.
+
+        :param hashes:
+          List of transaction IDs (transaction hashes).
+
+        :return:
+            Dict with the following structure::
+
+                {
+                    'transactions': List[Transaction],
+                        List of Transaction objects that match the input.
+                }
+        """
+        return extended.GetTransactionObjectsCommand(self.adapter)(
+            hashes=hashes,
         )
 
     def get_transfers(self, start=0, stop=None, inclusion_states=False):

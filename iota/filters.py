@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from typing import Text
+from typing import Text, Type
 
 import filters as f
 from filters.macros import filter_macro
@@ -10,6 +10,15 @@ from six import binary_type, moves as compat, text_type
 
 from iota import Address, TryteString, TrytesCompatible
 from iota.crypto.addresses import AddressGenerator
+
+__all__ = [
+    'AddressNoChecksum',
+    'GeneratedAddress',
+    'NodeUri',
+    'SecurityLevel',
+    'StringifiedTrytesArray',
+    'Trytes',
+]
 
 
 class GeneratedAddress(f.BaseFilter):
@@ -170,6 +179,32 @@ class Trytes(f.BaseFilter):
                     'result_type': self.result_type.__name__,
                 },
             )
+
+
+# noinspection PyPep8Naming
+@filter_macro
+def StringifiedTrytesArray(trytes_type=TryteString):
+    # type: (Type[TryteString]) -> f.FilterChain
+    """
+    Validates that the incoming value is an array containing tryte
+    strings corresponding to the specified type (e.g.,
+    ``TransactionHash``).
+
+    .. important::
+        This filter will return string values, suitable for inclusion in
+        an API request.  If you are expecting objects (e.g.,
+        :py:class:`Address`), then this is not the filter to use!
+
+    .. note::
+        This filter will allow empty arrays and `None`.  If this is not
+        desirable, chain this filter with ``f.NotEmpty`` or
+        ``f.Required``, respectively.
+    """
+    return f.Array | f.FilterRepeater(
+        f.Required |
+        Trytes(trytes_type) |
+        f.Unicode(encoding='ascii', normalize=False),
+    )
 
 
 class AddressNoChecksum(Trytes):

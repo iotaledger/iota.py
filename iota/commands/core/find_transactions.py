@@ -7,7 +7,7 @@ from six import iteritems
 
 from iota import BundleHash, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.filters import AddressNoChecksum, Trytes
+from iota.filters import AddressNoChecksum, StringifiedTrytesArray, Trytes
 
 __all__ = [
     'FindTransactionsCommand',
@@ -46,26 +46,9 @@ class FindTransactionsRequestFilter(RequestFilter):
                         f.Unicode(encoding='ascii', normalize=False),
                     ),
 
-                'approvees':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(TransactionHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
-
-                'bundles':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(BundleHash) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
-
-                'tags':
-                    f.Array | f.FilterRepeater(
-                        f.Required |
-                        Trytes(Tag) |
-                        f.Unicode(encoding='ascii', normalize=False),
-                    ),
+                'approvees': StringifiedTrytesArray(TransactionHash),
+                'bundles': StringifiedTrytesArray(BundleHash),
+                'tags': StringifiedTrytesArray(Tag),
             },
 
             # Technically, all of the parameters for this command are
@@ -84,7 +67,7 @@ class FindTransactionsRequestFilter(RequestFilter):
 
         # Remove null search terms.
         # Note: We will assume that empty lists are intentional.
-        # https://github.com/iotaledger/iota.lib.py/issues/96
+        # https://github.com/iotaledger/iota.py/issues/96
         search_terms = {
             term: query
             for term, query in iteritems(value)

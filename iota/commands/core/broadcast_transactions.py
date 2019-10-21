@@ -6,7 +6,7 @@ import filters as f
 
 from iota import TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter
-from iota.filters import Trytes
+from iota.filters import StringifiedTrytesArray
 
 __all__ = [
     'BroadcastTransactionsCommand',
@@ -31,12 +31,5 @@ class BroadcastTransactionsCommand(FilterCommand):
 class BroadcastTransactionsRequestFilter(RequestFilter):
     def __init__(self):
         super(BroadcastTransactionsRequestFilter, self).__init__({
-            'trytes':
-                f.Required |
-                f.Array |
-                f.FilterRepeater(
-                    f.Required |
-                    Trytes(TransactionTrytes) |
-                    f.Unicode(encoding='ascii', normalize=False),
-                ),
+            'trytes': StringifiedTrytesArray(TransactionTrytes) | f.Required,
         })

@@ -213,6 +213,22 @@ depending on the command name.
 For example, you could use this wrapper to direct all PoW requests to a
 local node, while sending the other requests to a light wallet node.
 
+.. note::
+
+    A common use case for ``RoutingWrapper`` is to perform proof-of-work on
+    a specific (local) node, but let all other requests go to another node.
+    Take care when you use ``RoutingWrapper`` adapter and ``local_pow``
+    parameter together in an API instance, because the behavior might not
+    be obvious.
+
+    ``local_pow`` tells the API to perform proof-of-work (``attach_to_tangle``)
+    without relying on an actual node. It does this by calling an extension
+    package `PyOTA-PoW <https://pypi.org/project/PyOTA-PoW/>`_ that does the
+    job. In PyOTA, this means the request doesn't reach the adapter, it
+    is redirected before.
+    As a consequence,  ``local_pow`` has precedence over the route that is
+    defined in ``RoutingWrapper``.
+
 ``RoutingWrapper`` must be initialized with a default URI/adapter. This
 is the adapter that will be used for any command that doesn't have a
 route associated with it.

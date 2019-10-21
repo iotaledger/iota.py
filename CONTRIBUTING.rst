@@ -156,12 +156,12 @@ When you submit a Pull Request, here is what you can expect from the individual 
 - If any changes are needed, or if we cannot accept your submission, we will provide a respectful and constructive explanation.
 
 
-.. _come on over and help us out!: https://github.com/iotaledger/iota.lib.py/issues/145
+.. _come on over and help us out!: https://github.com/iotaledger/iota.py/issues/145
 .. _email you: https://help.github.com/articles/managing-notification-delivery-methods/
-.. _help wanted: https://github.com/iotaledger/iota.lib.py/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
+.. _help wanted: https://github.com/iotaledger/iota.py/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
 .. _how to contribute to open source: https://opensource.guide/how-to-contribute/
 .. _notifications: https://github.com/notifications
 .. _pep-8: https://www.python.org/dev/peps/pep-0008/
-.. _pyota bug tracker: https://github.com/iotaledger/iota.lib.py/issues
+.. _pyota bug tracker: https://github.com/iotaledger/iota.py/issues
 .. _discord: https://discord.iota.org
 .. _tutorials: https://docs.iota.org

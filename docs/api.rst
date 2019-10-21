@@ -216,6 +216,25 @@ This method returns a ``dict`` with the following items:
 -  ``addresses: List[Address]``: The generated address(es). Note that
    this value is always a list, even if only one address was generated.
 
+``get_transaction_objects``
+---------------------------
+Returns a list of transaction objects given a list of transaction hashes.
+This is effectively calling ``get_trytes`` and converting the trytes to
+transaction objects.
+Similar to ``find_transaction_objects``, but input is list of hashes.
+
+Parameters
+~~~~~~~~~~
+
+- ``hashes``: List of transaction hashes that should be fetched.
+
+Return
+~~~~~~
+
+Returns a ``dict`` with the following items:
+
+- ``transactions: List[Transaction]``: List of transaction objects.
+
 ``get_transfers``
 -----------------
 

@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from .broadcast_and_store import *
+from .broadcast_bundle import *
 from .find_transaction_objects import *
 from .get_account_data import *
 from .get_bundles import *

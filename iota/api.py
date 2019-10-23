@@ -596,7 +596,7 @@ class Iota(StrictIota):
             Tail transaction hash of the bundle.
 
         :return:
-            Dict with the following structure:::
+            Dict with the following structure::
 
                 {
                     'trytes': List[TransactionTrytes],
@@ -609,7 +609,6 @@ class Iota(StrictIota):
         """
 
         return extended.BroadcastBundleCommand(self.adapter)(tail_hash=tail_transaction_hash)
-
 
     def find_transaction_objects(
             self,

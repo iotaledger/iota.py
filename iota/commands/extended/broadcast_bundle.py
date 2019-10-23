@@ -41,8 +41,6 @@ class BroadcastBundleCommand(FilterCommand):
         return {
             'trytes': bundle[0],
         }
-        # Future: Support multiple bundles in getBundlesCommand, and
-        # then broadcastBundle can do that as well.
 
 class BroadcastBundleRequestFilter(RequestFilter):
     def __init__(self):

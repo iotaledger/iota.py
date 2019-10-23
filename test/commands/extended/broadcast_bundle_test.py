@@ -159,7 +159,7 @@ class BroadcastBundleCommandTestCase(TestCase):
     Test command flow executes as expected.
     """
     # Call the command with a tail hash.
-    # Lets mock away GetBundlesCommand, and we don't do
+    # Let's mock away GetBundlesCommand, and we don't do
     # BroadcastTransactionsCommand either.
     # We could seed a response to our MockAdapter, but then we shall provide
     # valid values to pass GetBundlesRequestFilter. Instead we mock away the
@@ -172,7 +172,7 @@ class BroadcastBundleCommandTestCase(TestCase):
       # BroadcastTransactionRequestFilter.
       # Anyway, nature loves symmetry and so do we.
       with patch('iota.commands.core.BroadcastTransactionsCommand.__call__',
-                 MagicMock(return_value= [])) as mocked_broadcast:
+                 MagicMock(return_value=[])) as mocked_broadcast:
 
         response = self.command(tail_hash=self.tail)
 
@@ -187,14 +187,14 @@ class BroadcastBundleCommandTestCase(TestCase):
     returns multiple bundles.
     """
     # Call the command with a tail hash.
-    # Lets mock away GetBundlesCommand, and we don't do
+    # Let's mock away GetBundlesCommand, and we don't do
     # BroadcastTransactionsCommand either.
     # Note that GetBundlesCommand returns multiple bundles!
     with patch('iota.commands.extended.get_bundles.GetBundlesCommand.__call__',
                MagicMock(return_value=[self.trytes, self.trytes_dummy])
               ) as mocked_get_bundles:
       with patch('iota.commands.core.BroadcastTransactionsCommand.__call__',
-                 MagicMock(return_value= [])) as mocked_broadcast:
+                 MagicMock(return_value=[])) as mocked_broadcast:
 
         response = self.command(tail_hash=self.tail)
 

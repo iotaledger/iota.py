@@ -585,6 +585,31 @@ class Iota(StrictIota):
         """
         return extended.BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
+    def broadcast_bundle(self, tail_transaction_hash):
+        # type (TransactionHash) -> dict
+        """
+        Re-broadcasts all transactions in a bundle given the tail transaction hash.
+        It might be useful when transactions did not properly propagate,
+        particularly in the case of large bundles.
+
+        :param tail_transaction_hash:
+            Tail transaction hash of the bundle.
+
+        :return:
+            Dict with the following structure::
+
+                {
+                    'trytes': List[TransactionTrytes],
+                        List of TransactionTrytes that were broadcast.
+                }
+
+        References:
+
+        - https://github.com/iotaledger/iota.js/blob/next/api_reference.md#module_core.broadcastBundle
+        """
+
+        return extended.BroadcastBundleCommand(self.adapter)(tail_hash=tail_transaction_hash)
+
     def find_transaction_objects(
             self,
             bundles=None,  # type: Optional[Iterable[BundleHash]]

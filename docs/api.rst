@@ -37,6 +37,26 @@ This method returns a ``dict`` with the following items:
    broadcast/stored. Should be the same as the value of the ``trytes``
    parameter.
 
+``broadcast_bundle``
+-----------------------
+
+Re-broadcasts all transactions in a bundle given the tail transaction hash.
+It might be useful when transactions did not properly propagate,
+particularly in the case of large bundles.
+
+Parameters
+~~~~~~~~~~
+
+-  ``tail_hash: TransactionHash``: Transaction hash of the tail transaction
+    of the bundle.
+
+Return
+~~~~~~
+
+This method returns a ``dict`` with the following items:
+
+-  ``trytes: List[TransactionTrytes]``: Transaction trytes that were
+   broadcast.
 
 ``find_transaction_objects``
 ----------------------------

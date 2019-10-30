@@ -27,3 +27,4 @@ from .promote_transaction import *
 from .replay_bundle import *
 from .send_transfer import *
 from .send_trytes import *
+from .traverse_bundle import *

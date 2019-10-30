@@ -429,3 +429,22 @@ This method returns a ``dict`` with the following items:
 
 -  ``trytes: List[TransactionTrytes]``: Raw trytes that were published
    to the Tangle.
+
+``traverse_bundle``
+-------------------
+
+Given a tail ``TransactionHash``, returns the bundle(s) associated with it.
+Unlike  ``get_bundles``, this command does not validate the fetched bundle(s).
+
+Parameters
+~~~~~~~~~~
+
+-  ``tail_hash: TransactionHash``: Hash of a tail transaction.
+
+Return
+~~~~~~
+
+This method returns a ``dict`` with the following items:
+
+-  ``bundles: List[Bundle]``: List of matching bundles. Note that this
+   value is always a list, even if only one bundle was found.

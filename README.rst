@@ -29,6 +29,8 @@ PyOTA is compatible with Python 3.7, 3.6, 3.5 and 2.7
 ============
 Installation
 ============
+If you are a beginner check out these `Tips`_
+
 To install the latest version::
 
   pip install pyota
@@ -119,3 +121,4 @@ can also build the documentation locally:
 .. _tox: https://tox.readthedocs.io/
 .. _Ccurl.interface.py: https://github.com/iotaledger/ccurl.interface.py
 .. _PyOTA-PoW: https://pypi.org/project/PyOTA-PoW/
+.. _Tips: https://github.com/NelsonPython/iota.py/blob/master/beginnerTip.md

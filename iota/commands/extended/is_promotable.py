@@ -81,8 +81,9 @@ class IsPromotableCommand(FilterCommand):
         }
 
         # Check timestamps
+        now = get_current_ms()
         for tx in transactions:
-            is_within = is_within_depth(tx.attachment_timestamp)
+            is_within = is_within_depth(tx.attachment_timestamp, now)
             if not is_within:
                 # Inform the user about what went wrong.
                 response['info'].append('Transaction {tx_hash} is above max depth.'.format(
@@ -93,7 +94,7 @@ class IsPromotableCommand(FilterCommand):
 
         # If there are no problems, we don't need 'info' field
         if response['promotable']:
-            del response['info']
+            response['info'] = None
 
         return response
 
@@ -106,10 +107,10 @@ class IsPromotableRequestFilter(RequestFilter):
                 f.FilterRepeater(f.Required | Trytes(TransactionHash)),
         })
 
-def is_within_depth(attachment_timestamp, depth=DEPTH):
+def is_within_depth(attachment_timestamp, now, depth=DEPTH):
+    # type (int, int, Optiona(int)) -> bool
     """
     Checks if `attachment_timestamp` is within limits of `depth`.
     """
-    now = get_current_ms()
     return attachment_timestamp < now and \
         now - attachment_timestamp < depth * MILESTONE_INTERVAL - ONE_WAY_DELAY

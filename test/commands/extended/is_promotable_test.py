@@ -11,7 +11,7 @@ from iota import Iota, TransactionHash, TryteString, TransactionTrytes, \
     Transaction
 from iota.adapter import MockAdapter
 from iota.commands.extended.is_promotable import IsPromotableCommand, \
-    get_current_ms, is_within_depth
+    get_current_ms, is_within_depth, MILESTONE_INTERVAL, ONE_WAY_DELAY
 from iota.filters import Trytes
 from test import mock
 
@@ -281,6 +281,12 @@ class IsPromotableCommandTestCase(TestCase):
             'ZOIMUWZALX9IVZ9999'
         )
 
+        # Tuesday, October 29, 2019 4:19:43.600 PM GMT+01:00
+        self.valid_now = 1572362383600
+        """
+        Timestamp that is just greater than the later timestamp in self.trytes.
+        """
+
     def test_wireup(self):
         """
         Verify that the command is wired up correctly.
@@ -294,18 +300,6 @@ class IsPromotableCommandTestCase(TestCase):
         """
         Successfully checking promotability.
         """
-        # To pass timestamp check, we need a timestamp that defines
-        # a moment no earlier than 660s from the moment the function
-        # is called during test. To do this, we cheat a bit:
-        tx = Transaction.from_tryte_string(self.trytes1)
-        tx.attachment_timestamp = get_current_ms()
-        # self.trytes1 becomes invalid transaction since we modified
-        # attachment_timestamp, but it doesn't matter here
-        self.trytes1 = tx.as_tryte_string()
-        # The same for self.trytes2
-        tx = Transaction.from_tryte_string(self.trytes2)
-        tx.attachment_timestamp = get_current_ms()
-        self.trytes2 = tx.as_tryte_string()
 
         self.adapter.seed_response('checkConsistency', {
             'state': True,
@@ -314,15 +308,18 @@ class IsPromotableCommandTestCase(TestCase):
             'trytes': [self.trytes1, self.trytes2]
         })
         
-        response = self.command(tails=[self.hash1, self.hash2])
+        with mock.patch('iota.commands.extended.is_promotable.get_current_ms',
+            mock.MagicMock(return_value=self.valid_now)):
+            response = self.command(tails=[self.hash1, self.hash2])
 
-        self.assertDictEqual(
-            response,
+            self.assertDictEqual(
+                response,
 
-            {
-                'promotable': True,
-            }
-        )
+                {
+                    'promotable': True,
+                    'info': None,
+                }
+            )
 
     def test_not_consistent(self):
         """
@@ -365,6 +362,9 @@ class IsPromotableCommandTestCase(TestCase):
             'trytes': [self.trytes1, self.trytes2]
         })
 
+        # Here we don`t mock get_current_ms.
+        # Tx 1 will have updated, passing timestamp.
+        # Tx 2 has the old one, so should fail.
         response = self.command(tails=[self.hash1, self.hash2])
 
         self.assertDictEqual(
@@ -382,26 +382,27 @@ class IsPromotableCommandTestCase(TestCase):
         """
         Test ``is_within_depth`` helper method.
         """
-        # Timestamp is too old (depth=3)
-        old_timestamp = get_current_ms() - 660000
+        # Timestamp is too old (depth=6)
+        now = get_current_ms()
+        old_timestamp = now - (6 * MILESTONE_INTERVAL - ONE_WAY_DELAY)
 
         self.assertEqual(
-            is_within_depth(old_timestamp),
+            is_within_depth(old_timestamp, now),
             False
         )
 
-        # Timestamp points to the future
-        future_timestamp = get_current_ms() + 500000
+        # Timestamp points to the future (any number would do)
+        future_timestamp = now + 10
 
         self.assertEqual(
-            is_within_depth(future_timestamp),
+            is_within_depth(future_timestamp, now),
             False
         )
 
-        # Timestamp is valid (one second 'old')
-        timestamp = get_current_ms() - 1000
+        # Timestamp is valid ( appr. one second 'old')
+        timestamp = now - 1000
 
         self.assertEqual(
-            is_within_depth(timestamp),
+            is_within_depth(timestamp, now),
             True
         )

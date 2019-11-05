@@ -1002,6 +1002,43 @@ class Iota(StrictIota):
             inclusionStates=inclusion_states,
         )
 
+    def is_promotable(
+            self,
+            tails,  # type: Iterable[TransactionHash]
+    ):
+        # type: (Iterable(TransactionHash)] -> dict
+        """
+        Checks if tail transaction(s) is promotable by calling
+        :py:meth:`check_consistency` and verifying that `attachmentTimestamp`
+        is above a lower bound.
+        Lower bound is calculated based on number of milestones issued
+        since transaction attachment.
+
+        :param tails:
+            List of tail transaction hashes.
+
+        :return:
+            The return type mimics that of :py:meth:`check_consistency`.
+            Dict with the following structure::
+
+                {
+                    'promotable': bool,
+                        If true, all tails are promotable. If false, see `info`
+                        field.
+
+                    'info': Optional(List[String])
+                        If `promotable` is false, this contains info about what
+                        went wrong.
+
+                }
+
+        References:
+        - https://github.com/iotaledger/iota.js/blob/next/api_reference.md#module_core.isPromotable
+        """
+        return extended.IsPromotableCommand(self.adapter)(
+            tails=tails,
+        )
+
     def prepare_transfer(
             self,
             transfers,  # type: Iterable[ProposedTransaction]

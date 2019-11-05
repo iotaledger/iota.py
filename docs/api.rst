@@ -278,6 +278,41 @@ This method returns a ``dict`` with the following items:
 -  ``bundles: List[Bundle]``: Matching bundles, sorted by tail
    transaction timestamp.
 
+``is_promotable``
+-------------------
+
+This extended API function helps you to determine whether a tail transaction
+(bundle) is promotable.
+Example usage could be to determine if a transaction can be promoted or you
+should reattach (``replay_bundle``).
+
+The method takes a list of tail transaction hashes, calls ``check_consistency``
+to verify consistency. If successful, fetches the transaction trytes from the
+Tangle and checks if ``attachment_timestamp`` is within reasonable limits.
+
+Parameters
+~~~~~~~~~~
+
+- ``tails: List[TransactionHash]``: Tail transaction hashes to check.
+
+Return
+~~~~~~
+
+This method returns a ``dict`` with the following items:
+
+- ``promotable: bool``: ``True``, if:
+
+    - Tails are consistent.
+      See `API Reference <https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#checkconsistency>`_.
+    - ``attachment_timestamp`` for all transactions are less than current time
+      and attachement happened no earlier than ``depth`` milestones.
+      By default,  ``depth`` = 6.
+
+  parameter is ``False`` otherwise.
+
+- ``info: Optional(List[String])``: If ``promotable`` is ``False``, contains information
+  about the error.
+
 ``is_reattachable``
 -------------------
 

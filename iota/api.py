@@ -1292,3 +1292,30 @@ class Iota(StrictIota):
         return extended.IsReattachableCommand(self.adapter)(
             addresses=addresses
         )
+
+    def traverse_bundle(self, tail_hash):
+        # type: (TransactionHash) -> dict
+        """
+        Fetches and traverses a bundle from the Tangle given a tail transaction
+        hash.
+        Recursively traverse the Tangle, collecting transactions until
+        we hit a new bundle.
+
+        This method is (usually) faster than ``findTransactions``, and
+        it ensures we don't collect transactions from replayed bundles.
+
+        :param tail_hash:
+            Tail transaction hash of the bundle.
+
+        :return:
+            Dict with the following structure::
+
+            {
+              'bundle': List[Bundle],
+                    List of matching bundles.  Note that this value is
+                    always a list, even if only one bundle was found.
+            }
+        """
+        return extended.TraverseBundleCommand(self.adapter)(
+            transaction=tail_hash
+        )

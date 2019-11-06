@@ -17,16 +17,10 @@ any other financial service.
         These performance issues will be fixed in a future version of the library;
         please bear with us!
 
-        In the meantime, if you are using Python 3, you can install a C extension
+        In the meantime, you can install a C extension
         that boosts PyOTA's performance significantly (speedups of 60x are common!).
 
         To install the extension, run ``pip install pyota[ccurl]``.
-
-        **Important:** The extension is not yet compatible with Python 2.
-
-        If you are familiar with Python 2's C API, we'd love to hear from you!
-        Check the `GitHub issue <https://github.com/todofixthis/pyota-ccurl/issues/4>`_
-        for more information.
 
 PyOTA provides two methods for generating addresses:
 
@@ -60,7 +54,9 @@ method, using the following parameters:
    (defaults to 1).
 -  If ``None``, the API will generate addresses until it finds one that
    has not been used (has no transactions associated with it on the
-   Tangle). It will then return the unused address and discard the rest.
+   Tangle, has no balance and was not spent from). This makes the command
+   safe to use even after a snapshot has been taken. It will then return the
+   unused address and discard the rest.
 -  ``security_level: int``: Determines the security level of the
    generated addresses. See `Security Levels <#security-levels>`__
    below.

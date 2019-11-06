@@ -109,8 +109,10 @@ Parameters
    parameter behaves like the ``stop`` attribute in a ``slice`` object;
    the stop index is *not* included in the result.
 
--  If ``None`` (default), then this method will check every address
-   until it finds one without any transfers.
+-  If ``None`` (default), then this method will not stop until it finds
+   an unused address. This is one without any transactions, that has no
+   balance and that was not spent from. Note that a snapshot, which removes
+   transactions, can cause this API call to stop earlier.
 
 -  ``inclusion_states: bool`` Whether to also fetch the inclusion states
    of the transfers. This requires an additional API call to the node,
@@ -165,7 +167,9 @@ Parameters
 -  Note that this parameter behaves like the ``stop`` attribute in a
    ``slice`` object; the stop index is *not* included in the result.
 -  If ``None`` (default), then this method will not stop until it finds
-   an unused address.
+   an unused address. This is one without any transactions, that has no
+   balance and that was not spent from. Note that a snapshot, which removes
+   transactions, can cause this API call to stop earlier.
 -  ``threshold: Optional[int]``: If set, determines the minimum
    threshold for a successful result:
 -  As soon as this threshold is reached, iteration will stop.
@@ -219,11 +223,13 @@ Generates one or more new addresses from the seed.
 Parameters
 ~~~~~~~~~~
 
--  ``index: int``: Specify the index of the new address (must be >= 1).
+-  ``index: int``: Specify the index of the new address (must be >= 0).
 -  ``count: Optional[int]``: Number of addresses to generate (must be >=
    1).
 -  If ``None``, this method will scan the Tangle to find the next
-   available unused address and return that.
+   available unused address and return that. This is one without any
+   transactions, that has no balance and that was not spent from. This makes
+   the command safe to use even after a snapshot has been taken.
 -  ``security_level: int``: Number of iterations to use when generating
    new addresses. Lower values generate addresses faster, higher values
    result in more secure signatures in transactions.
@@ -267,8 +273,10 @@ Parameters
 -  ``stop: Optional[int]``: Stop before this index.
 -  Note that this parameter behaves like the ``stop`` attribute in a
    ``slice`` object; the stop index is *not* included in the result.
--  If ``None`` (default), then this method will check every address
-   until it finds one without any transfers.
+-  If ``None`` (default), then this method will not stop until it finds
+   an unused address. This is one without any transactions, that has no
+   balance and that was not spent from. Note that a snapshot, which removes
+   transactions, can cause this API call to stop earlier.
 
 Return
 ~~~~~~

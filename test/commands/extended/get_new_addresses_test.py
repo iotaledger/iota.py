@@ -423,22 +423,23 @@ class GetNewAddressesCommandTestCase(TestCase):
       },
     )
 
-  def test_get_addresses_online(self):
+  def test_get_addresses_online_already_spent_from(self):
     """
-    Generate address in online mode (filtering used addresses).
+    Generate address in online mode (filtering used addresses). Test if an
+    address that was already spent from will not be returned.
     """
-    # Pretend that ``self.addy1`` has already been used, but not
-    # ``self.addy2``.
-    # noinspection SpellCheckingInspection
-    self.adapter.seed_response('findTransactions', {
-      'duration': 18,
-
-      'hashes': [
-        'TESTVALUE9DONTUSEINPRODUCTION99999ITQLQN'
-        'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
-      ],
+    # Pretend that ``self.addy1`` has already been spent from, but
+    # ``self.addy2`` is not used.
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [True],
     })
 
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
     self.adapter.seed_response('findTransactions', {
       'duration': 1,
       'hashes':   [],
@@ -461,14 +462,152 @@ class GetNewAddressesCommandTestCase(TestCase):
     self.assertListEqual(
       self.adapter.requests,
 
-      # The command issued two `findTransactions` API requests: one for
-      # each address generated, until it found an unused address.
+      # The command issued a `wereAddressesSpentFrom` API requests to check
+      # If the first address was already spent from. Then it calls
+      # `wereAddressesSpentFrom`, `getBalances` and `findTransactions` to
+      # verify that the second address is unused.
       [
         {
-          'command':    'findTransactions',
+          'command': 'wereAddressesSpentFrom',
           'addresses':  [self.addy_1],
         },
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_2],
+        },
+        {
+          'command': 'getBalances',
+          'addresses':  [self.addy_2],
+          'threshold':  100,
+        },
+        {
+          'command':    'findTransactions',
+          'addresses':  [self.addy_2],
+        },
+      ],
+    )
 
+  def test_get_addresses_online_has_balance(self):
+    """
+    Generate address in online mode (filtering used addresses). Test if an
+    address that has a balance will not be returned.
+    """
+    # Pretend that ``self.addy1`` has currently a balance, but
+    # ``self.addy2`` is not used.
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    self.adapter.seed_response('getBalances', {
+      'balances': [42],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes':   [],
+    })
+
+    response = self.command(index=0, seed=self.seed)
+
+    # The command determined that ``self.addy1`` was already used, so
+    # it skipped that one.
+    self.assertDictEqual(response, {'addresses': [self.addy_2]})
+
+    self.assertListEqual(
+      self.adapter.requests,
+      [
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_1],
+        },
+        {
+          'command': 'getBalances',
+          'addresses': [self.addy_1],
+          'threshold': 100,
+        },
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_2],
+        },
+        {
+          'command': 'getBalances',
+          'addresses':  [self.addy_2],
+          'threshold':  100,
+        },
+        {
+          'command':    'findTransactions',
+          'addresses':  [self.addy_2],
+        },
+      ],
+    )
+
+  def test_get_addresses_online_has_transaction(self):
+    """
+    Generate address in online mode (filtering used addresses). Test if an
+    address that has a transaction will not be returned.
+    """
+    # Pretend that ``self.addy1`` has a transaction, but
+    # ``self.addy2`` is not used.
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'duration': 18,
+      'hashes': [
+        'TESTVALUE9DONTUSEINPRODUCTION99999ITQLQN'
+        'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
+      ],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    self.adapter.seed_response('getBalances', {
+      'balances': [0],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes':   [],
+    })
+
+    response = self.command(index=0, seed=self.seed)
+
+    # The command determined that ``self.addy1`` was already used, so
+    # it skipped that one.
+    self.assertDictEqual(response, {'addresses': [self.addy_2]})
+
+    self.assertListEqual(
+      self.adapter.requests,
+      [
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_1],
+        },
+        {
+          'command': 'getBalances',
+          'addresses': [self.addy_1],
+          'threshold': 100,
+        },
+        {
+          'command': 'findTransactions',
+          'addresses': [self.addy_1],
+        },
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_2],
+        },
+        {
+          'command': 'getBalances',
+          'addresses':  [self.addy_2],
+          'threshold':  100,
+        },
         {
           'command':    'findTransactions',
           'addresses':  [self.addy_2],

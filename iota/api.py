@@ -878,8 +878,7 @@ class Iota(StrictIota):
         Generates one or more new addresses from the seed.
 
         :param index:
-            The key index of the first new address to generate (must be
-            >= 1).
+            The key index of the first new address to generate (must be >= 0).
 
         :param count:
             Number of addresses to generate (must be >= 1).
@@ -889,8 +888,9 @@ class Iota(StrictIota):
                 inside a loop.
 
             If ``None``, this method will progressively generate
-            addresses and scan the Tangle until it finds one that has no
-            transactions referencing it.
+            addresses and scan the Tangle until it finds one that is unused.
+            This is if no transactions are referencing it and it has no balance
+            and it was not spent from before.
 
         :param security_level:
             Number of iterations to use when generating new addresses.

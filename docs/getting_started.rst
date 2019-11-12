@@ -15,6 +15,10 @@ Install PyOTA using `pip`:
    This extension boosts the performance of certain crypto operations
    significantly (speedups of 60x are common).
 
+.. py:currentmodule:: iota.Iota
+
+.. _pow-label:
+
 .. note::
 
    The ``[pow]`` extra installs the optional `PyOTA-PoW extension`_.
@@ -27,8 +31,8 @@ Install PyOTA using `pip`:
 
       api = Iota('https://nodes.thetangle.org:443', local_pow=True)
 
-   Or the ``set_local_pow`` method of the api class to dynamically enable/disable
-   the local proof-of-work feature.
+   Or the :py:meth:`set_local_pow` method of the api class to dynamically
+   enable/disable the local proof-of-work feature.
 
 Getting Started
 ===============

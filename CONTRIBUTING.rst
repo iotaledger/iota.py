@@ -29,7 +29,7 @@ We're pretty open about how people contribute to PyOTA, but there are a few thin
 - Please do not post support requests here.  Use the ``#python`` channel on `Discord`_ 
 - Please do not propose new API methods here.  There are multiple IOTA API libraries out there, and they must all have the same functionality.
 
-  - That said, if you have an idea for a new API method, please share it on the ``#developers`` channel in `Discord`_ so that IOTA Foundation members can evaluate it!
+  - That said, if you have an idea for a new API method, please share it on the ``#clients-discussion`` channel in `Discord`_ so that IOTA Foundation members can evaluate it!
 
 
 Need Some Inspiration?

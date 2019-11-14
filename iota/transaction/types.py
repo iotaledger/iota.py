@@ -34,6 +34,9 @@ class Fragment(TryteString):
     A signature/message fragment in a transaction.
     """
     LEN = FRAGMENT_LENGTH
+    """
+    Length of a fragment in trytes.
+    """
 
     def __init__(self, trytes):
         # type: (TrytesCompatible) -> None
@@ -57,6 +60,9 @@ class TransactionTrytes(TryteString):
     A TryteString representation of a Transaction.
     """
     LEN = 2673
+    """
+    Length of a transaction in trytes.
+    """
 
     def __init__(self, trytes):
         # type: (TrytesCompatible) -> None
@@ -80,6 +86,9 @@ class Nonce(TryteString):
     A TryteString that acts as a transaction nonce.
     """
     LEN = 27
+    """
+    Length of a nonce in trytes.
+    """
 
     def __init__(self, trytes):
         # type: (TrytesCompatible) -> None

@@ -7,6 +7,8 @@
    adapters
    addresses
    api
+   core_api
+   extended_api
    multisig
 
 .. include:: ../README.rst

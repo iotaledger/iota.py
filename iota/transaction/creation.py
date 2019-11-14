@@ -488,3 +488,69 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
                 # Note zero value; this is a meta transaction.
                 value=0,
             ))
+
+    def add_signature_or_message(
+            self,
+            fragments,  # type: Iterable[Fragment]
+            start_index=0  # type: Optional[int]
+    ):
+        # type: (...) -> None
+        """
+        Adds signature/message fragments to transactions in the bundle
+        starting at start_index. If a transaction already has a fragment,
+        it will be overwritten.
+
+        :param Iterable[Fragment] fragments:
+            List of fragments to add.
+            Use [Fragment(...),Fragment(...),...] to create this argument.
+            Fragment() accepts any TryteString compatible type, or types that
+            can be converted to TryteStrings (bytearray, unicode string, etc.).
+            If the payload is less than :py:attr:`FRAGMENT_LENGTH`, it will pad
+            it with 9s.
+
+        :param int start_index:
+            Index of transaction in bundle from where addition shoudl start.
+        """
+        if self.hash:
+            raise RuntimeError('Bundle is already finalized.')
+
+        if not isinstance(fragments, Iterable):
+            raise TypeError('Expected iterable for `fragments`, but got {type} instead.'.format(
+                type=fragments.__class__.__name__
+            ))
+
+        if not all(isinstance(x, Fragment) for x in fragments):
+            raise TypeError(
+                'Expected `fragments` to contain only Fragment objects, but got {types} instead.'.format(
+                    types=[x.__class__.__name__ for x in fragments],
+                )
+            )
+
+        if not isinstance(start_index, int):
+            raise TypeError('Expected int for `start_index`, but got {type} instead.'.format(
+                type=start_index.__class__.__name__,
+            ))
+
+        length = len(fragments)
+
+        if not length:
+            raise ValueError('Empty list provided for `fragments`.')
+
+        if start_index < 0 or start_index > len(self) - 1:
+            raise ValueError('Wrong start_index provided: {index}'.format(
+                index=start_index))
+
+        if start_index + length > len(self):
+            raise ValueError('Can\'t add {length} fragments starting from index '
+                             '{start}: There are only {count} transactions in '
+                             'the bundle.'.format(
+                                 length=length,
+                                 start=start_index,
+                                 count=len(self),
+                             ))
+
+        for i in range(length):
+            # Bundle is not finalized yet, therefore we should fill the message
+            # field. This will be put into signature_message_fragment upon
+            # finalization.
+            self._transactions[start_index + i].message = fragments[i]

@@ -5,11 +5,12 @@ python:
   - '3.6'
   - '3.7'
 install:
-  - pip install .
+  - pip install .[docs-builder]
   - pip install docutils pygments  # Used to check package metadata.
 script:
   - python setup.py check --strict --metadata --restructuredtext
   - nosetests
+  - cd docs && make html && cd ..  # Build documentation.
 deploy:
   on:
     python: '3.7'

@@ -870,6 +870,28 @@ class Address(TryteString):
 
         return AddressChecksum.from_trits(checksum_trits[-checksum_length:])
 
+    def add_checksum(self):
+        # type: () -> None
+        """
+        Add checksum to :py:class:`Address` object.
+        """
+        if self.is_checksum_valid():
+            # Address already has a valid checksum.
+            return
+
+        # Fill checksum attribute
+        self.checksum = self._generate_checksum()
+
+        # Add generated checksum to internal buffer.
+        self._trytes = self._trytes + self.checksum._trytes
+
+    def remove_checksum(self):
+        # type: () -> None
+        """
+        Remove checksum from :py:class:`Address` object.
+        """
+        self.checksum = None
+        self._trytes = self._trytes[:self.LEN]
 
 class AddressChecksum(TryteString):
     """

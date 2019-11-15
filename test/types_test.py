@@ -1049,6 +1049,81 @@ class AddressTestCase(TestCase):
     self.assertEqual(checked.key_index, 42)
     self.assertEqual(checked.balance, 86)
 
+  def test_add_checksum(self):
+    """
+    Checksum is added to an address without it.
+    """
+    addy = Address(
+      trytes =
+        b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+        b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMV'
+    )
+
+    addy.add_checksum()
+
+    self.assertTrue(addy.is_checksum_valid())
+    self.assertTrue(len(addy) == Address.LEN + AddressChecksum.LEN)
+
+  def test_add_checksum_second_time(self):
+    """
+    Checksum is added to an address that already has.
+    """
+    addy = Address(
+      trytes =
+        b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+        b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVJJJGBARPB'
+    )
+
+    addy.add_checksum()
+
+    self.assertTrue(addy.is_checksum_valid())
+    self.assertTrue(len(addy) == Address.LEN + AddressChecksum.LEN)
+
+    self.assertEqual(
+      addy,
+      Address(
+        trytes =
+          b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+          b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVJJJGBARPB'
+      )
+    )
+
+  def test_remove_checksum(self):
+    """
+    Checksum is removed from an address.
+    """
+    addy = Address(
+      trytes =
+        b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+        b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVJJJGBARPB'
+    )
+
+    self.assertTrue(addy.is_checksum_valid())
+    self.assertTrue(len(addy) == Address.LEN + AddressChecksum.LEN)
+
+    addy.remove_checksum()
+
+    self.assertFalse(addy.is_checksum_valid())
+    self.assertTrue(len(addy) == Address.LEN)
+
+  def test_remove_checksum_second_time(self):
+    """
+    `remove_checksum` is called on an Address that does not have a checksum.
+    """
+    addy = Address(
+      trytes =
+        b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
+        b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMV'
+    )
+
+    self.assertFalse(addy.is_checksum_valid())
+    self.assertTrue(len(addy) == Address.LEN)
+
+    addy.remove_checksum()
+
+    self.assertFalse(addy.is_checksum_valid())
+    self.assertTrue(len(addy) == Address.LEN)
+
 
 # noinspection SpellCheckingInspection
 class AddressChecksumTestCase(TestCase):

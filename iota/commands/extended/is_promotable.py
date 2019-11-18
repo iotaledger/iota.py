@@ -93,8 +93,9 @@ class IsPromotableCommand(FilterCommand):
             response['promotable'] = response['promotable'] and is_within
 
         # If there are no problems, we don't need 'info' field
+        # Delete info field to make it consistent with check_consistency repsonse.
         if response['promotable']:
-            response['info'] = None
+            del response['info']
 
         return response
 

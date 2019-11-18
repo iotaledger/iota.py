@@ -347,6 +347,10 @@ bundles, listed in the order that they should be invoked:
 -  ``send_unspent_inputs_to: (Address) -> None``: Specifies the address
    that will receive unspent IOTAs. The ``ProposedBundle`` will use this
    to create the necessary change transaction, if necessary.
+-  ``add_signature_or_message: (List[Fragment], int) -> None``:
+   Adds signature or message fragments to transactions in the bundle
+   starting from ``start_index``. Must be called before the bundle is
+   finalized.
 -  ``finalize: () -> None``: Prepares the bundle for PoW. Once this
    method is invoked, no new transactions may be added to the bundle.
 -  ``sign_inputs: (KeyGenerator) -> None``: Generates the necessary

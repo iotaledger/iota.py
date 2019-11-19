@@ -317,7 +317,6 @@ class IsPromotableCommandTestCase(TestCase):
 
                 {
                     'promotable': True,
-                    'info': None,
                 }
             )
 

@@ -1357,6 +1357,8 @@ class Iota(StrictIota):
                     'info': Optional(List[Text])
                         If `promotable` is ``False``, this contains info about what
                         went wrong.
+                        Note that when 'promotable' is ``True``, 'info' does not
+                        exist.
 
                 }
 

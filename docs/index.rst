@@ -3,6 +3,7 @@
    :hidden:
 
    getting_started
+   basic_concepts
    types
    adapters
    addresses

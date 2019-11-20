@@ -1,11 +1,3 @@
-Basic Concepts
-==============
-
-Before diving into the API, it's important to understand the fundamental
-data types of IOTA.
-
-:todo: Link to IOTA docs
-
 PyOTA Types
 ===========
 

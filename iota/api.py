@@ -1217,8 +1217,9 @@ class Iota(StrictIota):
                 inside a loop.
 
             If ``None``, this method will progressively generate
-            addresses and scan the Tangle until it finds one that has no
-            transactions referencing it.
+            addresses and scan the Tangle until it finds one that is unused.
+            This is if no transactions are referencing it and it was not spent
+            from before.
 
         :param int security_level:
             Number of iterations to use when generating new addresses.

@@ -1307,10 +1307,14 @@ class PrepareTransferCommandTestCase(TestCase):
     # testing for several security levels
     for security_level in SECURITY_LEVELS_TO_TEST:
 
-      # get_new_addresses uses `find_transactions` internaly.
+      # get_new_addresses uses `find_transactions` and
+      # `were_addresses_spent_from` internally.
       # The following means requested address is considered unused
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
+      })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
       })
 
       self.command.reset()
@@ -1377,8 +1381,8 @@ class PrepareTransferCommandTestCase(TestCase):
     # testing several security levels
     for security_level in SECURITY_LEVELS_TO_TEST:
 
-      # get_inputs use iter_used_addresses and findTransactions.
-      # until address without tx found
+      # get_inputs uses iter_used_addresses, findTransactions,
+      # and wereAddressesSpentFrom until an unused address is found.
       self.adapter.seed_response('findTransactions', {
         'hashes': [
           TransactionHash(
@@ -1390,8 +1394,16 @@ class PrepareTransferCommandTestCase(TestCase):
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
 
-      # get_new_addresses uses `find_transactions` internaly.
+      # get_new_addresses uses `find_transactions`, `get_balances` and
+      # `were_addresses_spent_from` internally.
+
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })

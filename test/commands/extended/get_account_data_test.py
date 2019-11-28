@@ -435,3 +435,28 @@ class GetAccountDataCommandTestCase(TestCase):
         'bundles':    [],
       },
     )
+
+  def test_balance_is_found_for_address_without_transaction(self):
+    """
+    If an address has a balance, no transactions and was spent from, the
+    balance should still be found and returned.
+    """
+    with mock.patch(
+        'iota.commands.extended.get_account_data.iter_used_addresses',
+        mock.Mock(return_value=[(self.addy1, [])]),
+    ):
+      self.adapter.seed_response('getBalances', {
+        'balances': [42],
+      })
+
+      response = self.command(seed=Seed.random())
+
+    self.assertDictEqual(
+      response,
+
+      {
+        'addresses':  [self.addy1],
+        'balance':    42,
+        'bundles':    [],
+      },
+    )

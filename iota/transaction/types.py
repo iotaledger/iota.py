@@ -17,21 +17,24 @@ __all__ = [
 
 class BundleHash(Hash):
     """
-    A TryteString that acts as a bundle hash.
+    An :py:class:`TryteString` (:py:class:`Hash`) that acts as a bundle hash.
     """
     pass
 
 
 class TransactionHash(Hash):
     """
-    A TryteString that acts as a transaction hash.
+    An :py:class:`TryteString` (:py:class:`Hash`) that acts as a transaction hash.
     """
     pass
 
 
 class Fragment(TryteString):
     """
-    A signature/message fragment in a transaction.
+    An :py:class:`TryteString` representation of a signature/message fragment
+    in a transaction.
+
+    :raises ValueError: if ``trytes`` is longer than 2187 trytes in length.
     """
     LEN = FRAGMENT_LENGTH
     """
@@ -57,7 +60,9 @@ class Fragment(TryteString):
 
 class TransactionTrytes(TryteString):
     """
-    A TryteString representation of a Transaction.
+    An :py:class:`TryteString` representation of a Transaction.
+
+    :raises ValueError: if ``trytes`` is longer than 2673 trytes in length.
     """
     LEN = 2673
     """
@@ -83,7 +88,9 @@ class TransactionTrytes(TryteString):
 
 class Nonce(TryteString):
     """
-    A TryteString that acts as a transaction nonce.
+    An :py:class:`TryteString` that acts as a transaction nonce.
+
+    :raises ValueError: if ``trytes`` is longer than 27 trytes in length.
     """
     LEN = 27
     """

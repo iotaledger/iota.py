@@ -40,13 +40,31 @@ class TryteString(JsonSerializable):
     """
     A string representation of a sequence of trytes.
 
-    A tryte string is similar in concept to Python's byte string, except
-    it has a more limited alphabet.  Byte strings are limited to ASCII
-    (256 possible values), while the tryte string alphabet only has 27
-    characters (one for each possible tryte configuration).
+    A :py:class:`TryteString` is an ASCII representation of a sequence of trytes.
+    In many respects, it is similar to a Python ``bytes`` object (which is an
+    ASCII representation of a sequence of bytes).
+
+    In fact, the two objects behave very similarly; they support
+    concatenation, comparison, can be used as dict keys, etc.
+
+    However, unlike ``bytes``, a :py:class:`TryteString` can only contain
+    uppercase letters and the number 9 (as a regular expression: ``^[A-Z9]*$``).
 
     .. important::
         A TryteString does not represent a numeric value!
+
+    :param TrytesCompatible trytes:
+        Byte string or bytearray.
+
+    :param Optional[int] pad:
+        Ensure at least this many trytes.
+
+        If there are too few, null trytes will be appended to the
+        TryteString.
+
+        .. note::
+            If the TryteString is too long, it will *not* be
+            truncated!
     """
 
     @classmethod
@@ -55,8 +73,11 @@ class TryteString(JsonSerializable):
         """
         Generates a random sequence of trytes.
 
-        :param length:
+        :param int length:
             Number of trytes to generate.
+
+        :return:
+            :py:class:`TryteString` object.
         """
         alphabet = list(itervalues(AsciiTrytesCodec.alphabet))
         generator = SystemRandom()
@@ -77,12 +98,13 @@ class TryteString(JsonSerializable):
         """
         Creates a TryteString from a sequence of bytes.
 
-        :param bytes_:
-            Source bytes.
+        :param  Union[binary_type,bytearray] bytes\_:
+            Source bytes. ASCII representation of a sequence of bytes.
+            Note that only tryte alphabet supported!
 
-        :param codec:
+        :param Text codec:
             Reserved for future use.
-
+            Currently supports only the 'trytes_ascii' codec.
             See https://github.com/iotaledger/iota.py/issues/62 for
             more information.
 
@@ -91,6 +113,15 @@ class TryteString(JsonSerializable):
 
         :param kwargs:
             Additional keyword arguments to pass to the initializer.
+
+        :return:
+            :py:class:`TryteString` object.
+
+        Example usage::
+
+            from iota import TryteString
+            message_trytes = TryteString.from_bytes(b'HELLO999IOTA')
+
         """
         return cls(encode(bytes_, codec), *args, **kwargs)
 
@@ -100,14 +131,23 @@ class TryteString(JsonSerializable):
         """
         Creates a TryteString from a Unicode string.
 
-        :param string:
-            Source string.
+        :param Text string:
+            Source Unicode string.
 
         :param args:
             Additional positional arguments to pass to the initializer.
 
         :param kwargs:
             Additional keyword arguments to pass to the initializer.
+
+        :return:
+            :py:class:`TryteString` object.
+
+        Example usage::
+
+            from iota import TryteString
+            message_trytes = TryteString.from_unicode('Hello, IOTA!')
+
         """
         return cls.from_bytes(
             bytes_=string.encode('utf-8'),
@@ -138,7 +178,7 @@ class TryteString(JsonSerializable):
         """
         Creates a TryteString from a sequence of trytes.
 
-        :param trytes:
+        :param Iterable[Iterable[int]] trytes:
             Iterable of tryte values.
 
             In this context, a tryte is defined as a list containing 3
@@ -149,6 +189,25 @@ class TryteString(JsonSerializable):
 
         :param kwargs:
             Additional keyword arguments to pass to the initializer.
+
+        :return:
+            :py:class:`TryteString` object.
+
+        Example usage::
+
+            from iota import TryteString
+            message_trytes = TryteString.from_trytes(
+                [
+                    [1, 0, -1],
+                    [-1, 1, 0],
+                    [1, -1, 0],
+                    [-1, 1, 0],
+                    [0, 1, 0],
+                    [0, 1, 0],
+                    [-1, 1, 1],
+                    [-1, 1, 0],
+                ]
+            )
 
         References:
 
@@ -173,7 +232,7 @@ class TryteString(JsonSerializable):
         """
         Creates a TryteString from a sequence of trits.
 
-        :param trits:
+        :param Iterable[int] trits:
             Iterable of trit values (-1, 0, 1).
 
         :param args:
@@ -181,6 +240,16 @@ class TryteString(JsonSerializable):
 
         :param kwargs:
             Additional keyword arguments to pass to the initializer.
+
+        :return:
+            :py:class:`TryteString` object.
+
+        Example usage::
+
+            from iota import TryteString
+            message_trytes = TryteString.from_trits(
+                [1, 0, -1, -1, 1, 0, 1, -1, 0, -1, 1, 0, 0, 1, 0, 0, 1, 0, -1, 1, 1, -1, 1, 0]
+            )
 
         References:
 
@@ -206,10 +275,10 @@ class TryteString(JsonSerializable):
     def __init__(self, trytes, pad=None):
         # type: (TrytesCompatible, Optional[int]) -> None
         """
-        :param trytes:
+        :param TrytesCompatible trytes:
             Byte string or bytearray.
 
-        :param pad:
+        :param Optional[int] pad:
             Ensure at least this many trytes.
 
             If there are too few, null trytes will be appended to the
@@ -484,7 +553,7 @@ class TryteString(JsonSerializable):
         Encodes the TryteString into a lower-level primitive (usually
         bytes).
 
-        :param errors:
+        :param Text errors:
             How to handle trytes that can't be converted:
 
             'strict'
@@ -496,15 +565,40 @@ class TryteString(JsonSerializable):
             'ignore'
                 omit the tryte from the result.
 
-        :param codec:
+        :param Text codec:
             Reserved for future use.
 
             See https://github.com/iotaledger/iota.py/issues/62 for
             more information.
 
-        :raise:
+        :raises:
             - :py:class:`iota.codecs.TrytesDecodeError` if the trytes
               cannot be decoded into bytes.
+
+        :return:
+            Python ``bytes`` object.
+
+        Example usage::
+
+            from iota import TryteString
+
+            # Message payload as unicode string
+            message = 'Hello, iota!'
+
+            # Create TryteString
+            message_trytes = TryteString.from_unicode(message)
+
+            # Encode TryteString into bytes
+            encoded_message_bytes = message_trytes.encode()
+
+            # This will be b'Hello, iota'
+            print(encoded_message_bytes)
+
+            # Get the original message
+            decoded = encoded_message_bytes.decode()
+
+            print(decoded == message)
+
         """
         # Converting ASCII-encoded trytes into bytes is considered to be
         # a *decode* operation according to
@@ -533,7 +627,7 @@ class TryteString(JsonSerializable):
         Decodes the TryteString into a higher-level abstraction (usually
         Unicode characters).
 
-        :param errors:
+        :param Text errors:
             How to handle trytes that can't be converted, or bytes that can't
             be decoded using UTF-8:
 
@@ -546,14 +640,26 @@ class TryteString(JsonSerializable):
             'ignore'
                 omit the invalid tryte/byte sequence.
 
-        :param strip_padding:
+        :param bool strip_padding:
             Whether to strip trailing null trytes before converting.
 
-        :raise:
+        :raises:
             - :py:class:`iota.codecs.TrytesDecodeError` if the trytes
               cannot be decoded into bytes.
             - :py:class:`UnicodeDecodeError` if the resulting bytes
               cannot be decoded using UTF-8.
+
+        :return:
+            ``Unicode string`` object.
+
+        Example usage::
+
+            from iota import TryteString
+
+            trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+            message = trytes.decode()
+
         """
         trytes = self._trytes
         if strip_padding and (trytes[-1] == ord(b'9')):
@@ -586,6 +692,18 @@ class TryteString(JsonSerializable):
         References:
 
         - :py:class:`iota.json.JsonEncoder`.
+
+        :return:
+            JSON-compatible representation of the object (string).
+
+        Example usage::
+
+            from iota import TryteString
+
+            trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+            json_payload = trytes.as_json_compatible()
+
         """
         return self._trytes.decode('ascii')
 
@@ -595,6 +713,22 @@ class TryteString(JsonSerializable):
         Converts the TryteString into a sequence of integers.
 
         Each integer is a value between -13 and 13.
+
+        See the
+        `tryte alphabet <https://docs.iota.org/docs/getting-started/0.1/introduction/ternary>`_
+        for more info.
+
+        :return:
+            ``List[int]``
+
+        Example usage::
+
+            from iota import TryteString
+
+            trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+            tryte_ints = trytes.as_integers()
+
         """
         return [
             self._normalize(AsciiTrytesCodec.index[c])
@@ -613,6 +747,18 @@ class TryteString(JsonSerializable):
         .. important::
             :py:class:`TryteString` is not a numeric type, so the result
             of this method should not be interpreted as an integer!
+
+        :return:
+            ``List[List[int]]``
+
+        Example usage::
+
+            from iota import TryteString
+
+            trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+            tryte_list = trytes.as_trytes()
+
         """
         return [
             trits_from_int(n, pad=3)
@@ -633,6 +779,18 @@ class TryteString(JsonSerializable):
         .. important::
             :py:class:`TryteString` is not a numeric type, so the result
             of this method should not be interpreted as an integer!
+
+        :return:
+            ``List[int]``
+
+        Example usage::
+
+            from iota import TryteString
+
+            trytes = TryteString(b'RBTC9D9DCDQAEASBYBCCKBFA')
+
+            trits = trytes.as_trits()
+
         """
         # http://stackoverflow.com/a/952952/5568265#comment4204394_952952
         return list(chain.from_iterable(self.as_trytes()))
@@ -710,7 +868,7 @@ class ChunkIterator(Iterator[TryteString]):
         """
         Returns the next chunk in the iterator.
 
-        :raise:
+        :raises:
             - :py:class:`StopIteration` if there are no more chunks
               available.
         """
@@ -731,10 +889,19 @@ class ChunkIterator(Iterator[TryteString]):
 
 class Hash(TryteString):
     """
-    A TryteString that is exactly one hash long.
+    A :py:class:`TryteString` that is exactly one hash long.
+
+    :param TrytesCompatible trytes:
+        Object to construct the hash from.
+
+    :raises ValueError: if ``trytes`` is longer than 81 trytes.
+
     """
     # Divide by 3 to convert trits to trytes.
     LEN = HASH_LENGTH // TRITS_PER_TRYTE
+    """
+    Length is always 81 trytes long.
+    """
 
     def __init__(self, trytes):
         # type: (TrytesCompatible) -> None
@@ -755,10 +922,31 @@ class Hash(TryteString):
 
 class Address(TryteString):
     """
-    A TryteString that acts as an address, with support for generating
+    A :py:class:`TryteString` that acts as an address, with support for generating
     and validating checksums.
+
+    :param TrytesCompatible trytes:
+        Object to construct the address from.
+
+    :param Optional[int] balance:
+        Known balance of the address.
+
+    :param Optional[int] key_index:
+        Index of the address that was used during address generation.
+        Must be greater than zero.
+
+    :param Optional[int] security_level:
+        Security level that was used during address generation.
+        Might be 1, 2 or 3.
+
+    :raises
+        ValueError: if ``trytes`` is longer than 81 trytes, unless it is
+        exactly 90 trytes long (address + checksum).
     """
     LEN = Hash.LEN
+    """
+    Length of an address.
+    """
 
     def __init__(
             self,
@@ -794,6 +982,9 @@ class Address(TryteString):
 
         # Make the address sans checksum accessible.
         self.address = self[:self.LEN]  # type: TryteString
+        """
+        Address trytes without the checksum.
+        """
 
         self.balance = balance
         """
@@ -802,14 +993,14 @@ class Address(TryteString):
 
         References:
 
-        - :py:class:`iota.commands.extended.get_inputs`
+        - :py:meth:`Iota.get_inputs`
         - :py:meth:`ProposedBundle.add_inputs`
         """
 
         self.key_index = key_index
         """
         Index of the key used to generate this address.
-        Defaults to ``None``; usually set via ``AddressGenerator``.
+        Defaults to ``None``; usually set via :py:class:`AddressGenerator`.
 
         References:
 
@@ -823,6 +1014,32 @@ class Address(TryteString):
         """
 
     def as_json_compatible(self):
+        """
+        Returns a JSON-compatible representation of the Address.
+
+        :return:
+            ``dict`` with the following structure::
+
+                {
+                    'trytes': Text,
+                    'balance': int,
+                    'key_index': int,
+                    'security_level': int,
+                }
+
+        Example usage::
+
+            from iota import Address
+
+            # Example address only, do not use in your code!
+            addy = Address(
+                b'LVHHIXQNYKWQMGXGLFOKOCDFHPKXAUKWMSZVDRAT'
+                b'TICUZXFACM9DNJELJGMLMK99KDVVOOWLINVBZIGWZ'
+            )
+
+            print(addy.as_json_compatible())
+
+        """
         # type: () -> dict
         return {
             'trytes': self._trytes.decode('ascii'),
@@ -835,6 +1052,28 @@ class Address(TryteString):
         # type: () -> bool
         """
         Returns whether this address has a valid checksum.
+
+        :return:
+            ``bool``
+
+        Example usage::
+
+            from iota import Address
+
+            # Example address only, do not use in your code!
+            addy = Address(
+                b'LVHHIXQNYKWQMGXGLFOKOCDFHPKXAUKWMSZVDRAT'
+                b'TICUZXFACM9DNJELJGMLMK99KDVVOOWLINVBZIGWZ'
+            )
+
+            # Should be ``False``
+            print(addy.is_checksum_valid())
+
+            addy.add_checksum()
+
+            # Should be ``True``
+            print(addy.is_checksum_valid())
+
         """
         if self.checksum:
             return self.checksum == self._generate_checksum()
@@ -845,6 +1084,27 @@ class Address(TryteString):
         # type: () -> Address
         """
         Returns the address with a valid checksum attached.
+
+        :return:
+            :py:class:`Address` object.
+
+        Example usage::
+
+            from iota import Address
+
+            # Example address only, do not use in your code!
+            addy = Address(
+                b'LVHHIXQNYKWQMGXGLFOKOCDFHPKXAUKWMSZVDRAT'
+                b'TICUZXFACM9DNJELJGMLMK99KDVVOOWLINVBZIGWZ'
+            )
+
+            addy_with_checksum = addy.with_valid_checksum()
+
+            print(addy_with_checksum)
+
+            # Should be ``True``
+            print(addy_with_checksum.is_checksum_valid())
+
         """
         return Address(
             trytes=self.address + self._generate_checksum(),
@@ -873,7 +1133,32 @@ class Address(TryteString):
     def add_checksum(self):
         # type: () -> None
         """
-        Add checksum to :py:class:`Address` object.
+        Adds checksum to :py:class:`Address` object.
+
+        :return: ``None``
+
+        Example usage::
+
+            from iota import Address
+
+            # Example address only, do not use in your code!
+            addy = Address(
+                b'LVHHIXQNYKWQMGXGLFOKOCDFHPKXAUKWMSZVDRAT'
+                b'TICUZXFACM9DNJELJGMLMK99KDVVOOWLINVBZIGWZ'
+            )
+
+            # Should be ``False``
+            print(addy.is_checksum_valid())
+
+            print(addy.checksum)
+
+            addy.add_checksum()
+
+            # Should be ``True``
+            print(addy.is_checksum_valid())
+
+            print(addy.checksum)
+
         """
         if self.is_checksum_valid():
             # Address already has a valid checksum.
@@ -888,16 +1173,50 @@ class Address(TryteString):
     def remove_checksum(self):
         # type: () -> None
         """
-        Remove checksum from :py:class:`Address` object.
+        Removes checksum from :py:class:`Address` object.
+
+        :return: ``None``
+
+        Example usage::
+
+            from iota import Address
+
+            # Example address only, do not use in your code!
+            addy = Address(
+                b'LVHHIXQNYKWQMGXGLFOKOCDFHPKXAUKWMSZVDRAT'
+                b'TICUZXFACM9DNJELJGMLMK99KDVVOOWLINVBZIGWZ'
+                b'AACAMCWUW'  # 9 checksum trytes
+            )
+
+            # Should be ``True``
+            print(addy.is_checksum_valid())
+
+            print(addy.checksum)
+
+            addy.remove_checksum()
+
+            # Should be ``False``
+            print(addy.is_checksum_valid())
+
+            print(addy.checksum)
+
         """
         self.checksum = None
         self._trytes = self._trytes[:self.LEN]
 
 class AddressChecksum(TryteString):
     """
-    A TryteString that acts as an address checksum.
+    A :py:class:`TryteString` that acts as an address checksum.
+
+    :param TrytesCompatible trytes:
+        Checksum trytes.
+
+    :raises ValueError: if ``trytes`` is not exactly 9 trytes in length.
     """
     LEN = 9
+    """
+    Length of an address checksum.
+    """
 
     def __init__(self, trytes):
         # type: (TrytesCompatible) -> None
@@ -921,8 +1240,16 @@ class AddressChecksum(TryteString):
 class Tag(TryteString):
     """
     A TryteString that acts as a transaction tag.
+
+    :param TrytesCompatible trytes:
+        Tag trytes.
+
+    :raises ValueError: if ``trytes`` is longer than 27 trytes in length.
     """
     LEN = 27
+    """
+    Length of a tag.
+    """
 
     def __init__(self, trytes):
         # type: (TrytesCompatible) -> None

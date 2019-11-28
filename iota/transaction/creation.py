@@ -28,8 +28,52 @@ class ProposedTransaction(Transaction):
     """
     A transaction that has not yet been attached to the Tangle.
 
-    Provide to :py:meth:`iota.api.Iota.send_transfer` to attach to
-    tangle and publish/store.
+    Proposed transactions are created locally. Note that for creation, only a
+    small subset of the :py:class:`Transaction` attributes is needed.
+
+    Provide to :py:meth:`Iota.send_transfer` to attach to tangle and
+    publish/store.
+
+    .. note::
+        In order to follow naming convention of other libs, you may use the
+        name ``Transfer`` interchangeably with ``ProposedTransaction``.
+        See https://github.com/iotaledger/iota.py/issues/72 for more info.
+
+    :param Address address:
+        Address associated with the transaction.
+
+    :param int value:
+        Transaction value.
+
+    :param Optional[Tag] tag:
+        Optional classification tag applied to this transaction.
+
+    :param Optional[TryteString] message:
+        Message to be included in
+        :py:attr:`transaction.Transaction.signature_or_message_fragment` field
+        of the transaction. Should not be longer than
+        :py:attr:`transaction.Fragment.LEN`.
+
+    :param Optional[int] timestamp:
+        Timestamp of transaction creation. If not supplied, the library will
+        generate it.
+
+    :return:
+        :py:class:`iota.ProposedTransaction` object.
+
+    Example usage::
+
+        txn=\\
+            ProposedTransaction(
+                address =
+                    Address(
+                        b'TESTVALUE9DONTUSEINPRODUCTION99999XE9IVG'
+                        b'EFNDOCQCMERGUATCIEGGOHPHGFIAQEZGNHQ9W99CH'
+                    ),
+                message = TryteString.from_unicode('thx fur cheezburgers'),
+                tag     = Tag(b'KITTENS'),
+                value   = 42,
+            )
     """
 
     def __init__(
@@ -73,6 +117,13 @@ class ProposedTransaction(Transaction):
         # type: () -> TryteString
         """
         Returns a TryteString representation of the transaction.
+
+        :return:
+            :py:class:`TryteString` object.
+
+        :raises RuntimeError:
+            if the transaction doesn't have a bundle hash field, meaning that
+            the bundle containing the transaction hasn't been finalized yet.
         """
         if not self.bundle_hash:
             raise with_context(
@@ -116,6 +167,25 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
     """
     A collection of proposed transactions, to be treated as an atomic
     unit when attached to the Tangle.
+
+    :param  Optional[Iterable[ProposedTransaction]] transactions:
+        Proposed transactions that should be put into the proposed bundle.
+
+    :param Optional[Iterable[Address]] inputs:
+        Addresses that hold iotas to fund outgoing transactions in the bundle.
+        If provided, the library will create and sign withdrawing transactions
+        from these addresses.
+
+        See :py:meth:`Iota.get_inputs` for more info.
+
+    :param Optional[Address] change_address:
+        Due to the signatures scheme of IOTA, you can only spend once from an
+        address. Therefore the library will always deduct the full available
+        amount from an input address. The unused tokens will be sent to
+        ``change_address`` if provided, or to a newly-generated and unused
+        address if not.
+
+    :return: :py:class:`ProposedBundle`
     """
 
     def __init__(
@@ -141,6 +211,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         # type: () -> bool
         """
         Returns whether this bundle has any transactions.
+
+        :return: ``bool``
         """
         return bool(self._transactions)
 
@@ -187,6 +259,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         - A negative balance means that there are unspent inputs; use
           :py:meth:`send_unspent_inputs_to` to send the unspent inputs
           to a "change" address.
+
+        :return: ``bool``
         """
         return sum(t.value for t in self._transactions)
 
@@ -195,6 +269,8 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         # type: () -> Tag
         """
         Determines the most relevant tag for the bundle.
+
+        :return: :py:class:`transaction.Tag`
         """
         for txn in reversed(self):  # type: ProposedTransaction
             if txn.tag:
@@ -206,6 +282,10 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         # type: () -> List[dict]
         """
         Returns a JSON-compatible representation of the object.
+
+        :return:
+            ``List[dict]``. The ``dict`` list elements contain individual
+            transactions as in :py:meth:`ProposedTransaction.as_json_compatible`.
 
         References:
 
@@ -220,6 +300,14 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         If the transaction message is too long, it will be split
         automatically into multiple transactions.
+
+        :param ProposedTransaction transaction:
+            The transaction to be added.
+
+        :raises RuntimeError: if bundle is already finalized
+        :raises ValueError:
+            if trying to add a spending transaction. Use :py:meth:`add_inputs`
+            instead.
         """
         if self.hash:
             raise RuntimeError('Bundle is already finalized.')
@@ -253,17 +341,26 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
     def add_inputs(self, inputs):
         # type: (Iterable[Address]) -> None
         """
-        Adds inputs to spend in the bundle.
+        Specifies inputs that can be used to fund transactions that spend iotas.
+
+        The :py:class:`ProposedBundle` will use these to create the necessary
+        input transactions.
 
         Note that each input may require multiple transactions, in order
         to hold the entire signature.
 
-        :param inputs:
+        :param Iterable[Address] inputs:
             Addresses to use as the inputs for this bundle.
 
             .. important::
                 Must have ``balance`` and ``key_index`` attributes!
-                Use :py:meth:`iota.api.get_inputs` to prepare inputs.
+                Use :py:meth:`Iota.get_inputs` to prepare inputs.
+
+        :raises RuntimeError: if bundle is already finalized.
+        :raises ValueError:
+            - if input address has no ``balance``.
+            - if input address has no ``key_index``.
+
         """
         if self.hash:
             raise RuntimeError('Bundle is already finalized.')
@@ -302,10 +399,17 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
     def send_unspent_inputs_to(self, address):
         # type: (Address) -> None
         """
-        Adds a transaction to send "change" (unspent inputs) to the
-        specified address.
+        Specifies the address that will receive unspent iotas.
+
+        The :py:class:`ProposedBundle` will use this to create the necessary
+        change transaction, if necessary.
 
         If the bundle has no unspent inputs, this method does nothing.
+
+        :param Address address:
+            Address to send unspent inputs to.
+
+        :raises RuntimeError: if bundle is already finalized.
         """
         if self.hash:
             raise RuntimeError('Bundle is already finalized.')
@@ -316,6 +420,20 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         # type: () -> None
         """
         Finalizes the bundle, preparing it to be attached to the Tangle.
+
+        This operation includes checking if the bundle has zero balance,
+        generating the bundle hash and updating the transactions with it,
+        furthermore to initialize signature/message fragment fields.
+
+        Once this method is invoked, no new transactions may be added to the
+        bundle.
+
+        :raises RuntimeError: if bundle is already finalized.
+        :raises ValueError:
+            - if bundle has no transactions.
+            - if bundle has unspent inputs (there is no ``change_address``
+              attribute specified.)
+            - if inputs are insufficient to cover bundle spend.
         """
         if self.hash:
             raise RuntimeError('Bundle is already finalized.')
@@ -387,6 +505,23 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         # type: (KeyGenerator) -> None
         """
         Sign inputs in a finalized bundle.
+
+        Generates the necessary cryptographic signatures to authorize spending
+        the inputs.
+
+        .. note::
+            You do not need to invoke this method if the bundle does
+            not contain any transactions that spend iotas.
+
+        :param KeyGenerator key_generator:
+            Generator to create private keys for signing.
+
+        :raises RuntimeError: if bundle is not yet finalized.
+        :raises ValueError:
+            - if the input transaction specifies an address that doesn't have
+              ``key_index`` attribute defined.
+            - if the input transaction specifies an address that doesn't have
+              ``security_level`` attribute defined.
         """
         if not self.hash:
             raise RuntimeError('Cannot sign inputs until bundle is finalized.')
@@ -442,7 +577,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         """
         Signs the input at the specified index.
 
-        :param start_index:
+        :param int start_index:
             The index of the first input transaction.
 
             If necessary, the resulting signature will be split across
@@ -450,13 +585,15 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             ``security_level=2``, you still only need to call
             :py:meth:`sign_input_at` once).
 
-        :param private_key:
+        :param PrivateKey private_key:
             The private key that will be used to generate the signature.
 
             .. important::
                 Be sure that the private key was generated using the
                 correct seed, or the resulting signature will be
                 invalid!
+
+        :raises RuntimeError: if bundle is not yet finalized.
         """
         if not self.hash:
             raise RuntimeError('Cannot sign inputs until bundle is finalized.')
@@ -467,6 +604,9 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         # type: (Address) -> None
         """
         Creates transactions for the specified input address.
+
+        :param Address addy:
+            Input address.
         """
         self._transactions.append(ProposedTransaction(
             address=addy,
@@ -510,6 +650,15 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         :param int start_index:
             Index of transaction in bundle from where addition shoudl start.
+
+        :raise RuntimeError: if bundle is already finalized.
+        :raise ValueError:
+            - if empty list is provided for ``fragments``
+            - if wrong ``start_index`` is provided.
+            - if ``fragments`` is too long and does't fit into the bundle.
+        :raise TypeError:
+            - if ``fragments`` is not an ``Iterable``
+            - if ``fragments`` contains other types than :py:class:`Fragment`.
         """
         if self.hash:
             raise RuntimeError('Bundle is already finalized.')

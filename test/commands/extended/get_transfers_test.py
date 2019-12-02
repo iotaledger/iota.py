@@ -372,13 +372,19 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-    # The second address is unused.
+    # The second address is unused. It has no transactions and was not spent from.
     self.adapter.seed_response(
       'findTransactions',
 
       {
         'duration': 1,
         'hashes':   [],
+      },
+    )
+    self.adapter.seed_response(
+      'wereAddressesSpentFrom',
+      {
+        'states': [False],
       },
     )
 
@@ -461,6 +467,12 @@ class GetTransfersCommandTestCase(TestCase):
         'hashes':   [],
       },
     )
+    self.adapter.seed_response(
+      'wereAddressesSpentFrom',
+      {
+        'states': [False],
+      },
+    )
 
     with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
@@ -495,13 +507,20 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-    # The second address is unused.
+    # The second address is unused. It has no transactions and was not spent from.
     self.adapter.seed_response(
       'findTransactions',
 
       {
         'duration': 1,
         'hashes':   [],
+      },
+    )
+
+    self.adapter.seed_response(
+      'wereAddressesSpentFrom',
+      {
+        'states': [True],
       },
     )
 

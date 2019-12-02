@@ -26,6 +26,24 @@ class AddressGenerator(Iterable[Address]):
     Note also that :py:meth:`iota.api.IotaApi.get_new_addresses` uses
     ``AddressGenerator`` internally, so you get the best of both worlds
     when you use the API (:
+
+    :param TrytesCompatible seed:
+        The seed to derive addresses from.
+
+    :param int security_level:
+        When generating a new address, you can specify a security level for it.
+        The security level of an address affects how long the private key is,
+        how secure a spent address is against brute-force attacks, and how many
+        transactions are needed to contain the signature.
+
+        Could be either 1, 2 or 3.
+
+        Reference:
+
+        - https://docs.iota.org/docs/getting-started/0.1/clients/security-levels
+
+    :param bool checksum:
+        Whether to generate address with or without checksum.
     """
     DEFAULT_SECURITY_LEVEL = 2
     """
@@ -90,6 +108,8 @@ class AddressGenerator(Iterable[Address]):
             This may be any non-zero (positive or negative) integer.
 
         :return:
+            ``List[Address]``
+
             Always returns a list, even if only one address is generated.
 
             The returned list will contain ``count`` addresses, except

@@ -140,8 +140,8 @@ field that is a `unique identifier for the bundle`_.
    :alt: Bundle structure with four transactions.
 
    Structure of a bundle with four transactions. Numbers in brackets denote
-   (``currentIndex``, ``lastIndex``) fields. Head of the bundle has index 0,
-   while tail has index 3.
+   (``currentIndex``, ``lastIndex``) fields. Head of the bundle has index 3,
+   while tail has index 0.
 
 Read more about `how bundles are structured`_.
 

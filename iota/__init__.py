@@ -38,6 +38,9 @@ from .adapter import *
 from .api import *
 from .trits import *
 
+# Expose Seed on the top level package
+from .crypto.types import Seed
+
 # :see: http://stackoverflow.com/a/2073599/
 from pkg_resources import require
 __version__ = require('PyOTA')[0].version

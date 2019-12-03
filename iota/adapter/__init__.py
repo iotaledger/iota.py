@@ -44,6 +44,12 @@ https://github.com/iotaledger/iota.py/issues/84
 
 # Custom types for type hints and docstrings.
 AdapterSpec = Union[Text, 'BaseAdapter']
+"""
+Placeholder that means “URI or adapter instance”.
+
+Will be resolved to a correctly-configured adapter instance
+upon API instance creation.
+"""
 
 # Load SplitResult for IDE type hinting and autocompletion.
 if PY2:
@@ -144,7 +150,7 @@ class BaseAdapter(object):
     """
     Interface for IOTA API adapters.
 
-    Adapters make it easy to customize the way an StrictIota instance
+    Adapters make it easy to customize the way an API instance
     communicates with a node.
     """
     supported_protocols = ()  # type: Tuple[Text]
@@ -222,9 +228,32 @@ class BaseAdapter(object):
 
 class HttpAdapter(BaseAdapter):
     """
-    Sends standard HTTP requests.
+    Sends standard HTTP(S) requests to the node.
+
+    :param AdapterSpec uri:
+        URI or adapter instance.
+
+        If ``uri`` is a ``text_type``, it is parsed to extract ``scheme``,
+        ``hostname`` and ``port``.
+
+    :param Optional[int] timeout:
+        Connection timeout in seconds.
+
+    :param Optional[Tuple(Text,Text)] authentication:
+        Credetentials for basic authentication with the node.
+
+    :return:
+        :py:class:`HttpAdapter` object.
+
+    :raises InvalidUri:
+        - if protocol is unsupported.
+        - if hostname is empty.
+        - if non-numeric port is supplied.
     """
     supported_protocols = ('http', 'https',)
+    """
+    Protocols supported by this adapter.
+    """
 
     DEFAULT_HEADERS = {
         'Content-type': 'application/json',
@@ -469,11 +498,35 @@ class HttpAdapter(BaseAdapter):
 
 class MockAdapter(BaseAdapter):
     """
-    An mock adapter used for simulating API responses.
+    A mock adapter used for simulating API responses without actually sending
+    any requests to the node.
+
+    This is particularly useful in unit and functional tests where you want
+    to verify that your code works correctly in specific scenarios, without
+    having to engineer your own subtangle.
 
     To use this adapter, you must first "seed" the responses that the
     adapter should return for each request.  The adapter will then return
     the appropriate seeded response each time it "sends" a request.
+
+    :param ``None``:
+        To construct a ``MockAdapter``, you don't need to supply any arguments.
+
+    :return:
+        :py:class:`MockAdapter` object.
+
+    To configure an :py:class:`Iota` instance to use :py:class:`MockAdapter`,
+    specify ``mock://`` as the node URI, or provide a :py:class:`MockAdapter`
+    instance.
+
+    Example usage::
+
+        from iota import Iota, MockAdapter
+
+        # Create API with a mock adapter.
+        api = Iota('mock://')
+        api = Iota(MockAdapter())
+
     """
     supported_protocols = ('mock',)
 
@@ -501,7 +554,19 @@ class MockAdapter(BaseAdapter):
         put them into a FIFO queue.  When a request comes in, the
         adapter will pop the corresponding response off of the queue.
 
-        Example:
+        Note that you have to call :py:meth:`seed_response` once for each
+        request you expect it to process. If :py:class:`MockAdapter` does not
+        have a seeded response for a particular command, it will raise a
+        ``BadApiResponse`` exception (simulates a 404 response).
+
+        :param Text command:
+            The name of the command. Note that this is the camelCase version
+            of the command name (e.g., ``getNodeInfo``, not ``get_node_info``).
+
+        :param dict response:
+             The response that the adapter will return.
+
+        Example usage:
 
         .. code-block:: python
 

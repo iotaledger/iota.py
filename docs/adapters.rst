@@ -1,24 +1,45 @@
 Adapters and Wrappers
 =====================
+.. py:currentmodule:: iota
 
-The ``Iota`` class defines the API methods that are available for
+The :py:class:`Iota` class defines the API methods that are available for
 interacting with the node, but it delegates the actual interaction to
-another set of classes: Adapters and Wrappers.
+another set of classes: `Adapters <#adapters>`__ and `Wrappers <#wrappers>`__.
+
+The API instance's methods contain the logic and handle PyOTA-specific types,
+construct and translate objects, while the API instance's adapter deals with
+the networking, communicating with a node.
+
+You can choose and configure the available adapters to be used with the API:
+
+ - HttpAdapter,
+ - SandboxAdapter,
+ - MockAdapter.
 
 AdapterSpec
 -----------
 
+
 In a few places in the PyOTA codebase, you may see references to a
 meta-type called ``AdapterSpec``.
 
-``AdapterSpec`` is a placeholder that means "URI or adapter instance".
+.. automodule:: iota.adapter
+    :special-members: AdapterSpec
 
-For example, the first argument of ``Iota.__init__`` is an
-``AdapterSpec``. This means that you can initialize an ``Iota`` object
-using either a node URI, or an adapter instance:
+.. py:currentmodule:: iota
 
--  Node URI: ``Iota('http://localhost:14265')``
--  Adapter instance: ``Iota(HttpAdapter('http://localhost:14265'))``
+For example, when creating an :py:class:`Iota` object, the first argument
+of :py:meth:`Iota.__init__` is an ``AdapterSpec``. This means that you can
+initialize an :py:class:`Iota` object using either a node URI, or an adapter
+instance:
+
+-  Node URI::
+
+     api = Iota('http://localhost:14265')
+
+-  Adapter instance::
+
+     api = Iota(HttpAdapter('http://localhost:14265'))
 
 Adapters
 --------
@@ -33,113 +54,149 @@ HttpAdapter
 
 .. code:: python
 
-    from iota import Iota
-    from iota.adapter import HttpAdapter
+    from iota import Iota, HttpAdapter
 
     # Use HTTP:
     api = Iota('http://localhost:14265')
     api = Iota(HttpAdapter('http://localhost:14265'))
 
     # Use HTTPS:
-    api = Iota('https://service.iotasupport.com:14265')
-    api = Iota(HttpAdapter('https://service.iotasupport.com:14265'))
+    api = Iota('https://nodes.thetangle.org:443')
+    api = Iota(HttpAdapter('https://nodes.thetangle.org:443'))
 
     # Use HTTPS with basic authentication and 60 seconds timeout:
     api = Iota(
         HttpAdapter(
-            'https://service.iotasupport.com:14265',
+            'https://nodes.thetangle.org:443',
             authentication=('myusername', 'mypassword'),
             timeout=60))
 
-``HttpAdapter`` uses the HTTP protocol to send requests to the node.
+.. autoclass:: HttpAdapter
 
-To configure an ``Iota`` instance to use ``HttpAdapter``, specify an
-``http://`` or ``https://`` URI, or provide an ``HttpAdapter`` instance.
+To configure an :py:class:`Iota` instance to use :py:class:`HttpAdapter`,
+specify an ``http://`` or ``https://`` URI, or provide an
+:py:class:`HttpAdapter` instance.
 
-The ``HttpAdapter`` raises a ``BadApiResponse`` exception if the server
+The :py:class:`HttpAdapter` raises a ``BadApiResponse`` exception if the server
 sends back an error response (due to invalid request parameters, for
 example).
 
 Debugging HTTP Requests
 ^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code:: python
-
-    from logging import getLogger
-
-    from iota import Iota
-
-    api = Iota('http://localhost:14265')
-    api.adapter.set_logger(getLogger(__name__))
-
 To see all HTTP requests and responses as they happen, attach a
 ``logging.Logger`` instance to the adapter via its ``set_logger``
 method.
 
-Any time the ``HttpAdapter`` sends a request or receives a response, it
+Any time the :py:class:`HttpAdapter` sends a request or receives a response, it
 will first generate a log message. Note: if the response is an error
-response (e.g., due to invalid request parameters), the ``HttpAdapter``
+response (e.g., due to invalid request parameters), the :py:class:`HttpAdapter`
 will log the request before raising ``BadApiResponse``.
 
 .. note::
 
-    ``HttpAdapter`` generates log messages with ``DEBUG`` level, so make sure that your logger's ``level`` attribute is set low enough that it doesn't filter these messages!
+    :py:class:`HttpAdapter` generates log messages with ``DEBUG`` level, so make
+    sure that your logger's ``level`` attribute is set low enough that it
+    doesn't filter these messages!
 
-SandboxAdapter
-~~~~~~~~~~~~~~
+**Logging to console with default format**
 
 .. code:: python
 
+    from logging import getLogger, basicConfig, DEBUG
     from iota import Iota
-    from iota.adapter.sandbox import SandboxAdapter
 
-    api =\
-      Iota(
-        SandboxAdapter(
-          uri = 'https://sandbox.iotatoken.com/api/v1/',
-          auth_token = 'demo7982-be4a-4afa-830e-7859929d892c',
-        ),
-      )
+    api = Iota("https://nodes.thetangle.org:443")
 
-The ``SandboxAdapter`` is a specialized ``HttpAdapter`` that sends
-authenticated requests to sandbox nodes.
+    # Sets the logging level for the root logger (and for its handlers)
+    basicConfig(level=DEBUG)
 
-.. note::
+    # Get a new logger derived from the root logger
+    logger = getLogger(__name__)
 
-    See `Sandbox <https://dev.iota.org/sandbox/>`_ Documentation for more information about sandbox nodes.
+    # Attach the logger to the adapter
+    api.adapter.set_logger(logger)
 
-Sandbox nodes process certain commands asynchronously. When
-``SandboxAdapter`` determines that a request is processed
-asynchronously, it will block, then poll the node periodically until it
-receives a response.
+    # Execute a command that sends request to the node
+    api.get_node_info()
 
-The result is that ``SandboxAdapter`` abstracts away the sandbox node's
-asynchronous functionality so that your API client behaves exactly the
-same as if it were connecting to a non-sandbox node.
+    # Log messages should be printed to console
 
-To create a ``SandboxAdapter``, you must provide the URI of the sandbox
-node and the auth token that you received from the node maintainer. Note
-that ``SandboxAdapter`` only works with ``http://`` and ``https://``
-URIs.
+**Logging to a file with custom format**
 
-You may also specify the polling interval (defaults to 15 seconds) and
-the number of polls before giving up on an asynchronous job (defaults to
-8 times).
+.. code:: python
 
-.. note::
+    from logging import getLogger, DEBUG, FileHandler, Formatter
+    from iota import Iota
 
-    For parity with the other adapters, ``SandboxAdapter`` blocks until it receives a response from the node.
+    # Create a custom logger
+    logger = getLogger(__name__)
 
-        If you do not want ``SandboxAdapter`` to block the main thread, it is recommended that you execute it in a separate thread or process.
+    # Set logging level to DEBUG
+    logger.setLevel(DEBUG)
 
+    # Create handler to write to a log file
+    f_handler = FileHandler(filename='pyota.log',mode='a')
+    f_handler.setLevel(DEBUG)
+
+    # Create formatter and add it to handler
+    f_format = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    f_handler.setFormatter(f_format)
+
+    # Add handler to the logger
+    logger.addHandler(f_handler)
+
+    # Create API instance
+    api = Iota("https://nodes.thetangle.org:443")
+
+    # Add logger to the adapter of the API instance
+    api.adapter.set_logger(logger)
+
+    # Sends a request to the node
+    api.get_node_info()
+
+    # Open 'pyota.log' file and observe the logs
+
+**Logging to console with custom format**
+
+.. code:: python
+
+    from logging import getLogger, DEBUG, StreamHandler, Formatter
+    from iota import Iota
+
+    # Create a custom logger
+    logger = getLogger(__name__)
+
+    # Set logging level to DEBUG
+    logger.setLevel(DEBUG)
+
+    # Create handler to write to sys.stderr
+    s_handler = StreamHandler()
+    s_handler.setLevel(DEBUG)
+
+    # Create formatter and add it to handler
+    s_format = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    s_handler.setFormatter(s_format)
+
+    # Add handler to the logger
+    logger.addHandler(s_handler)
+
+    # Create API instance
+    api = Iota("https://nodes.thetangle.org:443")
+
+    # Add logger to the adapter of the API instance
+    api.adapter.set_logger(logger)
+
+    # Sends a request to the node
+    api.get_node_info()
+
+    # Observe log messages in console
 
 MockAdapter
 ~~~~~~~~~~~
 
 .. code:: python
 
-    from iota import Iota
-    from iota.adapter import MockAdapter
+    from iota import Iota, MockAdapter
 
     # Inject a mock adapter.
     api = Iota('mock://')
@@ -154,35 +211,14 @@ MockAdapter
     print(api.get_node_info()) # {'message': 'Hello, IOTA!'}
     print(api.get_node_info()) # raises BadApiResponse exception
 
-``MockAdapter`` is used to simulate the behavior of an adapter without
-actually sending any requests to the node.
+.. autoclass:: MockAdapter
 
-This is particularly useful in unit and functional tests where you want
-to verify that your code works correctly in specific scenarios, without
-having to engineer your own subtangle.
+To use :py:class:`MockAdapter`, you must first seed the responses that you want
+it to return by calling its :py:meth:`MockAdapter.seed_response` method.
 
-To configure an ``Iota`` instance to use ``MockAdapter``, specify
-``mock://`` as the node URI, or provide a ``MockAdapter`` instance.
-
-To use ``MockAdapter``, you must first seed the responses that you want
-it to return by calling its ``seed_response`` method.
-
-``seed_response`` takes two parameters:
-
--  ``command: Text``: The name of the command. Note that this is the
-   camelCase version of the command name (e.g., ``getNodeInfo``, not
-   ``get_node_info``).
--  ``response: dict``: The response that the adapter will return.
-
-You can seed multiple responses for the same command; the
-``MockAdapter`` maintains a queue for each command internally, and it
-will pop a response off of the corresponding queue each time it
-processes a request.
-
-Note that you have to call ``seed_response`` once for each request you
-expect it to process. If ``MockAdapter`` does not have a seeded response
-for a particular command, it will raise a ``BadApiResponse`` exception
-(simulates a 404 response).
+**seed_response**
+^^^^^^^^^^^^^^^^^
+.. automethod:: MockAdapter.seed_response
 
 Wrappers
 --------
@@ -192,53 +228,8 @@ otherwise modify the behavior of adapters.
 
 RoutingWrapper
 ~~~~~~~~~~~~~~
+.. autoclass:: iota.adapter.wrappers.RoutingWrapper
 
-.. code:: python
-
-    from iota import Iota
-    from iota.adapter.wrappers import RoutingWrapper
-
-    api =\
-      Iota(
-        # Send PoW requests to local node.
-        # All other requests go to light wallet node.
-        RoutingWrapper('https://service.iotasupport.com:14265')
-          .add_route('attachToTangle', 'http://localhost:14265')
-          .add_route('interruptAttachingToTangle', 'http://localhost:14265')
-      )
-
-``RoutingWrapper`` allows you to route API requests to different nodes
-depending on the command name.
-
-For example, you could use this wrapper to direct all PoW requests to a
-local node, while sending the other requests to a light wallet node.
-
-.. note::
-
-    A common use case for ``RoutingWrapper`` is to perform proof-of-work on
-    a specific (local) node, but let all other requests go to another node.
-    Take care when you use ``RoutingWrapper`` adapter and ``local_pow``
-    parameter together in an API instance, because the behavior might not
-    be obvious.
-
-    ``local_pow`` tells the API to perform proof-of-work (``attach_to_tangle``)
-    without relying on an actual node. It does this by calling an extension
-    package `PyOTA-PoW <https://pypi.org/project/PyOTA-PoW/>`_ that does the
-    job. In PyOTA, this means the request doesn't reach the adapter, it
-    is redirected before.
-    As a consequence,  ``local_pow`` has precedence over the route that is
-    defined in ``RoutingWrapper``.
-
-``RoutingWrapper`` must be initialized with a default URI/adapter. This
-is the adapter that will be used for any command that doesn't have a
-route associated with it.
-
-Once you've initialized the ``RoutingWrapper``, invoke its ``add_route``
-method to specify a different adapter to use for a particular command.
-
-``add_route`` requires two arguments:
-
--  ``command: Text``: The name of the command. Note that this is the
-   camelCase version of the command name (e.g., ``getNodeInfo``, not
-   ``get_node_info``).
--  ``adapter: AdapterSpec``: The adapter or URI to send this request to.
+**add_route**
+^^^^^^^^^^^^^
+.. automethod:: iota.adapter.wrappers.RoutingWrapper.add_route

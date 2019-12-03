@@ -1217,9 +1217,18 @@ class Iota(StrictIota):
                 inside a loop.
 
             If ``None``, this method will progressively generate
-            addresses and scan the Tangle until it finds one that is unused.
-            This is if no transactions are referencing it and it was not spent
-            from before.
+            addresses and scan the Tangle until it finds one that has no
+            transactions referencing it and was never spent from.
+
+            .. note::
+                A snapshot removes transactions from the Tangle. As a
+                consequence, after a snapshot, it may happen that when ``count``
+                is ``None``, this API call returns a "new" address that used to
+                have transactions before the snapshot.
+                As a workaround, you can save your used addresses and their
+                ``key_index`` attribute in a local database. Use the
+                ``index`` parameter to tell the API from where to start
+                generating and checking new addresses.
 
         :param int security_level:
             Number of iterations to use when generating new addresses.

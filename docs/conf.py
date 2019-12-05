@@ -47,8 +47,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyOTA'
-copyright = '2017, Phoenix Zerin'
-author = 'Phoenix Zerin'
+copyright = '2019, Phoenix Zerin & Levente Pap'
+author = 'Phoenix Zerin, Levente Pap'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -12,13 +12,8 @@ from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
 from iota.adapter import MockAdapter
 from iota.commands.extended.broadcast_bundle import BroadcastBundleCommand
 from iota.filters import Trytes
+from test import patch, MagicMock
 
-from six import PY2
-
-if PY2:
-    from mock import MagicMock, patch
-else:
-    from unittest.mock import MagicMock, patch
 
 # RequestFilterTestCase code reused from get_bundles_test.py
 class BroadcastBundleRequestFilterTestCase(BaseFilterTestCase):
@@ -148,11 +143,24 @@ class BroadcastBundleCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).broadcastBundle,
-      BroadcastBundleCommand,
-    )
+    with patch('iota.commands.extended.broadcast_bundle.BroadcastBundleCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.broadcast_bundle('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
     
   def test_happy_path(self):
     """

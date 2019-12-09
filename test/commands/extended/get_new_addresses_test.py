@@ -13,6 +13,7 @@ from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from test import patch, MagicMock
 
 
 class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
@@ -365,11 +366,24 @@ class GetNewAddressesCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getNewAddresses,
-      GetNewAddressesCommand,
-    )
+    with patch('iota.commands.extended.get_new_addresses.GetNewAddressesCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_new_addresses('hashes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_get_addresses_offline(self):
     """

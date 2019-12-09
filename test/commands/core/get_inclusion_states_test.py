@@ -11,6 +11,7 @@ from iota.adapter import MockAdapter
 from iota.commands.core.get_inclusion_states import GetInclusionStatesCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
+from test import patch, MagicMock
 
 
 class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
@@ -259,8 +260,21 @@ class GetInclusionStatesCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getInclusionStates,
-      GetInclusionStatesCommand,
-    )
+    with patch('iota.commands.core.get_inclusion_states.GetInclusionStatesCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_inclusion_states('transactions', 'tips')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

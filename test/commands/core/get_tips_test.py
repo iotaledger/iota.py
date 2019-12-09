@@ -11,6 +11,7 @@ from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.core.get_tips import GetTipsCommand
 from iota.transaction.types import TransactionHash
+from test import patch, MagicMock
 
 
 class GetTipsRequestFilterTestCase(BaseFilterTestCase):
@@ -120,11 +121,24 @@ class GetTipsCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getTips,
-      GetTipsCommand,
-    )
+    with patch('iota.commands.core.get_tips.GetTipsCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_tips()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_type_coercion(self):
     """

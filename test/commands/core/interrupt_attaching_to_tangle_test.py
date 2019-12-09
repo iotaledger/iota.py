@@ -10,6 +10,7 @@ from iota import Iota
 from iota.adapter import MockAdapter
 from iota.commands.core.interrupt_attaching_to_tangle import \
   InterruptAttachingToTangleCommand
+from test import patch, MagicMock
 
 
 class InterruptAttachingToTangleRequestFilterTestCase(BaseFilterTestCase):
@@ -48,8 +49,21 @@ class InterruptAttachingToTangleCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).interruptAttachingToTangle,
-      InterruptAttachingToTangleCommand,
-    )
+    with patch('iota.commands.core.interrupt_attaching_to_tangle.InterruptAttachingToTangleCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.interrupt_attaching_to_tangle()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

@@ -14,6 +14,7 @@ from iota.adapter import MockAdapter
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
 from iota.filters import Trytes
 from test import mock
+from test import patch, MagicMock
 
 
 class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
@@ -303,12 +304,25 @@ class ReplayBundleCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verifies that the command is wired-up correctly.
+    Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).replayBundle,
-      ReplayBundleCommand,
-    )
+    with patch('iota.commands.extended.replay_bundle.ReplayBundleCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.replay_bundle('transaction')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_happy_path(self):
     """

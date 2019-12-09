@@ -4,10 +4,9 @@ from __future__ import absolute_import, division, print_function, \
 
 from unittest import TestCase
 
-import mock
-
 from iota import Iota, MockAdapter, Transaction
 from iota.commands.extended import GetTransactionObjectsCommand
+from test import patch, MagicMock, mock
 
 
 class GetTransactionObjectsCommandTestCase(TestCase):
@@ -71,11 +70,24 @@ class GetTransactionObjectsCommandTestCase(TestCase):
     def test_wireup(self):
         """
         Verify that the command is wired up correctly.
+
+        The API method indeed calls the appropiate command.
         """
-        self.assertIsInstance(
-            Iota(self.adapter).getTransactionObjects,
-            GetTransactionObjectsCommand,
-        )
+        with patch('iota.commands.extended.get_transaction_objects.GetTransactionObjectsCommand.__call__',
+                MagicMock(return_value='You found me!')
+                ) as mocked_command:
+
+            api = Iota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = api.get_transaction_objects('hashes')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
 
     def test_transaction_found(self):
         """

@@ -9,6 +9,7 @@ from filters.test import BaseFilterTestCase
 from iota import Iota, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.core.get_node_info import GetNodeInfoCommand
+from test import patch, MagicMock
 
 
 class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
@@ -122,8 +123,21 @@ class GetNodeInfoCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getNodeInfo,
-      GetNodeInfoCommand,
-    )
+    with patch('iota.commands.core.get_node_info.GetNodeInfoCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_node_info()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

@@ -10,6 +10,7 @@ from iota import Iota
 from iota.adapter import MockAdapter
 from iota.commands.core.remove_neighbors import RemoveNeighborsCommand
 from iota.filters import NodeUri
+from test import patch, MagicMock
 
 
 class RemoveNeighborsRequestFilterTestCase(BaseFilterTestCase):
@@ -153,8 +154,21 @@ class RemoveNeighborsCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).removeNeighbors,
-      RemoveNeighborsCommand,
-    )
+    with patch('iota.commands.core.remove_neighbors.RemoveNeighborsCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.remove_neighbors('uris')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

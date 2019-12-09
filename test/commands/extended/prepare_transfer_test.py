@@ -16,6 +16,7 @@ from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
 from test import mock
+from test import patch, MagicMock
 
 
 class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -576,11 +577,24 @@ class PrepareTransferCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).prepareTransfer,
-      PrepareTransferCommand,
-    )
+    with patch('iota.commands.extended.prepare_transfer.PrepareTransferCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.prepare_transfer('transfers')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_pass_inputs_not_needed(self):
     """

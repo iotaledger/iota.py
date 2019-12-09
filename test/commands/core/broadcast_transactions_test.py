@@ -13,7 +13,7 @@ from iota.adapter import MockAdapter
 from iota.commands.core.broadcast_transactions import \
   BroadcastTransactionsCommand
 from iota.filters import Trytes
-
+from test import patch, MagicMock
 
 class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = BroadcastTransactionsCommand(MockAdapter()).get_request_filter
@@ -187,8 +187,21 @@ class BroadcastTransactionsCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).broadcastTransactions,
-      BroadcastTransactionsCommand,
-    )
+    with patch('iota.commands.core.broadcast_transactions.BroadcastTransactionsCommand.__call__',
+               MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.broadcast_transactions('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

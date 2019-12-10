@@ -13,7 +13,6 @@ the networking, communicating with a node.
 You can choose and configure the available adapters to be used with the API:
 
  - HttpAdapter,
- - SandboxAdapter,
  - MockAdapter.
 
 AdapterSpec

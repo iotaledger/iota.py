@@ -15,6 +15,7 @@ from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import CreateMultisigAddressCommand
 from iota.multisig.types import MultisigAddress
+from test import patch, MagicMock
 
 
 class CreateMultisigAddressCommandTestCase(TestCase):
@@ -49,11 +50,24 @@ class CreateMultisigAddressCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      MultisigIota(self.adapter).createMultisigAddress,
-      CreateMultisigAddressCommand,
-    )
+    with patch('iota.multisig.commands.create_multisig_address.CreateMultisigAddressCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = MultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.create_multisig_address('digests')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_happy_path(self):
     """

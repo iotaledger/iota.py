@@ -15,6 +15,7 @@ from iota.commands.extended.get_account_data import GetAccountDataCommand, \
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
+from test import patch, MagicMock
 
 
 class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
@@ -362,11 +363,24 @@ class GetAccountDataCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getAccountData,
-      GetAccountDataCommand,
-    )
+    with patch('iota.commands.extended.get_account_data.GetAccountDataCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_account_data()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_happy_path(self):
     """

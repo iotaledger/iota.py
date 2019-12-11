@@ -12,6 +12,7 @@ from iota import Iota, TransactionTrytes, TryteString, TransactionHash
 from iota.adapter import MockAdapter
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
+from test import patch, MagicMock
 
 
 class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
@@ -371,11 +372,24 @@ class SendTrytesCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).sendTrytes,
-      SendTrytesCommand,
-    )
+    with patch('iota.commands.extended.send_trytes.SendTrytesCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.send_trytes('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_happy_path(self):
     """

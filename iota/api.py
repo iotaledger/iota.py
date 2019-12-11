@@ -4,13 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from typing import Dict, Iterable, Optional, Text
 
-from six import add_metaclass
-
 from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
     TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
-from iota.commands import BaseCommand, CustomCommand, core, \
-    discover_commands, extended
+from iota.commands import BaseCommand, CustomCommand, core, extended
 from iota.commands.extended.helpers import Helpers
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
@@ -28,32 +25,6 @@ class InvalidCommand(ValueError):
     """
     pass
 
-
-class ApiMeta(type):
-    """
-    Manages command registries for IOTA API base classes.
-    """
-
-    def __init__(cls, name, bases=None, attrs=None):
-        super(ApiMeta, cls).__init__(name, bases, attrs)
-
-        if not hasattr(cls, 'commands'):
-            cls.commands = {}
-
-        # Copy command registry from base class to derived class, but
-        # in the event of a conflict, preserve the derived class'
-        # commands.
-        commands = {}
-        for base in bases:
-            if isinstance(base, ApiMeta):
-                commands.update(base.commands)
-
-        if commands:
-            commands.update(cls.commands)
-            cls.commands = commands
-
-
-@add_metaclass(ApiMeta)
 class StrictIota(object):
     """
     API to send HTTP requests for communicating with an IOTA node.
@@ -82,7 +53,6 @@ class StrictIota(object):
             :ref:`find out<pow-label>` how to use it.
 
     """
-    commands = discover_commands('iota.commands.core')
 
     def __init__(self, adapter, testnet=False, local_pow=False):
         # type: (AdapterSpec, bool, bool) -> None
@@ -122,48 +92,6 @@ class StrictIota(object):
         # But technically, the parameter belongs to the adapter.
         self.adapter.set_local_pow(local_pow)
         self.testnet = testnet
-
-    def __getattr__(self, command):
-        # type: (Text) -> BaseCommand
-        """
-        Creates a pre-configured command instance.
-
-        This method will only return commands supported by the API
-        class.
-
-        If you want to execute an arbitrary API command, use
-        :py:meth:`create_command`.
-
-        :param Text command:
-            The name of the command to create.
-
-        References:
-
-        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
-        """
-        # Fix an error when invoking :py:func:`help`.
-        # https://github.com/iotaledger/iota.py/issues/41
-        if command == '__name__':
-            # noinspection PyTypeChecker
-            return None
-
-        # Fix an error when invoking dunder methods.
-        # https://github.com/iotaledger/iota.py/issues/206
-        if command.startswith("__"):
-            # noinspection PyUnresolvedReferences
-            return super(StrictIota, self).__getattr__(command)
-
-        try:
-            command_class = self.commands[command]
-        except KeyError:
-            raise InvalidCommand(
-                '{cls} does not support {command!r} command.'.format(
-                    cls=type(self).__name__,
-                    command=command,
-                ),
-            )
-
-        return command_class(self.adapter)
 
     def create_command(self, command):
         # type: (Text) -> CustomCommand
@@ -862,7 +790,6 @@ class Iota(StrictIota):
     - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
     """
-    commands = discover_commands('iota.commands.extended')
 
     def __init__(self, adapter, seed=None, testnet=False, local_pow=False):
         # type: (AdapterSpec, Optional[TrytesCompatible], bool, bool) -> None

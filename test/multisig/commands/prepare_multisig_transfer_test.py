@@ -14,6 +14,7 @@ from iota.crypto.types import Digest
 from iota.multisig import MultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
 from iota.multisig.types import MultisigAddress
+from test import patch, MagicMock
 
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -526,12 +527,25 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verifies the command is wired up correctly.
+    Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      MultisigIota(self.adapter).prepareMultisigTransfer,
-      PrepareMultisigTransferCommand,
-    )
+    with patch('iota.multisig.commands.prepare_multisig_transfer.PrepareMultisigTransferCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = MultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.prepare_multisig_transfer('transfer', 'multisig_input')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_happy_path(self):
     """

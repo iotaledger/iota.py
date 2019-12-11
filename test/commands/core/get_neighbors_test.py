@@ -9,6 +9,7 @@ from filters.test import BaseFilterTestCase
 from iota import Iota
 from iota.adapter import MockAdapter
 from iota.commands.core.get_neighbors import GetNeighborsCommand
+from test import patch, MagicMock
 
 
 class GetNeighborsRequestFilterTestCase(BaseFilterTestCase):
@@ -49,8 +50,21 @@ class GetNeighborsCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getNeighbors,
-      GetNeighborsCommand,
-    )
+    with patch('iota.commands.core.get_neighbors.GetNeighborsCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_neighbors()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

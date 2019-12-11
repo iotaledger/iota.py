@@ -12,7 +12,7 @@ from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
 from iota.adapter import MockAdapter
 from iota.commands.extended.traverse_bundle import TraverseBundleCommand
 from iota.filters import Trytes
-
+from test import patch, MagicMock
 
 # Same tests as for GetBundlesRequestFilter (it is the same filter)
 class TraverseBundleRequestFilterTestCase(BaseFilterTestCase):
@@ -129,12 +129,25 @@ class TraverseBundleCommandTestCase(TestCase):
 
     def test_wireup(self):
         """
-        Verifies that the command is wired up correctly.
+        Verify that the command is wired up correctly.
+
+        The API method indeed calls the appropiate command.
         """
-        self.assertIsInstance(
-            Iota(self.adapter).traverseBundle,
-            TraverseBundleCommand,
-        )
+        with patch('iota.commands.extended.traverse_bundle.TraverseBundleCommand.__call__',
+                MagicMock(return_value='You found me!')
+                ) as mocked_command:
+
+            api = Iota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = api.traverse_bundle('tail')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
 
     def test_single_transaction(self):
         """

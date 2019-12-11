@@ -11,6 +11,7 @@ from six import text_type
 from iota import Address, Iota
 from iota.adapter import MockAdapter
 from iota.commands.extended.is_reattachable import IsReattachableCommand
+from test import patch, MagicMock
 
 
 class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
@@ -199,8 +200,21 @@ class IsReattachableCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).isReattachable,
-      IsReattachableCommand,
-    )
+    with patch('iota.commands.extended.is_reattachable.IsReattachableCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.is_reattachable('addresses')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

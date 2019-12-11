@@ -11,5 +11,6 @@
    extended_api
    addresses
    multisig
+   commands
 
 .. include:: ../README.rst

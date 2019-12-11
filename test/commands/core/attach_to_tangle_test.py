@@ -11,6 +11,7 @@ from iota.adapter import MockAdapter
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
 from six import binary_type, text_type
+from test import patch, MagicMock
 
 
 class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
@@ -423,7 +424,6 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
       },
     )
 
-
 class AttachToTangleCommandTestCase(TestCase):
   def setUp(self):
     super(AttachToTangleCommandTestCase, self).setUp()
@@ -433,8 +433,21 @@ class AttachToTangleCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).attachToTangle,
-      AttachToTangleCommand,
-    )
+    with patch('iota.commands.core.attach_to_tangle.AttachToTangleCommand.__call__',
+               MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.attach_to_tangle('trunk', 'branch', 'trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )

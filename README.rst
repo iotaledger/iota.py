@@ -26,9 +26,9 @@ Dependencies
 ============
 PyOTA is compatible with Python 3.7, 3.6, 3.5 and 2.7
 
-============
-Installation
-============
+=============
+Install PyOTA
+=============
 To install the latest version::
 
   pip install pyota

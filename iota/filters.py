@@ -24,7 +24,13 @@ __all__ = [
 class GeneratedAddress(f.BaseFilter):
     """
     Validates an incoming value as a generated :py:class:`Address` (must
-    have ``key_index`` set).
+    have ``key_index`` and ``security_level`` set).
+
+    When a value doesn't pass the filter, a ``ValueError`` is raised with lots
+    of contextual info attached to it.
+
+    :return:
+        :py:class:`GeneratedAddress` object.
     """
     CODE_NO_KEY_INDEX = 'no_key_index'
     CODE_NO_SECURITY_LEVEL = 'no_security_level'
@@ -55,6 +61,12 @@ class GeneratedAddress(f.BaseFilter):
 class NodeUri(f.BaseFilter):
     """
     Validates a string as a node URI.
+
+    When a value doesn't pass the filter, a ``ValueError`` is raised with lots
+    of contextual info attached to it.
+
+    :return:
+        :py:class:`NodeUri` object.
     """
     SCHEMES = {'tcp', 'udp'}
     """
@@ -87,6 +99,9 @@ class NodeUri(f.BaseFilter):
 def SecurityLevel():
     """
     Generates a filter chain for validating a security level.
+
+    :return:
+        :py:class:`filters.FilterChain` object.
     """
     return (
             f.Type(int) |
@@ -99,6 +114,21 @@ def SecurityLevel():
 class Trytes(f.BaseFilter):
     """
     Validates a sequence as a sequence of trytes.
+
+    When a value doesn't pass the filter, a ``ValueError`` is raised with lots
+    of contextual info attached to it.
+
+    :param TryteString result_type:
+        Any subclass of :py:class:`~iota.TryteString` that you want the filter
+        to validate.
+
+    :raises TypeError: if value is not of ``result_type``.
+    :raises ValueError:
+        if ``result_type`` is not of :py:class:`~iota.TryteString` type.
+
+    :return:
+        :py:class:`Trytes` object.
+
     """
     CODE_NOT_TRYTES = 'not_trytes'
     CODE_WRONG_FORMAT = 'wrong_format'
@@ -190,6 +220,16 @@ def StringifiedTrytesArray(trytes_type=TryteString):
     strings corresponding to the specified type (e.g.,
     ``TransactionHash``).
 
+    When a value doesn't pass the filter, a ``ValueError`` is raised with lots
+    of contextual info attached to it.
+
+    :param TryteString result_type:
+        Any subclass of :py:class:`~iota.TryteString` that you want the filter
+        to validate.
+
+    :return:
+        :py:class:`filters.FilterChain` object.
+
     .. important::
         This filter will return string values, suitable for inclusion in
         an API request.  If you are expecting objects (e.g.,
@@ -209,8 +249,14 @@ def StringifiedTrytesArray(trytes_type=TryteString):
 
 class AddressNoChecksum(Trytes):
     """
-    Validates a sequence as an Address, then chops off the checksum if
-    present.
+    Validates a sequence as an :py:class:`Address`, then chops off the checksum
+    if present.
+
+    When a value doesn't pass the filter, a ``ValueError`` is raised with lots
+    of contextual info attached to it.
+
+    :return:
+        :py:class:`AddressNoChecksum` object.
     """
     ADDRESS_BAD_CHECKSUM = 'address_bad_checksum'
 

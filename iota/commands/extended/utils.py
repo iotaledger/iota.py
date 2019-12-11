@@ -9,6 +9,8 @@ from iota import Address, Bundle, Transaction, \
 from iota.adapter import BaseAdapter
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_trytes import GetTrytesCommand
+from iota.commands.core.were_addresses_spent_from import \
+    WereAddressesSpentFromCommand
 from iota.commands.extended import FindTransactionObjectsCommand
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.commands.extended.get_latest_inclusion import \
@@ -25,15 +27,17 @@ def iter_used_addresses(
 ):
     # type: (...) -> Generator[Tuple[Address, List[TransactionHash]], None, None]
     """
-    Scans the Tangle for used addresses.
+    Scans the Tangle for used addresses. A used address is an address that
+    was spent from or has a transaction.
 
     This is basically the opposite of invoking ``getNewAddresses`` with
-    ``stop=None``.
+    ``count=None``.
     """
     if security_level is None:
         security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL
 
     ft_command = FindTransactionsCommand(adapter)
+    wasf_command = WereAddressesSpentFromCommand(adapter)
 
     for addy in AddressGenerator(seed, security_level).create_iterator(start):
         ft_response = ft_command(addresses=[addy])
@@ -41,10 +45,15 @@ def iter_used_addresses(
         if ft_response['hashes']:
             yield addy, ft_response['hashes']
         else:
-            break
+            wasf_response = wasf_command(addresses=[addy])
+            if wasf_response['states'][0]:
+                yield addy, []
+            else:
+                break
 
-        # Reset the command so that we can call it again.
+        # Reset the commands so that we can call them again.
         ft_command.reset()
+        wasf_command.reset()
 
 
 def get_bundles_from_transaction_hashes(

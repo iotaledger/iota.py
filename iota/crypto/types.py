@@ -21,11 +21,20 @@ __all__ = [
 class Digest(TryteString):
     """
     A private key digest.  Basically the same thing as a regular
-    :py:class:`TryteString`, except that it (usually) has a key index
+    :py:class:`iota.TryteString`, except that it (usually) has a key index
     associated with it.
 
     Note: in a few cases (e.g., generating multisig addresses), a key
     index is not necessary/available.
+
+    :param TrytesCompatible trytes:
+        Byte string or bytearray.
+
+    :param Optional[int] key_index:
+        Key index used for generating the digest.
+
+    :raises ValueError:
+        if length of ``trytes`` is not multiple of :py:attr:`iota.Hash.LEN`.
     """
 
     def __init__(self, trytes, key_index=None):
@@ -57,11 +66,26 @@ class Digest(TryteString):
         """
         Returns the number of iterations that were used to generate this
         digest (also known as "security level").
+
+        :return:
+            ``int``
         """
         return len(self) // Hash.LEN
 
     def as_json_compatible(self):
         # type: () -> dict
+        """
+        Returns a JSON-compatible representation of the digest.
+
+        :return:
+            ``dict`` with the following structure::
+
+                {
+                    trytes': Text,
+                    'key_index': int,
+                }
+
+        """
         return {
             'trytes': self._trytes.decode('ascii'),
             'key_index': self.key_index,
@@ -70,12 +94,18 @@ class Digest(TryteString):
 
 class Seed(TryteString):
     """
-    A TryteString that acts as a seed for crypto functions.
+    An :py:class:`iota.TryteString` that acts as a seed for crypto functions.
 
-    Note: This class is identical to :py:class:`TryteString`, but it has
+    Note: This class is identical to :py:class:`iota.TryteString`, but it has
     a distinct type so that seeds can be identified in Python code.
 
     IMPORTANT: For maximum security, a seed must be EXACTLY 81 trytes!
+
+    :param TrytesCompatible trytes:
+        Byte string or bytearray.
+
+    :raises Warning:
+        if ``trytes`` are longer than 81 trytes in length.
 
     References:
 
@@ -101,7 +131,7 @@ class Seed(TryteString):
         """
         Generates a random seed using a CSPRNG.
 
-        :param length:
+        :param int length:
             Length of seed, in trytes.
 
             For maximum security, this should always be set to 81, but
@@ -109,14 +139,39 @@ class Seed(TryteString):
             doing.
 
             See https://iota.stackexchange.com/q/249 for more info.
+
+        :return:
+            :py:class:`iota.Seed` object.
+
+        Example usage::
+
+            from iota import Seed
+
+            my_seed = Seed.random()
+
+            print(my_seed)
+
         """
         return super(Seed, cls).random(length)
 
 
 class PrivateKey(TryteString):
     """
-    A TryteString that acts as a private key, e.g., for generating
+    An :py:class:`iota.TryteString` that acts as a private key, e.g., for generating
     message signatures, new addresses, etc.
+
+    :param TrytesCompatible trytes:
+        Byte string or bytearray.
+
+    :param Optional[int] key_index:
+        Key index used for generating the private key.
+
+    :param Optional[int] security_level:
+        Security level used for generating the private key.
+
+    :raises ValueError:
+        if length of ``trytes`` is not a multiple of
+        :py:attr:`iota.transaction.Fragement.LEN`.
     """
 
     def __init__(self, trytes, key_index=None, security_level=None):
@@ -143,6 +198,19 @@ class PrivateKey(TryteString):
 
     def as_json_compatible(self):
         # type: () -> dict
+        """
+        Returns a JSON-compatible representation of the private key.
+
+        :return:
+            ``dict`` with the following structure::
+
+                {
+                    trytes': Text,
+                    'key_index': int,
+                    'security_level': int,
+                }
+
+        """
         return {
             'trytes': self._trytes.decode('ascii'),
             'key_index': self.key_index,
@@ -160,6 +228,9 @@ class PrivateKey(TryteString):
         The digest is essentially the result of running the signing key
         through a PBKDF, yielding a constant-length hash that can be
         used for crypto.
+
+        :return:
+            :py:class:`iota.crypto.types.Digest` object.
         """
         hashes_per_fragment = FRAGMENT_LENGTH // Hash.LEN
 
@@ -209,14 +280,21 @@ class PrivateKey(TryteString):
         """
         Signs the inputs starting at the specified index.
 
-        :param bundle:
+        :param Bundle bundle:
             The bundle that contains the input transactions to sign.
 
-        :param start_index:
+        :param int start_index:
             The index of the first input transaction.
 
             If necessary, the resulting signature will be split across
             subsequent transactions automatically.
+
+        :raises ValuError:
+            - if ``bundle`` is not finalized.
+            - if attempting to sign non-input transactions.
+            - if attempting to sign transactions with non-empty
+              ``signature_message_fragment`` field.
+        :raises IndexError: if wrong ``start_index`` is provided.
         """
 
         if not bundle.hash:

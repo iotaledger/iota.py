@@ -881,3 +881,243 @@ They both licked their dry lips.
     )
 
     self.assertEqual(type(transaction.tag), type(Tag(b'')))
+
+  def test_add_signature_or_message(self):
+    """
+    Add a fragment to a transaction.
+    """
+    # Add a transaction
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+      message = TryteString.from_unicode('This should be overwritten'),
+      value = 0,
+    ))
+    custom_msg = \
+      'The early bird gets the worm, but the custom-msg gets into the bundle.'
+    custom_fragment = Fragment.from_unicode(custom_msg)
+
+    # Before finalization, the method adds to message field...
+    self.bundle.add_signature_or_message([custom_fragment])
+    self.assertEqual(
+      self.bundle._transactions[0].message,
+      custom_fragment
+    )
+
+    # ... because upon finalization, this is translated into
+    # signature_message_fragment field.
+    self.bundle.finalize()
+    self.assertEqual(
+      self.bundle._transactions[0].signature_message_fragment,
+      custom_fragment
+    )
+
+    # Do we have the right text inside?
+    self.assertEqual(
+      self.bundle.get_messages()[0],
+      custom_msg
+    )
+
+  def test_add_signature_or_messagee_multiple(self):
+    """
+    Add multiple fragments.
+    """
+    # Add 3 transactions to the bundle, For convenience, we use
+    # 3 different addresses, so they are not grouped together and
+    # bundle.get_messages() returns a list of messages mapping to
+    # the 3 transactions.
+    for i in ['A', 'B', 'C']:
+      self.bundle.add_transaction(ProposedTransaction(
+        address =
+          Address(
+            'TESTVALUE' + i + 'DONTUSEINPRODUCTION99999QARFLF'
+            'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+          ),
+        message = TryteString.from_unicode('This should be overwritten'),
+        value = 0,
+      ))
+
+    fragment1 = Fragment.from_unicode('This is the first fragment.')
+    fragment2 = Fragment.from_unicode('This is the second fragment.')
+
+    self.bundle.add_signature_or_message([fragment1, fragment2])
+
+    bundle_fragments = []
+    for tx in self.bundle:
+      bundle_fragments.append(tx.message)
+
+    self.assertListEqual(
+      bundle_fragments,
+      [fragment1, fragment2, TryteString.from_unicode('This should be overwritten')]
+    )
+
+    self.bundle.finalize()
+
+    bundle_fragments_unicode = []
+    for tx in self.bundle:
+      bundle_fragments_unicode.append(tx.signature_message_fragment.decode())
+
+    self.assertListEqual(
+      bundle_fragments_unicode,
+      [fragment1.decode(), fragment2.decode(), 'This should be overwritten']
+    )
+
+  def test_add_signature_or_message_multiple_offset(self):
+    """
+    Add multiple fragments with offset.
+    """
+    # Add 3 transactions to the bundle.
+    for i in ['A', 'B', 'C']:
+      self.bundle.add_transaction(ProposedTransaction(
+        address =
+          Address(
+            'TESTVALUE' + i + 'DONTUSEINPRODUCTION99999QARFLF'
+            'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+          ),
+        message = TryteString.from_unicode('This should be overwritten'),
+        value = 0,
+      ))
+
+    fragment1 = Fragment.from_unicode('This is the first fragment.')
+    fragment2 = Fragment.from_unicode('This is the second fragment.')
+
+    self.bundle.add_signature_or_message([fragment1, fragment2], 1)
+
+    bundle_fragments = []
+    for tx in self.bundle:
+      bundle_fragments.append(tx.message)
+
+    self.assertListEqual(
+      bundle_fragments,
+      [TryteString.from_unicode('This should be overwritten'), fragment1, fragment2]
+    )
+
+    self.bundle.finalize()
+
+    bundle_fragments_unicode = []
+    for tx in self.bundle:
+      bundle_fragments_unicode.append(tx.signature_message_fragment.decode())
+
+    self.assertListEqual(
+      bundle_fragments_unicode,
+      ['This should be overwritten', fragment1.decode(), fragment2.decode()]
+    )
+
+  def test_add_signature_or_message_too_long_fragments(self):
+    """
+    Trying to add too many fragments to a bundle, when there aren't enough
+    transactions to hold them.
+    """
+    # Add 3 transactions to the bundle.
+    for i in ['A', 'B', 'C']:
+      self.bundle.add_transaction(ProposedTransaction(
+        address =
+          Address(
+            'TESTVALUE' + i + 'DONTUSEINPRODUCTION99999QARFLF'
+            'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+          ),
+        message= TryteString.from_unicode('This should be overwritten'),
+        value = 0,
+      ))
+
+    fragment1 = Fragment.from_unicode('This is the first fragment.')
+    # 4 fragments, 3 txs in bundle
+    fragments = [fragment1] * 4
+
+    with self.assertRaises(ValueError):
+      self.bundle.add_signature_or_message(fragments)
+
+    # Length is okay, but overflow because of offset
+    fragments = [fragment1] * 3
+
+    with self.assertRaises(ValueError):
+      self.bundle.add_signature_or_message(fragments,start_index=1)
+
+  def test_add_signature_or_message_invalid_start_index(self):
+    """
+    Attempting to add fragments to a bundle, but `start_index` is invalid.
+    """
+    # Add 3 transactions to the bundle.
+    for i in ['A', 'B', 'C']:
+      self.bundle.add_transaction(ProposedTransaction(
+        address =
+          Address(
+            'TESTVALUE' + i + 'DONTUSEINPRODUCTION99999QARFLF'
+            'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+          ),
+        message = TryteString.from_unicode('This should be overwritten'),
+        value = 0,
+      ))
+
+    fragment1 = Fragment.from_unicode('This is the first fragment.')
+
+    with self.assertRaises(ValueError):
+      self.bundle.add_signature_or_message([fragment1], start_index=-1)
+
+    with self.assertRaises(ValueError):
+      self.bundle.add_signature_or_message([fragment1], start_index=3)
+
+    with self.assertRaises(TypeError):
+      self.bundle.add_signature_or_message([fragment1], 'not an int')
+
+  def test_add_signature_or_message_empty_list(self):
+    """
+    Try to add an empty list of fragments.
+    """
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+      value = 0,
+    ))
+
+    with self.assertRaises(ValueError):
+      self.bundle.add_signature_or_message([])
+
+  def test_add_signature_or_message_wrong_types(self):
+    """
+    Try add signatures/messages with wrong type.
+    """
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+      value = 0,
+    ))
+
+    with self.assertRaises(TypeError):
+      self.bundle.add_signature_or_message('Not a list')
+
+    with self.assertRaises(TypeError):
+      self.bundle.add_signature_or_message(['List but not Fragment'])
+
+  def test_add_signature_or_message_finalized_bundle(self):
+    """
+    Try to call the method on a finalized bundle.
+    """
+    self.bundle.add_transaction(ProposedTransaction(
+      address =
+        Address(
+          b'TESTVALUE9DONTUSEINPRODUCTION99999QARFLF'
+          b'TDVATBVFTFCGEHLFJBMHPBOBOHFBSGAGWCM9PG9GX'
+        ),
+      message = TryteString.from_unicode('This should be overwritten'),
+      value = 0,
+    ))
+
+    custom_msg = \
+      'The early bird gets the worm, but the custom-msg gets into the bundle.'
+    custom_fragment = Fragment.from_unicode(custom_msg)
+
+    # Finalize the bundle, no further changes should be permitted.
+    self.bundle.finalize()
+
+    with self.assertRaises(RuntimeError):
+      self.bundle.add_signature_or_message([custom_fragment])

@@ -18,76 +18,13 @@ from iota.exceptions import with_context
 
 __all__ = [
   'BaseCommand',
-  'command_registry',
-  'discover_commands',
   'CustomCommand',
   'FilterCommand',
   'RequestFilter',
   'ResponseFilter',
 ]
 
-command_registry = {} # type: Dict[Text, CommandMeta]
-"""
-Registry of commands, indexed by command name.
-"""
-
-
-def discover_commands(package, recursively=True):
-  # type: (Union[ModuleType, Text], bool) -> Dict[Text, 'CommandMeta']
-  """
-  Automatically discover commands in the specified package.
-
-  :param package:
-    Package path or reference.
-
-  :param recursively:
-    If True, will descend recursively into sub-packages.
-
-  :return:
-    All commands discovered in the specified package, indexed by
-    command name (note: not class name).
-  """
-  # http://stackoverflow.com/a/25562415/
-  if isinstance(package, six.string_types):
-    package = import_module(package) # type: ModuleType
-
-  commands = {}
-
-  for _, name, is_package in walk_packages(package.__path__, package.__name__ + '.'):
-    # Loading the module is good enough; the CommandMeta metaclass will
-    # ensure that any commands in the module get registered.
-
-    # Prefix in name module move to function "walk_packages" for fix
-    # conflict with names importing packages
-    # Bug https://github.com/iotaledger/iota.py/issues/63
-    sub_package = import_module(name)
-
-    # Index any command classes that we find.
-    for (_, obj) in get_members(sub_package):
-      if is_class(obj) and isinstance(obj, CommandMeta):
-        command_name = getattr(obj, 'command')
-        if command_name:
-          commands[command_name] = obj
-
-    if recursively and is_package:
-      commands.update(discover_commands(sub_package))
-
-  return commands
-
-class CommandMeta(ABCMeta):
-  """
-  Automatically register new commands.
-  """
-  # noinspection PyShadowingBuiltins
-  def __init__(cls, what, bases=None, dict=None):
-    super(CommandMeta, cls).__init__(what, bases, dict)
-
-    if not is_abstract(cls):
-      command = getattr(cls, 'command')
-      if command:
-        command_registry[command] = cls
-
-@six.add_metaclass(CommandMeta)
+@six.add_metaclass(ABCMeta)
 class BaseCommand(object):
   """
   An API command ready to send to the node.
@@ -265,6 +202,7 @@ class FilterCommand(BaseCommand):
   """
   Uses filters to manipulate request/response values.
   """
+
   @abstract_method
   def get_request_filter(self):
     # type: () -> Optional[RequestFilter]
@@ -337,7 +275,3 @@ class FilterCommand(BaseCommand):
         )
 
     return value
-
-
-# Autodiscover commands in this package.
-discover_commands(__name__)

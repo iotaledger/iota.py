@@ -11,6 +11,7 @@ from iota.adapter import MockAdapter
 from iota.commands.core.get_transactions_to_approve import \
     GetTransactionsToApproveCommand
 from iota.filters import Trytes
+from test import patch, MagicMock
 
 
 class GetTransactionsToApproveRequestFilterTestCase(BaseFilterTestCase):
@@ -218,17 +219,30 @@ class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
         )
 
 
-class GetTransactionsToApproveTestCase(TestCase):
+class GetTransactionsToApproveCommandTestCase(TestCase):
     def setUp(self):
-        super(GetTransactionsToApproveTestCase, self).setUp()
+        super(GetTransactionsToApproveCommandTestCase, self).setUp()
 
         self.adapter = MockAdapter()
 
     def test_wireup(self):
         """
         Verify that the command is wired up correctly.
+
+        The API method indeed calls the appropiate command.
         """
-        self.assertIsInstance(
-            Iota(self.adapter).getTransactionsToApprove,
-            GetTransactionsToApproveCommand,
-        )
+        with patch('iota.commands.core.get_transactions_to_approve.GetTransactionsToApproveCommand.__call__',
+                MagicMock(return_value='You found me!')
+                ) as mocked_command:
+
+            api = Iota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = api.get_transactions_to_approve('depth')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )

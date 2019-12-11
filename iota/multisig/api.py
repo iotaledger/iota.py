@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Iterable, Optional
 
 from iota import Address, Iota, ProposedTransaction
-from iota.commands import discover_commands
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest
 from iota.multisig import commands
@@ -31,7 +30,6 @@ class MultisigIota(Iota):
 
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
     """
-    commands = discover_commands('iota.multisig.commands')
 
     def create_multisig_address(self, digests):
         # type: (Iterable[Digest]) -> dict

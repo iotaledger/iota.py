@@ -16,7 +16,7 @@ from iota.crypto.types import PrivateKey, Seed
 from iota.filters import Trytes
 from iota.multisig import MultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
-from test import mock
+from test import mock, patch, MagicMock
 
 
 class GetPrivateKeysCommandTestCase(TestCase):
@@ -41,11 +41,24 @@ class GetPrivateKeysCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      MultisigIota(self.adapter).getPrivateKeys,
-      GetPrivateKeysCommand,
-    )
+    with patch('iota.multisig.commands.get_private_keys.GetPrivateKeysCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = MultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_private_keys()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_generate_single_key(self):
     """

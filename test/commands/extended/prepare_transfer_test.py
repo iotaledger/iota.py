@@ -16,6 +16,7 @@ from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import GeneratedAddress, Trytes
 from test import mock
+from test import patch, MagicMock
 
 
 class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -576,11 +577,24 @@ class PrepareTransferCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).prepareTransfer,
-      PrepareTransferCommand,
-    )
+    with patch('iota.commands.extended.prepare_transfer.PrepareTransferCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.prepare_transfer('transfers')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_pass_inputs_not_needed(self):
     """
@@ -1307,10 +1321,14 @@ class PrepareTransferCommandTestCase(TestCase):
     # testing for several security levels
     for security_level in SECURITY_LEVELS_TO_TEST:
 
-      # get_new_addresses uses `find_transactions` internaly.
+      # get_new_addresses uses `find_transactions` and
+      # `were_addresses_spent_from` internally.
       # The following means requested address is considered unused
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
+      })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
       })
 
       self.command.reset()
@@ -1377,8 +1395,8 @@ class PrepareTransferCommandTestCase(TestCase):
     # testing several security levels
     for security_level in SECURITY_LEVELS_TO_TEST:
 
-      # get_inputs use iter_used_addresses and findTransactions.
-      # until address without tx found
+      # get_inputs uses iter_used_addresses, findTransactions,
+      # and wereAddressesSpentFrom until an unused address is found.
       self.adapter.seed_response('findTransactions', {
         'hashes': [
           TransactionHash(
@@ -1390,8 +1408,16 @@ class PrepareTransferCommandTestCase(TestCase):
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
 
-      # get_new_addresses uses `find_transactions` internaly.
+      # get_new_addresses uses `find_transactions`, `get_balances` and
+      # `were_addresses_spent_from` internally.
+
+      self.adapter.seed_response('wereAddressesSpentFrom', {
+        'states': [False],
+      })
       self.adapter.seed_response('findTransactions', {
         'hashes': [],
       })

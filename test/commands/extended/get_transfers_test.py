@@ -15,6 +15,7 @@ from iota.commands.extended.get_transfers import GetTransfersCommand, \
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
+from test import patch, MagicMock
 
 
 class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
@@ -339,12 +340,24 @@ class GetTransfersCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
-    """
-    self.assertIsInstance(
-      Iota(self.adapter).getTransfers,
-      GetTransfersCommand,
-    )
 
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.get_transfers.GetTransfersCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_transfers()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
   def test_full_scan(self):
     """
     Scanning the Tangle for all transfers.
@@ -372,13 +385,19 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-    # The second address is unused.
+    # The second address is unused. It has no transactions and was not spent from.
     self.adapter.seed_response(
       'findTransactions',
 
       {
         'duration': 1,
         'hashes':   [],
+      },
+    )
+    self.adapter.seed_response(
+      'wereAddressesSpentFrom',
+      {
+        'states': [False],
       },
     )
 
@@ -461,6 +480,12 @@ class GetTransfersCommandTestCase(TestCase):
         'hashes':   [],
       },
     )
+    self.adapter.seed_response(
+      'wereAddressesSpentFrom',
+      {
+        'states': [False],
+      },
+    )
 
     with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
@@ -495,13 +520,20 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-    # The second address is unused.
+    # The second address is unused. It has no transactions and was not spent from.
     self.adapter.seed_response(
       'findTransactions',
 
       {
         'duration': 1,
         'hashes':   [],
+      },
+    )
+
+    self.adapter.seed_response(
+      'wereAddressesSpentFrom',
+      {
+        'states': [True],
       },
     )
 

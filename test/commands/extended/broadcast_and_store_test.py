@@ -9,6 +9,7 @@ from six import text_type
 from iota import Iota, TransactionTrytes
 from iota.adapter import MockAdapter
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
+from test import patch, MagicMock
 
 
 class BroadcastAndStoreCommandTestCase(TestCase):
@@ -27,11 +28,24 @@ class BroadcastAndStoreCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).broadcastAndStore,
-      BroadcastAndStoreCommand,
-    )
+    with patch('iota.commands.extended.broadcast_and_store.BroadcastAndStoreCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.broadcast_and_store('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_happy_path(self):
     """

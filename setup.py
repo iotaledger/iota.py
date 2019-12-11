@@ -39,7 +39,7 @@ setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
     url='https://github.com/iotaledger/iota.py',
-    version='2.1.0',
+    version='2.2.0b1',
 
     long_description=long_description,
 

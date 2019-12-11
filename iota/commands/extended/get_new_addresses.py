@@ -9,6 +9,8 @@ import filters as f
 from iota import Address
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.find_transactions import FindTransactionsCommand
+from iota.commands.core.were_addresses_spent_from import \
+    WereAddressesSpentFromCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import SecurityLevel, Trytes
@@ -58,17 +60,23 @@ class GetNewAddressesCommand(FilterCommand):
         generator = AddressGenerator(seed, security_level, checksum)
 
         if count is None:
-            # Connect to Tangle and find the first address without any
-            # transactions.
+            # Connect to Tangle and find the first unused address.
             for addy in generator.create_iterator(start=index):
-                # We use addy.address here because FindTransactions does
+                # We use addy.address here because the commands do
                 # not work on an address with a checksum
+                response = WereAddressesSpentFromCommand(self.adapter)(
+                    addresses=[addy.address],
+                )
+                if response['states'][0]:
+                    continue
+
                 response = FindTransactionsCommand(self.adapter)(
                     addresses=[addy.address],
                 )
+                if response.get('hashes'):
+                    continue
 
-                if not response.get('hashes'):
-                    return [addy]
+                return [addy]
 
         return generator.get_addresses(start=index, count=count)
 

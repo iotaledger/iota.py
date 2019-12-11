@@ -13,6 +13,7 @@ from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
+from test import patch, MagicMock
 
 
 class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
@@ -365,11 +366,24 @@ class GetNewAddressesCommandTestCase(TestCase):
   def test_wireup(self):
     """
     Verify that the command is wired up correctly.
+
+    The API method indeed calls the appropiate command.
     """
-    self.assertIsInstance(
-      Iota(self.adapter).getNewAddresses,
-      GetNewAddressesCommand,
-    )
+    with patch('iota.commands.extended.get_new_addresses.GetNewAddressesCommand.__call__',
+              MagicMock(return_value='You found me!')
+              ) as mocked_command:
+
+      api = Iota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = api.get_new_addresses('hashes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
 
   def test_get_addresses_offline(self):
     """
@@ -423,20 +437,20 @@ class GetNewAddressesCommandTestCase(TestCase):
       },
     )
 
-  def test_get_addresses_online(self):
+  def test_get_addresses_online_already_spent_from(self):
     """
-    Generate address in online mode (filtering used addresses).
+    Generate address in online mode (filtering used addresses). Test if an
+    address that was already spent from will not be returned.
     """
-    # Pretend that ``self.addy1`` has already been used, but not
-    # ``self.addy2``.
-    # noinspection SpellCheckingInspection
-    self.adapter.seed_response('findTransactions', {
-      'duration': 18,
+    # Pretend that ``self.addy1`` has no transactions but already been
+    # spent from, but ``self.addy2`` is not used.
 
-      'hashes': [
-        'TESTVALUE9DONTUSEINPRODUCTION99999ITQLQN'
-        'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
-      ],
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [True],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
     })
 
     self.adapter.seed_response('findTransactions', {
@@ -461,14 +475,73 @@ class GetNewAddressesCommandTestCase(TestCase):
     self.assertListEqual(
       self.adapter.requests,
 
-      # The command issued two `findTransactions` API requests: one for
-      # each address generated, until it found an unused address.
+      # The command issued a `wereAddressesSpentFrom` API request to
+      # check if the first address was used. Then it called `wereAddressesSpentFrom`
+      # and `findTransactions` to verify that the second address was
+      # indeed not used.
       [
         {
-          'command':    'findTransactions',
+          'command': 'wereAddressesSpentFrom',
           'addresses':  [self.addy_1],
         },
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_2],
+        },
+        {
+          'command':    'findTransactions',
+          'addresses':  [self.addy_2],
+        },
+      ],
+    )
 
+  def test_get_addresses_online_has_transaction(self):
+    """
+    Generate address in online mode (filtering used addresses). Test if an
+    address that has a transaction will not be returned.
+    """
+    # Pretend that ``self.addy1`` has a transaction, but
+    # ``self.addy2`` is not used.
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    # noinspection SpellCheckingInspection
+    self.adapter.seed_response('findTransactions', {
+      'duration': 18,
+      'hashes': [
+        'TESTVALUE9DONTUSEINPRODUCTION99999ITQLQN'
+        'LPPG9YNAARMKNKYQO9GSCSBIOTGMLJUFLZWSY9999',
+      ],
+    })
+
+    self.adapter.seed_response('wereAddressesSpentFrom', {
+      'states': [False],
+    })
+    self.adapter.seed_response('findTransactions', {
+      'hashes':   [],
+    })
+
+    response = self.command(index=0, seed=self.seed)
+
+    # The command determined that ``self.addy1`` was already used, so
+    # it skipped that one.
+    self.assertDictEqual(response, {'addresses': [self.addy_2]})
+
+    self.assertListEqual(
+      self.adapter.requests,
+      [
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_1],
+        },
+        {
+          'command': 'findTransactions',
+          'addresses': [self.addy_1],
+        },
+        {
+          'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_2],
+        },
         {
           'command':    'findTransactions',
           'addresses':  [self.addy_2],

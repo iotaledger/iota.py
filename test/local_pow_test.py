@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function, \
 
 from iota import Iota, TryteString, TransactionHash, TransactionTrytes, \
     HttpAdapter, MockAdapter
-from iota.adapter.sandbox import SandboxAdapter
 from iota.adapter.wrappers import RoutingWrapper
 from unittest import TestCase
 import sys
@@ -102,24 +101,6 @@ class LocalPowTestCase(TestCase):
         with patch('pow.ccurl_interface.attach_to_tangle',
                     MagicMock(return_value=self.bundle)) as mocked_ccurl:
             api = Iota(MockAdapter(),local_pow=True)
-            result = api.attach_to_tangle(
-                self.trunk,
-                self.branch,
-                self.bundle,
-                self.mwm)
-            self.assertTrue(mocked_ccurl.called)
-            self.assertEqual(result['trytes'], self.bundle)
-
-    def test_sandbox_adapter(self):
-        """
-        Test if local_pow feature works with SandboxAdapter.
-        """
-        # Note that we need correct return value to pass the
-        # response filter.
-        with patch('pow.ccurl_interface.attach_to_tangle',
-                    MagicMock(return_value=self.bundle)) as mocked_ccurl:
-            api = Iota(SandboxAdapter('https://sandbox.iota:14265/api/v1/', auth_token=None),
-                       local_pow=True)
             result = api.attach_to_tangle(
                 self.trunk,
                 self.branch,

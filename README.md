@@ -112,7 +112,40 @@ print(response)
 
 ## Examples
 
-You can find an example project in the [examples](https://github.com/iotaledger/iota.py/tree/master/examples) directory.
+We have a list of test cases in the [`examples` directory](https://github.com/iotaledger/iota.py/tree/master/examples) that you can use as a reference when developing apps with IOTA.
+
+Here's how you could send a zero-value transaction, using the library. For the guide, see the [documentation portal](https://docs.iota.org/docs/client-libraries/0.1/how-to-guides/python/send-your-first-bundle).
+
+```python
+# You don't need a seed to send zero-value transactions
+api = Iota('https://nodes.devnet.iota.org:443', testnet = True)
+
+# Define a message to send.
+# This message must include only ASCII characters.
+message = TryteString.from_unicode('Hello world')
+
+# Define an address.
+# This does not need to belong to anyone or have IOTA tokens.
+# It must only contain a maximum of 81 trytes
+# or 90 trytes with a valid checksum
+address = 'ZLGVEQ9JUZZWCZXLWVNTHBDX9G9KZTJP9VEERIIFHY9SIQKYBVAHIMLHXPQVE9IXFDDXNHQINXJDRPFDXNYVAPLZAW'
+
+# Define a zero-value transaction object
+# that sends the message to the address
+tx = ProposedTransaction(
+    address = Address(address),
+    message = message,
+    value = 0
+)
+
+# Create a bundle from the `ProposedTransaction` object
+# and send the transaction to the node
+result = api.send_transfer(transfers = [tx])
+
+print('Bundle: ')
+
+print(result['bundle'].hash)
+```
 
 ## Supporting the project
 

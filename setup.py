@@ -20,7 +20,7 @@ if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
 
 ##
 # Load long description for PyPI.
-with open('README.rst', 'r', 'utf-8') as f:  # type: StreamReader
+with open('docs/README.rst', 'r', 'utf-8') as f:  # type: StreamReader
     long_description = f.read()
 
 ##

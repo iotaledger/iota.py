@@ -13,4 +13,4 @@
    multisig
    commands
 
-.. include:: ../README.rst
+.. include:: README.rst

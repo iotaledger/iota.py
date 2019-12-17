@@ -140,7 +140,7 @@ tx = ProposedTransaction(
 
 # Create a bundle from the `ProposedTransaction` object
 # and send the transaction to the node
-result = api.send_transfer(transfers = [tx])
+result = api.send_transfer(transfers=[tx])
 
 print('Bundle: ')
 

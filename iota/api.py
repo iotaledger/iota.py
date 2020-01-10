@@ -926,7 +926,20 @@ class Iota(StrictIota):
             included in the result.
 
             If ``None`` (default), then this method will check every
-            address until it finds one without any transfers.
+            address until it finds one that is unused.
+
+            .. note::
+                An unused address is an address that **has not been spent from**
+                and **has no transactions** referencing it on the Tangle.
+
+                A snapshot removes transactions from the Tangle. As a
+                consequence, after a snapshot, it may happen that this API does
+                not return the correct account data with ``stop`` being ``None``.
+
+                As a workaround, you can save your used addresses and their
+                ``key_index`` attribute in a local database. Use the
+                ``start`` and ``stop`` parameters to tell the API from where to
+                start checking and where to stop.
 
         :param bool inclusion_states:
             Whether to also fetch the inclusion states of the transfers.
@@ -1027,6 +1040,19 @@ class Iota(StrictIota):
 
             If ``None`` (default), then this method will not stop until
             it finds an unused address.
+
+            .. note::
+                An unused address is an address that **has not been spent from**
+                and **has no transactions** referencing it on the Tangle.
+
+                A snapshot removes transactions from the Tangle. As a
+                consequence, after a snapshot, it may happen that this API does
+                not return the correct inputs with ``stop`` being ``None``.
+
+                As a workaround, you can save your used addresses and their
+                ``key_index`` attribute in a local database. Use the
+                ``start`` and ``stop`` parameters to tell the API from where to
+                start checking for inputs and where to stop.
 
         :param Optional[int] threshold:
             If set, determines the minimum threshold for a successful
@@ -1236,7 +1262,20 @@ class Iota(StrictIota):
             included in the result.
 
             If ``None`` (default), then this method will check every
-            address until it finds one without any transfers.
+            address until it finds one that is unused.
+
+            .. note::
+                An unused address is an address that **has not been spent from**
+                and **has no transactions** referencing it on the Tangle.
+
+                A snapshot removes transactions from the Tangle. As a
+                consequence, after a snapshot, it may happen that this API does
+                not return the expected transfers with ``stop`` being ``None``.
+
+                As a workaround, you can save your used addresses and their
+                ``key_index`` attribute in a local database. Use the
+                ``start`` and ``stop`` parameters to tell the API from where to
+                start checking for transfers and where to stop.
 
         :param bool inclusion_states:
             Whether to also fetch the inclusion states of the transfers.

@@ -79,6 +79,12 @@ class DigestTestCase(TestCase):
     with self.assertRaises(ValueError):
       Digest(b'9' * (2 * Hash.LEN - 1))
 
+  def test_random(self):
+    """
+    Generating a random Digest should fail.
+    """
+    with self.assertRaises(TypeError):
+      random_digest = Digest.random()
 
 # noinspection SpellCheckingInspection
 class PrivateKeyTestCase(TestCase):
@@ -152,3 +158,10 @@ class PrivateKeyTestCase(TestCase):
     #
     # Each fragment is processed independently, which is critical for
     # multisig to work correctly.
+
+  def test_random(self):
+    """
+    Generating a random PrivateKey should fail.
+    """
+    with self.assertRaises(TypeError):
+      random_digest = PrivateKey.random()

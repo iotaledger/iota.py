@@ -754,6 +754,20 @@ class TryteStringTestCase(TestCase):
     # generated.
     self.assertEqual(len(trytes), Hash.LEN)
 
+  def test_random_no_length(self):
+    """
+    Trying to create a random TryteString without specifying length.
+    """
+    with self.assertRaises(TypeError):
+      trytes = TryteString.random()
+
+  def test_random_wrong_length(self):
+    """
+    Generating random Trytestring with negative length.
+    """
+    with self.assertRaises(TypeError):
+      trytes = TryteString.random(length=-5)
+
   def test_from_bytes(self):
     """
     Converting a sequence of bytes into a TryteString.
@@ -882,6 +896,14 @@ class TryteStringTestCase(TestCase):
       binary_type(TryteString.from_trits(trits)),
       b'RBTC',
     )
+
+class HashTestCase(TestCase):
+  def test_random(self):
+    """
+    Generating a random Hash.
+    """
+    rand = Hash.random()
+    self.assertEqual(len(rand), Hash.LEN)
 
 
 # noinspection SpellCheckingInspection
@@ -1124,6 +1146,12 @@ class AddressTestCase(TestCase):
     self.assertFalse(addy.is_checksum_valid())
     self.assertTrue(len(addy) == Address.LEN)
 
+  def test_random(self):
+    """
+    Creating a random Address object.
+    """
+    addy = Address.random()
+    self.assertEqual(len(addy), Address.LEN)
 
 # noinspection SpellCheckingInspection
 class AddressChecksumTestCase(TestCase):
@@ -1149,6 +1177,13 @@ class AddressChecksumTestCase(TestCase):
       # If it's an address checksum, it must be 9 trytes exactly.
       AddressChecksum(b'FOXM9MUBX9')
 
+  def test_random(self):
+    """
+    Creating a random AddressChecksum object.
+    """
+    checksum = AddressChecksum.random()
+    self.assertEqual(len(checksum), AddressChecksum.LEN)
+
 
 # noinspection SpellCheckingInspection
 class TagTestCase(TestCase):
@@ -1167,3 +1202,10 @@ class TagTestCase(TestCase):
     with self.assertRaises(ValueError):
       # 28 chars = no va.
       Tag(b'COLOREDCOINS9999999999999999')
+
+  def test_random(self):
+    """
+    Creating a random Tag object.
+    """
+    tag = Tag.random()
+    self.assertEqual(len(tag), Tag.LEN)

@@ -68,12 +68,12 @@ class TryteString(JsonSerializable):
     """
 
     @classmethod
-    def random(cls, length):
-        # type: (int) -> TryteString
+    def random(cls, length=None):
+        # type: (Optional[int]) -> TryteString
         """
         Generates a random sequence of trytes.
 
-        :param int length:
+        :param Optional[int] length:
             Number of trytes to generate.
 
         :return:
@@ -81,6 +81,15 @@ class TryteString(JsonSerializable):
         """
         alphabet = list(itervalues(AsciiTrytesCodec.alphabet))
         generator = SystemRandom()
+        try:
+            if length is None:
+                length = cls.LEN
+
+            if length <= 0:
+                raise TypeError("length parameter needs to be greater than zero")
+        except AttributeError:  # class has no LEN attribute
+            if length is None:
+                raise TypeError("{class_name} does not define a length property".format(class_name=cls.__name__))
 
         # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
         # for compatibility, we will continue to use ``choice`` in a

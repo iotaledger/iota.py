@@ -112,6 +112,11 @@ class Seed(TryteString):
     - https://iota.stackexchange.com/q/249
     """
 
+    LEN = 81
+    """
+    Length of a Seed.
+    """
+
     def __init__(self, trytes=None):
         # type: (Optional[TrytesCompatible]) -> None
         if trytes and len(trytes) > Hash.LEN:

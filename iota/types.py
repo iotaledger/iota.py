@@ -78,6 +78,10 @@ class TryteString(JsonSerializable):
 
         :return:
             :py:class:`TryteString` object.
+
+        :raises TypeError:
+            - if ``length`` is negative,
+            - if ``length`` is not defined, and the class doesn't have ``LEN`` attribute.
         """
         alphabet = list(itervalues(AsciiTrytesCodec.alphabet))
         generator = SystemRandom()

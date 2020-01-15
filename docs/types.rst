@@ -129,6 +129,13 @@ converted; garbage in, garbage out!
 ^^^^^^^^^^^^
 .. automethod:: TryteString.as_trits
 
+Generation
+~~~~~~~~~~
+
+**random**
+^^^^^^^^^^
+.. automethod:: TryteString.random
+
 Seed
 ----
 .. autoclass:: Seed

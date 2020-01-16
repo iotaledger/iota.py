@@ -13,8 +13,8 @@ Let's get to it then!
 
 .. py:currentmodule:: iota
 
-Hello Node
-----------
+1. Hello Node
+-------------
 In this example, you will learn how to:
 
 - **Import the** ``iota`` **package into your application.**
@@ -73,8 +73,8 @@ we could list the ``features`` of the node::
 
     pprint(response['features'])
 
-Send Data
----------
+2. Send Data
+------------
 In this example, you will learn how to:
 
 - **Encode data to be stored on the Tangle.**
@@ -166,6 +166,67 @@ Finally, we print out the transaction's link on the Tangle Explorer.
 Observe how we extract the transaction hash from the response ``dict``. We take
 the first element of the bundle, as it is just a sequence of transactions, and
 access its ``hash`` attribute.
+
+3. Fetch Data
+-------------
+In this example, you will learn how to:
+
+- **Fetch transaction objects from the Tangle based on a criteria.**
+- **Decode messages from transactions.**
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/03_fetch_data.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/03_fetch_data.py
+   :lines: 1-5
+   :lineno-start: 1
+
+The usual part again, but we also import ``TrytesDecodeError`` from
+``iota.codec``. We will use this to detect if the fetched trytes contain
+encoded text.
+
+.. literalinclude:: ../examples/tutorials/03_fetch_data.py
+   :lines: 7-10
+   :lineno-start: 7
+
+We declare an IOTA address on the Tangle to fetch data from. You can replace
+this address with your own from the previous example `2. Send Data`_, or just
+run it as it is.
+
+.. literalinclude:: ../examples/tutorials/03_fetch_data.py
+   :lines: 12-14
+   :lineno-start: 12
+
+We use :py:meth:`~Iota.find_transaction_objects` extended API method to gather
+the transactions that belong to our address. This method is also capable of
+returning :py:class:`Transaction` objects for bundle hashes, tags or approving
+transactions. Note that you can supply multiple of these, the method always
+returns a ``dict`` with a list of transactions.
+
+.. note::
+
+    Remember, that the parameters need to be supplied as lists, even if
+    there is only one value.
+
+.. literalinclude:: ../examples/tutorials/03_fetch_data.py
+   :lines: 16-25
+   :lineno-start: 16
+
+Finally, we extract the data we are looking for from the transaction objects.
+A :py:class:`Transaction` has several attributes, one of which is the
+``signature_message_fragment``. This contains the payload message for zero-value
+transactions, and the digital signature that authorizes spending for value
+transactions.
+
+Since we are interested in data now, we decode its content (raw trytes) into
+text. Notice, that we pass the ``errors='ignore'`` argument to the ``decode()``
+method to drop values we can't decode using ``utf-8``, or if the raw trytes
+can't be decoded into legit bytes. A possible reason for the latter can be if
+the attribute contains a signature rather than a message.
 
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _bytestring: https://docs.python.org/3/library/stdtypes.html#bytes

@@ -394,8 +394,112 @@ queries the node about bundles of those addresses and sums up their balance.
 The response ``dict`` contains the addresses, bundles and total balance of
 your seed.
 
+5. Send Tokens
+--------------
+
+In this example, you will learn how to:
+
+- **Construct a value transfer with PyOTA.**
+- **Send a value transfer to an arbitrary IOTA address.**
+- **Analyze a bundle of transactions on the Tangle.**
+
+.. note::
+
+    As a prerequisite to this tutorial, you need to have completed
+    `4.a Generate Address`_, and have a seed that owns devnet tokens.
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 1-11
+   :lineno-start: 1
+
+We are going to send a value transaction, that requires us to prove that we
+own the address containg the funds to spend. Therefore, we need our seed from
+which the address was generated.
+
+Put your seed from `4.a Generate Address`_ onto line 4. We pass this seed to
+the API object, that will utilize it for signing the transfer.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 13-16
+   :lineno-start: 13
+
+In IOTA, funds move accross addresses, therefore we need to define a **receiver
+address**. For value transfers, you might only use addresses that are generated
+from seeds, so a randomly generated address doesn't qualify here. Re-run
+`4.a Generate Address`_ for a new seed and a new address, or just paste a
+valid IOTA address onto line 16.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 18-25
+   :lineno-start: 18
+
+We declare a :py:class:`ProposedTransaction` object like we did before, but
+this time, with ``value=1`` parameter. The smallest value you can send is 1
+iota, there is no way to break it into smaller chunks. It is a really small
+value anyway. You can also attach a message to the transaction, for example a
+little note to the beneficiary of the payment.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 27-29
+   :lineno-start: 27
+
+To actually send the transfer, all you need to do is call
+:py:meth:`~Iota.send_transfer` extended API method. This method will take care
+of:
+
+- Gathering ``inputs`` (addresses you own and have funds) to fund the 1i transfer.
+- Generating a new ``change_address``, and automatically sending the remaining
+  funds (``balance of chosen inputs`` - 1i) from ``inputs`` to ``change_address``.
+
+    .. warning::
+
+        This step is extremely important, as it prevents you from `spending twice
+        from the same address`_.
+
+        When an address is used an input, all tokens will be withdrawn. Part of
+        the tokens will be used to fund your transaction, the rest will be
+        transferred to ``change_address``.
+
+- Constructing the transfer bundle with necessary input and output transactions.
+- Finalizing the bundle and signing the spending transactions.
+- Doing proof-of-work for each transaction in the bundle and sending it to the
+  network.
+
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 31-32
+   :lineno-start: 31
+
+Open the link and observe the bundle you have just sent to the Tangle. Probably
+it will take couple of seconds for the network to confirm it.
+
+What you see is a bundle with 4 transactions in total, 1 input and 3 outputs.
+But why are there so many transactions?
+
+- There is one transaction that withdraws iotas, this has negative value.
+  To authorize this spending, a valid signature is included in the transaction's
+  ``signature_message_fragment`` field. The signature however is too long to
+  fit into one transaction, therefore the library appends a new, zero-value
+  transaction to the bundle that holds the second part of the signature. This
+  you see on the output side of the bundle.
+- A 1i transaction to the receiver address spends part of the withdrawn amount.
+- The rest is transfered to ``change_address`` in a new output transaction.
+
+Once the bundle is confirmed, try rerunning the script from
+`4.c Get Account Data`_ with the same seed as in this tutorial. Your balance
+should be decremented by 1i, and you should see a new address, which was
+actually the ``change_address``.
+
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _bytestring: https://docs.python.org/3/library/stdtypes.html#bytes
 .. _tryte alphabet: https://docs.iota.org/docs/getting-started/0.1/introduction/ternary#tryte-encoding
 .. _Tangle Explorer: https://utils.iota.org
 .. _Account Module: https://docs.iota.org/docs/client-libraries/0.1/account-module/introduction/overview
+.. _spending twice from the same address: https://docs.iota.org/docs/getting-started/0.1/clients/addresses#spent-addresses

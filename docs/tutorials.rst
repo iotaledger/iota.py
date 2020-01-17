@@ -6,6 +6,10 @@ walkthrough examples of this section, you will be a master of PyOTA.
 In each section below, a code snippet will be shown and discussed in detail
 to help you understand how to carry out specific tasks with PyOTA.
 
+The example scripts displayed here can also be found under ``examples/tutorials/``
+directory in the repository. Run them in a Python environment that has PyOTA
+installed. See :ref:`Install PyOTA` for more info.
+
 If you feel that something is missing or not clear, please post your questions
 and suggestions in the `PyOTA Bug Tracker`_.
 

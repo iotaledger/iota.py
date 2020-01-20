@@ -6,6 +6,10 @@ walkthrough examples of this section, you will be a master of PyOTA.
 In each section below, a code snippet will be shown and discussed in detail
 to help you understand how to carry out specific tasks with PyOTA.
 
+The example scripts displayed here can also be found under ``examples/tutorials/``
+directory in the repository. Run them in a Python environment that has PyOTA
+installed. See :ref:`Install PyOTA` for more info.
+
 If you feel that something is missing or not clear, please post your questions
 and suggestions in the `PyOTA Bug Tracker`_.
 
@@ -228,7 +232,282 @@ method to drop values we can't decode using ``utf-8``, or if the raw trytes
 can't be decoded into legit bytes. A possible reason for the latter can be if
 the attribute contains a signature rather than a message.
 
+4.a Generate Address
+--------------------
+
+In this example, you will learn how to:
+
+- **Generate a random seed.**
+- **Generate an IOTA address that belongs to your seed.**
+- **Acquire free devnet IOTA tokens that you can use to play around with.**
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/04a_gen_address.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/04a_gen_address.py
+   :lines: 1-7
+   :lineno-start: 1
+
+We start off by generating a random seed with the help of the library. You are
+also free to use your own seed, just uncomment line 6 and put it there.
+
+If you choose to generate one, your seed is written to the console so that you
+can save it for later. Be prepared to do so, because you will have to use it
+in the following tutorials.
+
+.. literalinclude:: ../examples/tutorials/04a_gen_address.py
+   :lines: 9-14
+   :lineno-start: 9
+
+Notice, how we pass the ``seed`` argument to the API class's init method.
+Whenever the API needs to work with addresses or private keys, it will derive
+them from this seed.
+
+.. important::
+
+    Your seed never leaves the library and your computer. Treat your (mainnet)
+    seed like any other password for a financial service: safe. If your seed is
+    compromised, attackers can steal your funds.
+
+.. literalinclude:: ../examples/tutorials/04a_gen_address.py
+   :lines: 16-20
+   :lineno-start: 16
+
+To generate a new address, we call :py:meth:`~Iota.get_new_addresses`
+extended API method. Without arguments, this will return a ``dict`` with the
+first unused address starting from ``index`` 0. An unused address is address
+that has no transactions referencing it on the Tangle and was never spent from.
+
+If we were to generate more addresses starting from a desired index,
+we could specify the ``start`` and ``count`` parameters. Read more about how to
+generate addresses in PyOTA at :ref:`Generating Addresses`.
+
+On line 20 we access the first element of the list of addresses in the response
+dictionary.
+
+.. literalinclude:: ../examples/tutorials/04a_gen_address.py
+   :lines: 22-23
+   :lineno-start: 22
+
+Lastly, the address is printed to the console, so that you can copy it.
+Visit https://faucet.devnet.iota.org/ and enter the address to receive free
+devnet tokens of 1000i.
+
+You might need to wait 1-2 minutes until the sum arrives to you address. To
+check your balance, go to `4.b Check Balance`_ or `4.c Get Account Data`_.
+
+4.b Check Balance
+-----------------
+
+In this example, you will learn how to:
+
+- **Check the balance of a specific IOTA address.**
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/04b_check_balance.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/04b_check_balance.py
+   :lines: 1-8
+   :lineno-start: 1
+
+The first step  to check the balance of an address is to actually have an
+address. Exchange the sample address on line 5 with your generated address from
+`4.a Generate Address`_.
+
+Since we don't need to generate an address, there is no need for a seed to be
+employed in the API object. Note the ``time`` import, we need it for later.
+
+.. literalinclude:: ../examples/tutorials/04b_check_balance.py
+   :lines: 10-25
+   :lineno-start: 10
+
+Our script will poll the network for the address balance as long as the returned
+balance is zero. Therefore, the address you declared as ``my_address`` should
+have some balance. If you see the ``Zero balance found...`` message a couple of
+times, head over to https://faucet.devnet.iota.org/ and load up your address.
+
+:py:meth:`~Iota.get_balances` returns the confirmed balance of the address.
+You could supply multiple addresses at the same time and get their respective
+balances in a single call. Don't forget, that the method returns a ``dict``.
+More details about it can be found at :py:meth:`~Iota.get_balances`.
+
+4.c Get Account Data
+--------------------
+
+In this example, you will learn how to:
+
+- **Gather addresses, balance and bundles associated with your seed on the Tangle.**
+
+.. warning::
+
+    **Account** in the context of this example is not to be confused with the
+    `Account Module`_, that is a feature yet to be implemented in PyOTA.
+
+    **Account** here simply means the addresses and funds that belong to your
+    seed.
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/04c_get_acc_data.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/04c_get_acc_data.py
+   :lines: 1-3
+   :lineno-start: 1
+
+We will need ``pprint`` for a prettified output of the response ``dict`` and
+``time`` for polling until we find non-zero balance.
+
+.. literalinclude:: ../examples/tutorials/04c_get_acc_data.py
+   :lines: 5-13
+   :lineno-start: 5
+
+Copy your seed from `4.a Generate Address`_ onto line 6. The API will use your
+seed to generate addresses and look for corresponding transactions on the
+Tangle.
+
+.. literalinclude:: ../examples/tutorials/04c_get_acc_data.py
+   :lines: 15-30
+   :lineno-start: 15
+
+Just like in the prevoius example, we will poll for information until we find
+a non-zero balance. :py:meth:`~Iota.get_account_data` without arguments
+generates addresses from ``index`` 0 until it finds the first unused. Then, it
+queries the node about bundles of those addresses and sums up their balance.
+
+.. note::
+
+    If you read :py:meth:`~Iota.get_account_data` documentation carefully, you
+    notice that you can gain control over which addresses are checked during
+    the call by specifying the ``start`` and ``stop`` index parameters.
+
+    This can be useful when your addresses with funds do not follow each other
+    in the address namespace, or a snapshot removed transactions from the
+    Tangle. It is recommended that you keep a local database of your already
+    used address indices.
+
+    Once implemented in PyOTA, `Account Module`_ will address the aforementioned
+    problems.
+
+The response ``dict`` contains the addresses, bundles and total balance of
+your seed.
+
+5. Send Tokens
+--------------
+
+In this example, you will learn how to:
+
+- **Construct a value transfer with PyOTA.**
+- **Send a value transfer to an arbitrary IOTA address.**
+- **Analyze a bundle of transactions on the Tangle.**
+
+.. note::
+
+    As a prerequisite to this tutorial, you need to have completed
+    `4.a Generate Address`_, and have a seed that owns devnet tokens.
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 1-11
+   :lineno-start: 1
+
+We are going to send a value transaction, that requires us to prove that we
+own the address containg the funds to spend. Therefore, we need our seed from
+which the address was generated.
+
+Put your seed from `4.a Generate Address`_ onto line 4. We pass this seed to
+the API object, that will utilize it for signing the transfer.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 13-16
+   :lineno-start: 13
+
+In IOTA, funds move accross addresses, therefore we need to define a **receiver
+address**. For testing value transfers, you should send the funds only to
+addresses that you control; if you use a randomly-generated receiver address,
+you won't be able to recover the funds afterward!
+Re-run `4.a Generate Address`_ for a new seed and a new address, or just paste
+a valid IOTA address that you own onto line 16.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 18-25
+   :lineno-start: 18
+
+We declare a :py:class:`ProposedTransaction` object like we did before, but
+this time, with ``value=1`` parameter. The smallest value you can send is 1
+iota ("1i"), there is no way to break it into smaller chunks. It is a really small
+value anyway. You can also attach a message to the transaction, for example a
+little note to the beneficiary of the payment.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 27-29
+   :lineno-start: 27
+
+To actually send the transfer, all you need to do is call
+:py:meth:`~Iota.send_transfer` extended API method. This method will take care
+of:
+
+- Gathering ``inputs`` (addresses you own and have funds) to fund the 1i transfer.
+- Generating a new ``change_address``, and automatically sending the remaining
+  funds (``balance of chosen inputs`` - 1i) from ``inputs`` to ``change_address``.
+
+    .. warning::
+
+        This step is extremely important, as it prevents you from `spending twice
+        from the same address`_.
+
+        When an address is used as an input, all tokens will be withdrawn. Part
+        of the tokens will be used to fund your transaction, the rest will be
+        transferred to ``change_address``.
+
+- Constructing the transfer bundle with necessary input and output transactions.
+- Finalizing the bundle and signing the spending transactions.
+- Doing proof-of-work for each transaction in the bundle and sending it to the
+  network.
+
+.. literalinclude:: ../examples/tutorials/05_send_tokens.py
+   :lines: 31-32
+   :lineno-start: 31
+
+Open the link and observe the bundle you have just sent to the Tangle. Probably
+it will take a couple of seconds for the network to confirm it.
+
+What you see is a bundle with 4 transactions in total, 1 input and 3 outputs.
+But why are there so many transactions?
+
+- There is one transaction that withdraws iotas, this has negative value.
+  To authorize this spending, a valid signature is included in the transaction's
+  ``signature_message_fragment`` field. The signature however is too long to
+  fit into one transaction, therefore the library appends a new, zero-value
+  transaction to the bundle that holds the second part of the signature. This
+  you see on the output side of the bundle.
+- A 1i transaction to the receiver address spends part of the withdrawn amount.
+- The rest is transfered to ``change_address`` in a new output transaction.
+
+Once the bundle is confirmed, try rerunning the script from
+`4.c Get Account Data`_ with the same seed as in this tutorial. Your balance
+should be decremented by 1i, and you should see a new address, which was
+actually the ``change_address``.
+
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _bytestring: https://docs.python.org/3/library/stdtypes.html#bytes
 .. _tryte alphabet: https://docs.iota.org/docs/getting-started/0.1/introduction/ternary#tryte-encoding
 .. _Tangle Explorer: https://utils.iota.org
+.. _Account Module: https://docs.iota.org/docs/client-libraries/0.1/account-module/introduction/overview
+.. _spending twice from the same address: https://docs.iota.org/docs/getting-started/0.1/clients/addresses#spent-addresses

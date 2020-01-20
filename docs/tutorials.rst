@@ -331,8 +331,8 @@ employed in the API object. Note the ``time`` import, we need it for later.
 
 Our script will poll the network for the address balance as long as the returned
 balance is zero. Therefore, the address you declared as ``my_address`` should
-have some balance. If you see the ``Zero balance found,..`` message couple times,
-head over to https://faucet.devnet.iota.org/ and load up your address.
+have some balance. If you see the ``Zero balance found...`` message a couple of
+times, head over to https://faucet.devnet.iota.org/ and load up your address.
 
 :py:meth:`~Iota.get_balances` returns the confirmed balance of the address.
 You could supply multiple addresses at the same time and get their respective
@@ -373,7 +373,8 @@ We will need ``pprint`` for a prettified output of the response ``dict`` and
    :lineno-start: 5
 
 Copy your seed from `4.a Generate Address`_ onto line 6. The API will use your
-seed to generate addresses an look for corresponding transactions on the Tangle.
+seed to generate addresses and look for corresponding transactions on the
+Tangle.
 
 .. literalinclude:: ../examples/tutorials/04c_get_acc_data.py
    :lines: 15-30
@@ -394,6 +395,9 @@ queries the node about bundles of those addresses and sums up their balance.
     in the address namespace, or a snapshot removed transactions from the
     Tangle. It is recommended that you keep a local database of your already
     used address indices.
+
+    Once implemented in PyOTA, `Account Module`_ will address the aforementioned
+    problems.
 
 The response ``dict`` contains the addresses, bundles and total balance of
 your seed.
@@ -435,10 +439,11 @@ the API object, that will utilize it for signing the transfer.
    :lineno-start: 13
 
 In IOTA, funds move accross addresses, therefore we need to define a **receiver
-address**. For value transfers, you might only use addresses that are generated
-from seeds, so a randomly generated address doesn't qualify here. Re-run
-`4.a Generate Address`_ for a new seed and a new address, or just paste a
-valid IOTA address onto line 16.
+address**. For testing value transfers, you should send the funds only to
+addresses that you control; if you use a randomly-generated receiver address,
+you won't be able to recover the funds afterward!
+Re-run `4.a Generate Address`_ for a new seed and a new address, or just paste
+a valid IOTA address that you own onto line 16.
 
 .. literalinclude:: ../examples/tutorials/05_send_tokens.py
    :lines: 18-25
@@ -446,7 +451,7 @@ valid IOTA address onto line 16.
 
 We declare a :py:class:`ProposedTransaction` object like we did before, but
 this time, with ``value=1`` parameter. The smallest value you can send is 1
-iota, there is no way to break it into smaller chunks. It is a really small
+iota ("1i"), there is no way to break it into smaller chunks. It is a really small
 value anyway. You can also attach a message to the transaction, for example a
 little note to the beneficiary of the payment.
 
@@ -467,8 +472,8 @@ of:
         This step is extremely important, as it prevents you from `spending twice
         from the same address`_.
 
-        When an address is used an input, all tokens will be withdrawn. Part of
-        the tokens will be used to fund your transaction, the rest will be
+        When an address is used as an input, all tokens will be withdrawn. Part
+        of the tokens will be used to fund your transaction, the rest will be
         transferred to ``change_address``.
 
 - Constructing the transfer bundle with necessary input and output transactions.
@@ -476,13 +481,12 @@ of:
 - Doing proof-of-work for each transaction in the bundle and sending it to the
   network.
 
-
 .. literalinclude:: ../examples/tutorials/05_send_tokens.py
    :lines: 31-32
    :lineno-start: 31
 
 Open the link and observe the bundle you have just sent to the Tangle. Probably
-it will take couple of seconds for the network to confirm it.
+it will take a couple of seconds for the network to confirm it.
 
 What you see is a bundle with 4 transactions in total, 1 input and 3 outputs.
 But why are there so many transactions?

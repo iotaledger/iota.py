@@ -451,3 +451,20 @@ class TraverseBundleCommandTestCase(TestCase):
                         b'ORYCRDX9TOMJPFCRB9R9KPUUGFPVOWYXFIWEW9999'
                     ),
             )
+
+    def test_missing_transaction_zero_trytes(self):
+        """
+        Unable to find the requested transaction.
+        getTrytes returned only zeros, no tx was found.
+        """
+        zero_trytes = TransactionTrytes('')
+        self.adapter.seed_response('getTrytes', {'trytes': [zero_trytes]})
+
+        with self.assertRaises(BadApiResponse):
+            self.command(
+                transaction =
+                    TransactionHash(
+                        b'FSEWUNJOEGNUI9QOCRFMYSIFAZLJHKZBPQZZYFG9'
+                        b'ORYCRDX9TOMJPFCRB9R9KPUUGFPVOWYXFIWEW9999'
+                    ),
+            )

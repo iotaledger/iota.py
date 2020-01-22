@@ -505,9 +505,122 @@ Once the bundle is confirmed, try rerunning the script from
 should be decremented by 1i, and you should see a new address, which was
 actually the ``change_address``.
 
+6. Store Encrypted Data
+-----------------------
+
+In this example, you will learn how to:
+
+- **Convert Python data structures to JSON format.**
+- **Encrypt data and include it in a zero-value transaction.**
+- **Generate an address with a PyOTA specific utility tool.**
+- **Store the zero-value transaction with encrypted data on the Tangle.**
+
+.. warning::
+
+    We will use the ``simple-crypt`` external library for encryption/decryption.
+    Before proceeding to the tutorial, make sure you install it by running::
+
+        pip install simple-crypt
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :lines: 1-15
+   :lineno-start: 1
+
+The first odd thing we notice among the imports is
+:py:class:`~iota.crypto.addresses.AddressGenerator`. It is a PyOTA specific
+utility that generates addresses given your seed.
+
+We will use the ``encrypt`` method to enchiper the data, and ``b64encode`` for
+representing it as ASCII characters. ``getpass`` will prompt the user for a
+password, and the ``json`` library is used for JSON formatting.
+
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :lines: 17-23
+   :lineno-start: 17
+
+The data to be stored is considered confidential information, therefore we
+can't just put it on the Tangle as plaintext so everyone can read it. Think of
+what would happen if the world's most famous secret agent's identity was leaked
+on the Tangle...
+
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :lines: 25-26
+   :lineno-start: 25
+
+Notice, that ``data`` is a Python ``dict`` object. As a common way of exchanging
+data on the web, we would like to convert it to JSON format. The ``json.dumps()``
+method does exactly that, and the result is a JSON formatted plaintext.
+
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :lines: 28-37
+   :lineno-start: 28
+
+Next, we will encrypt this data with a secret password we obtain from the user.
+
+.. note::
+
+    When you run this example, please remeber the password at least until the
+    next tutorial!
+
+The output of the ``encrypt`` method is a ``bytes`` object in Python3 and
+contains many special characters. This is a problem, since we can only convert
+ASCII characters from ``bytes`` directly into :py:class:`TryteString`.
+
+Therefore, we first encode our binary data into ASCII characters with `Base64`_
+encoding.
+
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :lines: 39-57
+   :lineno-start: 39
+
+Now, we are ready to construct the transfer. We convert the encrypted `Base64`_
+encoded data to trytes and assign it to the :py:class:`ProposedTransaction`
+object's message argument.
+
+An address is also needed, so we generate one with the help of
+:py:class:`~iota.crypto.addresses.AddressGenerator` and its
+:py:meth:`~iota.crypto.addresses.AddressGenerator.get_addresses` method. Feel
+free to chose the index of the generated address, and don't forget, that the
+method returns a list of addresses, even if it contains only one. Put your seed
+(from `4.a Generate Address`_) onto line 44 to generate an address that belongs
+to you. For more detailed explanation on how addresses are generated in PyOTA,
+refer to the :ref:`Generating Addresses` page.
+
+We also attach a custom :py:class:`Tag` to our :py:class:`ProposedTransaction`.
+Note, that if our ``trytes_encrypted_data`` was longer than the maximum payload
+of a transaction, the library would split it accross more transactions that
+together form the transfer bundle.
+
+.. literalinclude:: ../examples/tutorials/06_store_encrypted.py
+   :lines: 59-65
+   :lineno-start: 59
+
+Finally, we use :py:meth:`Iota.send_transfer` to prepare the transfer and
+send it to the network.
+
+Click on the link to check your transaction on the Tangle Explorer.
+
+The tail transaction (a tail transaction is the one with index 0 in the bundle)
+hash is printed on the console, because you will need it in the next tutorial,
+and anyway, it is a good practice to keep a reference to your transfers.
+
+In the next example, we will try to decode the confidential information from the
+Tangle.
+
+
+
+
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _bytestring: https://docs.python.org/3/library/stdtypes.html#bytes
 .. _tryte alphabet: https://docs.iota.org/docs/getting-started/0.1/introduction/ternary#tryte-encoding
 .. _Tangle Explorer: https://utils.iota.org
 .. _Account Module: https://docs.iota.org/docs/client-libraries/0.1/account-module/introduction/overview
 .. _spending twice from the same address: https://docs.iota.org/docs/getting-started/0.1/clients/addresses#spent-addresses
+.. _Base64: https://en.wikipedia.org/wiki/Base64

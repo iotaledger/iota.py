@@ -26,12 +26,12 @@ data = {
 json_data = json.dumps(data)
 
 # Ask user for a password to use for encryption
-pw = getpass('Please supply a password for encryption:')
+password = getpass('Please supply a password for encryption:')
 
 print('Encrypting data...')
 # Encrypt data
 # Note, that in Python 3, encrypt returns 'bytes'
-cipher = encrypt(pw, json_data)
+cipher = encrypt(password, json_data)
 
 # Encode to base64, output contains only ASCII chars
 b64_cipher = b64encode(cipher)

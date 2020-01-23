@@ -983,14 +983,14 @@ class Iota(StrictIota):
             security_level=security_level
         )
 
-    def get_bundles(self, transaction):
-        # type: (TransactionHash) -> dict
+    def get_bundles(self, transactions):
+        # type: (Iterable[TransactionHash]) -> dict
         """
         Returns the bundle(s) associated with the specified transaction
-        hash.
+        hashes.
 
-        :param TransactionHash transaction:
-            Transaction hash.  Must be a tail transaction.
+        :param Iterable[TransactionHash] transactions:
+            Transaction hashes.  Must be a tail transaction.
 
         :return:
             ``dict`` with the following structure::
@@ -1001,15 +1001,15 @@ class Iota(StrictIota):
                     always a list, even if only one bundle was found.
              }
 
-        :raise:
-          - :py:class:`iota.adapter.BadApiResponse` if any of the
-            bundles fails validation.
+        :raise :py:class:`iota.adapter.BadApiResponse`:
+          - if any of the bundles fails validation.
+          - if any of the bundles is not visible on the Tangle.
 
         References:
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
         """
-        return extended.GetBundlesCommand(self.adapter)(transaction=transaction)
+        return extended.GetBundlesCommand(self.adapter)(transactions=transactions)
 
     def get_inputs(
             self,

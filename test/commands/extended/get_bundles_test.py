@@ -23,10 +23,16 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
         super(GetBundlesRequestFilterTestCase, self).setUp()
 
         # noinspection SpellCheckingInspection
-        self.transaction = (
-            'TESTVALUE9DONTUSEINPRODUCTION99999KPZOTR'
-            'VDB9GZDJGZSSDCBIX9QOK9PAV9RMDBGDXLDTIZTWQ'
-        )
+        self.transactions = [
+            (
+                'TESTVALUE9DONTUSEINPRODUCTION99999KPZOTR'
+                'VDB9GZDJGZSSDCBIX9QOK9PAV9RMDBGDXLDTIZTWQ'
+            ),
+            (
+                'TESTVALUE9DONTUSEINPRODUCTION99999TAXQBF'
+                'ZMUQLZ9RXRRXQOUSAMGAPEKTZNERIKSDYGHQA9999'
+            ),
+        ]
 
     def test_pass_happy_path(self):
         """
@@ -34,7 +40,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
         """
         # Raw trytes are extracted to match the IRI's JSON protocol.
         request = {
-            'transaction': self.transaction,
+            'transactions': self.transactions,
         }
 
         filter_ = self._filter(request)
@@ -47,9 +53,14 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
         Request contains values that can be converted to the expected
         types.
         """
+        # Convert first to TranscationHash
+        tx_hashes = []
+        for tx in self.transactions:
+            tx_hashes.append(TransactionHash(tx))
+
         filter_ = self._filter({
             # Any TrytesCompatible value will work here.
-            'transaction': TransactionHash(self.transaction),
+            'transactions': tx_hashes,
         })
 
         self.assertFilterPasses(filter_)
@@ -57,7 +68,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
             filter_.cleaned_data,
 
             {
-                'transaction': self.transaction,
+                'transactions': self.transactions,
             },
         )
 
@@ -69,7 +80,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
             {},
 
             {
-                'transaction': [f.FilterMapper.CODE_MISSING_KEY],
+                'transactions': [f.FilterMapper.CODE_MISSING_KEY],
             },
         )
 
@@ -79,7 +90,7 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
         """
         self.assertFilterErrors(
             {
-                'transaction': TransactionHash(self.transaction),
+                'transactions': self.transactions,
 
                 # SAY "WHAT" AGAIN!
                 'what': 'augh!',
@@ -92,29 +103,73 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
 
     def test_fail_transaction_wrong_type(self):
         """
-        ``transaction`` is not a TrytesCompatible value.
+        ``transactions`` contains no TrytesCompatible value.
         """
         self.assertFilterErrors(
             {
-                'transaction': 42,
+                'transactions': [42],
             },
 
             {
-                'transaction': [f.Type.CODE_WRONG_TYPE],
+                'transactions.0': [f.Type.CODE_WRONG_TYPE],
             },
         )
 
     def test_fail_transaction_not_trytes(self):
         """
-        ``transaction`` contains invalid characters.
+        ``transactions`` contains invalid characters.
         """
         self.assertFilterErrors(
             {
-                'transaction': b'not valid; must contain only uppercase and "9"',
+                'transactions': [b'not valid; must contain only uppercase and "9"'],
             },
 
             {
-                'transaction': [Trytes.CODE_NOT_TRYTES],
+                'transactions.0': [Trytes.CODE_NOT_TRYTES],
+            },
+        )
+
+    def test_fail_no_list(self):
+        """
+        ``transactions`` has one hash rather than a list of hashes.
+        """
+        self.assertFilterErrors(
+            {
+                'transactions': self.transactions[0],
+            },
+
+            {
+                'transactions': [f.Type.CODE_WRONG_TYPE],
+            },
+        )
+
+    def test_fail_transactions_contents_invalid(self):
+        """
+        ``transactions`` is a non-empty array, but it contains invlaid values.
+        """
+        self.assertFilterErrors(
+            {
+                'transactions': [
+                    b'',
+                    True,
+                    None,
+                    b'not valid transaction hash',
+
+                    # A valid tx hash, this should not produce error
+                    TransactionHash(self.transactions[0]),
+
+                    65498731,
+                    b'9' * (TransactionHash.LEN +1),
+                ],
+            },
+
+            {
+                'transactions.0': [f.Required.CODE_EMPTY],
+                'transactions.1': [f.Type.CODE_WRONG_TYPE],
+                'transactions.2': [f.Required.CODE_EMPTY],
+                'transactions.3': [Trytes.CODE_NOT_TRYTES],
+                'transactions.5': [f.Type.CODE_WRONG_TYPE],
+                'transactions.6': [Trytes.CODE_WRONG_FORMAT],
             },
         )
 
@@ -286,7 +341,7 @@ class GetBundlesCommandTestCase(TestCase):
             api = Iota(self.adapter)
 
             # Don't need to call with proper args here.
-            response = api.get_bundles('transaction')
+            response = api.get_bundles('transactions')
 
             self.assertTrue(mocked_command.called)
 
@@ -308,12 +363,42 @@ class GetBundlesCommandTestCase(TestCase):
             'trytes': [self.spam_trytes],
         })
 
-        response = self.command(transaction = self.tx_hash)
+        response = self.command(transactions = [self.tx_hash])
 
         self.maxDiff = None
         original_bundle = Bundle.from_tryte_strings(self.bundle_trytes)
         self.assertListEqual(
             response['bundles'][0].as_json_compatible(),
+            original_bundle.as_json_compatible(),
+        )
+
+    def test_happy_path_multiple_bundles(self):
+        """
+        Get two bundles with multiple transactions.
+        """
+        # We will fetch the same two bundle
+        for _ in range(2):
+            for txn_trytes in self.bundle_trytes:
+                self.adapter.seed_response('getTrytes', {
+                    'trytes': [txn_trytes],
+                })
+
+            self.adapter.seed_response('getTrytes', {
+                'trytes': [self.spam_trytes],
+            })
+
+        response = self.command(transactions = [self.tx_hash, self.tx_hash])
+
+        self.maxDiff = None
+        original_bundle = Bundle.from_tryte_strings(self.bundle_trytes)
+
+        self.assertListEqual(
+            response['bundles'][0].as_json_compatible(),
+            original_bundle.as_json_compatible(),
+        )
+
+        self.assertListEqual(
+            response['bundles'][1].as_json_compatible(),
             original_bundle.as_json_compatible(),
         )
 
@@ -335,4 +420,4 @@ class GetBundlesCommandTestCase(TestCase):
         })
 
         with self.assertRaises(BadApiResponse):
-            response = self.command(transaction = self.tx_hash)
+            response = self.command(transactions = [self.tx_hash])

@@ -380,7 +380,7 @@ Tangle.
    :lines: 15-30
    :lineno-start: 15
 
-Just like in the prevoius example, we will poll for information until we find
+Just like in the previous example, we will poll for information until we find
 a non-zero balance. :py:meth:`~Iota.get_account_data` without arguments
 generates addresses from ``index`` 0 until it finds the first unused. Then, it
 queries the node about bundles of those addresses and sums up their balance.
@@ -566,7 +566,7 @@ Next, we will encrypt this data with a secret password we obtain from the user.
 
 .. note::
 
-    When you run this example, please remeber the password at least until the
+    When you run this example, please remember the password at least until the
     next tutorial!
 
 The output of the ``encrypt`` method is a ``bytes`` object in Python3 and
@@ -614,8 +614,109 @@ and anyway, it is a good practice to keep a reference to your transfers.
 In the next example, we will try to decode the confidential information from the
 Tangle.
 
+7. Fetch Encrypted Data
+-----------------------
 
+In this example, you will learn how to:
 
+- **Fetch bundles from the Tangle based on their tail transaction hashes.**
+- **Extract messages from a bundle.**
+- **Decrypt encrypted messages from a bundle.**
+
+.. warning::
+
+    We will use the ``simple-crypt`` external library for encryption/decryption.
+    Before proceeding to the tutorial, make sure you install it by running::
+
+        pip install simple-crypt
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+.. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
+   :lines: 1-14
+   :lineno-start: 1
+
+In contrast to `6. Store Encrypted Data`_ where we intended to encrypt data, in
+this tutorial we will do the reverse, and decrypt data from the Tangle.
+Therefore, we need the ``decrypt`` method from ``simplecrypt`` library and the
+``b64decode`` method from ``base64`` library.
+
+Furthermore, ``getpass`` is needed to prompt the user for a decryption
+password, and ``json`` for deserializing JSON formatted string into Python
+object.
+
+.. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
+   :lines: 16-17
+   :lineno-start: 16
+
+To fetch transactions or bundles from the Tangle, a reference is required to
+retreive them from the network. Transactions are identified by their
+transaction hash, while a group of transaction (a bundle) by bundle hash.
+Hashes ensure the integrity of the Tangle, since they contain verifiable
+information on the content of the transfer objects.
+
+``input()`` asks the user to give the tail transaction hash of the bundle
+that holds the encrypted messages. The tail transaction is the first in the
+bundle with index 0. Copy and paste the tail transaction hash from the console
+output of `6. Store Encrypted Data`_ when prompted.
+
+.. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
+   :lines: 19-21
+   :lineno-start: 19
+
+Next, we fetch the bundle from the Tangle with the help of the
+:py:meth:`~Iota.get_bundles` extended API command. It takes a list of tail
+transaction hashes and returns the bundles for each of them. The response
+``dict`` contains a ``bundles`` key with the value being a list of bundles
+in the same order as the input argument hashes. Also note, that the bundles
+in the response are actual PyOTA :py:class:`Bundle` objects.
+
+To simplify the code, several operations are happening on line 21:
+
+- Calling :py:meth:`~Iota.get_bundles` that returns a ``dict``,
+- accessing the ``'bundles'`` key in the ``dict``,
+- and taking the first element of the the list if bundles in the value
+  associated with the key.
+
+.. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
+   :lines: 23-39
+   :lineno-start: 23
+
+The next step is to extract the content of the message fields of the
+transactions in the bundle. We call :py:meth:`Bundle.get_messages` to carry
+out this operation. The method returns a list of unicode strings, essentially
+the ``signature_message_fragment`` fields of the transactions, decoded from
+trytes into unicode characters.
+
+We then combine these message chunks into one stream of characters by using
+``sting.join()``.
+
+We know that at this stage that we can't make sense of our message, because it
+is encrypted and encoded into `Base64`_. Let's peel that onion layer by layer:
+
+- On line 28, we decode the message into bytes with ``b64decode``.
+- On line 31, we ask the user for a decryption password.
+- On line 36, we decrypt the bytes cipher with the password and decode the
+  result into a unicode string.
+- Since we used JSON formatting in the previous tutorial, there is one
+  additional step to arrive at our original data. On line 39, we deserialize
+  the JSON string into a Python object, namely a ``dict``.
+
+.. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
+   :lines: 41-42
+   :lineno-start: 41
+
+If everything went according to plan and the user supplied the right password,
+we should see our original data printed out to the console.
+
+Now you know how to use the Tangle for data storage while keeping privacy.
+When you need more granular access control on how and when one could read
+data from the Tangle, consider using `Masked Authenticated Messaging`_ (MAM).
 
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _bytestring: https://docs.python.org/3/library/stdtypes.html#bytes
@@ -624,3 +725,4 @@ Tangle.
 .. _Account Module: https://docs.iota.org/docs/client-libraries/0.1/account-module/introduction/overview
 .. _spending twice from the same address: https://docs.iota.org/docs/getting-started/0.1/clients/addresses#spent-addresses
 .. _Base64: https://en.wikipedia.org/wiki/Base64
+.. _Masked Authenticated Messaging: https://docs.iota.org/docs/client-libraries/0.1/mam/introduction/overview?q=masked%20auth&highlights=author;authent

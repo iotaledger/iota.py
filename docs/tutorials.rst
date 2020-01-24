@@ -512,7 +512,6 @@ In this example, you will learn how to:
 
 - **Convert Python data structures to JSON format.**
 - **Encrypt data and include it in a zero-value transaction.**
-- **Generate an address with a PyOTA specific utility tool.**
 - **Store the zero-value transaction with encrypted data on the Tangle.**
 
 .. warning::
@@ -530,20 +529,20 @@ Code
 Discussion
 ~~~~~~~~~~
 .. literalinclude:: ../examples/tutorials/06_store_encrypted.py
-   :lines: 1-15
+   :lines: 1-18
    :lineno-start: 1
 
-The first odd thing we notice among the imports is
-:py:class:`~iota.crypto.addresses.AddressGenerator`. It is a PyOTA specific
-utility that generates addresses given your seed.
-
-We will use the ``encrypt`` method to enchiper the data, and ``b64encode`` for
+We will use the ``encrypt`` method to encipher the data, and ``b64encode`` for
 representing it as ASCII characters. ``getpass`` will prompt the user for a
 password, and the ``json`` library is used for JSON formatting.
 
+We will need an address to upload the data, therefore we need to supply the
+seed to the ``Iota`` API instance. The address will be generated from this
+seed.
+
 .. literalinclude:: ../examples/tutorials/06_store_encrypted.py
-   :lines: 17-23
-   :lineno-start: 17
+   :lines: 20-26
+   :lineno-start: 20
 
 The data to be stored is considered confidential information, therefore we
 can't just put it on the Tangle as plaintext so everyone can read it. Think of
@@ -551,16 +550,16 @@ what would happen if the world's most famous secret agent's identity was leaked
 on the Tangle...
 
 .. literalinclude:: ../examples/tutorials/06_store_encrypted.py
-   :lines: 25-26
-   :lineno-start: 25
+   :lines: 28-29
+   :lineno-start: 28
 
 Notice, that ``data`` is a Python ``dict`` object. As a common way of exchanging
 data on the web, we would like to convert it to JSON format. The ``json.dumps()``
 method does exactly that, and the result is a JSON formatted plaintext.
 
 .. literalinclude:: ../examples/tutorials/06_store_encrypted.py
-   :lines: 28-37
-   :lineno-start: 28
+   :lines: 31-40
+   :lineno-start: 31
 
 Next, we will encrypt this data with a secret password we obtain from the user.
 
@@ -577,20 +576,18 @@ Therefore, we first encode our binary data into ASCII characters with `Base64`_
 encoding.
 
 .. literalinclude:: ../examples/tutorials/06_store_encrypted.py
-   :lines: 39-57
-   :lineno-start: 39
+   :lines: 42-58
+   :lineno-start: 42
 
 Now, we are ready to construct the transfer. We convert the encrypted `Base64`_
 encoded data to trytes and assign it to the :py:class:`ProposedTransaction`
-object's message argument.
+object's ``message`` argument.
 
 An address is also needed, so we generate one with the help of
-:py:class:`~iota.crypto.addresses.AddressGenerator` and its
-:py:meth:`~iota.crypto.addresses.AddressGenerator.get_addresses` method. Feel
-free to chose the index of the generated address, and don't forget, that the
-method returns a list of addresses, even if it contains only one. Put your seed
-(from `4.a Generate Address`_) onto line 44 to generate an address that belongs
-to you. For more detailed explanation on how addresses are generated in PyOTA,
+:py:meth:`~Iota.get_new_addresses` extended API method. Feel free to choose the
+index of the generated address, and don't forget, that the method returns a
+``dict`` with a list of addresses, even if it contains only one.
+For more detailed explanation on how addresses are generated in PyOTA,
 refer to the :ref:`Generating Addresses` page.
 
 We also attach a custom :py:class:`Tag` to our :py:class:`ProposedTransaction`.
@@ -599,8 +596,8 @@ of a transaction, the library would split it accross more transactions that
 together form the transfer bundle.
 
 .. literalinclude:: ../examples/tutorials/06_store_encrypted.py
-   :lines: 59-65
-   :lineno-start: 59
+   :lines: 60-66
+   :lineno-start: 60
 
 Finally, we use :py:meth:`Iota.send_transfer` to prepare the transfer and
 send it to the network.
@@ -611,8 +608,8 @@ The tail transaction (a tail transaction is the one with index 0 in the bundle)
 hash is printed on the console, because you will need it in the next tutorial,
 and anyway, it is a good practice to keep a reference to your transfers.
 
-In the next example, we will try to decode the confidential information from the
-Tangle.
+In the next example, we will try to decode the confidential information from
+the Tangle.
 
 7. Fetch Encrypted Data
 -----------------------
@@ -658,7 +655,7 @@ To fetch transactions or bundles from the Tangle, a reference is required to
 retreive them from the network. Transactions are identified by their
 transaction hash, while a group of transaction (a bundle) by bundle hash.
 Hashes ensure the integrity of the Tangle, since they contain verifiable
-information on the content of the transfer objects.
+information about the content of the transfer objects.
 
 ``input()`` asks the user to give the tail transaction hash of the bundle
 that holds the encrypted messages. The tail transaction is the first in the
@@ -680,7 +677,7 @@ To simplify the code, several operations are happening on line 21:
 
 - Calling :py:meth:`~Iota.get_bundles` that returns a ``dict``,
 - accessing the ``'bundles'`` key in the ``dict``,
-- and taking the first element of the the list if bundles in the value
+- and taking the first element of the the list of bundles in the value
   associated with the key.
 
 .. literalinclude:: ../examples/tutorials/07_fetch_encrypted.py
@@ -694,13 +691,14 @@ the ``signature_message_fragment`` fields of the transactions, decoded from
 trytes into unicode characters.
 
 We then combine these message chunks into one stream of characters by using
-``sting.join()``.
+``string.join()``.
 
 We know that at this stage that we can't make sense of our message, because it
 is encrypted and encoded into `Base64`_. Let's peel that onion layer by layer:
 
 - On line 28, we decode the message into bytes with ``b64decode``.
-- On line 31, we ask the user for a decryption password.
+- On line 31, we ask the user for thr decryption password (from the previous
+  tutorial).
 - On line 36, we decrypt the bytes cipher with the password and decode the
   result into a unicode string.
 - Since we used JSON formatting in the previous tutorial, there is one

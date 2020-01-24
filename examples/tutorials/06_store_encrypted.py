@@ -4,7 +4,6 @@ Encrypt data and store it on the Tangle.
 simplecrypt library is needed for this example (`pip install simple-crypt`)!
 """
 from iota import Iota, TryteString, Tag, ProposedTransaction
-from iota.crypto.addresses import AddressGenerator
 from simplecrypt import encrypt
 from base64 import b64encode
 from getpass import getpass
@@ -12,7 +11,11 @@ from getpass import getpass
 import json
 
 # Declare an API object
-api = Iota('https://nodes.devnet.iota.org:443', testnet=True)
+api = Iota(
+    adapter='https://nodes.devnet.iota.org:443',
+    seed=b'YOURSEEDFROMTHEPREVIOUSTUTORIAL',
+    testnet=True,
+)
 
 # Some confidential information
 data = {
@@ -41,9 +44,7 @@ print('Constructing transaction locally...')
 trytes_encrypted_data = TryteString.from_bytes(b64_cipher)
 
 # Generate an address from your seed to post the transfer to
-my_address = AddressGenerator(b'YOURSEEDFROMTHEPREVIOUSTUTORIAL').get_addresses(
-    start=42,
-)[0]
+my_address = api.get_new_addresses(index=42)['addresses'][0]
 
 # Tag is optional here
 my_tag = Tag(b'CONFIDENTIALINFORMATION')

@@ -118,7 +118,7 @@ def get_bundles_from_transaction_hashes(
 
     # Find the bundles for each transaction.
     for txn in tail_transactions:
-        gb_response = GetBundlesCommand(adapter)(transaction=txn.hash)
+        gb_response = GetBundlesCommand(adapter)(transactions=[txn.hash])
         txn_bundles = gb_response['bundles']  # type: List[Bundle]
 
         if inclusion_states:

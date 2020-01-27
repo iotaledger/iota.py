@@ -34,7 +34,7 @@ class ReplayBundleCommand(FilterCommand):
         min_weight_magnitude = request['minWeightMagnitude']  # type: int
         transaction = request['transaction']  # type: TransactionHash
 
-        gb_response = GetBundlesCommand(self.adapter)(transaction=transaction)
+        gb_response = GetBundlesCommand(self.adapter)(transactions=[transaction])
 
         # Note that we only replay the first bundle returned by
         # ``getBundles``.

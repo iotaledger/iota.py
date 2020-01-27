@@ -12,5 +12,6 @@
    addresses
    multisig
    commands
+   tutorials
 
-.. include:: ../README.rst
+.. include:: README.rst

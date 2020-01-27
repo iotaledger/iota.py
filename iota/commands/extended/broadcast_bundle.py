@@ -36,7 +36,7 @@ class BroadcastBundleCommand(FilterCommand):
         # and validates it.
         # Returns List[List[TransactionTrytes]]
         # (outer list has one item in current implementation)
-        bundle = GetBundlesCommand(self.adapter)(transaction=request['tail_hash'])
+        bundle = GetBundlesCommand(self.adapter)(transactions=[request['tail_hash']])
         BroadcastTransactionsCommand(self.adapter)(trytes=bundle[0])
         return {
             'trytes': bundle[0],

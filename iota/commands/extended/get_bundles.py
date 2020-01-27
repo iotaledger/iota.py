@@ -8,8 +8,8 @@ from iota import BadApiResponse, TransactionHash
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.extended.traverse_bundle import TraverseBundleCommand
 from iota.exceptions import with_context
-from iota.filters import Trytes
 from iota.transaction.validator import BundleValidator
+from iota.filters import Trytes
 
 __all__ = [
     'GetBundlesCommand',
@@ -31,35 +31,41 @@ class GetBundlesCommand(FilterCommand):
         pass
 
     def _execute(self, request):
-        transaction_hash = request['transaction']  # type: TransactionHash
+        transaction_hashes = request['transactions']  # type: Iterable[TransactionHash]
 
-        bundle = TraverseBundleCommand(self.adapter)(
-            transaction=transaction_hash
-        )['bundles'][0]  # Currently 1 bundle only
+        bundles = []
 
-        validator = BundleValidator(bundle)
+        # Fetch bundles one-by-one
+        for tx_hash in transaction_hashes:
+            bundle = TraverseBundleCommand(self.adapter)(
+                transaction=tx_hash
+            )['bundles'][0]  # Currently 1 bundle only
 
-        if not validator.is_valid():
-            raise with_context(
-                exc=BadApiResponse(
-                    'Bundle failed validation (``exc.context`` has more info).',
-                ),
+            validator = BundleValidator(bundle)
 
-                context={
-                    'bundle': bundle,
-                    'errors': validator.errors,
-                },
-            )
+            if not validator.is_valid():
+                raise with_context(
+                    exc=BadApiResponse(
+                        'Bundle failed validation (``exc.context`` has more info).',
+                    ),
+
+                    context={
+                        'bundle': bundle,
+                        'errors': validator.errors,
+                    },
+                )
+
+            bundles.append(bundle)
 
         return {
-            # Always return a list, so that we have the necessary
-            # structure to return multiple bundles in a future
-            # iteration.
-            'bundles': [bundle],
+            'bundles': bundles,
         }
 
 class GetBundlesRequestFilter(RequestFilter):
     def __init__(self):
         super(GetBundlesRequestFilter, self).__init__({
-            'transaction': f.Required | Trytes(TransactionHash),
+            'transactions':
+                f.Required | f.Array | f.FilterRepeater(
+                    f.Required | Trytes(TransactionHash)
+                )
         })

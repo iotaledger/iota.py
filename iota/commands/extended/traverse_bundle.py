@@ -7,7 +7,7 @@ from typing import List, Optional
 import filters as f
 
 from iota import BadApiResponse, BundleHash, Transaction, \
-    TransactionHash, TryteString, Bundle
+    TransactionHash, TryteString, Bundle, TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.exceptions import with_context
@@ -55,10 +55,13 @@ class TraverseBundleCommand(FilterCommand):
             GetTrytesCommand(self.adapter)(hashes=[txn_hash])['trytes']
         )  # type: List[TryteString]
 
-        if not trytes:
+        # If no tx was found by the node for txn_hash, it returns 9s,
+        # so we check here if it returned all 9s trytes.
+        if not trytes or trytes == [TransactionTrytes('')]:
             raise with_context(
                 exc=BadApiResponse(
-                    'Bundle transactions not visible '
+                    'Could not get trytes of bundle transaction from the Tangle. '
+                    'Bundle transactions not visible.'
                     '(``exc.context`` has more info).',
                 ),
 

@@ -20,7 +20,7 @@ if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
 
 ##
 # Load long description for PyPI.
-with open('README.rst', 'r', 'utf-8') as f:  # type: StreamReader
+with open('docs/README.rst', 'r', 'utf-8') as f:  # type: StreamReader
     long_description = f.read()
 
 ##
@@ -39,7 +39,7 @@ setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
     url='https://github.com/iotaledger/iota.py',
-    version='2.2.0b1',
+    version='2.3.0b1',
 
     long_description=long_description,
 

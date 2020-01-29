@@ -53,7 +53,7 @@ class AttachToTangleRequestFilter(RequestFilter):
                     f.Required | Trytes(result_type=TransactionTrytes),
                 ),
 
-            # Loosely-validated; testnet nodes require a different value
+            # Loosely-validated; devnet nodes require a different value
             # than mainnet.
             'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
         })

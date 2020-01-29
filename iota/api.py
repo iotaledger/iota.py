@@ -39,9 +39,9 @@ class StrictIota(object):
     :param AdapterSpec adapter:
         URI string or BaseAdapter instance.
 
-    :param Optional[bool] testnet:
-        Whether to use testnet settings for this instance.
-        On the testnet, minimum weight magnitude is set to 9, on mainnet
+    :param Optional[bool] devnet:
+        Whether to use devnet settings for this instance.
+        On the devnet, minimum weight magnitude is set to 9, on mainnet
         it is 1 by default.
 
     :param Optional[bool] local_pow:
@@ -54,15 +54,15 @@ class StrictIota(object):
 
     """
 
-    def __init__(self, adapter, testnet=False, local_pow=False):
+    def __init__(self, adapter, devnet=False, local_pow=False):
         # type: (AdapterSpec, bool, bool) -> None
         """
         :param AdapterSpec adapter:
             URI string or BaseAdapter instance.
 
-        :param bool testnet:
-            Whether to use testnet settings for this instance.
-            On the testnet, minimum weight magnitude is set to 9, on mainnet
+        :param bool devnet:
+            Whether to use devnet settings for this instance.
+            On the devnet, minimum weight magnitude is set to 9, on mainnet
             it is 1 by default.
 
         :param Optional[bool] local_pow:
@@ -91,7 +91,7 @@ class StrictIota(object):
         # via pyota-pow extension, or sends the request to a node.
         # But technically, the parameter belongs to the adapter.
         self.adapter.set_local_pow(local_pow)
-        self.testnet = testnet
+        self.devnet = devnet
 
     def create_command(self, command):
         # type: (Text) -> CustomCommand
@@ -134,7 +134,7 @@ class StrictIota(object):
         Returns the default ``min_weight_magnitude`` value to use for
         API requests.
         """
-        return 9 if self.testnet else 14
+        return 9 if self.devnet else 14
 
     def add_neighbors(self, uris):
         # type: (Iterable[Text]) -> dict
@@ -197,7 +197,7 @@ class StrictIota(object):
 
         :param Optional[int] min_weight_magnitude:
             Minimum weight magnitude to be used for attaching trytes.
-            14 by default on mainnet, 9 on testnet/devnet.
+            14 by default on mainnet, 9 on devnet/devnet.
 
         :return:
             ``dict`` with the following structure::
@@ -769,9 +769,9 @@ class Iota(StrictIota):
         .. note::
             This value is never transferred to the node/network.
 
-    :param Optional[bool] testnet:
-        Whether to use testnet settings for this instance.
-        On the testnet, minimum weight magnitude is decreased, on mainnet
+    :param Optional[bool] devnet:
+        Whether to use devnet settings for this instance.
+        On the devnet, minimum weight magnitude is decreased, on mainnet
         it is 14 by default.
 
         For more info on the Mainnet and the Devnet, visit
@@ -791,7 +791,7 @@ class Iota(StrictIota):
     - https://github.com/iotaledger/wiki/blob/master/api-proposal.md
     """
 
-    def __init__(self, adapter, seed=None, testnet=False, local_pow=False):
+    def __init__(self, adapter, seed=None, devnet=False, local_pow=False):
         # type: (AdapterSpec, Optional[TrytesCompatible], bool, bool) -> None
         """
         :param seed:
@@ -801,7 +801,7 @@ class Iota(StrictIota):
             .. note::
                 This value is never transferred to the node/network.
         """
-        super(Iota, self).__init__(adapter, testnet, local_pow)
+        super(Iota, self).__init__(adapter, devnet, local_pow)
 
         self.seed = Seed(seed) if seed else Seed.random()
         self.helpers = Helpers(self)

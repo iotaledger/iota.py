@@ -89,10 +89,10 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
         Starts the REPL.
         """
         banner = (
-            'IOTA API client for {uri} ({testnet}) '
+            'IOTA API client for {uri} ({devnet}) '
             'initialized as variable `api`.\n'
             'Type `help(api)` for list of API commands.'.format(
-                testnet='testnet' if api.testnet else 'mainnet',
+                devnet='devnet' if api.devnet else 'mainnet',
                 uri=api.adapter.get_uri(),
             )
         )

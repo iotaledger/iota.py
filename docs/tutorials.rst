@@ -100,9 +100,9 @@ Discussion
 We have seen this part before. Note, that now we import more objects which we
 will use to construct our transaction.
 
-Notice ``testnet=True`` in the argument list of the API instantiation. We
-tell the API directly that we will use the devnet/testnet. By default, the API
-is configured for the mainnet.
+Notice ``devnet=True`` in the argument list of the API instantiation. We
+tell the API directly that we will use IOTA's testnet, known as the devnet.
+By default, the API is configured for the mainnet.
 
 .. literalinclude:: ../examples/tutorials/02_send_data.py
    :lines: 7-8

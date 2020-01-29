@@ -102,7 +102,7 @@ class IotaCommandLineApp(object):
         arguments['api'] = Iota(
             adapter=arguments.pop('uri'),
             seed=seed,
-            testnet=arguments.pop('testnet'),
+            devnet=arguments.pop('devnet'),
         )
 
         return arguments
@@ -143,10 +143,10 @@ class IotaCommandLineApp(object):
             )
 
         parser.add_argument(
-            '--testnet',
+            '--devnet',
             action='store_true',
             default=False,
-            help='If set, use testnet settings (e.g., for PoW).',
+            help='If set, use devnet settings (e.g., for PoW).',
         )
 
         return parser

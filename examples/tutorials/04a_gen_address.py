@@ -10,7 +10,7 @@ print('Your seed is: ' + str(my_seed))
 api = Iota(
     adapter='https://nodes.devnet.iota.org:443',
     seed=my_seed,
-    testnet=True,
+    devnet=True,
 )
 
 print('Generating the first unused address...')

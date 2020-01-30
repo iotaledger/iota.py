@@ -3,9 +3,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from unittest import TestCase
-
 from iota.commands.extended.utils import iter_used_addresses
-
 from iota import MockAdapter
 from iota.crypto.types import Seed
 from test import mock
@@ -41,9 +39,9 @@ class IterUsedAddressesTestCase(TestCase):
         return [address for address, _
                 in iter_used_addresses(self.adapter, self.seed, start)]
 
-    def test_fist_address_is_not_used(self):
+    def test_first_address_is_not_used(self):
         """
-        The very fist address is not used. No address is returned.
+        The very first address is not used. No address is returned.
         """
         # Address 0
         self.seed_unused_address()
@@ -149,7 +147,7 @@ class IterUsedAddressesTestCase(TestCase):
 
     def test_start_parameter_is_given(self):
         """
-        The correct address is returned if a start parameter is given
+        The correct address is returned if a start parameter is given.
         """
         # Address 1
         self.adapter.seed_response('findTransactions', {

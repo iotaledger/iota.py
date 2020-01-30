@@ -2,7 +2,7 @@ from iota import Iota, Address
 from iota.codecs import TrytesDecodeError
 
 # Declare an API object
-api = Iota('https://nodes.devnet.iota.org:443', testnet=True)
+api = Iota('https://nodes.devnet.iota.org:443', devnet=True)
 
 # Address to fetch data from
 # Replace with your random generated address from Tutorial 2. to fetch the data

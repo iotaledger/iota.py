@@ -118,7 +118,7 @@ Here's how you could send a zero-value transaction, using the library. For the g
 
 ```python
 # You don't need a seed to send zero-value transactions
-api = Iota('https://nodes.devnet.iota.org:443', testnet=True)
+api = Iota('https://nodes.devnet.iota.org:443', devnet=True)
 
 # Define a message to send.
 # This message must include only ASCII characters.

@@ -14,7 +14,7 @@ import json
 api = Iota(
     adapter='https://nodes.devnet.iota.org:443',
     seed=b'YOURSEEDFROMTHEPREVIOUSTUTORIAL',
-    testnet=True,
+    devnet=True,
 )
 
 # Some confidential information

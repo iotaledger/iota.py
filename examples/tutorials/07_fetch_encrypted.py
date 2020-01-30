@@ -11,7 +11,7 @@ from getpass import getpass
 import json
 
 # Declare an API object
-api = Iota('https://nodes.devnet.iota.org:443', testnet=True)
+api = Iota('https://nodes.devnet.iota.org:443', devnet=True)
 
 # Prompt user for tail tx hash of the bundle
 tail_hash = input('Tail transaction hash of the bundle: ')

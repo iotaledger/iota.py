@@ -5,7 +5,7 @@ import time
 my_address = Address(b'YOURADDRESSFROMTHEPREVIOUSTUTORIAL')
 
 # Declare an API object
-api = Iota(adapter='https://nodes.devnet.iota.org:443', testnet=True)
+api = Iota(adapter='https://nodes.devnet.iota.org:443', devnet=True)
 
 # Script actually runs until you load up your address
 success = False

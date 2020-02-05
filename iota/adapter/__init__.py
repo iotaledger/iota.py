@@ -9,8 +9,7 @@ from inspect import isabstract as is_abstract
 from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
-
-from requests import Response, auth, codes, request
+from httpx import AsyncClient, Response, codes, auth
 from six import PY2, binary_type, iteritems, moves as compat, text_type, \
     add_metaclass
 
@@ -331,13 +330,13 @@ class HttpAdapter(BaseAdapter):
         # type: () -> Text
         return self.uri.geturl()
 
-    def send_request(self, payload, **kwargs):
+    async def send_request(self, payload, **kwargs):
         # type: (dict, dict) -> dict
         kwargs.setdefault('headers', {})
         for key, value in iteritems(self.DEFAULT_HEADERS):
             kwargs['headers'].setdefault(key, value)
 
-        response = self._send_http_request(
+        response = await self._send_http_request(
             # Use a custom JSON encoder that knows how to convert Tryte
             # values.
             payload=JsonEncoder().encode(payload),
@@ -346,9 +345,9 @@ class HttpAdapter(BaseAdapter):
             **kwargs
         )
 
-        return self._interpret_response(response, payload, {codes['ok']})
+        return self._interpret_response(response, payload, {codes['OK']})
 
-    def _send_http_request(self, url, payload, method='post', **kwargs):
+    async def _send_http_request(self, url, payload, method='post', **kwargs):
         # type: (Text, Optional[Text], Text, dict) -> Response
         """
         Sends the actual HTTP request.
@@ -380,8 +379,7 @@ class HttpAdapter(BaseAdapter):
                 'request_url': url,
             },
         )
-
-        response = request(method=method, url=url, data=payload, **kwargs)
+        response = await AsyncClient().request(method=method, url=url, data=payload, **kwargs)
 
         self._log(
             level=DEBUG,

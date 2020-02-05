@@ -68,7 +68,7 @@ setuptools.setup(
         # ``security`` extra wasn't introduced until 2.4.1
         # http://docs.python-requests.org/en/latest/community/updates/#id35
         'requests[security] >= 2.4.1',
-
+        'httpx'
         'six',
         'typing; python_version < "3.0"',
     ],

@@ -30,6 +30,7 @@ with open('docs/README.rst', 'r', 'utf-8') as f:  # type: StreamReader
 tests_require = [
     'mock; python_version < "3.0"',
     'nose',
+    'aiounittest',
 ]
 
 ##

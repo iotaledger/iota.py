@@ -472,9 +472,9 @@ class HttpAdapter(BaseAdapter):
 
         error = None
         try:
-            if response.status_code == codes['bad_request']:
+            if response.status_code == codes['BAD_REQUEST']:
                 error = decoded['error']
-            elif response.status_code == codes['internal_server_error']:
+            elif response.status_code == codes['INTERNAL_SERVER_ERROR']:
                 error = decoded['exception']
         except KeyError:
             pass

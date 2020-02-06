@@ -43,7 +43,7 @@ class BaseCommand(object):
     self.request  = None # type: dict
     self.response = None # type: dict
 
-  def __call__(self, **kwargs):
+  async def __call__(self, **kwargs):
     # type: (**Any) -> dict
     """
     Sends the command to the node.
@@ -64,7 +64,7 @@ class BaseCommand(object):
     if replacement is not None:
       self.request = replacement
 
-    self.response = self._execute(self.request)
+    self.response = await self._execute(self.request)
 
     replacement = self._prepare_response(self.response)
     if replacement is not None:
@@ -83,7 +83,7 @@ class BaseCommand(object):
     self.request  = None # type: dict
     self.response = None # type: dict
 
-  def _execute(self, request):
+  async def _execute(self, request):
     # type: (dict) -> dict
     """
     Sends the request object to the adapter and returns the response.
@@ -92,7 +92,7 @@ class BaseCommand(object):
     before it is sent (note: this will modify the request object).
     """
     request['command'] = self.command
-    return self.adapter.send_request(request)
+    return await self.adapter.send_request(request)
 
   @abstract_method
   def _prepare_request(self, request):

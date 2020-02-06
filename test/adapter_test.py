@@ -9,22 +9,12 @@ from unittest import TestCase
 
 import httpx
 from iota import BadApiResponse, InvalidUri, TryteString
-from iota.adapter import API_VERSION, HttpAdapter, MockAdapter, resolve_adapter
+from iota.adapter import API_VERSION, HttpAdapter, MockAdapter, \
+  resolve_adapter, async_return
 from six import BytesIO, text_type
 from test import mock
-import asyncio
 # Executes async test case within a loop
 from aiounittest import async_test
-
-def async_return(result):
-  """
-  Turns 'result' into a `Future` object with 'result' value.
-
-  Important for mocking, as we can await the mock's return value.
-  """
-  f = asyncio.Future()
-  f.set_result(result)
-  return f
 
 class ResolveAdapterTestCase(TestCase):
   """

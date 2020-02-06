@@ -10,6 +10,7 @@ from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
 from httpx import AsyncClient, Response, codes, auth
+import asyncio
 from six import PY2, binary_type, iteritems, moves as compat, text_type, \
     add_metaclass
 
@@ -58,6 +59,15 @@ else:
     # noinspection PyCompatibility,PyUnresolvedReferences
     from urllib.parse import SplitResult
 
+def async_return(result):
+  """
+  Turns 'result' into a `Future` object with 'result' value.
+
+  Important for mocking, as we can await the mock's return value.
+  """
+  f = asyncio.Future()
+  f.set_result(result)
+  return f
 
 class BadApiResponse(ValueError):
     """
@@ -583,7 +593,10 @@ class MockAdapter(BaseAdapter):
         self.responses[command].append(response)
         return self
 
-    def send_request(self, payload, **kwargs):
+    async def send_request(self, payload, **kwargs):
+        """
+        Mimic asynchronous behavior of `HttpAdapter.send_request`.
+        """
         # type: (dict, dict) -> dict
         # Store a snapshot so that we can inspect the request later.
         self.requests.append(dict(payload))
@@ -625,4 +638,4 @@ class MockAdapter(BaseAdapter):
             raise with_context(BadApiResponse(error),
                                context={'request': payload})
 
-        return response
+        return await async_return(response)

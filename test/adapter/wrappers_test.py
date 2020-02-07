@@ -6,9 +6,7 @@ from unittest import TestCase
 
 from iota.adapter import HttpAdapter, MockAdapter
 from iota.adapter.wrappers import RoutingWrapper
-
-# Executes async test case within a loop
-from aiounittest import async_test
+from test import async_test
 
 
 class RoutingWrapperTestCase(TestCase):

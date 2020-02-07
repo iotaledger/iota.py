@@ -12,9 +12,7 @@ from iota import BadApiResponse, InvalidUri, TryteString
 from iota.adapter import API_VERSION, HttpAdapter, MockAdapter, \
   resolve_adapter, async_return
 from six import BytesIO, text_type
-from test import mock
-# Executes async test case within a loop
-from aiounittest import async_test
+from test import mock, async_test
 
 class ResolveAdapterTestCase(TestCase):
   """

@@ -14,3 +14,6 @@ else:
   # noinspection PyUnresolvedReferences
   import mock
   from mock import MagicMock, patch
+
+# Executes async test case within a loop
+from aiounittest import async_test

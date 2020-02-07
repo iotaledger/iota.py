@@ -1999,7 +1999,7 @@ class Iota(StrictIota, AsyncIota):
             .. note::
                 This value is never transferred to the node/network.
         """
-        # Exolicitly call AsyncIota's init, as we need the seed
+        # Explicitly call AsyncIota's init, as we need the seed
         AsyncIota.__init__(self, adapter, seed, devnet, local_pow)
 
     def broadcast_and_store(self, trytes):

@@ -23,7 +23,7 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         bundles = request\
             .get('bundles')  # type: Optional[Iterable[BundleHash]]
         addresses = request\
@@ -33,7 +33,7 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
         approvees = request\
             .get('approvees')  # type: Optional[Iterable[TransactionHash]]
 
-        ft_response = FindTransactionsCommand(adapter=self.adapter)(
+        ft_response = await FindTransactionsCommand(adapter=self.adapter)(
             bundles=bundles,
             addresses=addresses,
             tags=tags,
@@ -43,7 +43,7 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
         hashes = ft_response['hashes']
         transactions = []
         if hashes:
-            gt_response = GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
+            gt_response = await GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
 
             transactions = list(map(
                 Transaction.from_tryte_string,

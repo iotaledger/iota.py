@@ -8,11 +8,11 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
-  Iota, Tag, Transaction, TransactionHash, TransactionTrytes, Nonce
-from iota.adapter import MockAdapter
+  Iota, AsyncIota, Tag, Transaction, TransactionHash, TransactionTrytes, Nonce
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.broadcast_bundle import BroadcastBundleCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 # RequestFilterTestCase code reused from get_bundles_test.py
@@ -142,12 +142,12 @@ class BroadcastBundleCommandTestCase(TestCase):
     
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.broadcast_bundle.BroadcastBundleCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -161,8 +161,32 @@ class BroadcastBundleCommandTestCase(TestCase):
         response,
         'You found me!'
       )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.broadcast_bundle.BroadcastBundleCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.broadcast_bundle('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
     
-  def test_happy_path(self):
+  @async_test
+  async def test_happy_path(self):
     """
     Test command flow executes as expected.
     """
@@ -174,22 +198,23 @@ class BroadcastBundleCommandTestCase(TestCase):
     # whole command, so no filter is applied. It is safe because it is tested
     # elsewhere.
     with patch('iota.commands.extended.get_bundles.GetBundlesCommand.__call__',
-               MagicMock(return_value=[self.trytes])) as mocked_get_bundles:
+               MagicMock(return_value=async_return([self.trytes]))) as mocked_get_bundles:
       # We could seed a reponse to our MockAdapter, but then the returned value
       # from `GetBundlesCommand` shall be valid to pass
       # BroadcastTransactionRequestFilter.
       # Anyway, nature loves symmetry and so do we.
       with patch('iota.commands.core.BroadcastTransactionsCommand.__call__',
-                 MagicMock(return_value=[])) as mocked_broadcast:
+                 MagicMock(return_value=async_return([]))) as mocked_broadcast:
 
-        response = self.command(tail_hash=self.tail)
+        response = await self.command(tail_hash=self.tail)
 
         self.assertEqual(
           response['trytes'],
           self.trytes
         )
 
-  def test_happy_path_multiple_bundle(self):
+  @async_test
+  async def test_happy_path_multiple_bundle(self):
     """
     Test if command returns the correct bundle if underlying `get_bundles`
     returns multiple bundles.
@@ -199,12 +224,12 @@ class BroadcastBundleCommandTestCase(TestCase):
     # BroadcastTransactionsCommand either.
     # Note that GetBundlesCommand returns multiple bundles!
     with patch('iota.commands.extended.get_bundles.GetBundlesCommand.__call__',
-               MagicMock(return_value=[self.trytes, self.trytes_dummy])
+               MagicMock(return_value=async_return([self.trytes, self.trytes_dummy]))
               ) as mocked_get_bundles:
       with patch('iota.commands.core.BroadcastTransactionsCommand.__call__',
-                 MagicMock(return_value=[])) as mocked_broadcast:
+                 MagicMock(return_value=async_return([]))) as mocked_broadcast:
 
-        response = self.command(tail_hash=self.tail)
+        response = await self.command(tail_hash=self.tail)
 
         # Expect only the first bundle
         self.assertEqual(

@@ -32,10 +32,10 @@ class TraverseBundleCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         txn_hash = request['transaction']  # type: TransactionHash
 
-        bundle = Bundle(self._traverse_bundle(txn_hash, None))
+        bundle = Bundle(await self._traverse_bundle(txn_hash, None))
 
         # No bundle validation
 
@@ -43,7 +43,7 @@ class TraverseBundleCommand(FilterCommand):
             'bundles' : [bundle]
         }
 
-    def _traverse_bundle(self, txn_hash, target_bundle_hash):
+    async def _traverse_bundle(self, txn_hash, target_bundle_hash):
         """
         Recursively traverse the Tangle, collecting transactions until
         we hit a new bundle.
@@ -51,9 +51,9 @@ class TraverseBundleCommand(FilterCommand):
         This method is (usually) faster than ``findTransactions``, and
         it ensures we don't collect transactions from replayed bundles.
         """
-        trytes = (
-            GetTrytesCommand(self.adapter)(hashes=[txn_hash])['trytes']
-        )  # type: List[TryteString]
+        trytes =(await GetTrytesCommand(self.adapter)(
+            hashes=[txn_hash])
+        )['trytes'] # type: List[TryteString]
 
         # If no tx was found by the node for txn_hash, it returns 9s,
         # so we check here if it returned all 9s trytes.
@@ -99,7 +99,7 @@ class TraverseBundleCommand(FilterCommand):
 
         # Recursively follow the trunk transaction, to fetch the next
         # transaction in the bundle.
-        return [transaction] + self._traverse_bundle(
+        return [transaction] + await self._traverse_bundle(
             transaction.trunk_transaction_hash,
             target_bundle_hash
         )

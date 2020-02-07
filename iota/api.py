@@ -2436,9 +2436,8 @@ class Iota(StrictIota, AsyncIota):
             super(Iota, self).get_new_addresses(
                 count=count,
                 index=index,
-                securityLevel=security_level,
+                security_level=security_level,
                 checksum=checksum,
-                seed=self.seed,
             )
         )
 

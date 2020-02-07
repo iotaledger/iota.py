@@ -36,7 +36,7 @@ class GetAccountDataCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         inclusion_states = request['inclusionStates']  # type: bool
         seed = request['seed']  # type: Seed
         start = request['start']  # type: int
@@ -47,7 +47,7 @@ class GetAccountDataCommand(FilterCommand):
             my_addresses = []  # type: List[Address]
             my_hashes = []  # type: List[TransactionHash]
 
-            for addy, hashes in iter_used_addresses(self.adapter, seed, start, security_level):
+            async for addy, hashes in iter_used_addresses(self.adapter, seed, start, security_level):
                 my_addresses.append(addy)
                 my_hashes.extend(hashes)
         else:
@@ -56,13 +56,13 @@ class GetAccountDataCommand(FilterCommand):
             my_addresses = (
                 AddressGenerator(seed, security_level).get_addresses(start, stop - start)
             )
-            my_hashes = ft_command(addresses=my_addresses).get('hashes') or []
+            my_hashes = (await ft_command(addresses=my_addresses)).get('hashes') or []
 
         account_balance = 0
         if my_addresses:
             # Load balances for the addresses that we generated.
             gb_response = (
-                GetBalancesCommand(self.adapter)(addresses=my_addresses)
+                await GetBalancesCommand(self.adapter)(addresses=my_addresses)
             )
 
             for i, balance in enumerate(gb_response['balances']):
@@ -76,7 +76,7 @@ class GetAccountDataCommand(FilterCommand):
             'balance': account_balance,
 
             'bundles':
-                get_bundles_from_transaction_hashes(
+                await get_bundles_from_transaction_hashes(
                     adapter=self.adapter,
                     transaction_hashes=my_hashes,
                     inclusion_states=inclusion_states,

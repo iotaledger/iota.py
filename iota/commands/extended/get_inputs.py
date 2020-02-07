@@ -34,7 +34,7 @@ class GetInputsCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         stop = request['stop']  # type: Optional[int]
         seed = request['seed']  # type: Seed
         start = request['start']  # type: int
@@ -43,7 +43,7 @@ class GetInputsCommand(FilterCommand):
 
         # Determine the addresses we will be scanning.
         if stop is None:
-            addresses = [addy for addy, _ in iter_used_addresses(
+            addresses = [addy async for addy, _ in iter_used_addresses(
                 adapter=self.adapter,
                 seed=seed,
                 start=start,
@@ -59,7 +59,7 @@ class GetInputsCommand(FilterCommand):
 
         if addresses:
             # Load balances for the addresses that we generated.
-            gb_response = GetBalancesCommand(self.adapter)(addresses=addresses)
+            gb_response = await GetBalancesCommand(self.adapter)(addresses=addresses)
         else:
             gb_response = {'balances': []}
 

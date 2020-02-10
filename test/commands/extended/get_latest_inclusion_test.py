@@ -7,12 +7,12 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Iota, TransactionHash, TryteString
-from iota.adapter import MockAdapter
+from iota import Iota, AsyncIota, TransactionHash, TryteString
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_latest_inclusion import \
   GetLatestInclusionCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
@@ -204,12 +204,12 @@ class GetLatestInclusionCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -224,7 +224,31 @@ class GetLatestInclusionCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_latest_inclusion('hashes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Successfully requesting latest inclusion state.
     """
@@ -239,7 +263,7 @@ class GetLatestInclusionCommandTestCase(TestCase):
       'states': [True, False],
     })
 
-    response = self.command(hashes=[self.hash1, self.hash2])
+    response = await self.command(hashes=[self.hash1, self.hash2])
 
     self.assertDictEqual(
       response,

@@ -2676,7 +2676,7 @@ class Iota(StrictIota, AsyncIota):
         return asyncio.get_event_loop().run_until_complete(
             super(Iota, self).promote_transaction(
                 transaction,
-                dept,
+                depth,
                 min_weight_magnitude,
             )
         )

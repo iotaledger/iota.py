@@ -9,12 +9,12 @@ from filters.test import BaseFilterTestCase
 from six import binary_type
 
 from iota import Address, Bundle, BundleHash, Fragment, Iota, Nonce, Tag, \
-  Transaction, TransactionHash
-from iota.adapter import MockAdapter
+  Transaction, TransactionHash, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.replay_bundle import ReplayBundleCommand
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class ReplayBundleRequestFilterTestCase(BaseFilterTestCase):
@@ -304,12 +304,12 @@ class ReplayBundleCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.replay_bundle.ReplayBundleCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -324,7 +324,31 @@ class ReplayBundleCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.replay_bundle.ReplayBundleCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.replay_bundle('transaction')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Successfully replaying a bundle.
     """
@@ -602,9 +626,9 @@ class ReplayBundleCommandTestCase(TestCase):
     ])
 
     mock_get_bundles =\
-      mock.Mock(return_value={
+      mock.Mock(return_value=async_return({
         'bundles': [bundle],
-      })
+      }))
 
     send_trytes_response = {
       'trytes': bundle.as_tryte_strings(),
@@ -619,7 +643,7 @@ class ReplayBundleCommandTestCase(TestCase):
         - https://github.com/iotaledger/iota.py/issues/74
       """
       self.assertEqual(request['trytes'], send_trytes_response['trytes'])
-      return send_trytes_response
+      return async_return(send_trytes_response)
 
     with mock.patch(
         'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
@@ -629,7 +653,7 @@ class ReplayBundleCommandTestCase(TestCase):
           'iota.commands.extended.send_trytes.SendTrytesCommand._execute',
           mock_send_trytes,
       ):
-        response = self.command(
+        response = await self.command(
           depth               = 100,
           minWeightMagnitude  = 18,
           transaction         = bundle[0].hash,

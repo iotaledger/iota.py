@@ -2723,7 +2723,7 @@ class Iota(StrictIota, AsyncIota):
         return asyncio.get_event_loop().run_until_complete(
             super(Iota, self).replay_bundle(
                 transaction,
-                dept,
+                depth,
                 min_weight_magnitude,
             )
         )

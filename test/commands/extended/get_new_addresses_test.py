@@ -7,13 +7,13 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Address, Iota
-from iota.adapter import MockAdapter
+from iota import Address, Iota, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_new_addresses import GetNewAddressesCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
@@ -365,12 +365,12 @@ class GetNewAddressesCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.get_new_addresses.GetNewAddressesCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -385,13 +385,37 @@ class GetNewAddressesCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_get_addresses_offline(self):
+  @async_test
+  async def test_wireup(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.get_new_addresses.GetNewAddressesCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_new_addresses('hashes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_get_addresses_offline(self):
     """
     Generate addresses in offline mode (without filtering used
     addresses).
     """
     response =\
-      self.command(
+      await self.command(
         count = 2,
         index = 0,
         seed  = self.seed,
@@ -405,12 +429,13 @@ class GetNewAddressesCommandTestCase(TestCase):
     # No API requests were made.
     self.assertListEqual(self.adapter.requests, [])
 
-  def test_security_level(self):
+  @async_test
+  async def test_security_level(self):
     """
     Generating addresses with a different security level.
     """
     response =\
-      self.command(
+      await self.command(
         count         = 2,
         index         = 0,
         securityLevel = 1,
@@ -437,7 +462,8 @@ class GetNewAddressesCommandTestCase(TestCase):
       },
     )
 
-  def test_get_addresses_online_already_spent_from(self):
+  @async_test
+  async def test_get_addresses_online_already_spent_from(self):
     """
     Generate address in online mode (filtering used addresses). Test if an
     address that was already spent from will not be returned.
@@ -447,6 +473,11 @@ class GetNewAddressesCommandTestCase(TestCase):
 
     self.adapter.seed_response('wereAddressesSpentFrom', {
       'states': [True],
+    })
+
+    self.adapter.seed_response('findTransactions', {
+      'duration': 1,
+      'hashes':   [],
     })
 
     self.adapter.seed_response('wereAddressesSpentFrom', {
@@ -459,7 +490,7 @@ class GetNewAddressesCommandTestCase(TestCase):
     })
 
     response =\
-      self.command(
+      await self.command(
         # If ``count`` is missing or ``None``, the command will operate
         # in online mode.
         # count = None,
@@ -472,16 +503,20 @@ class GetNewAddressesCommandTestCase(TestCase):
     # it skipped that one.
     self.assertDictEqual(response, {'addresses': [self.addy_2]})
 
-    self.assertListEqual(
+    # Due to running WereAddressesSpentFromCommand and FindTransactionsCommand
+    # with asyncio.gather, we can't infer their execution order. Therefore,
+    # we need to assert if the contents of the two lists match by value,
+    # regardless of their order:
+    # https://docs.python.org/3.5/library/unittest.html#unittest.TestCase.assertCountEqual
+    self.assertCountEqual(
       self.adapter.requests,
-
-      # The command issued a `wereAddressesSpentFrom` API request to
-      # check if the first address was used. Then it called `wereAddressesSpentFrom`
-      # and `findTransactions` to verify that the second address was
-      # indeed not used.
       [
         {
           'command': 'wereAddressesSpentFrom',
+          'addresses':  [self.addy_1],
+        },
+        {
+          'command': 'findTransactions',
           'addresses':  [self.addy_1],
         },
         {
@@ -495,7 +530,8 @@ class GetNewAddressesCommandTestCase(TestCase):
       ],
     )
 
-  def test_get_addresses_online_has_transaction(self):
+  @async_test
+  async def test_get_addresses_online_has_transaction(self):
     """
     Generate address in online mode (filtering used addresses). Test if an
     address that has a transaction will not be returned.
@@ -521,13 +557,13 @@ class GetNewAddressesCommandTestCase(TestCase):
       'hashes':   [],
     })
 
-    response = self.command(index=0, seed=self.seed)
+    response = await self.command(index=0, seed=self.seed)
 
     # The command determined that ``self.addy1`` was already used, so
     # it skipped that one.
     self.assertDictEqual(response, {'addresses': [self.addy_2]})
 
-    self.assertListEqual(
+    self.assertCountEqual(
       self.adapter.requests,
       [
         {
@@ -549,12 +585,13 @@ class GetNewAddressesCommandTestCase(TestCase):
       ],
     )
 
-  def test_new_address_checksum(self):
+  @async_test
+  async def test_new_address_checksum(self):
     """
     Generate address with a checksum.
     """
     response =\
-      self.command(
+      await self.command(
         checksum      = True,
         count         = 1,
         index         = 0,

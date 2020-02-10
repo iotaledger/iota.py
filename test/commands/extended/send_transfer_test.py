@@ -9,14 +9,14 @@ from filters.test import BaseFilterTestCase
 from six import binary_type
 
 from iota import Address, Bundle, Iota, ProposedTransaction, TransactionHash, \
-  TransactionTrytes, TryteString
-from iota.adapter import MockAdapter
+  TransactionTrytes, TryteString, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.send_transfer import SendTransferCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class SendTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -672,12 +672,12 @@ class SendTransferCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.send_transfer.SendTransferCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -692,7 +692,31 @@ class SendTransferCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.send_transfer.SendTransferCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.send_transfer('transfers')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Sending a transfer successfully.
     """
@@ -743,14 +767,14 @@ class SendTransferCommandTestCase(TestCase):
       )
 
     mock_prepare_transfer =\
-      mock.Mock(return_value={
+      mock.Mock(return_value=async_return({
         'trytes': [transaction1],
-      })
+      }))
 
     mock_send_trytes =\
-      mock.Mock(return_value={
+      mock.Mock(return_value=async_return({
         'trytes': [transaction1],
-      })
+      }))
 
     with mock.patch(
         'iota.commands.extended.prepare_transfer.PrepareTransferCommand._execute',
@@ -760,7 +784,7 @@ class SendTransferCommandTestCase(TestCase):
           'iota.commands.extended.send_trytes.SendTrytesCommand._execute',
           mock_send_trytes,
       ):
-        response = self.command(
+        response = await self.command(
           depth               = 100,
           minWeightMagnitude  = 18,
           seed                = Seed.random(),

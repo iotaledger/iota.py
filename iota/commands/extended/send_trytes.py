@@ -33,7 +33,7 @@ class SendTrytesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         depth = request['depth']  # type: int
         min_weight_magnitude = request['minWeightMagnitude']  # type: int
         trytes = request['trytes']  # type: List[TryteString]
@@ -41,12 +41,12 @@ class SendTrytesCommand(FilterCommand):
 
         # Call ``getTransactionsToApprove`` to locate trunk and branch
         # transactions so that we can attach the bundle to the Tangle.
-        gta_response = GetTransactionsToApproveCommand(self.adapter)(
+        gta_response = await GetTransactionsToApproveCommand(self.adapter)(
             depth=depth,
             reference=reference,
         )
 
-        att_response = AttachToTangleCommand(self.adapter)(
+        att_response = await AttachToTangleCommand(self.adapter)(
             branchTransaction=gta_response.get('branchTransaction'),
             trunkTransaction=gta_response.get('trunkTransaction'),
 
@@ -57,7 +57,7 @@ class SendTrytesCommand(FilterCommand):
         # ``trytes`` now have POW!
         trytes = att_response['trytes']
 
-        BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
+        await BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
         return {
             'trytes': trytes,

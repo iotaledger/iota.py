@@ -30,13 +30,13 @@ class GetTransactionObjectsCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         hashes = request\
             .get('hashes') # type: Iterable[TransactionHash]
 
         transactions = []
         if hashes:
-            gt_response = GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
+            gt_response = await GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
 
             transactions = list(map(
                 Transaction.from_tryte_string,

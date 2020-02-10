@@ -395,7 +395,7 @@ class GetAccountDataCommandTestCase(TestCase):
       )
 
   @async_test
-  async def test_wireup(self):
+  async def test_wireup_async(self):
     """
     Verify that the command is wired up correctly. (async)
 

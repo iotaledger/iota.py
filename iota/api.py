@@ -8,7 +8,6 @@ from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
     TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
 from iota.commands import BaseCommand, CustomCommand, core, extended
-from iota.commands.extended.helpers import Helpers
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 import asyncio
@@ -1085,7 +1084,6 @@ class AsyncIota(AsyncStrictIota):
         super(AsyncIota, self).__init__(adapter, devnet, local_pow)
 
         self.seed = Seed(seed) if seed else Seed.random()
-        self.helpers = Helpers(self)
 
     async def broadcast_and_store(self, trytes):
         # type: (Iterable[TransactionTrytes]) -> dict

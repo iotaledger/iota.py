@@ -8,13 +8,13 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Iota, TransactionHash, TryteString, TransactionTrytes, \
-    Transaction
-from iota.adapter import MockAdapter
+    Transaction, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.is_promotable import IsPromotableCommand, \
     get_current_ms, is_within_depth, MILESTONE_INTERVAL, ONE_WAY_DELAY
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 class IsPromotableRequestFilterTestCase(BaseFilterTestCase):
     filter_type = IsPromotableCommand(MockAdapter()).get_request_filter
@@ -290,12 +290,12 @@ class IsPromotableCommandTestCase(TestCase):
 
     def test_wireup(self):
         """
-        Verify that the command is wired up correctly.
+        Verify that the command is wired up correctly. (sync)
 
         The API method indeed calls the appropiate command.
         """
         with patch('iota.commands.extended.is_promotable.IsPromotableCommand.__call__',
-                MagicMock(return_value='You found me!')
+                MagicMock(return_value=async_return('You found me!'))
                 ) as mocked_command:
 
             api = Iota(self.adapter)
@@ -310,7 +310,31 @@ class IsPromotableCommandTestCase(TestCase):
                 'You found me!'
             )
 
-    def test_happy_path(self):
+    @async_test
+    async def test_wireup_async(self):
+        """
+        Verify that the command is wired up correctly. (async)
+
+        The API method indeed calls the appropiate command.
+        """
+        with patch('iota.commands.extended.is_promotable.IsPromotableCommand.__call__',
+                MagicMock(return_value=async_return('You found me!'))
+                ) as mocked_command:
+
+            api = AsyncIota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = await api.is_promotable('tails')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
+
+    @async_test
+    async def test_happy_path(self):
         """
         Successfully checking promotability.
         """
@@ -324,7 +348,7 @@ class IsPromotableCommandTestCase(TestCase):
         
         with mock.patch('iota.commands.extended.is_promotable.get_current_ms',
             mock.MagicMock(return_value=self.valid_now)):
-            response = self.command(tails=[self.hash1, self.hash2])
+            response = await self.command(tails=[self.hash1, self.hash2])
 
             self.assertDictEqual(
                 response,
@@ -334,7 +358,8 @@ class IsPromotableCommandTestCase(TestCase):
                 }
             )
 
-    def test_not_consistent(self):
+    @async_test
+    async def test_not_consistent(self):
         """
         One of the tails is not consistent.
         """
@@ -347,7 +372,7 @@ class IsPromotableCommandTestCase(TestCase):
         # No need for mokcing `getTrytes` becasue we should not
         # reach that part
 
-        response = self.command(tails=[self.hash1, self.hash2])
+        response = await self.command(tails=[self.hash1, self.hash2])
 
         self.assertDictEqual(
             response,
@@ -358,7 +383,8 @@ class IsPromotableCommandTestCase(TestCase):
             }
         )
     
-    def test_one_timestamp_invalid(self):
+    @async_test
+    async def test_one_timestamp_invalid(self):
         """
         Test invalid timestamp in one of the transactions.
         """
@@ -378,7 +404,7 @@ class IsPromotableCommandTestCase(TestCase):
         # Here we don`t mock get_current_ms.
         # Tx 1 will have updated, passing timestamp.
         # Tx 2 has the old one, so should fail.
-        response = self.command(tails=[self.hash1, self.hash2])
+        response = await self.command(tails=[self.hash1, self.hash2])
 
         self.assertDictEqual(
             response,

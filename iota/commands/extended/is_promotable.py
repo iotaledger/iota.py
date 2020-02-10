@@ -51,7 +51,7 @@ class IsPromotableCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         tails = request['tails']
 
         # First, check consistency
@@ -59,7 +59,7 @@ class IsPromotableCommand(FilterCommand):
         #  - The node isn't missing the transaction's branch or trunk transactions
         #  - The transaction's bundle is valid
         #  - The transaction's branch and trunk transactions are valid
-        cc_response = CheckConsistencyCommand(self.adapter)(
+        cc_response = await CheckConsistencyCommand(self.adapter)(
             tails=tails,
         )
 
@@ -72,7 +72,7 @@ class IsPromotableCommand(FilterCommand):
       
         transactions = [
             Transaction.from_tryte_string(x) for x in
-                GetTrytesCommand(self.adapter)(hashes=tails)['trytes']
+                (await GetTrytesCommand(self.adapter)(hashes=tails))['trytes']
         ]
 
         response = {

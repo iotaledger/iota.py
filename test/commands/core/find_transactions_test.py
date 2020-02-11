@@ -8,12 +8,13 @@ import filters as f
 from filters.test import BaseFilterTestCase
 from six import text_type
 
-from iota import Address, Iota, Tag, BundleHash, TransactionHash, TryteString
-from iota.adapter import MockAdapter
+from iota import Address, Iota, Tag, BundleHash, TransactionHash, TryteString, \
+  AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.find_transactions import FindTransactionsCommand, \
   FindTransactionsRequestFilter
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
@@ -561,18 +562,39 @@ class FindTransactionsCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
-    with patch('iota.commands.core.check_consistency.CheckConsistencyCommand.__call__',
-              MagicMock(return_value='You found me!')
+    with patch('iota.commands.core.find_transactions.FindTransactionsCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
 
-      # Don't need to call with proper args here.
-      response = api.check_consistency('tails')
+      response = api.find_transactions('addresses')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.core.find_transactions.FindTransactionsCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      response = await api.find_transactions('addresses')
 
       self.assertTrue(mocked_command.called)
 

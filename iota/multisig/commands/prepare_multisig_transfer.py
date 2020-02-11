@@ -35,7 +35,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         change_address = request['changeAddress']  # type: Optional[Address]
         multisig_input = request['multisigInput']  # type: MultisigAddress
         transfers = request['transfers']  # type: List[ProposedTransaction]
@@ -44,7 +44,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
 
         want_to_spend = bundle.balance
         if want_to_spend > 0:
-            gb_response = GetBalancesCommand(self.adapter)(
+            gb_response = await GetBalancesCommand(self.adapter)(
                 addresses=[multisig_input],
             )
 

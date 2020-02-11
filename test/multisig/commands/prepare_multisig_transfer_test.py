@@ -8,13 +8,13 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, Bundle, Fragment, ProposedTransaction
-from iota.adapter import MockAdapter
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core import GetBalancesCommand
 from iota.crypto.types import Digest
-from iota.multisig import MultisigIota
+from iota.multisig import MultisigIota, AsyncMultisigIota
 from iota.multisig.commands import PrepareMultisigTransferCommand
 from iota.multisig.types import MultisigAddress
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
@@ -527,12 +527,12 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.multisig.commands.prepare_multisig_transfer.PrepareMultisigTransferCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = MultisigIota(self.adapter)
@@ -547,7 +547,31 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.multisig.commands.prepare_multisig_transfer.PrepareMultisigTransferCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncMultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.prepare_multisig_transfer('transfer', 'multisig_input')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Preparing a bundle with a multisig input.
     """
@@ -563,7 +587,7 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     )
 
     pmt_result =\
-      self.command(
+      await self.command(
         transfers = [
           ProposedTransaction(
             address = Address(self.trytes_1),
@@ -624,7 +648,8 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     self.assertEqual(txn_5.value, 0)
     self.assertEqual(txn_5.signature_message_fragment, Fragment(b''))
 
-  def test_unspent_inputs_with_change_address(self):
+  @async_test
+  async def test_unspent_inputs_with_change_address(self):
     """
     The bundle has unspent inputs, so it uses the provided change
     address.
@@ -639,7 +664,7 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     )
 
     pmt_result =\
-      self.command(
+      await self.command(
         transfers = [
           ProposedTransaction(
             address = Address(self.trytes_1),
@@ -694,7 +719,8 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     self.assertEqual(txn_6.address, self.trytes_3)
     self.assertEqual(txn_6.value, 59)
 
-  def test_error_zero_iotas_transferred(self):
+  @async_test
+  async def test_error_zero_iotas_transferred(self):
     """
     The bundle doesn't spend any IOTAs.
 
@@ -705,7 +731,7 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     using :py:meth:`iota.api.Iota.prepare_transfer` instead.
     """
     with self.assertRaises(ValueError):
-      self.command(
+      await self.command(
         transfers = [
           ProposedTransaction(
             address = Address(self.trytes_1),
@@ -720,7 +746,8 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
           ),
       )
 
-  def test_error_insufficient_inputs(self):
+  @async_test
+  async def test_error_insufficient_inputs(self):
     """
     The multisig input does not contain sufficient IOTAs to cover the
     spends.
@@ -735,7 +762,7 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     )
 
     with self.assertRaises(ValueError):
-      self.command(
+      await self.command(
         transfers = [
           ProposedTransaction(
             address = Address(self.trytes_1),
@@ -750,7 +777,8 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
           ),
       )
 
-  def test_error_unspent_inputs_no_change_address(self):
+  @async_test
+  async def test_error_unspent_inputs_no_change_address(self):
     """
     The bundle has unspent inputs, but no change address was specified.
 
@@ -773,7 +801,7 @@ class PrepareMultisigTransferCommandTestCase(TestCase):
     )
 
     with self.assertRaises(ValueError):
-      self.command(
+      await self.command(
         transfers = [
           ProposedTransaction(
             address = Address(self.trytes_1),

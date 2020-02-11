@@ -9,14 +9,14 @@ from filters.test import BaseFilterTestCase
 from six import binary_type
 
 from iota import TryteString
-from iota.adapter import MockAdapter
+from iota.adapter import MockAdapter, async_return
 from iota.crypto import FRAGMENT_LENGTH
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import PrivateKey, Seed
 from iota.filters import Trytes
-from iota.multisig import MultisigIota
+from iota.multisig import MultisigIota, AsyncMultisigIota
 from iota.multisig.commands import GetPrivateKeysCommand
-from test import mock, patch, MagicMock
+from test import mock, patch, MagicMock, async_test
 
 
 class GetPrivateKeysCommandTestCase(TestCase):
@@ -40,12 +40,12 @@ class GetPrivateKeysCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.multisig.commands.get_private_keys.GetPrivateKeysCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = MultisigIota(self.adapter)
@@ -60,7 +60,31 @@ class GetPrivateKeysCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_generate_single_key(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.multisig.commands.get_private_keys.GetPrivateKeysCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncMultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_private_keys()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_generate_single_key(self):
     """
     Generating a single key.
     """
@@ -68,7 +92,7 @@ class GetPrivateKeysCommandTestCase(TestCase):
 
     mock_get_keys = mock.Mock(return_value=keys)
     with mock.patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
-      result = self.command(seed=Seed.random(), securityLevel=2)
+      result = await self.command(seed=Seed.random(), securityLevel=2)
 
     self.assertDictEqual(result, {'keys': keys})
     mock_get_keys.assert_called_once_with(
@@ -77,7 +101,8 @@ class GetPrivateKeysCommandTestCase(TestCase):
       start       = 0,
     )
 
-  def test_generate_multiple_keys(self):
+  @async_test
+  async def test_generate_multiple_keys(self):
     """
     Generating multiple keys.
     """
@@ -86,7 +111,7 @@ class GetPrivateKeysCommandTestCase(TestCase):
     mock_get_keys = mock.Mock(return_value=keys)
     with mock.patch('iota.crypto.signing.KeyGenerator.get_keys', mock_get_keys):
       result =\
-        self.command(
+        await self.command(
           count         = 2,
           index         = 0,
           securityLevel = 1,

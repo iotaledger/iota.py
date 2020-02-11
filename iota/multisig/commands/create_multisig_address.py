@@ -32,7 +32,9 @@ class CreateMultisigAddressCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    # There is no async operation going on here, but the base class is async,
+    # so from the outside, we have to act like we are doing async.
+    async def _execute(self, request):
         digests = request['digests']  # type: List[Digest]
 
         builder = MultisigAddressBuilder()

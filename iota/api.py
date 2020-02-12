@@ -76,7 +76,7 @@ class AsyncStrictIota(object):
                 :ref:`find out<pow-label>` how to use it.
 
         """
-        super(AsyncStrictIota, self).__init__()
+        super().__init__()
 
         if not isinstance(adapter, BaseAdapter):
             adapter = resolve_adapter(adapter)
@@ -787,19 +787,19 @@ class StrictIota(AsyncStrictIota):
     def __init__(self, adapter, devnet=False, local_pow=False):
         # type: (AdapterSpec, bool, bool) -> None
         # Copy parent's doctrsing
-        __doc__ = super(StrictIota, self).__init__.__doc__
-        super(StrictIota, self).__init__(adapter, devnet, local_pow)
+        __doc__ = super().__init__.__doc__
+        super().__init__(adapter, devnet, local_pow)
 
 
     def add_neighbors(self, uris):
         # type: (Iterable[Text]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).add_neighbors.__doc__
+        __doc__ = super().add_neighbors.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).add_neighbors(uris)
+            super().add_neighbors(uris)
         )
 
     def attach_to_tangle(
@@ -811,12 +811,12 @@ class StrictIota(AsyncStrictIota):
     ):
         # type: (...) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).attach_to_tangle.__doc__
+        __doc__ = super().attach_to_tangle.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).attach_to_tangle(
+            super().attach_to_tangle(
                 trunk_transaction,
                 branch_transaction,
                 trytes,
@@ -827,12 +827,12 @@ class StrictIota(AsyncStrictIota):
     def broadcast_transactions(self, trytes):
         # type: (Iterable[TryteString]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).broadcast_transactions.__doc__
+        __doc__ = super().broadcast_transactions.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).broadcast_transactions(
+            super().broadcast_transactions(
                 trytes,
             )
         )
@@ -841,12 +841,12 @@ class StrictIota(AsyncStrictIota):
     def check_consistency(self, tails):
         # type: (Iterable[TransactionHash]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).check_consistency.__doc__
+        __doc__ = super().check_consistency.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).check_consistency(
+            super().check_consistency(
                 tails,
             )
         )
@@ -860,12 +860,12 @@ class StrictIota(AsyncStrictIota):
     ):
         # type: (...) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).find_transactions.__doc__
+        __doc__ = super().find_transactions.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).find_transactions(
+            super().find_transactions(
                 bundles,
                 addresses,
                 tags,
@@ -881,12 +881,12 @@ class StrictIota(AsyncStrictIota):
     ):
         # type: (...) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_balances.__doc__
+        __doc__ = super().get_balances.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_balances(
+            super().get_balances(
                 addresses,
                 threshold,
                 tips,
@@ -896,12 +896,12 @@ class StrictIota(AsyncStrictIota):
     def get_inclusion_states(self, transactions, tips):
         # type: (Iterable[TransactionHash], Iterable[TransactionHash]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_inclusion_states.__doc__
+        __doc__ = super().get_inclusion_states.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_inclusion_states(
+            super().get_inclusion_states(
                 transactions,
                 tips,
             )
@@ -910,67 +910,67 @@ class StrictIota(AsyncStrictIota):
     def get_missing_transactions(self):
         # type: () -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_missing_transactions.__doc__
+        __doc__ = super().get_missing_transactions.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_missing_transactions()
+            super().get_missing_transactions()
         )
 
     def get_neighbors(self):
         # type: () -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_neighbors.__doc__
+        __doc__ = super().get_neighbors.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_neighbors()
+            super().get_neighbors()
         )
 
     def get_node_api_configuration(self):
         # type: () -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_node_api_configuration.__doc__
+        __doc__ = super().get_node_api_configuration.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_node_api_configuration()
+            super().get_node_api_configuration()
         )
 
     def get_node_info(self):
         # type: () -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_node_info.__doc__
+        __doc__ = super().get_node_info.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_node_info()
+            super().get_node_info()
         )
 
     def get_tips(self):
         # type: () -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_tips.__doc__
+        __doc__ = super().get_tips.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_tips()
+            super().get_tips()
         )
 
     def get_transactions_to_approve(self, depth, reference=None):
         # type: (int, Optional[TransactionHash]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_transactions_to_approve.__doc__
+        __doc__ = super().get_transactions_to_approve.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_transactions_to_approve(
+            super().get_transactions_to_approve(
                 depth,
                 reference,
             )
@@ -979,12 +979,12 @@ class StrictIota(AsyncStrictIota):
     def get_trytes(self, hashes):
         # type: (Iterable[TransactionHash]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).get_trytes.__doc__
+        __doc__ = super().get_trytes.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).get_trytes(
+            super().get_trytes(
                 hashes,
             )
         )
@@ -992,45 +992,45 @@ class StrictIota(AsyncStrictIota):
     def interrupt_attaching_to_tangle(self):
         # type: () -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).interrupt_attaching_to_tangle.__doc__
+        __doc__ = super().interrupt_attaching_to_tangle.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).interrupt_attaching_to_tangle()
+            super().interrupt_attaching_to_tangle()
         )
 
     def remove_neighbors(self, uris):
         # type: (Iterable[Text]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).remove_neighbors.__doc__
+        __doc__ = super().remove_neighbors.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).remove_neighbors(uris)
+            super().remove_neighbors(uris)
         )
 
     def store_transactions(self, trytes):
         # type: (Iterable[TryteString]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).store_transactions.__doc__
+        __doc__ = super().store_transactions.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).store_transactions(trytes)
+            super().store_transactions(trytes)
         )
 
     def were_addresses_spent_from(self, addresses):
         # type: (Iterable[Address]) -> dict
         # Copy parent's docstring
-        __doc__ = super(StrictIota, self).were_addresses_spent_from.__doc__
+        __doc__ = super().were_addresses_spent_from.__doc__
 
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(StrictIota, self).were_addresses_spent_from(addresses)
+            super().were_addresses_spent_from(addresses)
         )
 
 
@@ -1081,7 +1081,7 @@ class AsyncIota(AsyncStrictIota):
             .. note::
                 This value is never transferred to the node/network.
         """
-        super(AsyncIota, self).__init__(adapter, devnet, local_pow)
+        super().__init__(adapter, devnet, local_pow)
 
         self.seed = Seed(seed) if seed else Seed.random()
 
@@ -2024,7 +2024,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).broadcast_and_store(trytes)
+            super().broadcast_and_store(trytes)
         )
 
     def broadcast_bundle(self, tail_transaction_hash):
@@ -2053,7 +2053,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).broadcast_bundle(tail_transaction_hash)
+            super().broadcast_bundle(tail_transaction_hash)
         )
 
     def find_transaction_objects(
@@ -2104,7 +2104,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).find_transaction_objects(
+            super().find_transaction_objects(
                 bundles,
                 addresses,
                 tags,
@@ -2184,7 +2184,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_account_data(
+            super().get_account_data(
                 start,
                 stop,
                 inclusion_states,
@@ -2221,7 +2221,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_bundles(transactions)
+            super().get_bundles(transactions)
         )
 
     def get_inputs(
@@ -2331,7 +2331,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_inputs(
+            super().get_inputs(
                 start,
                 stop,
                 threshold,
@@ -2364,7 +2364,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_latest_inclusion(hashes)
+            super().get_latest_inclusion(hashes)
         )
 
     def get_new_addresses(
@@ -2431,7 +2431,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_new_addresses(
+            super().get_new_addresses(
                 count=count,
                 index=index,
                 security_level=security_level,
@@ -2468,7 +2468,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_transaction_objects(hashes)
+            super().get_transaction_objects(hashes)
         )
 
     def get_transfers(self, start=0, stop=None, inclusion_states=False):
@@ -2527,7 +2527,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).get_transfers(
+            super().get_transfers(
                 start,
                 stop,
                 inclusion_states,
@@ -2572,7 +2572,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).is_promotable(tails)
+            super().is_promotable(tails)
         )
 
     def prepare_transfer(
@@ -2632,7 +2632,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).prepare_transfer(
+            super().prepare_transfer(
                 transfers,
                 inputs,
                 change_address,
@@ -2674,7 +2674,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).promote_transaction(
+            super().promote_transaction(
                 transaction,
                 depth,
                 min_weight_magnitude,
@@ -2721,7 +2721,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).replay_bundle(
+            super().replay_bundle(
                 transaction,
                 depth,
                 min_weight_magnitude,
@@ -2791,7 +2791,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).send_transfer(
+            super().send_transfer(
                 transfers,
                 depth,
                 inputs,
@@ -2835,7 +2835,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).send_trytes(
+            super().send_trytes(
                 trytes,
                 depth,
                 min_weight_magnitude,
@@ -2872,7 +2872,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).is_reattachable(
+            super().is_reattachable(
                 addresses,
             )
         )
@@ -2904,7 +2904,7 @@ class Iota(StrictIota, AsyncIota):
         # Execute original coroutine inside an event loop to make this method
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
-            super(Iota, self).traverse_bundle(
+            super().traverse_bundle(
                 tail_hash,
             )
         )

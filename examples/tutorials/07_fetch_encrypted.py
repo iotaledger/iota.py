@@ -18,7 +18,7 @@ tail_hash = input('Tail transaction hash of the bundle: ')
 
 print('Looking for bundle on the Tangle...')
 # Fetch bundle
-bundle = api.get_bundles(tail_hash)['bundles'][0]
+bundle = api.get_bundles([tail_hash])['bundles'][0]
 
 print('Extracting data from bundle...')
 # Get all messages from the bundle and concatenate them

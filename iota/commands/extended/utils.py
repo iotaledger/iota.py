@@ -19,7 +19,6 @@ from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 
 
-# This is an async generator!
 async def iter_used_addresses(
         adapter,  # type: BaseAdapter
         seed,  # type: Seed
@@ -33,6 +32,10 @@ async def iter_used_addresses(
 
     This is basically the opposite of invoking ``getNewAddresses`` with
     ``count=None``.
+
+    .. important::
+        This is an async generator!
+
     """
     if security_level is None:
         security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL

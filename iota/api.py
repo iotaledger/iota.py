@@ -13,11 +13,11 @@ from iota.crypto.types import Seed
 import asyncio
 
 __all__ = [
+    'AsyncIota',
+    'AsyncStrictIota',
     'InvalidCommand',
     'Iota',
     'StrictIota',
-    'AsyncStrictIota',
-    'AsyncIota',
 ]
 
 
@@ -1949,6 +1949,30 @@ class AsyncIota(AsyncStrictIota):
         return await extended.TraverseBundleCommand(self.adapter)(
             transaction=tail_hash
         )
+
+# There is a compact and easy way to create the synchronous version of the async
+# classes:
+
+# import inspect
+# def make_synchronous(new_name, async_class: type):
+#   def make_sync(method):
+#     def sync_version(*args, **kwargs):
+#       return asyncio.get_event_loop().run_until_complete(method(*args, **kwargs))
+#     return sync_version
+
+#   return type(new_name, (async_class,), {
+#     name: make_sync(method) if inspect.iscoroutinefunction(method) else method
+#     for name, method in inspect.getmembers(async_class)
+#   })
+
+# # create the sync version of the class
+# Iota = make_synchronous('Iota', AsyncIota)
+
+# While this approach would work, no IDE static analysis would pick up the
+# method definitions or docstrings for the new `Iota` class, meaning no
+# suggestions, intellisense, code completion, etc. for the user.
+# Therefore we keep the manual approach.
+
 
 class Iota(StrictIota, AsyncIota):
     """

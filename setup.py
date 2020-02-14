@@ -28,9 +28,9 @@ with open('docs/README.rst', 'r', 'utf-8') as f:  # type: StreamReader
 # either automatically (``python setup.py test``) or manually
 # (``pip install -e .[test-runner]``).
 tests_require = [
+    'aiounittest',
     'mock; python_version < "3.0"',
     'nose',
-    'aiounittest',
 ]
 
 ##
@@ -63,21 +63,21 @@ setuptools.setup(
 
     install_requires=[
         'filters; python_version < "3.5"',
+        'httpx',
         'phx-filters; python_version >= "3.5"',
         'pysha3',
 
         # ``security`` extra wasn't introduced until 2.4.1
         # http://docs.python-requests.org/en/latest/community/updates/#id35
         'requests[security] >= 2.4.1',
-        'httpx',
         'six',
         'typing; python_version < "3.0"',
     ],
 
     extras_require={
         'ccurl': ['pyota-ccurl'],
-        'pow': ['pyota-pow >= 1.0.2'],
         'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
+        'pow': ['pyota-pow >= 1.0.2'],
         # tox is able to run the tests in parallel since version 3.7
         'test-runner': ['tox >= 3.7'] + tests_require,
     },

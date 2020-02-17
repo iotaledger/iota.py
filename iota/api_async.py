@@ -1,3 +1,5 @@
+from typing import Dict, Iterable, Optional, Text
+
 from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
     TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
 from iota.adapter import BaseAdapter, resolve_adapter
@@ -97,7 +99,7 @@ class AsyncStrictIota:
         # type: (bool) -> None
         """
         Sets the :py:attr:`local_pow` attribute of the adapter of the api
-        instance. If it is ``True``, :py:meth:`attach_to_tangle` command calls
+        instance. If it is ``True``, :py:meth:`~Iota.attach_to_tangle` command calls
         external interface to perform proof of work, instead of sending the
         request to a node.
 

@@ -1,3 +1,5 @@
+from typing import Dict, Iterable, Optional, Text
+
 from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
     TransactionHash, TransactionTrytes, TryteString
 from iota.crypto.addresses import AddressGenerator
@@ -39,6 +41,7 @@ class InvalidCommand(ValueError):
 # method definitions or docstrings for the new `Iota` class, meaning no
 # suggestions, intellisense, code completion, etc. for the user.
 # Therefore we keep the manual approach.
+
 
 class StrictIota(AsyncStrictIota):
     """
@@ -89,7 +92,6 @@ class StrictIota(AsyncStrictIota):
                 :ref:`find out<pow-label>` how to use it.
         """
         super().__init__(adapter, devnet, local_pow)
-
 
     def add_neighbors(self, uris):
         # type: (Iterable[Text]) -> dict
@@ -214,7 +216,6 @@ class StrictIota(AsyncStrictIota):
                 trytes,
             )
         )
-
 
     def check_consistency(self, tails):
         # type: (Iterable[TransactionHash]) -> dict

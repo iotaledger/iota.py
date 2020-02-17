@@ -11,8 +11,7 @@ from argparse import ArgumentParser
 from pprint import pprint
 from sys import argv
 from typing import Text
-
-from requests.exceptions import ConnectionError
+from httpx.exceptions import NetworkError
 from six import text_type
 
 from iota import BadApiResponse, StrictIota, __version__
@@ -24,7 +23,7 @@ def main(uri):
 
     try:
         node_info = api.get_node_info()
-    except ConnectionError as e:
+    except NetworkError as e:
         print(
             "Hm.  {uri} isn't responding; is the node running?".format(uri=uri)
         )

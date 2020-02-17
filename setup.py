@@ -66,10 +66,6 @@ setuptools.setup(
         'httpx',
         'phx-filters; python_version >= "3.5"',
         'pysha3',
-
-        # ``security`` extra wasn't introduced until 2.4.1
-        # http://docs.python-requests.org/en/latest/community/updates/#id35
-        'requests[security] >= 2.4.1',
         'six',
         'typing; python_version < "3.0"',
     ],

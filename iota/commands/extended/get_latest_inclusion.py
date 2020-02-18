@@ -31,12 +31,12 @@ class GetLatestInclusionCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         hashes = request['hashes']  # type: List[TransactionHash]
 
-        gni_response = GetNodeInfoCommand(self.adapter)()
+        gni_response = await GetNodeInfoCommand(self.adapter)()
 
-        gis_response = GetInclusionStatesCommand(self.adapter)(
+        gis_response = await GetInclusionStatesCommand(self.adapter)(
             transactions=hashes,
             tips=[gni_response['latestSolidSubtangleMilestone']],
         )

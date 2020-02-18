@@ -9,8 +9,8 @@ from inspect import isabstract as is_abstract
 from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
-
-from requests import Response, auth, codes, request
+from httpx import AsyncClient, Response, codes, auth
+import asyncio
 from six import PY2, binary_type, iteritems, moves as compat, text_type, \
     add_metaclass
 
@@ -59,6 +59,15 @@ else:
     # noinspection PyCompatibility,PyUnresolvedReferences
     from urllib.parse import SplitResult
 
+def async_return(result):
+  """
+  Turns 'result' into a `Future` object with 'result' value.
+
+  Important for mocking, as we can await the mock's return value.
+  """
+  f = asyncio.Future()
+  f.set_result(result)
+  return f
 
 class BadApiResponse(ValueError):
     """
@@ -271,6 +280,7 @@ class HttpAdapter(BaseAdapter):
         # type: (Union[Text, SplitResult], Optional[int]) -> None
         super(HttpAdapter, self).__init__()
 
+        self.client = AsyncClient()
         self.timeout = timeout
         self.authentication = authentication
 
@@ -331,13 +341,13 @@ class HttpAdapter(BaseAdapter):
         # type: () -> Text
         return self.uri.geturl()
 
-    def send_request(self, payload, **kwargs):
+    async def send_request(self, payload, **kwargs):
         # type: (dict, dict) -> dict
         kwargs.setdefault('headers', {})
         for key, value in iteritems(self.DEFAULT_HEADERS):
             kwargs['headers'].setdefault(key, value)
 
-        response = self._send_http_request(
+        response = await self._send_http_request(
             # Use a custom JSON encoder that knows how to convert Tryte
             # values.
             payload=JsonEncoder().encode(payload),
@@ -346,9 +356,9 @@ class HttpAdapter(BaseAdapter):
             **kwargs
         )
 
-        return self._interpret_response(response, payload, {codes['ok']})
+        return self._interpret_response(response, payload, {codes['OK']})
 
-    def _send_http_request(self, url, payload, method='post', **kwargs):
+    async def _send_http_request(self, url, payload, method='post', **kwargs):
         # type: (Text, Optional[Text], Text, dict) -> Response
         """
         Sends the actual HTTP request.
@@ -380,8 +390,7 @@ class HttpAdapter(BaseAdapter):
                 'request_url': url,
             },
         )
-
-        response = request(method=method, url=url, data=payload, **kwargs)
+        response = await self.client.request(method=method, url=url, data=payload, **kwargs)
 
         self._log(
             level=DEBUG,
@@ -474,9 +483,9 @@ class HttpAdapter(BaseAdapter):
 
         error = None
         try:
-            if response.status_code == codes['bad_request']:
+            if response.status_code == codes['BAD_REQUEST']:
                 error = decoded['error']
-            elif response.status_code == codes['internal_server_error']:
+            elif response.status_code == codes['INTERNAL_SERVER_ERROR']:
                 error = decoded['exception']
         except KeyError:
             pass
@@ -585,7 +594,10 @@ class MockAdapter(BaseAdapter):
         self.responses[command].append(response)
         return self
 
-    def send_request(self, payload, **kwargs):
+    async def send_request(self, payload, **kwargs):
+        """
+        Mimic asynchronous behavior of `HttpAdapter.send_request`.
+        """
         # type: (dict, dict) -> dict
         # Store a snapshot so that we can inspect the request later.
         self.requests.append(dict(payload))
@@ -627,4 +639,4 @@ class MockAdapter(BaseAdapter):
             raise with_context(BadApiResponse(error),
                                context={'request': payload})
 
-        return response
+        return await async_return(response)

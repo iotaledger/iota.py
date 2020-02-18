@@ -32,7 +32,7 @@ class SendTransferCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         change_address = request['changeAddress']  # type: Optional[Address]
         depth = request['depth']  # type: int
         inputs = request['inputs']  # type: Optional[List[Address]]
@@ -42,7 +42,7 @@ class SendTransferCommand(FilterCommand):
         reference = request['reference']  # type: Optional[TransactionHash]
         security_level = request['securityLevel']  # int
 
-        pt_response = PrepareTransferCommand(self.adapter)(
+        pt_response = await PrepareTransferCommand(self.adapter)(
             changeAddress=change_address,
             inputs=inputs,
             seed=seed,
@@ -50,7 +50,7 @@ class SendTransferCommand(FilterCommand):
             securityLevel=security_level,
         )
 
-        st_response = SendTrytesCommand(self.adapter)(
+        st_response = await SendTrytesCommand(self.adapter)(
             depth=depth,
             minWeightMagnitude=min_weight_magnitude,
             trytes=pt_response['trytes'],

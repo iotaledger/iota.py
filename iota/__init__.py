@@ -35,6 +35,7 @@ from .codecs import *
 from .types import *
 from .transaction import *
 from .adapter import *
+from .api_async import *
 from .api import *
 from .trits import *
 

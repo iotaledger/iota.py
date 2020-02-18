@@ -30,12 +30,12 @@ class PromoteTransactionCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         depth = request['depth']  # type: int
         min_weight_magnitude = request['minWeightMagnitude']  # type: int
         transaction = request['transaction']  # type: TransactionHash
 
-        cc_response = CheckConsistencyCommand(self.adapter)(tails=[transaction])
+        cc_response = await CheckConsistencyCommand(self.adapter)(tails=[transaction])
         if cc_response['state'] is False:
             raise BadApiResponse(
                 'Transaction {transaction} is not promotable. '
@@ -47,7 +47,7 @@ class PromoteTransactionCommand(FilterCommand):
             value=0,
         )
 
-        return SendTransferCommand(self.adapter)(
+        return await SendTransferCommand(self.adapter)(
             seed=spam_transfer.address,
             depth=depth,
             transfers=[spam_transfer],

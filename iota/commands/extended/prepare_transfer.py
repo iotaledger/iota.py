@@ -36,7 +36,7 @@ class PrepareTransferCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         # Required parameters.
         seed = request['seed']  # type: Seed
         bundle = ProposedBundle(request['transfers'])
@@ -53,7 +53,7 @@ class PrepareTransferCommand(FilterCommand):
             if proposed_inputs is None:
                 # No inputs provided.  Scan addresses for unspent
                 # inputs.
-                gi_response = GetInputsCommand(self.adapter)(
+                gi_response = await GetInputsCommand(self.adapter)(
                     seed=seed,
                     threshold=want_to_spend,
                     securityLevel=security_level,
@@ -66,7 +66,7 @@ class PrepareTransferCommand(FilterCommand):
                 available_to_spend = 0
                 confirmed_inputs = []  # type: List[Address]
 
-                gb_response = GetBalancesCommand(self.adapter)(
+                gb_response = await GetBalancesCommand(self.adapter)(
                     addresses=[i.address for i in proposed_inputs],
                 )
 
@@ -105,10 +105,10 @@ class PrepareTransferCommand(FilterCommand):
             if bundle.balance < 0:
                 if not change_address:
                     change_address = \
-                        GetNewAddressesCommand(self.adapter)(
+                        (await GetNewAddressesCommand(self.adapter)(
                             seed=seed,
                             securityLevel=security_level,
-                        )['addresses'][0]
+                        ))['addresses'][0]
 
                 bundle.send_unspent_inputs_to(change_address)
 

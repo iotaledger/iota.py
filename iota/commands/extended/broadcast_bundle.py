@@ -31,13 +31,13 @@ class BroadcastBundleCommand(FilterCommand):
         # Return value is filtered before hitting us.
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         # Given tail hash, fetches the bundle from the tangle
         # and validates it.
         # Returns List[List[TransactionTrytes]]
         # (outer list has one item in current implementation)
-        bundle = GetBundlesCommand(self.adapter)(transactions=[request['tail_hash']])
-        BroadcastTransactionsCommand(self.adapter)(trytes=bundle[0])
+        bundle = await GetBundlesCommand(self.adapter)(transactions=[request['tail_hash']])
+        await BroadcastTransactionsCommand(self.adapter)(trytes=bundle[0])
         return {
             'trytes': bundle[0],
         }

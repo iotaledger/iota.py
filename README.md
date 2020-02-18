@@ -44,7 +44,7 @@ Please report any issues in our [issue tracker](https://github.com/iotaledger/io
 
 ## Prerequisites
 
-To install the IOTA Python client library and its dependencies, you need Python version 3.7, 3.6, 3.5, or 2.7 installed on your device.
+To install the IOTA Python client library and its dependencies, you need Python version 3.7 or 3.6 installed on your device.
 
 ## Installation
 

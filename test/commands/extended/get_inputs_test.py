@@ -7,14 +7,14 @@ from unittest import TestCase
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Address, BadApiResponse, Iota, TransactionHash
-from iota.adapter import MockAdapter
+from iota import Address, BadApiResponse, Iota, AsyncIota, TransactionHash
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_inputs import GetInputsCommand, GetInputsRequestFilter
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetInputsRequestFilterTestCase(BaseFilterTestCase):
@@ -441,12 +441,12 @@ class GetInputsCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.get_inputs.GetInputsCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -461,7 +461,31 @@ class GetInputsCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_stop_threshold_met(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.get_inputs.GetInputsCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_inputs()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_stop_threshold_met(self):
     """
     ``stop`` provided, balance meets ``threshold``.
     """
@@ -478,7 +502,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed      = Seed.random(),
         stop      = 2,
         threshold = 71,
@@ -501,7 +525,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input1.balance, 29)
     self.assertEqual(input1.key_index, 1)
 
-  def test_stop_threshold_not_met(self):
+  @async_test
+  async def test_stop_threshold_not_met(self):
     """
     ``stop`` provided, balance does not meet ``threshold``.
     """
@@ -519,13 +544,14 @@ class GetInputsCommandTestCase(TestCase):
         mock_address_generator,
     ):
       with self.assertRaises(BadApiResponse):
-        self.command(
+        await self.command(
           seed      = Seed.random(),
           stop      = 2,
           threshold = 72,
         )
 
-  def test_stop_threshold_zero(self):
+  @async_test
+  async def test_stop_threshold_zero(self):
     """
     ``stop`` provided, ``threshold`` is 0.
     """
@@ -543,7 +569,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed      = Seed.random(),
         stop      = 2,
         threshold = 0,
@@ -560,7 +586,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0.balance, 1)
     self.assertEqual(input0.key_index, 1)
 
-  def test_stop_no_threshold(self):
+  @async_test
+  async def test_stop_no_threshold(self):
     """
     ``stop`` provided, no ``threshold``.
     """
@@ -577,7 +604,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.get_addresses',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed      = Seed.random(),
         start     = 0,
         stop      = 2,
@@ -600,7 +627,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input1.balance, 29)
     self.assertEqual(input1.key_index, 1)
 
-  def test_no_stop_threshold_met(self):
+  @async_test
+  async def test_no_stop_threshold_met(self):
     """
     No ``stop`` provided, balance meets ``threshold``.
     """
@@ -652,7 +680,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed      = Seed.random(),
         threshold = 71,
       )
@@ -674,7 +702,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input1.balance, 29)
     self.assertEqual(input1.key_index, 1)
 
-  def test_no_stop_threshold_not_met(self):
+  @async_test
+  async def test_no_stop_threshold_not_met(self):
     """
     No ``stop`` provided, balance does not meet ``threshold``.
     """
@@ -696,12 +725,13 @@ class GetInputsCommandTestCase(TestCase):
         mock_address_generator,
     ):
       with self.assertRaises(BadApiResponse):
-        self.command(
+        await self.command(
           seed      = Seed.random(),
           threshold = 72,
         )
 
-  def test_no_stop_threshold_zero(self):
+  @async_test
+  async def test_no_stop_threshold_zero(self):
     """
     No ``stop`` provided, ``threshold`` is 0.
     """
@@ -755,7 +785,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed      = Seed.random(),
         threshold = 0,
       )
@@ -771,7 +801,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0.balance, 1)
     self.assertEqual(input0.key_index, 1)
 
-  def test_no_stop_no_threshold(self):
+  @async_test
+  async def test_no_stop_no_threshold(self):
     """
     No ``stop`` provided, no ``threshold``.
     """
@@ -823,7 +854,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed = Seed.random(),
       )
 
@@ -844,7 +875,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input1.balance, 29)
     self.assertEqual(input1.key_index, 1)
 
-  def test_start(self):
+  @async_test
+  async def test_start(self):
     """
     Using ``start`` to offset the key range.
     """
@@ -888,7 +920,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed  = Seed.random(),
         start = 1,
       )
@@ -903,7 +935,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0.balance, 86)
     self.assertEqual(input0.key_index, 1)
 
-  def test_start_stop(self):
+  @async_test
+  async def test_start_stop(self):
     """
     Using ``start`` and ``stop`` at once.
     Checking if correct number of addresses is returned. Must be stop - start
@@ -927,7 +960,7 @@ class GetInputsCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         mock_address_generator,
     ):
-      response = self.command(
+      response = await self.command(
         seed  = Seed.random(),
         start = 1,
         stop = 3,
@@ -949,7 +982,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input1.key_index, 2)
 
 
-  def test_security_level_1_no_stop(self):
+  @async_test
+  async def test_security_level_1_no_stop(self):
     """
     Testing GetInputsCoommand:
       - with security_level = 1 (non default)
@@ -984,7 +1018,7 @@ class GetInputsCommandTestCase(TestCase):
       'balances': [86],
     })
 
-    response = GetInputsCommand(self.adapter)(
+    response = await GetInputsCommand(self.adapter)(
       seed=seed,
       securityLevel=1,
     )
@@ -998,7 +1032,8 @@ class GetInputsCommandTestCase(TestCase):
     self.assertEqual(input0.balance, 86)
     self.assertEqual(input0.key_index, 0)
 
-  def test_security_level_1_with_stop(self):
+  @async_test
+  async def test_security_level_1_with_stop(self):
     """
     Testing GetInputsCoommand:
       - with security_level = 1 (non default)
@@ -1028,7 +1063,7 @@ class GetInputsCommandTestCase(TestCase):
       'hashes': [],
     })
 
-    response = GetInputsCommand(self.adapter)(
+    response = await GetInputsCommand(self.adapter)(
       seed=seed,
       securityLevel=1,
       stop=1,    # <<<<< here

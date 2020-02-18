@@ -8,11 +8,11 @@ import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, BadApiResponse, Bundle, BundleHash, Fragment, Hash, \
-    Iota, Tag, Transaction, TransactionHash, TransactionTrytes, Nonce
-from iota.adapter import MockAdapter
+    Iota, AsyncIota, Tag, Transaction, TransactionHash, TransactionTrytes, Nonce
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.traverse_bundle import TraverseBundleCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 # Same tests as for GetBundlesRequestFilter (it is the same filter)
 class TraverseBundleRequestFilterTestCase(BaseFilterTestCase):
@@ -129,12 +129,12 @@ class TraverseBundleCommandTestCase(TestCase):
 
     def test_wireup(self):
         """
-        Verify that the command is wired up correctly.
+        Verify that the command is wired up correctly. (sync)
 
         The API method indeed calls the appropiate command.
         """
         with patch('iota.commands.extended.traverse_bundle.TraverseBundleCommand.__call__',
-                MagicMock(return_value='You found me!')
+                MagicMock(return_value=async_return('You found me!'))
                 ) as mocked_command:
 
             api = Iota(self.adapter)
@@ -149,7 +149,31 @@ class TraverseBundleCommandTestCase(TestCase):
                 'You found me!'
             )
 
-    def test_single_transaction(self):
+    @async_test
+    async def test_wireup(self):
+        """
+        Verify that the command is wired up correctly. (async)
+
+        The API method indeed calls the appropiate command.
+        """
+        with patch('iota.commands.extended.traverse_bundle.TraverseBundleCommand.__call__',
+                MagicMock(return_value=async_return('You found me!'))
+                ) as mocked_command:
+
+            api = AsyncIota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = await api.traverse_bundle('tail')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
+
+    @async_test
+    async def test_single_transaction(self):
         """
         Getting a bundle that contains a single transaction.
         """
@@ -204,7 +228,7 @@ class TraverseBundleCommandTestCase(TestCase):
             'trytes': [transaction.as_tryte_string()],
         })
 
-        response = self.command(transaction=transaction.hash)
+        response = await self.command(transaction=transaction.hash)
 
         bundle = response['bundles'][0] # type: Bundle
         self.assertEqual(len(bundle), 1)
@@ -215,7 +239,8 @@ class TraverseBundleCommandTestCase(TestCase):
             transaction.as_json_compatible(),
         )
 
-    def test_multiple_transactions(self):
+    @async_test
+    async def test_multiple_transactions(self):
         """
         Getting a bundle that contains multiple transactions.
         """
@@ -363,7 +388,7 @@ class TraverseBundleCommandTestCase(TestCase):
             ],
         })
 
-        response = self.command(
+        response = await self.command(
             transaction =
                 TransactionHash(
                     b'TOYJPHKMLQNDVLDHDILARUJCCIUMQBLUSWPCTIVA'
@@ -376,7 +401,8 @@ class TraverseBundleCommandTestCase(TestCase):
             bundle.as_json_compatible(),
         )
 
-    def test_non_tail_transaction(self):
+    @async_test
+    async def test_non_tail_transaction(self):
         """
         Trying to get a bundle for a non-tail transaction.
 
@@ -429,7 +455,7 @@ class TraverseBundleCommandTestCase(TestCase):
         })
 
         with self.assertRaises(BadApiResponse):
-            self.command(
+            await self.command(
                 transaction =
                     TransactionHash(
                         b'FSEWUNJOEGNUI9QOCRFMYSIFAZLJHKZBPQZZYFG9'
@@ -437,14 +463,15 @@ class TraverseBundleCommandTestCase(TestCase):
                     ),
             )
 
-    def test_missing_transaction(self):
+    @async_test
+    async def test_missing_transaction(self):
         """
         Unable to find the requested transaction.
         """
         self.adapter.seed_response('getTrytes', {'trytes': []})
 
         with self.assertRaises(BadApiResponse):
-            self.command(
+            await self.command(
                 transaction =
                     TransactionHash(
                         b'FSEWUNJOEGNUI9QOCRFMYSIFAZLJHKZBPQZZYFG9'
@@ -452,7 +479,8 @@ class TraverseBundleCommandTestCase(TestCase):
                     ),
             )
 
-    def test_missing_transaction_zero_trytes(self):
+    @async_test
+    async def test_missing_transaction_zero_trytes(self):
         """
         Unable to find the requested transaction.
         getTrytes returned only zeros, no tx was found.
@@ -461,7 +489,7 @@ class TraverseBundleCommandTestCase(TestCase):
         self.adapter.seed_response('getTrytes', {'trytes': [zero_trytes]})
 
         with self.assertRaises(BadApiResponse):
-            self.command(
+            await self.command(
                 transaction =
                     TransactionHash(
                         b'FSEWUNJOEGNUI9QOCRFMYSIFAZLJHKZBPQZZYFG9'

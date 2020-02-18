@@ -144,8 +144,8 @@ class RoutingWrapper(BaseWrapper):
         """
         return self.routes.get(command, self.adapter)
 
-    def send_request(self, payload, **kwargs):
+    async def send_request(self, payload, **kwargs):
         # type: (dict, dict) -> dict
         command = payload.get('command')
 
-        return self.get_adapter(command).send_request(payload, **kwargs)
+        return await self.get_adapter(command).send_request(payload, **kwargs)

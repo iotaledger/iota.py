@@ -29,18 +29,18 @@ class ReplayBundleCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         depth = request['depth']  # type: int
         min_weight_magnitude = request['minWeightMagnitude']  # type: int
         transaction = request['transaction']  # type: TransactionHash
 
-        gb_response = GetBundlesCommand(self.adapter)(transactions=[transaction])
+        gb_response = await GetBundlesCommand(self.adapter)(transactions=[transaction])
 
         # Note that we only replay the first bundle returned by
         # ``getBundles``.
         bundle = gb_response['bundles'][0]  # type: Bundle
 
-        return SendTrytesCommand(self.adapter)(
+        return await SendTrytesCommand(self.adapter)(
             depth=depth,
             minWeightMagnitude=min_weight_magnitude,
             trytes=bundle.as_tryte_strings(),

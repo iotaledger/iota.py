@@ -28,6 +28,7 @@ with open('docs/README.rst', 'r', 'utf-8') as f:  # type: StreamReader
 # either automatically (``python setup.py test``) or manually
 # (``pip install -e .[test-runner]``).
 tests_require = [
+    'aiounittest',
     'mock; python_version < "3.0"',
     'nose',
 ]
@@ -62,21 +63,17 @@ setuptools.setup(
 
     install_requires=[
         'filters; python_version < "3.5"',
+        'httpx',
         'phx-filters; python_version >= "3.5"',
         'pysha3',
-
-        # ``security`` extra wasn't introduced until 2.4.1
-        # http://docs.python-requests.org/en/latest/community/updates/#id35
-        'requests[security] >= 2.4.1',
-
         'six',
         'typing; python_version < "3.0"',
     ],
 
     extras_require={
         'ccurl': ['pyota-ccurl'],
-        'pow': ['pyota-pow >= 1.0.2'],
         'docs-builder': ['sphinx', 'sphinx_rtd_theme'],
+        'pow': ['pyota-pow >= 1.0.2'],
         # tox is able to run the tests in parallel since version 3.7
         'test-runner': ['tox >= 3.7'] + tests_require,
     },
@@ -91,10 +88,7 @@ setuptools.setup(
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules',

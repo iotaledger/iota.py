@@ -1,51 +1,22 @@
 from typing import Dict, Iterable, Optional, Text
 
 from iota import AdapterSpec, Address, BundleHash, ProposedTransaction, Tag, \
-    TransactionHash, TransactionTrytes, TryteString
+    TransactionHash, TransactionTrytes, TryteString, TrytesCompatible
+from iota.adapter import BaseAdapter, resolve_adapter
+from iota.commands import BaseCommand, CustomCommand, core, extended
 from iota.crypto.addresses import AddressGenerator
-from iota.api_async import AsyncStrictIota, AsyncIota
+from iota.crypto.types import Seed
 import asyncio
 
 __all__ = [
-    'InvalidCommand',
-    'Iota',
-    'StrictIota',
+    'AsyncIota',
+    'AsyncStrictIota',
 ]
 
 
-class InvalidCommand(ValueError):
+class AsyncStrictIota:
     """
-    Indicates that an invalid command name was specified.
-    """
-    pass
-
-# There is a compact and easy way to create the synchronous version of the async
-# classes:
-
-# import inspect
-# def make_synchronous(new_name, async_class: type):
-#   def make_sync(method):
-#     def sync_version(*args, **kwargs):
-#       return asyncio.get_event_loop().run_until_complete(method(*args, **kwargs))
-#     return sync_version
-
-#   return type(new_name, (async_class,), {
-#     name: make_sync(method) if inspect.iscoroutinefunction(method) else method
-#     for name, method in inspect.getmembers(async_class)
-#   })
-
-# # create the sync version of the class
-# Iota = make_synchronous('Iota', AsyncIota)
-
-# While this approach would work, no IDE static analysis would pick up the
-# method definitions or docstrings for the new `Iota` class, meaning no
-# suggestions, intellisense, code completion, etc. for the user.
-# Therefore we keep the manual approach.
-
-
-class StrictIota(AsyncStrictIota):
-    """
-    Synchronous API to send HTTP requests for communicating with an IOTA node.
+    Asynchronous API to send HTTP requests for communicating with an IOTA node.
 
     This implementation only exposes the "core" API methods.  For a more
     feature-complete implementation, use :py:class:`Iota` instead.
@@ -91,9 +62,69 @@ class StrictIota(AsyncStrictIota):
                 See :ref:`Optional Local Pow` for more info and
                 :ref:`find out<pow-label>` how to use it.
         """
-        super().__init__(adapter, devnet, local_pow)
+        super().__init__()
 
-    def add_neighbors(self, uris):
+        if not isinstance(adapter, BaseAdapter):
+            adapter = resolve_adapter(adapter)
+
+        self.adapter = adapter  # type: BaseAdapter
+        # Note that the `local_pow` parameter is passed to adapter,
+        # the api class has no notion about it. The reason being,
+        # that this parameter is used in `AttachToTangeCommand` calls,
+        # that is called from various api calls (`attach_to_tangle`,
+        # `send_trytes` or `send_transfer`). Inside `AttachToTangeCommand`,
+        # we no longer have access to the attributes of the API class, therefore
+        # `local_pow` needs to be associated with the adapter.
+        # Logically, `local_pow` will decide if the api call does pow
+        # via pyota-pow extension, or sends the request to a node.
+        # But technically, the parameter belongs to the adapter.
+        self.adapter.set_local_pow(local_pow)
+        self.devnet = devnet
+
+    def create_command(self, command):
+        # type: (Text) -> CustomCommand
+        """
+        Creates a pre-configured CustomCommand instance.
+
+        This method is useful for invoking undocumented or experimental
+        methods, or if you just want to troll your node for awhile.
+
+        :param Text command:
+            The name of the command to create.
+
+        """
+        return CustomCommand(self.adapter, command)
+
+    def set_local_pow(self, local_pow):
+        # type: (bool) -> None
+        """
+        Sets the :py:attr:`local_pow` attribute of the adapter of the api
+        instance. If it is ``True``, :py:meth:`~Iota.attach_to_tangle` command calls
+        external interface to perform proof of work, instead of sending the
+        request to a node.
+
+        By default, :py:attr:`local_pow` is set to ``False``.
+        This particular method is needed if one wants to change
+        local_pow behavior dynamically.
+
+        :param bool local_pow:
+            Whether to perform pow locally.
+
+        :returns: None
+
+        """
+        self.adapter.set_local_pow(local_pow)
+
+    @property
+    def default_min_weight_magnitude(self):
+        # type: () -> int
+        """
+        Returns the default ``min_weight_magnitude`` value to use for
+        API requests.
+        """
+        return 9 if self.devnet else 14
+
+    async def add_neighbors(self, uris):
         # type: (Iterable[Text]) -> dict
         """
         Add one or more neighbors to the node.  Lasts until the node is
@@ -122,14 +153,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#addneighbors
         """
+        return await core.AddNeighborsCommand(self.adapter)(uris=uris)
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().add_neighbors(uris)
-        )
-
-    def attach_to_tangle(
+    async def attach_to_tangle(
             self,
             trunk_transaction,  # type: TransactionHash
             branch_transaction,  # type: TransactionHash
@@ -173,19 +199,17 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#attachtotangle
         """
+        if min_weight_magnitude is None:
+            min_weight_magnitude = self.default_min_weight_magnitude
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().attach_to_tangle(
-                trunk_transaction,
-                branch_transaction,
-                trytes,
-                min_weight_magnitude,
-            )
+        return await core.AttachToTangleCommand(self.adapter)(
+            trunkTransaction=trunk_transaction,
+            branchTransaction=branch_transaction,
+            minWeightMagnitude=min_weight_magnitude,
+            trytes=trytes,
         )
 
-    def broadcast_transactions(self, trytes):
+    async def broadcast_transactions(self, trytes):
         # type: (Iterable[TryteString]) -> dict
         """
         Broadcast a list of transactions to all neighbors.
@@ -208,16 +232,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#broadcasttransactions
         """
+        return await core.BroadcastTransactionsCommand(self.adapter)(trytes=trytes)
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().broadcast_transactions(
-                trytes,
-            )
-        )
-
-    def check_consistency(self, tails):
+    async def check_consistency(self, tails):
         # type: (Iterable[TransactionHash]) -> dict
         """
         Used to ensure tail resolves to a consistent ledger which is
@@ -247,16 +264,11 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#checkconsistency
         """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().check_consistency(
-                tails,
-            )
+        return await core.CheckConsistencyCommand(self.adapter)(
+            tails=tails,
         )
 
-    def find_transactions(
+    async def find_transactions(
             self,
             bundles=None,  # type: Optional[Iterable[BundleHash]]
             addresses=None,  # type: Optional[Iterable[Address]]
@@ -299,19 +311,14 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#findtransactions
         """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().find_transactions(
-                bundles,
-                addresses,
-                tags,
-                approvees,
-            )
+        return await core.FindTransactionsCommand(self.adapter)(
+            bundles=bundles,
+            addresses=addresses,
+            tags=tags,
+            approvees=approvees,
         )
 
-    def get_balances(
+    async def get_balances(
             self,
             addresses,  # type: Iterable[Address]
             threshold=100,  # type: int
@@ -359,18 +366,13 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getbalances
         """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_balances(
-                addresses,
-                threshold,
-                tips,
-            )
+        return await core.GetBalancesCommand(self.adapter)(
+            addresses=addresses,
+            threshold=threshold,
+            tips=tips,
         )
 
-    def get_inclusion_states(self, transactions, tips):
+    async def get_inclusion_states(self, transactions, tips):
         # type: (Iterable[TransactionHash], Iterable[TransactionHash]) -> dict
         """
         Get the inclusion states of a set of transactions. This is for
@@ -402,17 +404,12 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getinclusionstates
         """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_inclusion_states(
-                transactions,
-                tips,
-            )
+        return await core.GetInclusionStatesCommand(self.adapter)(
+            transactions=transactions,
+            tips=tips,
         )
 
-    def get_missing_transactions(self):
+    async def get_missing_transactions(self):
         # type: () -> dict
         """
         Returns all transaction hashes that a node is currently requesting
@@ -432,14 +429,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getmissingtransactions
         """
+        return await core.GetMissingTransactionsCommand(self.adapter)()
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_missing_transactions()
-        )
-
-    def get_neighbors(self):
+    async def get_neighbors(self):
         # type: () -> dict
         """
         Returns the set of neighbors the node is connected with, as well
@@ -470,14 +462,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getneighbors
         """
+        return await core.GetNeighborsCommand(self.adapter)()
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_neighbors()
-        )
-
-    def get_node_api_configuration(self):
+    async def get_node_api_configuration(self):
         # type: () -> dict
         """
         Returns a node's API configuration settings.
@@ -499,14 +486,9 @@ class StrictIota(AsyncStrictIota):
         - https://docs.iota.org/docs/node-software/0.1/iri/references/iri-configuration-options
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getnodeapiconfiguration
         """
+        return await core.GetNodeAPIConfigurationCommand(self.adapter)()
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_node_api_configuration()
-        )
-
-    def get_node_info(self):
+    async def get_node_info(self):
         # type: () -> dict
         """
         Returns information about the node.
@@ -563,14 +545,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getnodeinfo
         """
+        return await core.GetNodeInfoCommand(self.adapter)()
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_node_info()
-        )
-
-    def get_tips(self):
+    async def get_tips(self):
         # type: () -> dict
         """
         Returns the list of tips (transactions which have no other
@@ -591,14 +568,9 @@ class StrictIota(AsyncStrictIota):
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettips
         - https://docs.iota.org/docs/dev-essentials/0.1/references/glossary
         """
+        return await core.GetTipsCommand(self.adapter)()
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_tips()
-        )
-
-    def get_transactions_to_approve(self, depth, reference=None):
+    async def get_transactions_to_approve(self, depth, reference=None):
         # type: (int, Optional[TransactionHash]) -> dict
         """
         Tip selection which returns ``trunkTransaction`` and
@@ -632,17 +604,12 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettransactionstoapprove
         """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_transactions_to_approve(
-                depth,
-                reference,
-            )
+        return await core.GetTransactionsToApproveCommand(self.adapter)(
+            depth=depth,
+            reference=reference,
         )
 
-    def get_trytes(self, hashes):
+    async def get_trytes(self, hashes):
         # type: (Iterable[TransactionHash]) -> dict
         """
         Returns the raw transaction data (trytes) of one or more
@@ -668,16 +635,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettrytes
         """
+        return await core.GetTrytesCommand(self.adapter)(hashes=hashes)
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_trytes(
-                hashes,
-            )
-        )
-
-    def interrupt_attaching_to_tangle(self):
+    async def interrupt_attaching_to_tangle(self):
         # type: () -> dict
         """
         Interrupts and completely aborts the :py:meth:`attach_to_tangle`
@@ -695,14 +655,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#interruptattachingtotangle
         """
+        return await core.InterruptAttachingToTangleCommand(self.adapter)()
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().interrupt_attaching_to_tangle()
-        )
-
-    def remove_neighbors(self, uris):
+    async def remove_neighbors(self, uris):
         # type: (Iterable[Text]) -> dict
         """
         Removes one or more neighbors from the node.  Lasts until the
@@ -726,14 +681,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#removeneighbors
         """
+        return await core.RemoveNeighborsCommand(self.adapter)(uris=uris)
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().remove_neighbors(uris)
-        )
-
-    def store_transactions(self, trytes):
+    async def store_transactions(self, trytes):
         # type: (Iterable[TryteString]) -> dict
         """
         Store transactions into local storage of the node.
@@ -758,14 +708,9 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#storetransactions
         """
+        return await core.StoreTransactionsCommand(self.adapter)(trytes=trytes)
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().store_transactions(trytes)
-        )
-
-    def were_addresses_spent_from(self, addresses):
+    async def were_addresses_spent_from(self, addresses):
         # type: (Iterable[Address]) -> dict
         """
         Check if a list of addresses was ever spent from, in the current
@@ -792,18 +737,14 @@ class StrictIota(AsyncStrictIota):
 
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#wereaddressesspentfrom
         """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().were_addresses_spent_from(addresses)
+        return await core.WereAddressesSpentFromCommand(self.adapter)(
+            addresses=addresses,
         )
 
-
-class Iota(StrictIota, AsyncIota):
+class AsyncIota(AsyncStrictIota):
     """
-    Implements the synchronous core API, plus additional synchronous wrapper
-    methods for common operations.
+    Implements the async core API, plus additional async wrapper methods for
+    common operations.
 
     :param AdapterSpec adapter:
         URI string or BaseAdapter instance.
@@ -847,10 +788,11 @@ class Iota(StrictIota, AsyncIota):
             .. note::
                 This value is never transferred to the node/network.
         """
-        # Explicitly call AsyncIota's init, as we need the seed
-        AsyncIota.__init__(self, adapter, seed, devnet, local_pow)
+        super().__init__(adapter, devnet, local_pow)
 
-    def broadcast_and_store(self, trytes):
+        self.seed = Seed(seed) if seed else Seed.random()
+
+    async def broadcast_and_store(self, trytes):
         # type: (Iterable[TransactionTrytes]) -> dict
         """
         Broadcasts and stores a set of transaction trytes.
@@ -871,13 +813,11 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#broadcastandstore
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().broadcast_and_store(trytes)
+        return await extended.BroadcastAndStoreCommand(self.adapter)(
+            trytes=trytes,
         )
 
-    def broadcast_bundle(self, tail_transaction_hash):
+    async def broadcast_bundle(self, tail_transaction_hash):
         # type (TransactionHash) -> dict
         """
         Re-broadcasts all transactions in a bundle given the tail transaction hash.
@@ -900,13 +840,11 @@ class Iota(StrictIota, AsyncIota):
         - https://github.com/iotaledger/iota.js/blob/next/api_reference.md#module_core.broadcastBundle
         """
 
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().broadcast_bundle(tail_transaction_hash)
+        return await extended.BroadcastBundleCommand(self.adapter)(
+            tail_hash=tail_transaction_hash,
         )
 
-    def find_transaction_objects(
+    async def find_transaction_objects(
             self,
             bundles=None,  # type: Optional[Iterable[BundleHash]]
             addresses=None,  # type: Optional[Iterable[Address]]
@@ -951,18 +889,14 @@ class Iota(StrictIota, AsyncIota):
                 }
 
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().find_transaction_objects(
-                bundles,
-                addresses,
-                tags,
-                approvees,
-            )
+        return await extended.FindTransactionObjectsCommand(self.adapter)(
+            bundles=bundles,
+            addresses=addresses,
+            tags=tags,
+            approvees=approvees,
         )
 
-    def get_account_data(self, start=0, stop=None, inclusion_states=False, security_level=None):
+    async def get_account_data(self, start=0, stop=None, inclusion_states=False, security_level=None):
         # type: (int, Optional[int], bool, Optional[int]) -> dict
         """
         More comprehensive version of :py:meth:`get_transfers` that
@@ -1031,18 +965,15 @@ class Iota(StrictIota, AsyncIota):
                 }
 
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_account_data(
-                start,
-                stop,
-                inclusion_states,
-                security_level,
-            )
+        return await extended.GetAccountDataCommand(self.adapter)(
+            seed=self.seed,
+            start=start,
+            stop=stop,
+            inclusionStates=inclusion_states,
+            security_level=security_level
         )
 
-    def get_bundles(self, transactions):
+    async def get_bundles(self, transactions):
         # type: (Iterable[TransactionHash]) -> dict
         """
         Returns the bundle(s) associated with the specified transaction
@@ -1068,13 +999,11 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getbundle
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_bundles(transactions)
+        return await extended.GetBundlesCommand(self.adapter)(
+            transactions=transactions,
         )
 
-    def get_inputs(
+    async def get_inputs(
             self,
             start=0,
             stop=None,
@@ -1178,18 +1107,15 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getinputs
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_inputs(
-                start,
-                stop,
-                threshold,
-                security_level,
-            )
+        return await extended.GetInputsCommand(self.adapter)(
+            seed=self.seed,
+            start=start,
+            stop=stop,
+            threshold=threshold,
+            securityLevel=security_level
         )
 
-    def get_latest_inclusion(self, hashes):
+    async def get_latest_inclusion(self, hashes):
         # type: (Iterable[TransactionHash]) -> Dict[TransactionHash, bool]
         """
         Fetches the inclusion state for the specified transaction
@@ -1211,13 +1137,9 @@ class Iota(StrictIota, AsyncIota):
                 }
 
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_latest_inclusion(hashes)
-        )
+        return await extended.GetLatestInclusionCommand(self.adapter)(hashes=hashes)
 
-    def get_new_addresses(
+    async def get_new_addresses(
             self,
             index=0,
             count=1,
@@ -1278,18 +1200,15 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#getnewaddress
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_new_addresses(
-                count=count,
-                index=index,
-                security_level=security_level,
-                checksum=checksum,
-            )
+        return await extended.GetNewAddressesCommand(self.adapter)(
+            count=count,
+            index=index,
+            securityLevel=security_level,
+            checksum=checksum,
+            seed=self.seed,
         )
 
-    def get_transaction_objects(
+    async def get_transaction_objects(
             self,
             hashes,  # type: [Iterable[TransactionHash]]
     ):
@@ -1315,13 +1234,11 @@ class Iota(StrictIota, AsyncIota):
                         List of Transaction objects that match the input.
                 }
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_transaction_objects(hashes)
+        return await extended.GetTransactionObjectsCommand(self.adapter)(
+            hashes=hashes,
         )
 
-    def get_transfers(self, start=0, stop=None, inclusion_states=False):
+    async def get_transfers(self, start=0, stop=None, inclusion_states=False):
         # type: (int, Optional[int], bool) -> dict
         """
         Returns all transfers associated with the seed.
@@ -1374,17 +1291,14 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#gettransfers
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().get_transfers(
-                start,
-                stop,
-                inclusion_states,
-            )
+        return await extended.GetTransfersCommand(self.adapter)(
+            seed=self.seed,
+            start=start,
+            stop=stop,
+            inclusionStates=inclusion_states,
         )
 
-    def is_promotable(
+    async def is_promotable(
             self,
             tails,  # type: Iterable[TransactionHash]
     ):
@@ -1419,13 +1333,11 @@ class Iota(StrictIota, AsyncIota):
         References:
         - https://github.com/iotaledger/iota.js/blob/next/api_reference.md#module_core.isPromotable
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().is_promotable(tails)
+        return await extended.IsPromotableCommand(self.adapter)(
+            tails=tails,
         )
 
-    def prepare_transfer(
+    async def prepare_transfer(
             self,
             transfers,  # type: Iterable[ProposedTransaction]
             inputs=None,  # type: Optional[Iterable[Address]]
@@ -1479,18 +1391,15 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#preparetransfers
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().prepare_transfer(
-                transfers,
-                inputs,
-                change_address,
-                security_level,
-            )
+        return await extended.PrepareTransferCommand(self.adapter)(
+            seed=self.seed,
+            transfers=transfers,
+            inputs=inputs,
+            changeAddress=change_address,
+            securityLevel=security_level,
         )
 
-    def promote_transaction(
+    async def promote_transaction(
             self,
             transaction,
             depth=3,
@@ -1521,17 +1430,16 @@ class Iota(StrictIota, AsyncIota):
                         The newly-published bundle.
                 }
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().promote_transaction(
-                transaction,
-                depth,
-                min_weight_magnitude,
-            )
+        if min_weight_magnitude is None:
+            min_weight_magnitude = self.default_min_weight_magnitude
+
+        return await extended.PromoteTransactionCommand(self.adapter)(
+            transaction=transaction,
+            depth=depth,
+            minWeightMagnitude=min_weight_magnitude,
         )
 
-    def replay_bundle(
+    async def replay_bundle(
             self,
             transaction,
             depth=3,
@@ -1568,17 +1476,16 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#replaytransfer
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().replay_bundle(
-                transaction,
-                depth,
-                min_weight_magnitude,
-            )
+        if min_weight_magnitude is None:
+            min_weight_magnitude = self.default_min_weight_magnitude
+
+        return await extended.ReplayBundleCommand(self.adapter)(
+            transaction=transaction,
+            depth=depth,
+            minWeightMagnitude=min_weight_magnitude,
         )
 
-    def send_transfer(
+    async def send_transfer(
             self,
             transfers,  # type: Iterable[ProposedTransaction]
             depth=3,  # type: int
@@ -1638,20 +1545,20 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtransfer
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().send_transfer(
-                transfers,
-                depth,
-                inputs,
-                change_address,
-                min_weight_magnitude,
-                security_level,
-            )
+        if min_weight_magnitude is None:
+            min_weight_magnitude = self.default_min_weight_magnitude
+
+        return await extended.SendTransferCommand(self.adapter)(
+            seed=self.seed,
+            depth=depth,
+            transfers=transfers,
+            inputs=inputs,
+            changeAddress=change_address,
+            minWeightMagnitude=min_weight_magnitude,
+            securityLevel=security_level,
         )
 
-    def send_trytes(self, trytes, depth=3, min_weight_magnitude=None):
+    async def send_trytes(self, trytes, depth=3, min_weight_magnitude=None):
         # type: (Iterable[TransactionTrytes], int, Optional[int]) -> dict
         """
         Attaches transaction trytes to the Tangle, then broadcasts and
@@ -1682,17 +1589,16 @@ class Iota(StrictIota, AsyncIota):
 
         - https://github.com/iotaledger/wiki/blob/master/api-proposal.md#sendtrytes
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().send_trytes(
-                trytes,
-                depth,
-                min_weight_magnitude,
-            )
+        if min_weight_magnitude is None:
+            min_weight_magnitude = self.default_min_weight_magnitude
+
+        return await extended.SendTrytesCommand(self.adapter)(
+            trytes=trytes,
+            depth=depth,
+            minWeightMagnitude=min_weight_magnitude,
         )
 
-    def is_reattachable(self, addresses):
+    async def is_reattachable(self, addresses):
         # type: (Iterable[Address]) -> dict
         """
         This API function helps you to determine whether you should
@@ -1719,15 +1625,11 @@ class Iota(StrictIota, AsyncIota):
                 }
 
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().is_reattachable(
-                addresses,
-            )
+        return await extended.IsReattachableCommand(self.adapter)(
+            addresses=addresses
         )
 
-    def traverse_bundle(self, tail_hash):
+    async def traverse_bundle(self, tail_hash):
         # type: (TransactionHash) -> dict
         """
         Fetches and traverses a bundle from the Tangle given a tail transaction
@@ -1751,10 +1653,6 @@ class Iota(StrictIota, AsyncIota):
                 }
 
         """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-            super().traverse_bundle(
-                tail_hash,
-            )
+        return await extended.TraverseBundleCommand(self.adapter)(
+            transaction=tail_hash
         )

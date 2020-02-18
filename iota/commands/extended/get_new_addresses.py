@@ -14,6 +14,7 @@ from iota.commands.core.were_addresses_spent_from import \
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 from iota.filters import SecurityLevel, Trytes
+import asyncio
 
 __all__ = [
     'GetNewAddressesCommand',
@@ -34,7 +35,7 @@ class GetNewAddressesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request):
         checksum = request['checksum']  # type: bool
         count = request['count']  # type: Optional[int]
         index = request['index']  # type: int
@@ -43,7 +44,7 @@ class GetNewAddressesCommand(FilterCommand):
 
         return {
             'addresses':
-                self._find_addresses(
+                await self._find_addresses(
                     seed,
                     index,
                     count,
@@ -52,7 +53,7 @@ class GetNewAddressesCommand(FilterCommand):
                 ),
         }
 
-    def _find_addresses(self, seed, index, count, security_level, checksum):
+    async def _find_addresses(self, seed, index, count, security_level, checksum):
         # type: (Seed, int, Optional[int], int, bool) -> List[Address]
         """
         Find addresses matching the command parameters.
@@ -64,16 +65,18 @@ class GetNewAddressesCommand(FilterCommand):
             for addy in generator.create_iterator(start=index):
                 # We use addy.address here because the commands do
                 # not work on an address with a checksum
-                response = WereAddressesSpentFromCommand(self.adapter)(
-                    addresses=[addy.address],
+                # Execute two checks concurrently
+                responses = await asyncio.gather(
+                    WereAddressesSpentFromCommand(self.adapter)(
+                        addresses=[addy.address],
+                    ),
+                    FindTransactionsCommand(self.adapter)(
+                        addresses=[addy.address],
+                    ),
                 )
-                if response['states'][0]:
-                    continue
-
-                response = FindTransactionsCommand(self.adapter)(
-                    addresses=[addy.address],
-                )
-                if response.get('hashes'):
+                # responses[0] -> was it spent from?
+                # responses[1] -> any transaction found?
+                if responses[0]['states'][0] or responses[1].get('hashes'):
                     continue
 
                 return [addy]

@@ -6,7 +6,7 @@ from unittest import TestCase
 from iota.commands.extended.utils import iter_used_addresses
 from iota import MockAdapter
 from iota.crypto.types import Seed
-from test import mock
+from test import mock, async_test
 
 
 class IterUsedAddressesTestCase(TestCase):
@@ -35,11 +35,13 @@ class IterUsedAddressesTestCase(TestCase):
             'states': [False],
         })
 
-    def get_all_used_addresses(self, start=0):
-        return [address for address, _
+    async def get_all_used_addresses(self, start=0):
+        # `iter_used_addresses` is an async generator, so we have to use `async for`
+        return [address async for address, _
                 in iter_used_addresses(self.adapter, self.seed, start)]
 
-    def test_first_address_is_not_used(self):
+    @async_test
+    async def test_first_address_is_not_used(self):
         """
         The very first address is not used. No address is returned.
         """
@@ -50,7 +52,7 @@ class IterUsedAddressesTestCase(TestCase):
                 'iota.crypto.addresses.AddressGenerator.create_iterator',
                 self.mock_address_generator,
         ):
-            self.assertEqual([], self.get_all_used_addresses())
+            self.assertEqual([], await self.get_all_used_addresses())
 
         self.assertListEqual(
             self.adapter.requests,
@@ -66,7 +68,8 @@ class IterUsedAddressesTestCase(TestCase):
             ]
         )
 
-    def test_transactions_are_considered_used(self):
+    @async_test
+    async def test_transactions_are_considered_used(self):
         """
         An address with a transaction is considered used.
         """
@@ -82,7 +85,7 @@ class IterUsedAddressesTestCase(TestCase):
                 'iota.crypto.addresses.AddressGenerator.create_iterator',
                 self.mock_address_generator,
         ):
-            self.assertEqual([self.address0], self.get_all_used_addresses())
+            self.assertEqual([self.address0], await self.get_all_used_addresses())
 
         self.assertListEqual(
             self.adapter.requests,
@@ -102,7 +105,8 @@ class IterUsedAddressesTestCase(TestCase):
             ]
         )
 
-    def test_spent_from_is_considered_used(self):
+    @async_test
+    async def test_spent_from_is_considered_used(self):
         """
         An address that was spent from is considered used.
         """
@@ -121,7 +125,7 @@ class IterUsedAddressesTestCase(TestCase):
                 'iota.crypto.addresses.AddressGenerator.create_iterator',
                 self.mock_address_generator,
         ):
-            self.assertEqual([self.address0], self.get_all_used_addresses())
+            self.assertEqual([self.address0], await self.get_all_used_addresses())
 
         self.assertListEqual(
             self.adapter.requests,
@@ -145,7 +149,8 @@ class IterUsedAddressesTestCase(TestCase):
             ]
         )
 
-    def test_start_parameter_is_given(self):
+    @async_test
+    async def test_start_parameter_is_given(self):
         """
         The correct address is returned if a start parameter is given.
         """
@@ -162,7 +167,7 @@ class IterUsedAddressesTestCase(TestCase):
                 self.mock_address_generator,
         ):
             self.assertEqual([self.address1],
-                             self.get_all_used_addresses(start=1))
+                             await self.get_all_used_addresses(start=1))
 
         self.assertListEqual(
             self.adapter.requests,
@@ -182,7 +187,8 @@ class IterUsedAddressesTestCase(TestCase):
             ]
         )
 
-    def test_multiple_addresses_return(self):
+    @async_test
+    async def test_multiple_addresses_return(self):
         """
         A larger test that combines multiple cases and more than one address
         should be returned.
@@ -212,7 +218,7 @@ class IterUsedAddressesTestCase(TestCase):
                 self.mock_address_generator,
         ):
             self.assertEqual([self.address0, self.address1],
-                             self.get_all_used_addresses())
+                             await self.get_all_used_addresses())
 
         self.assertListEqual(
             self.adapter.requests,
@@ -239,3 +245,5 @@ class IterUsedAddressesTestCase(TestCase):
                 },
             ]
         )
+
+# TODO: add tests for `get_bundles_from_transaction_hashes`

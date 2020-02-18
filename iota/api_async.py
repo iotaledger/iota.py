@@ -19,7 +19,7 @@ class AsyncStrictIota:
     Asynchronous API to send HTTP requests for communicating with an IOTA node.
 
     This implementation only exposes the "core" API methods.  For a more
-    feature-complete implementation, use :py:class:`Iota` instead.
+    feature-complete implementation, use :py:class:`AsyncIota` instead.
 
     References:
 

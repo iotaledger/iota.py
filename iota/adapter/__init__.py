@@ -280,6 +280,7 @@ class HttpAdapter(BaseAdapter):
         # type: (Union[Text, SplitResult], Optional[int]) -> None
         super(HttpAdapter, self).__init__()
 
+        self.client = AsyncClient()
         self.timeout = timeout
         self.authentication = authentication
 
@@ -389,7 +390,7 @@ class HttpAdapter(BaseAdapter):
                 'request_url': url,
             },
         )
-        response = await AsyncClient().request(method=method, url=url, data=payload, **kwargs)
+        response = await self.client.request(method=method, url=url, data=payload, **kwargs)
 
         self._log(
             level=DEBUG,

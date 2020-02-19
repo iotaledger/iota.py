@@ -28,6 +28,24 @@ class AsyncMultisigIota(AsyncIota):
         security of your private keys, send IOTAs to unspendable
         addresses, etc.
 
+    Example Usage::
+
+        # Import API class
+        from iota.multisig import AsyncMultisigIota
+
+        # Declare a multisig API instance
+        api = AsyncMultisigIota(
+                adapter = 'http://localhost:14265',
+
+                seed =
+                    Seed(
+                        b'TESTVALUE9DONTUSEINPRODUCTION99999JYFRTI'
+                        b'WMKVVBAIEIYZDWLUVOYTZBKPKLLUMPDF9PPFLO9KT',
+                    ),
+        )
+
+        response = await api.get_digests(...)
+
     References:
 
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
@@ -38,7 +56,7 @@ class AsyncMultisigIota(AsyncIota):
         """
         Generates a multisig address from a collection of digests.
 
-        :param digests:
+        :param Iterable[Digest] digests:
             Digests to use to create the multisig address.
 
             .. important::
@@ -71,13 +89,13 @@ class AsyncMultisigIota(AsyncIota):
         Digests are safe to share; use them to generate multisig
         addresses.
 
-        :param index:
+        :param int index:
             The starting key index.
 
-        :param count:
+        :param int count:
             Number of digests to generate.
 
-        :param security_level:
+        :param int security_level:
             Number of iterations to use when generating new addresses.
 
             Larger values take longer, but the resulting signatures are
@@ -115,13 +133,13 @@ class AsyncMultisigIota(AsyncIota):
         However, in a few cases it may be necessary (e.g., for M-of-N
         transactions).
 
-        :param index:
+        :param int index:
             The starting key index.
 
-        :param count:
+        :param int count:
             Number of keys to generate.
 
-        :param security_level:
+        :param int security_level:
             Number of iterations to use when generating new keys.
 
             Larger values take longer, but the resulting signatures are
@@ -168,18 +186,18 @@ class AsyncMultisigIota(AsyncIota):
             If you want to spend IOTAs from non-multisig addresses, or
             if you want to create 0-value transfers (i.e., that don't
             require inputs), use
-            :py:meth:`iota.api.Iota.prepare_transfer` instead.
+            :py:meth:`~iota.Iota.prepare_transfer` instead.
 
-        :param transfers:
+        :param terable[ProposedTransaction] transfers:
             Transaction objects to prepare.
 
             .. important::
                 Must include at least one transaction that spends IOTAs
                 (i.e., has a nonzero ``value``).  If you want to prepare
                 a bundle that does not spend any IOTAs, use
-                :py:meth:`iota.api.prepare_transfer` instead.
+                :py:meth:`~iota.Iota.prepare_transfer` instead.
 
-        :param multisig_input:
+        :param MultisigAddress multisig_input:
             The multisig address to use as the input for the transfers.
 
             .. note::
@@ -188,10 +206,10 @@ class AsyncMultisigIota(AsyncIota):
 
                 If you would like to spend from multiple multisig
                 addresses in the same bundle, create the
-                :py:class:`iota.multisig.transaction.ProposedMultisigBundle`
+                :py:class:`~iota.multisig.transaction.ProposedMultisigBundle`
                 object manually.
 
-        :param change_address:
+        :param Optional[Address] change_address:
             If inputs are provided, any unspent amount will be sent to
             this address.
 
@@ -199,8 +217,9 @@ class AsyncMultisigIota(AsyncIota):
             ignored.
 
             .. important::
-                Unlike :py:meth:`iota.api.Iota.prepare_transfer`, this
+                Unlike :py:meth:`~iota.Iota.prepare_transfer`, this
                 method will NOT generate a change address automatically.
+
                 If there are unspent inputs and ``change_address`` is
                 empty, an exception will be raised.
 
@@ -234,7 +253,7 @@ class AsyncMultisigIota(AsyncIota):
 
           Once the correct signatures are applied, you can then perform
           proof of work (``attachToTangle``) and broadcast the bundle
-          using :py:meth:`iota.api.Iota.send_trytes`.
+          using :py:meth:`~iota.Iota.send_trytes`.
         """
         return await commands.PrepareMultisigTransferCommand(self.adapter)(
             changeAddress=change_address,
@@ -253,6 +272,24 @@ class MultisigIota(Iota, AsyncMultisigIota):
         security of your private keys, send IOTAs to unspendable
         addresses, etc.
 
+    Example Usage::
+
+        # Import API class
+        from iota.multisig import MultisigIota
+
+        # Declare a multisig API instance
+        api = MultisigIota(
+                adapter = 'http://localhost:14265',
+
+                seed =
+                    Seed(
+                        b'TESTVALUE9DONTUSEINPRODUCTION99999JYFRTI'
+                        b'WMKVVBAIEIYZDWLUVOYTZBKPKLLUMPDF9PPFLO9KT',
+                    ),
+        )
+
+        response = api.get_digests(...)
+
     References:
 
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
@@ -263,7 +300,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
         """
         Generates a multisig address from a collection of digests.
 
-        :param digests:
+        :param Iterable[Digest] digests:
             Digests to use to create the multisig address.
 
             .. important::
@@ -296,13 +333,13 @@ class MultisigIota(Iota, AsyncMultisigIota):
         Digests are safe to share; use them to generate multisig
         addresses.
 
-        :param index:
+        :param int index:
             The starting key index.
 
-        :param count:
+        :param int count:
             Number of digests to generate.
 
-        :param security_level:
+        :param int security_level:
             Number of iterations to use when generating new addresses.
 
             Larger values take longer, but the resulting signatures are
@@ -341,13 +378,13 @@ class MultisigIota(Iota, AsyncMultisigIota):
         However, in a few cases it may be necessary (e.g., for M-of-N
         transactions).
 
-        :param index:
+        :param int index:
             The starting key index.
 
-        :param count:
+        :param int count:
             Number of keys to generate.
 
-        :param security_level:
+        :param int security_level:
             Number of iterations to use when generating new keys.
 
             Larger values take longer, but the resulting signatures are
@@ -395,18 +432,18 @@ class MultisigIota(Iota, AsyncMultisigIota):
             If you want to spend IOTAs from non-multisig addresses, or
             if you want to create 0-value transfers (i.e., that don't
             require inputs), use
-            :py:meth:`iota.api.Iota.prepare_transfer` instead.
+            :py:meth:`~iota.Iota.prepare_transfer` instead.
 
-        :param transfers:
+        :param terable[ProposedTransaction] transfers:
             Transaction objects to prepare.
 
             .. important::
                 Must include at least one transaction that spends IOTAs
                 (i.e., has a nonzero ``value``).  If you want to prepare
                 a bundle that does not spend any IOTAs, use
-                :py:meth:`iota.api.prepare_transfer` instead.
+                :py:meth:`~iota.Iota.prepare_transfer` instead.
 
-        :param multisig_input:
+        :param MultisigAddress multisig_input:
             The multisig address to use as the input for the transfers.
 
             .. note::
@@ -415,10 +452,10 @@ class MultisigIota(Iota, AsyncMultisigIota):
 
                 If you would like to spend from multiple multisig
                 addresses in the same bundle, create the
-                :py:class:`iota.multisig.transaction.ProposedMultisigBundle`
+                :py:class:`~iota.multisig.transaction.ProposedMultisigBundle`
                 object manually.
 
-        :param change_address:
+        :param Optional[Address] change_address:
             If inputs are provided, any unspent amount will be sent to
             this address.
 
@@ -426,8 +463,9 @@ class MultisigIota(Iota, AsyncMultisigIota):
             ignored.
 
             .. important::
-                Unlike :py:meth:`iota.api.Iota.prepare_transfer`, this
+                Unlike :py:meth:`~iota.Iota.prepare_transfer`, this
                 method will NOT generate a change address automatically.
+
                 If there are unspent inputs and ``change_address`` is
                 empty, an exception will be raised.
 
@@ -461,7 +499,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
 
           Once the correct signatures are applied, you can then perform
           proof of work (``attachToTangle``) and broadcast the bundle
-          using :py:meth:`iota.api.Iota.send_trytes`.
+          using :py:meth:`~iota.Iota.send_trytes`.
         """
         return asyncio.get_event_loop().run_until_complete(
             super(MultisigIota, self).prepare_multisig_transfer(

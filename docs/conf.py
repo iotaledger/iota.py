@@ -31,7 +31,11 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosectionlabel',
+    'sphinxcontrib.asyncio',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -47,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyOTA'
-copyright = '2019, Phoenix Zerin & Levente Pap'
+copyright = '2020, Phoenix Zerin & Levente Pap'
 author = 'Phoenix Zerin, Levente Pap'
 
 # The version info for the project you're documenting, acts as replacement for

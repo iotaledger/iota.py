@@ -1,1 +1,2 @@
-sphinxcontrib-asyncio
+sphinx==2.4.2
+sphinx_rtd_theme==0.4.3

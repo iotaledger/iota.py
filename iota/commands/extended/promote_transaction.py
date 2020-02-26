@@ -39,7 +39,7 @@ class PromoteTransactionCommand(FilterCommand):
         if cc_response['state'] is False:
             raise BadApiResponse(
                 'Transaction {transaction} is not promotable. '
-                'You should reattach first.'.format(transaction=transaction)
+                'Info: {reason}'.format(transaction=transaction, reason=cc_response['info'])
             )
 
         spam_transfer = ProposedTransaction(

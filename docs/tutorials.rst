@@ -756,9 +756,9 @@ Notice, that we import the :py:class:`AsyncIota` api class, because we
 would like to use the asynchronous and concurrent features of PyOTA.
 :py:class:`List` from the :py:class:`typing` library is needed for correct
 type annotations, and we also import the `asyncio`_ library. This will come
-handy when we want to schedule and run the coroutines.
+in handy when we want to schedule and run the coroutines.
 
-On line 6, we instantiate an asynchronous IOTA API. Functionally, it does the
+On line 6, we instantiate an asynchronous IOTA api. Functionally, it does the
 same operations as :py:class:`Iota`, but the api calls are defined as
 coroutines. For this tutorial, we connect to a devnet node, and explicitly tell
 this as well to the api on line 8.
@@ -795,15 +795,28 @@ transactions within the bundle to the network.
 Once we sent the transfer, we collect individual transaction hashes from the
 bundle, which we will use for confirmation checking.
 
-On line 39, the so called confirmation checking starts. With the help of
+On line 39, the so-called confirmation checking starts. With the help of
 :py:meth:`AsyncIota.get_inclusion_states`, we determine if our transactions
-have been confirmed by the network. The ``None`` value for the ``tips``
-parameter in the argument list basically means that check against the latest
+have been confirmed by the network.
+
+.. note::
+
+    You might wonder how your transactions get accepted by the network, that is,
+    how they become confirmed.
+
+        - Pre-`Coordicide`_ (current state), transactions are confirmed by
+          directly or indirectly being referenced by a `milestone`_.
+          A milestone is a special transaction issued by the `Coordinator`_.
+        - Post-`Coordicide`_ , confirmation is the result of nodes reaching
+          consensus by a `voting mechanism`_.
+
+The ``None`` value for the ``tips``
+parameter in the argument list basically means that we check against the latest
 milestone.
 
 On line 43, we iterate over our original ``sent_tx_hashes`` list of sent
-transaction hashes and ``git_response['states']``, which is a list of ``bool``
-values, at the same time using the built in `zip`_ method. We also employ
+transaction hashes and ``gis_response['states']``, which is a list of ``bool``
+values, at the same time using the built-in `zip`_ method. We also employ
 `enumerate`_, because we need the index of the elements in each iteration.
 
 If a transaction is confirmed, we delete the corresponding elements from the
@@ -887,6 +900,10 @@ and run the following in a terminal:
 .. _asyncio: https://docs.python.org/3/library/asyncio.html
 .. _article: https://realpython.com/async-io-python/
 .. _awaitable: https://docs.python.org/3/library/asyncio-task.html#awaitables
+.. _Coordicide: https://coordicide.iota.org/
+.. _milestone: https://docs.iota.org/docs/getting-started/0.1/network/the-coordinator#milestones
+.. _coordinator: https://docs.iota.org/docs/getting-started/0.1/network/the-coordinator
+.. _voting mechanism: https://coordicide.iota.org/module4.1
 .. _zip: https://docs.python.org/3.3/library/functions.html#zip
 .. _enumerate: https://docs.python.org/3.3/library/functions.html#enumerate
 .. _gather: https://docs.python.org/3/library/asyncio-task.html#running-tasks-concurrently

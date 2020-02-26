@@ -38,14 +38,14 @@ async def send_and_monitor(
     print('Checking confirmation...')
     while len(sent_tx_hashes) > 0:
         # Determine if transactions are confirmed
-        git_response = await api.get_inclusion_states(sent_tx_hashes, None)
+        gis_response = await api.get_inclusion_states(sent_tx_hashes, None)
 
-        for i, (tx, is_confirmed) in enumerate(zip(sent_tx_hashes, git_response['states'])):
+        for i, (tx, is_confirmed) in enumerate(zip(sent_tx_hashes, gis_response['states'])):
             if is_confirmed:
                 print('Transaction %s is confirmed.' % tx)
                 # No need to check for this any more
                 del sent_tx_hashes[i]
-                del git_response['states'][i]
+                del gis_response['states'][i]
 
         if len(sent_tx_hashes) > 0:
             if timeout <= elapsed:

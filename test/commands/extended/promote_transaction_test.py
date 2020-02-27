@@ -401,6 +401,7 @@ class PromoteTransactionCommandTestCase(TestCase):
 
     self.adapter.seed_response('checkConsistency', {
       'state': False,
+      'info': 'Something went terribly wrong.',
     })
 
     with self.assertRaises(BadApiResponse):

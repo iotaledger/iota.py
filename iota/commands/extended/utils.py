@@ -5,8 +5,9 @@ from __future__ import absolute_import, division, print_function, \
 from typing import Generator, Iterable, List, Optional, Tuple
 
 from iota import Address, Bundle, Transaction, \
-    TransactionHash
+    TransactionHash, TransactionTrytes, BadApiResponse
 from iota.adapter import BaseAdapter
+from iota.exceptions import with_context
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.commands.core.were_addresses_spent_from import \
@@ -79,6 +80,21 @@ async def get_bundles_from_transaction_hashes(
     non_tail_bundle_hashes = set()
 
     gt_response = await GetTrytesCommand(adapter)(hashes=transaction_hashes)
+    for tx_hash, tx_trytes in zip(transaction_hashes, gt_response['trytes']):
+        # If no tx was found by the node for tx_hash, it returns 9s,
+        # so we check here if it returned all 9s trytes.
+        if tx_trytes == TransactionTrytes(''):
+            raise with_context(
+                    exc=BadApiResponse(
+                            'Could not get trytes of transaction {hash} from the Tangle. '
+                            '(``exc.context`` has more info).'.format(hash=tx_hash),
+                    ),
+
+                    context={
+                        'transaction_hash': tx_hash,
+                        'returned_transaction_trytes': tx_trytes,
+                    },
+            )
     all_transactions = list(map(
         Transaction.from_tryte_string,
         gt_response['trytes'],

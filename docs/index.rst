@@ -10,6 +10,7 @@
    core_api
    extended_api
    addresses
+   transfers
    multisig
    commands
    tutorials

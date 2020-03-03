@@ -476,7 +476,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
                 txn.current_index = i
                 txn.last_index = last_index
 
-                sponge.absorb(txn.get_signature_validation_trytes().as_trits())
+                sponge.absorb(txn.get_bundle_essence_trytes().as_trits())
 
             bundle_hash_trits = [0] * HASH_LENGTH
             sponge.squeeze(bundle_hash_trits)

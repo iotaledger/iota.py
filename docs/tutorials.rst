@@ -8,7 +8,7 @@ to help you understand how to carry out specific tasks with PyOTA.
 
 The example scripts displayed here can also be found under ``examples/tutorials/``
 directory in the repository. Run them in a Python environment that has PyOTA
-installed. See :ref:`Install PyOTA` for more info.
+installed. See :ref:`README:Install PyOTA` for more info.
 
 If you feel that something is missing or not clear, please post your questions
 and suggestions in the `PyOTA Bug Tracker`_.
@@ -43,7 +43,7 @@ something from the library, you need to import it from there.
 
 Notice, how we import the :py:class:`Iota` object, that defines a
 so-called extended API object. We will use this to send and receive data from
-the network. Read more about API objects at :ref:`PyOTA API Classes`.
+the network. Read more about API objects at :ref:`api:PyOTA API Classes`.
 
 We also import the ``pprint`` method that prettifies the output before printing
 it to the console.
@@ -141,7 +141,7 @@ therefore we are restricted to the `tryte alphabet`_.
    :lines: 16-22
    :lineno-start: 16
 
-It's time to construct the transaction. According to :ref:`Transaction Types`,
+It's time to construct the transaction. According to :ref:`types:Transaction Types`,
 PyOTA uses :py:class:`ProposedTransaction` to build transactions that are not
 yet broadcast to the network. Oberve, that the ``value=0`` means this is
 a zero-value transaction.
@@ -284,7 +284,7 @@ that has no transactions referencing it on the Tangle and was never spent from.
 
 If we were to generate more addresses starting from a desired index,
 we could specify the ``start`` and ``count`` parameters. Read more about how to
-generate addresses in PyOTA at :ref:`Generating Addresses`.
+generate addresses in PyOTA at :ref:`addresses:Generating Addresses`.
 
 On line 20 we access the first element of the list of addresses in the response
 dictionary.
@@ -588,7 +588,7 @@ An address is also needed, so we generate one with the help of
 index of the generated address, and don't forget, that the method returns a
 ``dict`` with a list of addresses, even if it contains only one.
 For more detailed explanation on how addresses are generated in PyOTA,
-refer to the :ref:`Generating Addresses` page.
+refer to the :ref:`adresses:Generating Addresses` page.
 
 We also attach a custom :py:class:`Tag` to our :py:class:`ProposedTransaction`.
 Note, that if our ``trytes_encrypted_data`` was longer than the maximum payload

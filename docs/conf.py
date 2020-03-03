@@ -36,6 +36,9 @@ extensions = [
     'sphinx.ext.autosectionlabel',
 ]
 
+# Add a document prefix to the created section lables
+autosectionlabel_prefix_document = True
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

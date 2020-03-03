@@ -38,7 +38,7 @@ class AsyncStrictIota:
         to :py:meth:`attach_to_tangle` to
         `ccurl pow interface <https://pypi.org/project/PyOTA-PoW/>`_.
 
-            See :ref:`Optional Local Pow` for more info and
+            See :ref:`README:Optional Local Pow` for more info and
             :ref:`find out<pow-label>` how to use it.
 
     """
@@ -59,7 +59,7 @@ class AsyncStrictIota:
             to :py:meth:`attach_to_tangle` to
             `ccurl pow interface <https://pypi.org/project/PyOTA-PoW/>`_.
 
-                See :ref:`Optional Local Pow` for more info and
+                See :ref:`README:Optional Local Pow` for more info and
                 :ref:`find out<pow-label>` how to use it.
         """
         super().__init__()
@@ -769,7 +769,7 @@ class AsyncIota(AsyncStrictIota):
         to :py:meth:`attach_to_tangle` to
         `ccurl pow interface <https://pypi.org/project/PyOTA-PoW/>`_.
 
-            See :ref:`Optional Local Pow` for more info and
+            See :ref:`README:Optional Local Pow` for more info and
             :ref:`find out<pow-label>` how to use it.
 
     References:

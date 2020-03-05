@@ -3,7 +3,7 @@ Creating transfers
 
 IOTA is a permissionless DLT solution, therefore anyone can send transactions
 to the network and initiate transfers. The IOTA client libraries help you to
-abstract away low level operations required to construct and send a transfer
+abstract away low-level operations required to construct and send a transfer
 to the Tangle.
 
 In this section, we will explore in depth how to create transactions and
@@ -18,7 +18,7 @@ development process.
 Anatomy of a Transfer
 ---------------------
 
-We already now that the Tangle consists of :ref:`transactions <basic_concepts:Transaction>`
+We already know that the Tangle consists of :ref:`transactions <basic_concepts:Transaction>`
 referencing each other, each of them two others to be more precise.
 Transactions can be grouped together in :ref:`bundles <basic_concepts:Bundle>`.
 `Zero-value bundles`_ contain only zero value transactions, while
@@ -30,7 +30,7 @@ The process can be boiled down to 5 steps:
 
     1. Create individual transaction(s).
     2. Construct a bundle from the transaction(s).
-    3. Obtain references to two transactions waiting to be confirmed (tips) from the Tangle.
+    3. Obtain references to two unconfirmed transactions ("tips") from the Tangle.
     4. Do proof-of-work for each transaction in the bundle.
     5. Send the bundle to the network.
 
@@ -46,22 +46,27 @@ The process can be boiled down to 5 steps:
 1. Create Transactions
 ~~~~~~~~~~~~~~~~~~~~~~
 The first step is to create the individual transaction objects. You have to
-specify ``address`` and ``value`` for each transaction. A negative ``value``
-means spending from ``address``. Furthermore, you can define a ``tag``, and for
-zero-value transactions, a ``message``. ``timestamp`` is usually auto-generated
+specify ``address`` and ``value`` for each transaction.  Furthermore, you can define a ``tag``, and for
+zero-value transactions, a ``message``.  A ``timestamp`` is also required, though this value is usually auto-generated
 by the IOTA libraries.
+
+.. note::
+  Unlike on other decentralised ledgers, IOTA transactions can have positive *or* negative ``value`` amounts.  In order to send iotas from one address to another, at least two transactions are required:
+  
+  * one with *positive* ``value`` (to increment the balance of the receiver), and
+  * one with *negative* ``value`` (to decrement the balance of the sender).
 
 In PyOTA, use :py:class:`ProposedTransaction` to declare transactions.
 
 2. Create Bundle from Transactions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A bundle is a collection of transactions, treated as an atomic unit
-when sent to the network. A bundle makes a value (token) transfer possible by
-grouping together input an output transactions.
+when sent to the network. A bundle makes a value (iota token) transfer possible by
+grouping together input and output transactions.
 
 A bundle always has to be balanced: the sum of ``value`` attributes of the
 transactions in the bundle should always be zero. Transactions in the bundle
-are indexed individually, and also contain information on how many other
+are also indexed individually and contain information on how many other
 transactions there are in the bundle.
 
 Once complete, a bundle has to be finalized to generate the bundle hash based
@@ -69,10 +74,12 @@ on the `bundle essence`_. The bundle hash is the unique identifier of the
 bundle.
 
 After finalization, input transactions in the bundle need to be signed to prove
-ownership of tokens being transferred.
+ownership of iotas being transferred.
 
-:py:class:`ProposedBundle` helps you in PyOTA to create bundles, add transactions,
-finalize the bundle and sign the inputs.
+.. tip:
+  :py:class:`ProposedBundle` helps you in PyOTA to create bundles, add transactions,
+  finalize the bundle and sign the inputs.  We'll see how to use :py:class:`ProposedBundle` in
+  :ref:`Use the Library` below.
 
 3. Select two tips
 ~~~~~~~~~~~~~~~~~~
@@ -81,14 +88,14 @@ Tips are transactions that are yet to be confirmed by the network. We can
 obtain two tips by requesting them from a node. In PyOTA, :py:meth:`~Iota.get_transactions_to_approve`
 does the job: it returns a ``trunk`` and a ``branch`` :py:class:`TransactionHash`.
 
-Our bundle will validate these two transactions once in the Tangle.
+Because our bundle references these two transactions, it will validate them once it is added to the Tangle.
 
 4. Do Proof-of-Work
 ~~~~~~~~~~~~~~~~~~~
 
-The bundle has been finalized, inputs have been signed, we have two tips,
-now it's time to prepare the bundle to be attached to the Tangle. All
-transactions reference two other transactions in the Tangle, therefore we need
+The bundle has been finalized, inputs have been signed, and we have two tips;
+now it's time to prepare the bundle to be attached to the Tangle. As noted in the previous section, every
+transaction references two other transactions in the Tangle; therefore we need
 to select these references for each transaction in our bundle.
 
 We also know that transactions `within the bundle are linked together`_ through
@@ -119,7 +126,7 @@ The output of the proof-of-work algorithm is a ``nonce`` value that is appended
 to the the transaction, resulting in the attached transaction trytes.
 Nodes validate the proof-of-work of a transaction by calculating the transaction's
 hash from the attached transaction trytes. If the resulting hash has at least
-``minimum weight magnitude`` number of trailing zero trits, it is correct.
+``minimum weight magnitude`` number of trailing zero trits, the transaction is valid.
 
 In PyOTA, use :py:meth:`~Iota.attach_to_tangle` to carry out this step.
 
@@ -131,8 +138,8 @@ the transactions in the network, and store them in their local database.
 
 In PyOTA, use :py:meth:`~Iota.broadcast_and_store` to achieve this.
 
-Observe the bird-eye view of the Tangle depicted at the last step of the
-process. Our transactions are part of the Tangle, reference each other and
+Observe the bird's-eye view of the Tangle depicted at the last step of the
+process. Our transactions are part of the Tangle, referencing each other and
 the two tips. Newer transactions may reference our transactions as branch or
 trunk.
 
@@ -199,6 +206,9 @@ Instead of :py:meth:`~Iota.send_transfer`, you can use the combination of
 :py:meth:`~Iota.prepare_transfer` and :py:meth:`~Iota.send_trytes` to achieve
 the same result.
 
+.. tip::
+  This can be useful if you want to prepare the transactions (including signing inputs) on one device, but you want to then transfer the data to another device for transmission to the Tangle.  For example, you might :py:meth:`~Iota.prepare_transfer` on an air-gapped computer that has your seed stored on it, but then transfer the resulting trytes to a networked computer (that does not have your seed) to :py:meth:`~Iota.send_trytes`.
+
 .. code-block::
 
     from iota import Iota, ProposedTransaction, Address
@@ -236,6 +246,9 @@ of :py:class:`TransactionTrytes`, and not a :py:class:`Bundle` object.
 Being the master Jedi of the PyOTA universe means that you know the most about
 the force of low-level API methods. Use it wisely!
 
+.. tip::
+  You generally won't need to split out the process explicitly like this in your application code, but it is useful to understand what :py:meth:`~Iota.send_transfer` does under-the-hood, so that you are better-equipped to troubleshoot any issues that may occur during the process.
+
 .. code-block::
 
     from iota import Iota, ProposedTransaction, Address, ProposedBundle
@@ -262,13 +275,13 @@ the force of low-level API methods. Use it wisely!
     for tx in transactions:
         bundle.add_transaction(tx)
 
-    # If it was a value transfer, we could
+    # If it was a value transfer, we would also need to:
     # bundle.add_inputs()
     # bundle.send_unspent_inputs_to()
 
     bundle.finalize()
 
-    # Again, for value transfers, we could:
+    # Again, for value transfers, we would need to:
     # bundle.sign_inputs(KeyGenerator(b'SEEDGOESHERE'))
 
     gtta_response = api.get_transactions_to_approve(depth=3)

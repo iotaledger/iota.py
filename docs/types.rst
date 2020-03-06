@@ -249,9 +249,9 @@ See the class documentation below:
 ^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: Transaction.from_tryte_string
 
-**get_signature_validation_trytes**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. automethod:: Transaction.get_signature_validation_trytes
+**get_bundle_essence_trytes**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. automethod:: Transaction.get_bundle_essence_trytes
 
 ProposedTransaction
 ~~~~~~~~~~~~~~~~~~~

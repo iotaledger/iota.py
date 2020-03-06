@@ -46,12 +46,15 @@ The process can be boiled down to 5 steps:
 1. Create Transactions
 ~~~~~~~~~~~~~~~~~~~~~~
 The first step is to create the individual transaction objects. You have to
-specify ``address`` and ``value`` for each transaction.  Furthermore, you can define a ``tag``, and for
-zero-value transactions, a ``message``.  A ``timestamp`` is also required, though this value is usually auto-generated
+specify ``address`` and ``value`` for each transaction.  Furthermore, you can
+define a ``tag``, and for zero-value transactions, a ``message``.  A
+``timestamp`` is also required, though this value is usually auto-generated
 by the IOTA libraries.
 
 .. note::
-  Unlike on other decentralised ledgers, IOTA transactions can have positive *or* negative ``value`` amounts.  In order to send iotas from one address to another, at least two transactions are required:
+  Unlike on other decentralised ledgers, IOTA transactions can have positive
+  *or* negative ``value`` amounts.  In order to send iotas from one address to
+  another, at least two transactions are required:
   
   * one with *positive* ``value`` (to increment the balance of the receiver), and
   * one with *negative* ``value`` (to decrement the balance of the sender).
@@ -76,10 +79,10 @@ bundle.
 After finalization, input transactions in the bundle need to be signed to prove
 ownership of iotas being transferred.
 
-.. tip:
+.. tip::
   :py:class:`ProposedBundle` helps you in PyOTA to create bundles, add transactions,
-  finalize the bundle and sign the inputs.  We'll see how to use :py:class:`ProposedBundle` in
-  :ref:`Use the Library` below.
+  finalize the bundle and sign the inputs.  We'll see how to use
+  :py:class:`ProposedBundle` in :ref:`transfers:Use the Library` below.
 
 3. Select two tips
 ~~~~~~~~~~~~~~~~~~
@@ -88,15 +91,17 @@ Tips are transactions that are yet to be confirmed by the network. We can
 obtain two tips by requesting them from a node. In PyOTA, :py:meth:`~Iota.get_transactions_to_approve`
 does the job: it returns a ``trunk`` and a ``branch`` :py:class:`TransactionHash`.
 
-Because our bundle references these two transactions, it will validate them once it is added to the Tangle.
+Because our bundle references these two transactions, it will validate them once
+it is added to the Tangle.
 
 4. Do Proof-of-Work
 ~~~~~~~~~~~~~~~~~~~
 
 The bundle has been finalized, inputs have been signed, and we have two tips;
-now it's time to prepare the bundle to be attached to the Tangle. As noted in the previous section, every
-transaction references two other transactions in the Tangle; therefore we need
-to select these references for each transaction in our bundle.
+now it's time to prepare the bundle to be attached to the Tangle. As noted in
+the previous section, every transaction references two other transactions in
+the Tangle; therefore we need to select these references for each transaction
+in our bundle.
 
 We also know that transactions `within the bundle are linked together`_ through
 their trunk references. So how do we construct the correct bundle structure
@@ -142,6 +147,13 @@ Observe the bird's-eye view of the Tangle depicted at the last step of the
 process. Our transactions are part of the Tangle, referencing each other and
 the two tips. Newer transactions may reference our transactions as branch or
 trunk.
+
+.. note::
+  As more transactions are added to the Tangle that reference our transactions
+  – and then more are added that reference those transactions, and so on – this
+  increases the `cumulative weight`_ of our transactions. The higher the
+  cumulative weight of our transactions, the higher the chance for them to
+  get confirmed.
 
 Use the Library
 ---------------
@@ -307,3 +319,4 @@ the force of low-level API methods. Use it wisely!
 .. _bundle essence: https://docs.iota.org/docs/getting-started/0.1/transactions/bundles#bundle-essence
 .. _within the bundle are linked together: https://docs.iota.org/docs/getting-started/0.1/transactions/bundles
 .. _minimum weight magnitude: https://docs.iota.org/docs/getting-started/0.1/network/minimum-weight-magnitude
+.. _cumulative weight: https://blog.iota.org/the-tangle-an-illustrated-introduction-f359b8b2ec80

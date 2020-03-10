@@ -1,12 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, iterkeys
 
 from iota import Address, BadApiResponse, Iota, ProposedTransaction, Tag, \
   TryteString, Transaction, TransactionHash, AsyncIota
@@ -23,7 +18,6 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
   filter_type = PrepareTransferCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(PrepareTransferRequestFilterTestCase, self).setUp()
 
@@ -98,7 +92,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # Any TrytesCompatible value works here.
-      'changeAddress':  binary_type(self.trytes1),
+      'changeAddress':  bytes(self.trytes1),
       'seed':           bytearray(self.trytes2),
 
       # These have to be :py:class:`Address` instances, so that we can
@@ -370,7 +364,7 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
       {
         'inputs': [
           None,
-          binary_type(self.trytes1),
+          bytes(self.trytes1),
 
           # This is actually valid; I just added it to make sure the
           #   filter isn't cheating!
@@ -455,7 +449,6 @@ class PrepareTransferRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class PrepareTransferCommandTestCase(TestCase):
   """
   Generating validation data using the JS lib:
@@ -656,7 +649,7 @@ class PrepareTransferCommandTestCase(TestCase):
         ],
       )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 2)
 
     # Note that the transactions are returned in reverse order.
@@ -731,7 +724,7 @@ class PrepareTransferCommandTestCase(TestCase):
       ],
     )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 5)
 
     # Note that the transactions are returned in reverse order.
@@ -817,7 +810,7 @@ class PrepareTransferCommandTestCase(TestCase):
         ),
     )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 4)
 
     # Note that the transactions are returned in reverse order.
@@ -955,7 +948,7 @@ class PrepareTransferCommandTestCase(TestCase):
           ],
         )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 5)
 
     # Note that the transactions are returned in reverse order.
@@ -1051,7 +1044,7 @@ class PrepareTransferCommandTestCase(TestCase):
           ),
       )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 4)
 
     # Note that the transactions are returned in reverse order.
@@ -1187,7 +1180,7 @@ class PrepareTransferCommandTestCase(TestCase):
           ],
         )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 4)
 
     # Note that the transactions are returned in reverse order.
@@ -1243,7 +1236,7 @@ class PrepareTransferCommandTestCase(TestCase):
       ],
     )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 1)
 
     self.assertEqual(
@@ -1303,7 +1296,7 @@ class PrepareTransferCommandTestCase(TestCase):
         ],
       )
 
-    self.assertEqual(set(iterkeys(response)), {'trytes'})
+    self.assertEqual(set(response.keys()), {'trytes'})
     self.assertEqual(len(response['trytes']), 3)
 
     # Note that the transactions are returned in reverse order.
@@ -1389,7 +1382,7 @@ class PrepareTransferCommandTestCase(TestCase):
             securityLevel=security_level
           )
 
-      self.assertEqual(set(iterkeys(response)), {'trytes'})
+      self.assertEqual(set(response.keys()), {'trytes'})
 
       EXPECTED_NUMBER_OF_TX = 2 + security_level   # signature requires as many transactions as security_level
       EXPECTED_CHANGE_VALUE = security_level * 11  # what has left depends on security_level
@@ -1479,7 +1472,7 @@ class PrepareTransferCommandTestCase(TestCase):
             securityLevel=security_level
           )
 
-      self.assertEqual(set(iterkeys(response)), {'trytes'})
+      self.assertEqual(set(response.keys()), {'trytes'})
 
       EXPECTED_NUMBER_OF_TX = 2 + security_level   # signature requires as many transactions as security_level
       EXPECTED_CHANGE_VALUE = security_level * 11  # what has left depends on security_level

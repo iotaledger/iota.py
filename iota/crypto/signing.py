@@ -1,10 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Iterator, List, Sequence
-
-from six import PY2
 
 from iota import Hash, TRITS_PER_TRYTE, TryteString, TrytesCompatible
 from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH
@@ -304,9 +298,6 @@ class KeyIterator(Iterator[PrivateKey]):
 
             return private_key
 
-    if PY2:
-        next = __next__
-
     def advance(self):
         """
         Advances the generator without creating a key.
@@ -395,10 +386,6 @@ class SignatureFragmentGenerator(Iterator[TryteString]):
             signature_fragment[hash_start:hash_end] = buffer
 
         return TryteString.from_trits(signature_fragment)
-
-    if PY2:
-        next = __next__
-
 
 def validate_signature_fragments(
         fragments,

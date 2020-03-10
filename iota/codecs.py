@@ -1,11 +1,5 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from codecs import Codec, CodecInfo, register as lookup_function
 from warnings import warn
-
-from six import PY3, binary_type
 
 from iota.exceptions import with_context
 
@@ -46,7 +40,6 @@ class AsciiTrytesCodec(Codec):
 
     # :bc: Without the bytearray cast, Python 2 will populate the dict
     # with characters instead of integers.
-    # noinspection SpellCheckingInspection
     alphabet = dict(enumerate(bytearray(b'9ABCDEFGHIJKLMNOPQRSTUVWXYZ')))
     """
     Used to encode bytes into trytes.
@@ -71,13 +64,11 @@ class AsciiTrytesCodec(Codec):
         }
 
         # In Python 2, all codecs are made equal.
-        # In Python 3, some codecs are more equal than others.
-        if PY3:
-            codec_info['_is_text_encoding'] = False
+        # In Python 3, some codecs are more equal than others
+        codec_info['_is_text_encoding'] = False
 
         return CodecInfo(**codec_info)
 
-    # noinspection PyShadowingBuiltins
     def encode(self, input, errors='strict'):
         """
         Encodes a byte string into trytes.
@@ -85,7 +76,7 @@ class AsciiTrytesCodec(Codec):
         if isinstance(input, memoryview):
             input = input.tobytes()
 
-        if not isinstance(input, (binary_type, bytearray)):
+        if not isinstance(input, (bytes, bytearray)):
             raise with_context(
                 exc=TypeError(
                     "Can't encode {type}; byte string expected.".format(
@@ -110,9 +101,8 @@ class AsciiTrytesCodec(Codec):
             trytes.append(self.alphabet[first])
             trytes.append(self.alphabet[second])
 
-        return binary_type(trytes), len(input)
+        return bytes(trytes), len(input)
 
-    # noinspection PyShadowingBuiltins
     def decode(self, input, errors='strict'):
         """
         Decodes a tryte string into bytes.
@@ -120,7 +110,7 @@ class AsciiTrytesCodec(Codec):
         if isinstance(input, memoryview):
             input = input.tobytes()
 
-        if not isinstance(input, (binary_type, bytearray)):
+        if not isinstance(input, (bytes, bytearray)):
             raise with_context(
                 exc=TypeError(
                     "Can't decode {type}; byte string expected.".format(
@@ -190,7 +180,7 @@ class AsciiTrytesCodec(Codec):
                 elif errors == 'replace':
                     bytes_ += b'?'
 
-        return binary_type(bytes_), len(input)
+        return bytes(bytes_), len(input)
 
 
 @lookup_function

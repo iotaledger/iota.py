@@ -1,12 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import text_type
 
 from iota import Iota, TransactionTrytes, TryteString, AsyncIota
 from iota.adapter import MockAdapter, async_return
@@ -19,7 +14,6 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = StoreTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(StoreTransactionsRequestFilterTestCase, self).setUp()
 
@@ -36,8 +30,8 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
     request = {
       # Raw trytes are extracted to match the IRI's JSON protocol.
       'trytes': [
-        text_type(TransactionTrytes(self.trytes1)),
-        text_type(TransactionTrytes(self.trytes2)),
+        str(TransactionTrytes(self.trytes1)),
+        str(TransactionTrytes(self.trytes2)),
       ],
     }
 
@@ -67,8 +61,8 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         # Raw trytes are extracted to match the IRI's JSON protocol.
         'trytes': [
-          text_type(TransactionTrytes(self.trytes1)),
-          text_type(TransactionTrytes(self.trytes2)),
+          str(TransactionTrytes(self.trytes1)),
+          str(TransactionTrytes(self.trytes2)),
         ],
       },
     )

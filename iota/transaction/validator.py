@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Generator, List, Optional, Text
 
 from iota.crypto.kerl import Kerl
@@ -210,7 +206,6 @@ class BundleValidator(object):
         # algo).
         if current_errors and LEGACY_SPONGE:
             for group in groups:
-                # noinspection PyTypeChecker
                 if self._get_group_signature_error(group, LEGACY_SPONGE):
                     # Legacy algo doesn't work, either; no point in
                     # continuing.

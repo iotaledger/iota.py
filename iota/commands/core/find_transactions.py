@@ -1,9 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
-from six import iteritems
 
 from iota import BundleHash, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
@@ -70,7 +65,7 @@ class FindTransactionsRequestFilter(RequestFilter):
         # https://github.com/iotaledger/iota.py/issues/96
         search_terms = {
             term: query
-            for term, query in iteritems(value)
+            for term, query in value.items()
             if query is not None
         }
 

@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 import json
 from abc import ABCMeta, abstractmethod as abstract_method
@@ -11,8 +8,6 @@ from socket import getdefaulttimeout as get_default_timeout
 from typing import Container, Dict, List, Optional, Text, Tuple, Union
 from httpx import AsyncClient, Response, codes, auth
 import asyncio
-from six import PY2, binary_type, iteritems, moves as compat, text_type, \
-    add_metaclass
 
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
@@ -28,13 +23,6 @@ __all__ = [
     'resolve_adapter',
 ]
 
-if PY2:
-    # Fix an error when importing this package using the ``imp`` library
-    # (note: ``imp`` is deprecated since Python 3.4 in favor of
-    # ``importlib``).
-    # https://docs.python.org/3/library/imp.html
-    # https://travis-ci.org/iotaledger/iota.py/jobs/191974244
-    __all__ = map(binary_type, __all__)
 
 API_VERSION = '1'
 """
@@ -52,12 +40,7 @@ upon API instance creation.
 """
 
 # Load SplitResult for IDE type hinting and autocompletion.
-if PY2:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urlparse import SplitResult
-else:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urllib.parse import SplitResult
+from urllib.parse import SplitResult, urlsplit
 
 def async_return(result):
   """
@@ -97,7 +80,7 @@ def resolve_adapter(uri):
     if isinstance(uri, BaseAdapter):
         return uri
 
-    parsed = compat.urllib_parse.urlsplit(uri)  # type: SplitResult
+    parsed = urlsplit(uri)  # type: SplitResult
 
     if not parsed.scheme:
         raise with_context(
@@ -133,7 +116,6 @@ class AdapterMeta(ABCMeta):
     Automatically registers new adapter classes in ``adapter_registry``.
     """
 
-    # noinspection PyShadowingBuiltins
     def __init__(cls, what, bases=None, dict=None):
         super(AdapterMeta, cls).__init__(what, bases, dict)
 
@@ -154,8 +136,7 @@ class AdapterMeta(ABCMeta):
         return cls(parsed)
 
 
-@add_metaclass(AdapterMeta)
-class BaseAdapter(object):
+class BaseAdapter(object, metaclass=AdapterMeta):
     """
     Interface for IOTA API adapters.
 
@@ -242,7 +223,7 @@ class HttpAdapter(BaseAdapter):
     :param AdapterSpec uri:
         URI or adapter instance.
 
-        If ``uri`` is a ``text_type``, it is parsed to extract ``scheme``,
+        If ``uri`` is a ``str``, it is parsed to extract ``scheme``,
         ``hostname`` and ``port``.
 
     :param Optional[int] timeout:
@@ -284,8 +265,8 @@ class HttpAdapter(BaseAdapter):
         self.timeout = timeout
         self.authentication = authentication
 
-        if isinstance(uri, text_type):
-            uri = compat.urllib_parse.urlsplit(uri)  # type: SplitResult
+        if isinstance(uri, str):
+            uri = urlsplit(uri)  # type: SplitResult
 
         if uri.scheme not in self.supported_protocols:
             raise with_context(
@@ -312,7 +293,6 @@ class HttpAdapter(BaseAdapter):
             )
 
         try:
-            # noinspection PyStatementEffect
             uri.port
         except ValueError:
             raise with_context(
@@ -344,7 +324,7 @@ class HttpAdapter(BaseAdapter):
     async def send_request(self, payload, **kwargs):
         # type: (dict, dict) -> dict
         kwargs.setdefault('headers', {})
-        for key, value in iteritems(self.DEFAULT_HEADERS):
+        for key, value in self.DEFAULT_HEADERS.items():
             kwargs['headers'].setdefault(key, value)
 
         response = await self._send_http_request(
@@ -539,7 +519,6 @@ class MockAdapter(BaseAdapter):
     """
     supported_protocols = ('mock',)
 
-    # noinspection PyUnusedLocal
     @classmethod
     def configure(cls, uri):
         return cls()

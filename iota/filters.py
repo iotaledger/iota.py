@@ -1,12 +1,8 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Text, Type
 
 import filters as f
 from filters.macros import filter_macro
-from six import binary_type, moves as compat, text_type
+from urllib.parse import urlparse
 
 from iota import Address, TryteString, TrytesCompatible
 from iota.crypto.addresses import AddressGenerator
@@ -81,12 +77,12 @@ class NodeUri(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(text_type))  # type: Text
+        value = self._filter(value, f.Type(str))  # type: Text
 
         if self._has_errors:
             return None
 
-        parsed = compat.urllib_parse.urlparse(value)
+        parsed = urlparse(value)
 
         if parsed.scheme not in self.SCHEMES:
             return self._invalid_value(value, self.CODE_NOT_NODE_URI)
@@ -94,7 +90,6 @@ class NodeUri(f.BaseFilter):
         return value
 
 
-# noinspection PyPep8Naming
 @filter_macro
 def SecurityLevel():
     """
@@ -164,10 +159,9 @@ class Trytes(f.BaseFilter):
         self.result_type = result_type
 
     def _apply(self, value):
-        # noinspection PyTypeChecker
         value = self._filter(
             filter_chain=f.Type(
-                (binary_type, bytearray, text_type, TryteString)
+                (bytes, bytearray, str, TryteString)
             ),
 
             value=value,
@@ -211,7 +205,6 @@ class Trytes(f.BaseFilter):
             )
 
 
-# noinspection PyPep8Naming
 @filter_macro
 def StringifiedTrytesArray(trytes_type=TryteString):
     # type: (Type[TryteString]) -> f.FilterChain

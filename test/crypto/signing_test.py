@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 import warnings
 from unittest import TestCase
 
@@ -11,7 +7,6 @@ from iota.crypto.signing import KeyGenerator, SignatureFragmentGenerator
 from iota.crypto.types import PrivateKey
 
 
-# noinspection SpellCheckingInspection
 class KeyGeneratorTestCase(TestCase):
   """
   Generating validation data using the JS lib:
@@ -838,7 +833,6 @@ class KeyGeneratorTestCase(TestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class SignatureFragmentGeneratorTestCase(TestCase):
   """
   Generating values for this test case using the JS lib:

@@ -1,13 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import Address, Bundle, Iota, ProposedTransaction, TransactionHash, \
   TransactionTrytes, TryteString, AsyncIota
 from iota.adapter import MockAdapter, async_return
@@ -23,7 +17,6 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
   filter_type = SendTransferCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(SendTransferRequestFilterTestCase, self).setUp()
 
@@ -106,12 +99,12 @@ class SendTransferRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # Any TrytesCompatible values will work here.
-      'changeAddress':  binary_type(self.trytes1),
+      'changeAddress':  bytes(self.trytes1),
       'seed':           bytearray(self.trytes2),
-      'reference':      binary_type(self.trytes1),
+      'reference':      bytes(self.trytes1),
 
       'inputs': [
-        binary_type(self.trytes3),
+        bytes(self.trytes3),
         bytearray(self.trytes4),
       ],
 
@@ -720,7 +713,6 @@ class SendTransferCommandTestCase(TestCase):
     """
     Sending a transfer successfully.
     """
-    # noinspection SpellCheckingInspection
     transaction1 =\
       TransactionTrytes(
         b'GYPRVHBEZOOFXSHQBLCYW9ICTCISLHDBNMMVYD9JJHQMPQCTIQAQTJNNNJ9IDXLRCC'

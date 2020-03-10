@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -178,7 +174,6 @@ class GetTransactionsToApproveResponseFilterTestCase(BaseFilterTestCase):
         GetTransactionsToApproveCommand(MockAdapter()).get_response_filter
     skip_value_check = True
 
-    # noinspection SpellCheckingInspection
     def test_pass_happy_path(self):
         """
         Typical ``getTransactionsToApprove`` response.

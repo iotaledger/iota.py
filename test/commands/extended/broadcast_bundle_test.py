@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -23,7 +19,6 @@ class BroadcastBundleRequestFilterTestCase(BaseFilterTestCase):
   def setUp(self):
     super(BroadcastBundleRequestFilterTestCase, self).setUp()
 
-    # noinspection SpellCheckingInspection
     self.transaction = (
       'TESTVALUE9DONTUSEINPRODUCTION99999KPZOTR'
       'VDB9GZDJGZSSDCBIX9QOK9PAV9RMDBGDXLDTIZTWQ'

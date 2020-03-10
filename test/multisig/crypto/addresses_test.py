@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import Address
@@ -25,7 +21,6 @@ class MultisigAddressBuilderTestCase(TestCase):
      var addy = new Multisig(digests);
      console.log(addy.finalize());
   """
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(MultisigAddressBuilderTestCase, self).setUp()
 
@@ -71,7 +66,6 @@ class MultisigAddressBuilderTestCase(TestCase):
 
     self.assertIsInstance(addy, MultisigAddress)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       addy,
 
@@ -98,7 +92,6 @@ class MultisigAddressBuilderTestCase(TestCase):
 
     self.assertIsInstance(addy, MultisigAddress)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       addy,
 
@@ -142,7 +135,6 @@ class MultisigAddressBuilderTestCase(TestCase):
 
     self.assertIsInstance(addy, MultisigAddress)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       addy,
 

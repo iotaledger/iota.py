@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Example script that shows how to use PyOTA to send a transfer to an address.
 """
@@ -13,7 +12,6 @@ from iota import (
   Tag,
   TryteString,
 )
-from six import text_type
 from address_generator import get_seed, output_seed
 
 
@@ -60,7 +58,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--address',
-        type=text_type,
+        type=str,
         default=b'RECEIVINGWALLETADDRESSGOESHERE9WITHCHECKSUMANDSECURITYLEVELB999999999999999999999999999999',
         help=
         'Receiving address'
@@ -78,7 +76,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--message',
-        type=text_type,
+        type=str,
         default='Hello World!',
         help=
         'Transfer message.'
@@ -87,7 +85,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--tag',
-        type=text_type,
+        type=str,
         default=b'EXAMPLE',
         help=
         'Transfer tag'
@@ -96,7 +94,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--uri',
-        type=text_type,
+        type=str,
         default='http://localhost:14265/',
         help=
         'URI of the node to connect to.'

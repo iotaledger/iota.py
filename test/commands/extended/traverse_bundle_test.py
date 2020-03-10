@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -22,7 +18,6 @@ class TraverseBundleRequestFilterTestCase(BaseFilterTestCase):
     def setUp(self):
         super(TraverseBundleRequestFilterTestCase, self).setUp()
 
-        # noinspection SpellCheckingInspection
         self.transaction = (
             'TESTVALUE9DONTUSEINPRODUCTION99999KPZOTR'
             'VDB9GZDJGZSSDCBIX9QOK9PAV9RMDBGDXLDTIZTWQ'
@@ -119,7 +114,6 @@ class TraverseBundleRequestFilterTestCase(BaseFilterTestCase):
         )
 
 
-# noinspection SpellCheckingInspection
 class TraverseBundleCommandTestCase(TestCase):
     def setUp(self):
         super(TraverseBundleCommandTestCase, self).setUp()

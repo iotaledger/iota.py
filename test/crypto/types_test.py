@@ -1,12 +1,5 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 import warnings
 from unittest import TestCase
-
-from six import text_type
-
 from iota import Hash, TryteString
 from iota.crypto import SeedWarning
 from iota.crypto.types import Digest, PrivateKey, Seed
@@ -52,7 +45,7 @@ class SeedTestCase(TestCase):
       self.assertIs(catched_warnings[-1].category, SeedWarning)
       self.assertIn(
         "inappropriate length",
-        text_type(catched_warnings[-1].message),
+        str(catched_warnings[-1].message),
       )
 
       self.assertEqual(len(seed), Hash.LEN + 1)
@@ -86,7 +79,6 @@ class DigestTestCase(TestCase):
     with self.assertRaises(TypeError):
       random_digest = Digest.random()
 
-# noinspection SpellCheckingInspection
 class PrivateKeyTestCase(TestCase):
   """
   Generating validation data using the JS lib:

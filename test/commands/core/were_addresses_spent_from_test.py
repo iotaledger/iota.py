@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -19,7 +15,6 @@ class WereAddressesSpentFromRequestFilterTestCase(BaseFilterTestCase):
         WereAddressesSpentFromCommand(MockAdapter()).get_request_filter
     skip_value_check = True
 
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(WereAddressesSpentFromRequestFilterTestCase, self).setUp()
 

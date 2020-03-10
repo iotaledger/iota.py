@@ -1,12 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import text_type
 
 from iota import Address, Iota, Tag, BundleHash, TransactionHash, TryteString, \
   AsyncIota
@@ -21,7 +16,6 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = FindTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(FindTransactionsRequestFilterTestCase, self).setUp()
 
@@ -38,23 +32,23 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     # Raw trytes are extracted to match the IRI's JSON protocol.
     request = {
       'bundles': [
-        text_type(BundleHash(self.trytes1)),
-        text_type(BundleHash(self.trytes2)),
+        str(BundleHash(self.trytes1)),
+        str(BundleHash(self.trytes2)),
       ],
 
       'addresses': [
-        text_type(Address(self.trytes1)),
-        text_type(Address(self.trytes2)),
+        str(Address(self.trytes1)),
+        str(Address(self.trytes2)),
       ],
 
       'tags': [
-        text_type(Tag(self.trytes1)),
-        text_type(Tag(self.trytes3)),
+        str(Tag(self.trytes1)),
+        str(Tag(self.trytes3)),
       ],
 
       'approvees': [
-        text_type(TransactionHash(self.trytes1)),
-        text_type(TransactionHash(self.trytes3)),
+        str(TransactionHash(self.trytes1)),
+        str(TransactionHash(self.trytes3)),
       ],
     }
 
@@ -97,23 +91,23 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         # Raw trytes are extracted to match the IRI's JSON protocol.
         'bundles': [
-          text_type(BundleHash(self.trytes1)),
-          text_type(BundleHash(self.trytes2)),
+          str(BundleHash(self.trytes1)),
+          str(BundleHash(self.trytes2)),
         ],
 
         'addresses': [
-          text_type(Address(self.trytes1)),
-          text_type(Address(self.trytes2)),
+          str(Address(self.trytes1)),
+          str(Address(self.trytes2)),
         ],
 
         'tags': [
-          text_type(Tag(self.trytes1)),
-          text_type(Tag(self.trytes3)),
+          str(Tag(self.trytes1)),
+          str(Tag(self.trytes3)),
         ],
 
         'approvees': [
-          text_type(TransactionHash(self.trytes1)),
-          text_type(TransactionHash(self.trytes3)),
+          str(TransactionHash(self.trytes1)),
+          str(TransactionHash(self.trytes3)),
         ],
       },
     )
@@ -137,8 +131,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'bundles': [
-          text_type(BundleHash(self.trytes1)),
-          text_type(BundleHash(self.trytes2)),
+          str(BundleHash(self.trytes1)),
+          str(BundleHash(self.trytes2)),
         ],
 
         # Null criteria are not included in the request.
@@ -168,8 +162,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'addresses': [
-          text_type(Address(self.trytes1)),
-          text_type(Address(self.trytes2)),
+          str(Address(self.trytes1)),
+          str(Address(self.trytes2)),
         ],
 
         # Null criteria are not included in the request.
@@ -199,8 +193,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'tags': [
-          text_type(Tag(self.trytes1)),
-          text_type(Tag(self.trytes3)),
+          str(Tag(self.trytes1)),
+          str(Tag(self.trytes3)),
         ],
 
         # Null criteria are not included in the request.
@@ -230,8 +224,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'approvees': [
-          text_type(TransactionHash(self.trytes1)),
-          text_type(TransactionHash(self.trytes3)),
+          str(TransactionHash(self.trytes1)),
+          str(TransactionHash(self.trytes3)),
         ],
 
         # Null criteria are not included in the request.
@@ -491,7 +485,6 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
   filter_type = FindTransactionsCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(FindTransactionsResponseFilterTestCase, self).setUp()
 
@@ -515,7 +508,6 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, response)
 
-  # noinspection SpellCheckingInspection
   def test_search_results(self):
     """
     The incoming response contains lots of hashes.

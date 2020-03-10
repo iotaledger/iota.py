@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 from iota.commands.extended.utils import iter_used_addresses, \
     get_bundles_from_transaction_hashes

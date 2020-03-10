@@ -1,13 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import Address, Bundle, Iota, AsyncIota, Tag, Transaction, TryteString
 from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
@@ -22,7 +16,6 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetTransfersCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetTransfersRequestFilterTestCase, self).setUp()
 
@@ -316,7 +309,6 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class GetTransfersCommandTestCase(TestCase):
   def setUp(self):
     super(GetTransfersCommandTestCase, self).setUp()
@@ -391,7 +383,6 @@ class GetTransfersCommandTestCase(TestCase):
     # :py:class:`iota.crypto.addresses.AddressGenerator` already has
     # its own test case, so this does not impact the stability of the
     # codebase.
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       for addy in [self.addy1, self.addy2][start::step]:
         yield addy
@@ -493,7 +484,6 @@ class GetTransfersCommandTestCase(TestCase):
     # :py:class:`iota.crypto.addresses.AddressGenerator` already has
     # its own test case, so this does not impact the stability of the
     # codebase.
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       for addy in [self.addy1][start::step]:
         yield addy
@@ -526,7 +516,6 @@ class GetTransfersCommandTestCase(TestCase):
     """
     Scanning the Tangle for all transfers, with start index.
     """
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       # Inject an invalid value into the generator, to ensure it is
       # skipped.
@@ -622,7 +611,6 @@ class GetTransfersCommandTestCase(TestCase):
     """
     Scanning the Tangle for all transfers, with stop index.
     """
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       # Inject an invalid value into the generator, to ensure it is
       # skipped.
@@ -701,7 +689,6 @@ class GetTransfersCommandTestCase(TestCase):
     """
     Fetching inclusion states with transactions.
     """
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       for addy in [self.addy1][start::step]:
         yield addy
@@ -771,7 +758,7 @@ class GetTransfersCommandTestCase(TestCase):
 
       {
         'duration': 99,
-        'trytes':   [binary_type(transaction_trytes)],
+        'trytes':   [bytes(transaction_trytes)],
       },
     )
 

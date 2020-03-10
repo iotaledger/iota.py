@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import Address, Fragment, ProposedBundle, ProposedTransaction, Tag, \
@@ -18,7 +14,6 @@ class ProposedBundleTestCase(TestCase):
     # We will use a seed to generate addresses and private keys, to
     # ensure a realistic scenario (and because the alternative is to
     # inject mocks all over the place!).
-    # noinspection SpellCheckingInspection
     self.seed =\
       Seed(
         b'TESTVALUE9DONTUSEINPRODUCTION99999RLC9CS'
@@ -28,7 +23,6 @@ class ProposedBundleTestCase(TestCase):
     # To speed things up a little bit, though, we can pre-generate a
     # few addresses to use as inputs.
 
-    # noinspection SpellCheckingInspection
     self.input_0_bal_eq_42 =\
       Address(
         balance         = 42,
@@ -40,7 +34,6 @@ class ProposedBundleTestCase(TestCase):
           b'9KKMHXFMIXHLKQQAVTTNPRCZENGLIPALHKLNKTXCU',
       )
 
-    # noinspection SpellCheckingInspection
     self.input_1_bal_eq_40 =\
       Address(
         balance         = 40,
@@ -52,7 +45,6 @@ class ProposedBundleTestCase(TestCase):
           b'DSMZXPL9KXREBBYHJGRBCYVGPJQEHEDPXLBDJNQNX',
       )
 
-    # noinspection SpellCheckingInspection
     self.input_2_bal_eq_2 =\
       Address(
         balance         = 2,
@@ -64,7 +56,6 @@ class ProposedBundleTestCase(TestCase):
           b'TRRJPNTSQRZTASRBTQCRFAIDOGTWSHIDGOUUULQIG',
       )
 
-    # noinspection SpellCheckingInspection
     self.input_3_bal_eq_100 =\
       Address(
         balance         = 100,
@@ -76,7 +67,6 @@ class ProposedBundleTestCase(TestCase):
           b'YLOAZNKJR9VDYSONVAJRIPVWCOZKFMEKUSWHPSDDZ',
       )
 
-    # noinspection SpellCheckingInspection
     self.input_4_bal_eq_42_sl_2 =\
       Address(
         balance         = 42,
@@ -88,7 +78,6 @@ class ProposedBundleTestCase(TestCase):
           b'EMMJ9BCDVVHJJLSTQW9JEJXUUX9JNFGALBNASRDUD',
       )
 
-    # noinspection SpellCheckingInspection
     self.input_5_bal_eq_42_sl_3 =\
       Address(
         balance         = 42,
@@ -107,7 +96,6 @@ class ProposedBundleTestCase(TestCase):
     Adding a transaction to a bundle, with a message short enough to
     fit inside a single transaction.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -128,7 +116,6 @@ class ProposedBundleTestCase(TestCase):
     Adding a transaction to a bundle, with a message so long that it
     has to be split into multiple transactions.
     """
-    # noinspection SpellCheckingInspection
     address = Address(
       b'TESTVALUE9DONTUSEINPRODUCTION99999N9GIUF'
       b'HCFIUGLBSCKELC9IYENFPHCEWHIDCHCGGEH9OFZBN'
@@ -203,7 +190,6 @@ They both licked their dry lips.
     Attempting to add a transaction to a bundle that is already
     finalized.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -237,7 +223,6 @@ They both licked their dry lips.
     """
     Adding inputs to cover the exact amount of the bundle spend.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -248,7 +233,6 @@ They both licked their dry lips.
         value = 29,
     ))
 
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -266,7 +250,6 @@ They both licked their dry lips.
 
     # Just to be tricky, add an unnecessary change address, just to
     # make sure the bundle ignores it.
-    # noinspection SpellCheckingInspection
     self.bundle.send_unspent_inputs_to(
       Address(
         b'TESTVALUE9DONTUSEINPRODUCTION99999FDCDFD'
@@ -290,7 +273,6 @@ They both licked their dry lips.
     """
     tag = Tag(b'CHANGE9TXN')
 
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -301,7 +283,6 @@ They both licked their dry lips.
         value = 29,
     ))
 
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -315,7 +296,6 @@ They both licked their dry lips.
 
     self.bundle.add_inputs([self.input_3_bal_eq_100])
 
-    # noinspection SpellCheckingInspection
     change_address =\
       Address(
         b'TESTVALUE9DONTUSEINPRODUCTION99999KAFGVC'
@@ -339,7 +319,6 @@ They both licked their dry lips.
     Each input's security level determines the number of transactions
     we will need in order to store the entire signature.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(
       ProposedTransaction(
         address =
@@ -369,7 +348,6 @@ They both licked their dry lips.
     Attempting to add inputs to a bundle that is already finalized.
     """
     # Add 1 transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(
       ProposedTransaction(
         address =
@@ -396,7 +374,6 @@ They both licked their dry lips.
     finalized.
     """
     # Add 1 transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -417,7 +394,6 @@ They both licked their dry lips.
     Attempting to finalize a bundle that is already finalized.
     """
     # Add 1 transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -444,7 +420,6 @@ They both licked their dry lips.
     """
     Attempting to finalize a bundle with unspent inputs.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -469,7 +444,6 @@ They both licked their dry lips.
     """
     Attempting to finalize a bundle with insufficient inputs.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -497,7 +471,6 @@ They both licked their dry lips.
     References:
       - https://github.com/iotaledger/iota.py/issues/84
     """
-    # noinspection SpellCheckingInspection
     bundle =\
       ProposedBundle([
         ProposedTransaction(
@@ -517,15 +490,12 @@ They both licked their dry lips.
 
     # The resulting bundle hash is insecure (contains a [1, 1, 1]), so
     # the legacy tag is manipulated until a secure hash is generated.
-    # noinspection SpellCheckingInspection
     self.assertEqual(bundle[0].legacy_tag, Tag('ZTDIDNQDJZGUQKOWJ9JZRCKOVGP'))
 
     # The proper tag is left alone, however.
-    # noinspection SpellCheckingInspection
     self.assertEqual(bundle[0].tag, Tag('PPDIDNQDJZGUQKOWJ9JZRCKOVGP'))
 
     # The bundle hash takes the modified legacy tag into account.
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       bundle.hash,
 
@@ -539,7 +509,6 @@ They both licked their dry lips.
     """
     Signing inputs in a finalized bundle, using a key generator.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -590,7 +559,6 @@ They both licked their dry lips.
     You may include inputs with different security levels in the same
     bundle.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(
       ProposedTransaction(
         address =
@@ -642,7 +610,6 @@ They both licked their dry lips.
     yet.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -666,7 +633,6 @@ They both licked their dry lips.
     Signing an input at the specified index, only 1 fragment needed.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -715,7 +681,6 @@ They both licked their dry lips.
     Signing an input at the specified index, multiple fragments needed.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -763,7 +728,6 @@ They both licked their dry lips.
     Cannot sign inputs because the bundle isn't finalized yet.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -790,7 +754,6 @@ They both licked their dry lips.
     The specified index doesn't exist in the bundle.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -815,7 +778,6 @@ They both licked their dry lips.
     The specified index references a transaction that is not an input.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(
@@ -841,7 +803,6 @@ They both licked their dry lips.
     Attempting to sign an input that is already signed.
     """
     # Add a transaction so that we can finalize the bundle.
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(ProposedTransaction(
       address =
         Address(

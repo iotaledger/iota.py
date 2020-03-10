@@ -1,11 +1,6 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import MutableSequence, Optional
 
 from sha3 import keccak_384
-from six import PY2
 
 from iota.crypto.kerl import conv
 from iota.exceptions import with_context
@@ -121,9 +116,6 @@ class Kerl(object):
 
         while offset < length:
             unsigned_hash = self.k.digest()
-
-            if PY2:
-                unsigned_hash = map(ord, unsigned_hash)  # type: ignore
 
             signed_hash = [conv.convert_sign(b) for b in unsigned_hash]
 

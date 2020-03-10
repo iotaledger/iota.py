@@ -1,9 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
-from six import iteritems
 
 from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
@@ -66,7 +61,7 @@ class GetBalancesRequestFilter(RequestFilter):
         # Note: We will assume that empty lists are intentional.
         search_terms = {
             term: query
-            for term, query in iteritems(value)
+            for term, query in value.items()
             if query is not None
         }
 

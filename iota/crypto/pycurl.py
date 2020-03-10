@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List, MutableSequence, Optional, Sequence
 
 from iota.exceptions import with_context
@@ -53,7 +49,6 @@ class Curl(object):
         # type: (Optional[Sequence[int]]) -> None
         self.reset()
 
-    # noinspection PyAttributeOutsideInit
     def reset(self):
         # type: () -> None
         """

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import sys
 from abc import ABCMeta, abstractmethod as abstract_method
 from argparse import ArgumentParser
@@ -9,8 +5,6 @@ from getpass import getpass as secure_input
 from io import StringIO
 from sys import exit
 from typing import Any, Optional, Text
-
-from six import text_type, add_metaclass
 
 from iota import Iota, __version__
 from iota.crypto.types import Seed
@@ -20,8 +14,7 @@ __all__ = [
 ]
 
 
-@add_metaclass(ABCMeta)
-class IotaCommandLineApp(object):
+class IotaCommandLineApp(object, metaclass=ABCMeta):
     """
     Base functionality for a PyOTA-powered command-line application.
     """
@@ -120,7 +113,7 @@ class IotaCommandLineApp(object):
 
         parser.add_argument(
             '--uri',
-            type=text_type,
+            type=str,
             default='http://localhost:14265/',
 
             help=(
@@ -132,7 +125,7 @@ class IotaCommandLineApp(object):
         if self.requires_seed:
             parser.add_argument(
                 '--seed-file',
-                type=text_type,
+                type=str,
                 dest='seed_file',
 
                 help=(
@@ -173,7 +166,7 @@ class IotaCommandLineApp(object):
             'If no seed is specified, a random one will be used instead.\n'
         )
 
-        if isinstance(seed, text_type):
+        if isinstance(seed, str):
             seed = seed.encode('ascii')
 
         return Seed(seed) if seed else Seed.random()

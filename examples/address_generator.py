@@ -1,17 +1,11 @@
-# coding=utf-8
 """
 Generates a shiny new IOTA address that you can use for transfers!
 """
-
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 from argparse import ArgumentParser
 from getpass import getpass as secure_input
 from sys import argv
 from typing import Optional, Text
-
-from six import binary_type, moves as compat, text_type
 
 from iota import Iota, __version__
 from iota.crypto.addresses import AddressGenerator
@@ -38,13 +32,13 @@ def main(uri, index, count, security, checksum):
     # Here's where all the magic happens!
     api_response = api.get_new_addresses(index, count, security, checksum)
     for addy in api_response['addresses']:
-        print(binary_type(addy).decode('ascii'))
+        print(bytes(addy).decode('ascii'))
 
     print('')
 
 
 def get_seed():
-    # type: () -> binary_type
+    # type: () -> bytes
     """
     Prompts the user securely for their seed.
     """
@@ -66,10 +60,10 @@ def output_seed(seed):
         'WARNING: Anyone who has your seed can spend your IOTAs! '
         'Clear the screen after recording your seed!'
     )
-    compat.input('')
+    input('')
     print('Your seed is:')
     print('')
-    print(binary_type(seed).decode('ascii'))
+    print(bytes(seed).decode('ascii'))
     print('')
 
     print(
@@ -77,7 +71,7 @@ def output_seed(seed):
         'and press return to continue.'
     )
     print('https://en.wikipedia.org/wiki/Shoulder_surfing_(computer_security)')
-    compat.input('')
+    input('')
 
 
 if __name__ == '__main__':
@@ -88,7 +82,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--uri',
-        type=text_type,
+        type=str,
         default='http://localhost:14265/',
 
         help=(

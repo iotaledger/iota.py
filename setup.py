@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
-# :bc: Not importing unicode_literals because in Python 2 distutils,
-# some values are expected to be byte strings.
-from __future__ import absolute_import, division, print_function
 
 from codecs import StreamReader, open
 from distutils.version import LooseVersion
@@ -12,11 +8,11 @@ import setuptools
 ##
 # Because of the way PyOTA declares its dependencies, it requires a
 # more recent version of setuptools.
-# https://www.python.org/dev/peps/pep-0508/#environment-markers
-if LooseVersion(setuptools.__version__) < LooseVersion('20.5'):
+# https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
+if LooseVersion(setuptools.__version__) < LooseVersion('24.2'):
     import sys
 
-    sys.exit('Installation failed: Upgrade setuptools to version 20.5 or later')
+    sys.exit('Installation failed: Upgrade setuptools to version 24.2 or later')
 
 ##
 # Load long description for PyPI.
@@ -29,13 +25,11 @@ with open('docs/README.rst', 'r', 'utf-8') as f:  # type: StreamReader
 # (``pip install -e .[test-runner]``).
 tests_require = [
     'aiounittest',
-    'mock; python_version < "3.0"',
     'nose',
 ]
 
 ##
 # Off we go!
-# noinspection SpellCheckingInspection
 setuptools.setup(
     name='PyOTA',
     description='IOTA API library for Python',
@@ -58,16 +52,22 @@ setuptools.setup(
         ],
     },
 
+    # Tell setuptools which python versions to support. Will include metadata
+    # in the built sdist and wheel that tells pypi to tell pip about supported
+    # python versions.
+    # 'python_requires' works from setuptools 24.2.0 (previous versions ignore
+    # it with a warning), pip understands it from 9.0.0.
+    # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
+    python_requires='>=3.6, <4',
+
     # filters is no longer maintained and does not support Python 3.7
     # phx-filters is a fork that supports 3.7 and 3.8 but not 2.7
 
     install_requires=[
-        'filters; python_version < "3.5"',
         'httpx',
-        'phx-filters; python_version >= "3.5"',
+        'phx-filters',
         'pysha3',
         'six',
-        'typing; python_version < "3.0"',
     ],
 
     extras_require={

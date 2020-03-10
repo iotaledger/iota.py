@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import convert_value_to_standard_unit
@@ -48,7 +44,6 @@ class ConvertValueToStandardUnitTestCase(TestCase):
     Attempting to convert invalid type: list.
     """
     with self.assertRaises(ValueError):
-      # noinspection PyTypeChecker
       convert_value_to_standard_unit(['3.141592', 'Pi'], 'Gi')
 
   def test_convert_type_float(self):
@@ -56,7 +51,6 @@ class ConvertValueToStandardUnitTestCase(TestCase):
     Attempting to convert invalid type: float.
     """
     with self.assertRaises(ValueError):
-      # noinspection PyTypeChecker
       convert_value_to_standard_unit(3.141592, 'Pi')
 
   def test_convert_value_no_space(self):

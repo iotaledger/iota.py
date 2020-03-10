@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from abc import ABCMeta, abstractmethod as abstract_method
 from importlib import import_module
 from inspect import getmembers as get_members, isabstract as is_abstract, \
@@ -11,7 +7,6 @@ from types import ModuleType
 from typing import Any, Dict, Mapping, Optional, Text, Union
 
 import filters as f
-import six
 
 from iota.adapter import BaseAdapter
 from iota.exceptions import with_context
@@ -24,8 +19,8 @@ __all__ = [
   'ResponseFilter',
 ]
 
-@six.add_metaclass(ABCMeta)
-class BaseCommand(object):
+
+class BaseCommand(object, metaclass=ABCMeta):
   """
   An API command ready to send to the node.
   """
@@ -197,8 +192,7 @@ class ResponseFilter(f.FilterChain):
     return self._apply({})
 
 
-@six.add_metaclass(ABCMeta)
-class FilterCommand(BaseCommand):
+class FilterCommand(BaseCommand, metaclass=ABCMeta):
   """
   Uses filters to manipulate request/response values.
   """

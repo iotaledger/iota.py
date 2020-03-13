@@ -67,7 +67,6 @@ setuptools.setup(
         'httpx',
         'phx-filters',
         'pysha3',
-        'six',
     ],
 
     extras_require={

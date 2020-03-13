@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -21,7 +17,6 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetInputsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetInputsRequestFilterTestCase, self).setUp()
 
@@ -403,7 +398,6 @@ class GetInputsRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetInputsCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetInputsCommandTestCase, self).setUp()
 
@@ -635,7 +629,6 @@ class GetInputsCommandTestCase(TestCase):
 
     # ``getInputs`` uses ``findTransactions`` and
     # ``wereAddressesSpentFrom`` to identify unused addresses.
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -645,7 +638,6 @@ class GetInputsCommandTestCase(TestCase):
       ],
     })
 
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -670,7 +662,6 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    # noinspection PyUnusedLocal
     def mock_address_generator(ag, start, step=1):
       for addy in [self.addy0, self.addy1, self.addy2][start::step]:
         yield addy
@@ -714,7 +705,6 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    # noinspection PyUnusedLocal
     def mock_address_generator(ag, start, step=1):
       for addy in [self.addy0, self.addy1, self.addy2][start::step]:
         yield addy
@@ -739,7 +729,6 @@ class GetInputsCommandTestCase(TestCase):
     # ``getInputs`` uses ``findTransactions`` and
     # ``wereAddressesSpentFrom`` to identify unused addresses.
     # addresses.
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -749,7 +738,6 @@ class GetInputsCommandTestCase(TestCase):
       ],
     })
 
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -775,7 +763,6 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    # noinspection PyUnusedLocal
     def mock_address_generator(ag, start, step=1):
       for addy in [self.addy0, self.addy1, self.addy2][start::step]:
         yield addy
@@ -809,7 +796,6 @@ class GetInputsCommandTestCase(TestCase):
 
     # ``getInputs`` uses ``findTransactions`` and
     # ``wereAddressesSpentFrom`` to identify unused addresses.
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -819,7 +805,6 @@ class GetInputsCommandTestCase(TestCase):
       ],
     })
 
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -844,7 +829,6 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    # noinspection PyUnusedLocal
     def mock_address_generator(ag, start, step=1):
       for addy in [self.addy0, self.addy1, self.addy2][start::step]:
         yield addy
@@ -883,7 +867,6 @@ class GetInputsCommandTestCase(TestCase):
 
     # ``getInputs`` uses ``findTransactions`` and
     # ``wereAddressesSpentFrom`` to identify unused addresses.
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -908,7 +891,6 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    # noinspection PyUnusedLocal
     def mock_address_generator(ag, start, step=1):
       # If ``start`` has the wrong value, return garbage to make the
       # test asplode.
@@ -945,7 +927,6 @@ class GetInputsCommandTestCase(TestCase):
     # To keep the unit test nice and speedy, we will mock the address
     # generator.  We already have plenty of unit tests for that
     # functionality, so we can get away with mocking it here.
-    # noinspection PyUnusedLocal
 
     def mock_address_generator(ag, start, step=1):
       # returning up to 3 addresses, depending on stop value
@@ -997,7 +978,6 @@ class GetInputsCommandTestCase(TestCase):
 
     # ``getInputs`` uses ``findTransactions`` and
     # ``wereAddressesSpentFrom`` to identify unused addresses.
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(
@@ -1050,7 +1030,6 @@ class GetInputsCommandTestCase(TestCase):
     })
     # ``getInputs`` uses ``findTransactions`` to identify unused
     # addresses.
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'hashes': [
         TransactionHash(

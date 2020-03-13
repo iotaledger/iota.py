@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -18,7 +14,6 @@ class CheckConsistencyRequestFilterTestCase(BaseFilterTestCase):
     filter_type = CheckConsistencyCommand(MockAdapter()).get_request_filter
     skip_value_check = True
 
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(CheckConsistencyRequestFilterTestCase, self).setUp()
 
@@ -172,7 +167,6 @@ class CheckConsistencyRequestFilterTestCase(BaseFilterTestCase):
 
 
 class CheckConsistencyCommandTestCase(TestCase):
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(CheckConsistencyCommandTestCase, self).setUp()
 

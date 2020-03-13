@@ -1,12 +1,6 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
-
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
 
 from iota import Address, Bundle, Iota, AsyncIota, TransactionHash
 from iota.adapter import MockAdapter, async_return
@@ -22,7 +16,6 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetAccountDataCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetAccountDataRequestFilterTestCase, self).setUp()
 
@@ -54,7 +47,7 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       # ``seed`` can be any value that is convertible into a
       # TryteString.
-      'seed': binary_type(self.seed),
+      'seed': bytes(self.seed),
 
       # These values must still be integers/bools, however.
       'start':            42,
@@ -336,7 +329,6 @@ class AsyncIter:
       yield item
 
 class GetAccountDataCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetAccountDataCommandTestCase, self).setUp()
 
@@ -422,7 +414,6 @@ class GetAccountDataCommandTestCase(TestCase):
     """
     Loading account data for an account.
     """
-    # noinspection PyUnusedLocal
     async def mock_iter_used_addresses(adapter, seed, start, security_level):
       """
       Mocks the ``iter_used_addresses`` function, so that we can

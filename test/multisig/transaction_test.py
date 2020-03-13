@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import Address, ProposedTransaction
@@ -11,7 +7,6 @@ from iota.multisig.types import MultisigAddress
 
 
 class ProposedMultisigBundleTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(ProposedMultisigBundleTestCase, self).setUp()
 
@@ -57,7 +52,6 @@ class ProposedMultisigBundleTestCase(TestCase):
     """
     Adding a multisig input to a bundle.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.add_transaction(
       ProposedTransaction(
         address = Address(self.trytes_1),
@@ -126,7 +120,6 @@ class ProposedMultisigBundleTestCase(TestCase):
     This is not currently supported.
     """
     with self.assertRaises(ValueError):
-      # noinspection SpellCheckingInspection
       self.bundle.add_inputs([
         MultisigAddress(
           trytes  = self.trytes_1,
@@ -147,7 +140,6 @@ class ProposedMultisigBundleTestCase(TestCase):
     This is not currently supported.
     """
     with self.assertRaises(TypeError):
-      # noinspection SpellCheckingInspection,PyTypeChecker
       self.bundle.add_inputs([
         Address(
           trytes    = self.trytes_1,

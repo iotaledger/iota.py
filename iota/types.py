@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 from codecs import decode, encode
 from itertools import chain
@@ -9,9 +6,6 @@ from random import SystemRandom
 from typing import Any, AnyStr, Generator, Iterable, Iterator, List, \
     MutableSequence, Optional, Text, Type, TypeVar, Union
 from warnings import warn
-
-from six import PY2, binary_type, itervalues, python_2_unicode_compatible, \
-    text_type
 
 from iota import AsciiTrytesCodec, TRITS_PER_TRYTE
 from iota.crypto import HASH_LENGTH
@@ -35,7 +29,6 @@ TrytesCompatible = Union[AnyStr, bytearray, 'TryteString']
 T = TypeVar('T', bound='TryteString')
 
 
-@python_2_unicode_compatible
 class TryteString(JsonSerializable):
     """
     A string representation of a sequence of trytes.
@@ -83,7 +76,7 @@ class TryteString(JsonSerializable):
             - if ``length`` is negative,
             - if ``length`` is not defined, and the class doesn't have ``LEN`` attribute.
         """
-        alphabet = list(itervalues(AsciiTrytesCodec.alphabet))
+        alphabet = [chr(x) for x in AsciiTrytesCodec.alphabet.values()]
         generator = SystemRandom()
         try:
             if length is None:
@@ -95,23 +88,19 @@ class TryteString(JsonSerializable):
             if length is None:
                 raise TypeError("{class_name} does not define a length property".format(class_name=cls.__name__))
 
-        # :py:meth:`SystemRandom.choices` wasn't added until Python 3.6;
-        # for compatibility, we will continue to use ``choice`` in a
-        # loop.
-        # https://docs.python.org/3/library/random.html#random.choices
         return cls(
             ''.join(
-                chr(generator.choice(alphabet)) for _ in range(length)
+                generator.choices(population=alphabet, k=length)
             ).encode('ascii')
         )
 
     @classmethod
     def from_bytes(cls, bytes_, codec=AsciiTrytesCodec.name, *args, **kwargs):
-        # type: (Type[T], Union[binary_type, bytearray], Text, *Any, **Any) -> T
+        # type: (Type[T], Union[bytes, bytearray], Text, *Any, **Any) -> T
         """
         Creates a TryteString from a sequence of bytes.
 
-        :param  Union[binary_type,bytearray] bytes\_:
+        :param  Union[bytes,bytearray] bytes\_:
             Source bytes. ASCII representation of a sequence of bytes.
             Note that only tryte alphabet supported!
 
@@ -344,7 +333,7 @@ class TryteString(JsonSerializable):
                 )
 
         else:
-            if isinstance(trytes, text_type):
+            if isinstance(trytes, str):
                 trytes = encode(trytes, 'ascii')
 
             if not isinstance(trytes, bytearray):
@@ -373,13 +362,13 @@ class TryteString(JsonSerializable):
 
     def __hash__(self):
         # type: () -> int
-        return hash(binary_type(self._trytes))
+        return hash(bytes(self._trytes))
 
     def __repr__(self):
         # type: () -> Text
         return '{cls}({trytes!r})'.format(
             cls=type(self).__name__,
-            trytes=binary_type(self._trytes),
+            trytes=bytes(self._trytes),
         )
 
     def __bytes__(self):
@@ -396,7 +385,7 @@ class TryteString(JsonSerializable):
         - ... encode trytes into bytes: use :py:meth:`encode`.
         - ... decode trytes into Unicode: use :py:meth:`decode`.
         """
-        return binary_type(self._trytes)
+        return bytes(self._trytes)
 
     def __str__(self):
         """
@@ -406,40 +395,36 @@ class TryteString(JsonSerializable):
         # This causes infinite recursion in Python 2.
         # return binary_type(self).decode('ascii')
 
-        return binary_type(self._trytes).decode('ascii')
+        return bytes(self._trytes).decode('ascii')
 
     def __bool__(self):
         # type: () -> bool
         return bool(self._trytes) and any(t != b'9' for t in self)
-
-    if PY2:
-        # Magic methods have different names in Python 2.
-        __nonzero__ = __bool__
 
     def __len__(self):
         # type: () -> int
         return len(self._trytes)
 
     def __iter__(self):
-        # type: () -> Generator[binary_type, None, None]
+        # type: () -> Generator[bytes, None, None]
         # :see: http://stackoverflow.com/a/14267935/
-        return (binary_type(self._trytes[i:i + 1]) for i in range(len(self)))
+        return (bytes(self._trytes[i:i + 1]) for i in range(len(self)))
 
     def __contains__(self, other):
         # type: (TrytesCompatible) -> bool
         if isinstance(other, TryteString):
             return other._trytes in self._trytes
-        elif isinstance(other, text_type):
+        elif isinstance(other, str):
             return other.encode('ascii') in self._trytes
-        elif isinstance(other, (binary_type, bytearray)):
+        elif isinstance(other, (bytes, bytearray)):
             return other in self._trytes
         else:
             raise with_context(
                 exc=TypeError(
                     'Invalid type for TryteString contains check '
-                    '(expected Union[TryteString, {binary_type}, bytearray], '
+                    '(expected Union[TryteString, {bytes}, bytearray], '
                     'actual {type}).'.format(
-                        binary_type=binary_type.__name__,
+                        bytes=bytes.__name__,
                         type=type(other).__name__,
                     ),
                 ),
@@ -488,17 +473,17 @@ class TryteString(JsonSerializable):
         # type: (TrytesCompatible) -> TryteString
         if isinstance(other, TryteString):
             return TryteString(self._trytes + other._trytes)
-        elif isinstance(other, text_type):
+        elif isinstance(other, str):
             return TryteString(self._trytes + other.encode('ascii'))
-        elif isinstance(other, (binary_type, bytearray)):
+        elif isinstance(other, (bytes, bytearray)):
             return TryteString(self._trytes + other)
         else:
             raise with_context(
                 exc=TypeError(
                     'Invalid type for TryteString concatenation '
-                    '(expected Union[TryteString, {binary_type}, bytearray], '
+                    '(expected Union[TryteString, {bytes}, bytearray], '
                     'actual {type}).'.format(
-                        binary_type=binary_type.__name__,
+                        bytes=bytes.__name__,
                         type=type(other).__name__,
                     ),
                 ),
@@ -512,17 +497,17 @@ class TryteString(JsonSerializable):
         # type: (TrytesCompatible) -> bool
         if isinstance(other, TryteString):
             return self._trytes == other._trytes
-        elif isinstance(other, text_type):
+        elif isinstance(other, str):
             return self._trytes == other.encode('ascii')
-        elif isinstance(other, (binary_type, bytearray)):
+        elif isinstance(other, (bytes, bytearray)):
             return self._trytes == other
         else:
             raise with_context(
                 exc=TypeError(
                     'Invalid type for TryteString comparison '
-                    '(expected Union[TryteString, {binary_type}, bytearray], '
+                    '(expected Union[TryteString, {bytes}, bytearray], '
                     'actual {type}).'.format(
-                        binary_type=binary_type.__name__,
+                        bytes=bytes.__name__,
                         type=type(other).__name__,
                     ),
                 ),
@@ -561,7 +546,7 @@ class TryteString(JsonSerializable):
         return ChunkIterator(self, chunk_size)
 
     def encode(self, errors='strict', codec=AsciiTrytesCodec.name):
-        # type: (Text, Text) -> binary_type
+        # type: (Text, Text) -> bytes
         """
         Encodes the TryteString into a lower-level primitive (usually
         bytes).
@@ -894,10 +879,6 @@ class ChunkIterator(Iterator[TryteString]):
         self._offset += self.chunk_size
 
         return chunk
-
-    if PY2:
-        # In Python 2, iterator methods are named a little differently.
-        next = __next__
 
 
 class Hash(TryteString):

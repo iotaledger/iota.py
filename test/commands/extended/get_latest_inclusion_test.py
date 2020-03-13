@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -19,7 +15,6 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetLatestInclusionCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetLatestInclusionRequestFilterTestCase, self).setUp()
 
@@ -176,7 +171,6 @@ class GetLatestInclusionRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetLatestInclusionCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetLatestInclusionCommandTestCase, self).setUp()
 

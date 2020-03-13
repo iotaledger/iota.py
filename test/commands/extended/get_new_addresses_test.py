@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -20,7 +16,6 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetNewAddressesCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetNewAddressesRequestFilterTestCase, self).setUp()
 
@@ -331,7 +326,6 @@ class GetNewAddressesRequestFilterTestCase(BaseFilterTestCase):
 
 
 class GetNewAddressesCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetNewAddressesCommandTestCase, self).setUp()
 
@@ -442,7 +436,6 @@ class GetNewAddressesCommandTestCase(TestCase):
         seed          = self.seed,
       )
 
-    # noinspection SpellCheckingInspection
     self.assertDictEqual(
       response,
 
@@ -541,7 +534,6 @@ class GetNewAddressesCommandTestCase(TestCase):
     self.adapter.seed_response('wereAddressesSpentFrom', {
       'states': [False],
     })
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('findTransactions', {
       'duration': 18,
       'hashes': [

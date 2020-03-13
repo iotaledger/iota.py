@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import Address, Bundle, BundleHash, BundleValidator, TransactionTrytes
@@ -110,7 +106,6 @@ class BundleValidatorTestCase(TestCase):
   consider the bundle to be valid.
   """
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(BundleValidatorTestCase, self).setUp()
 
@@ -205,7 +200,6 @@ class BundleValidatorTestCase(TestCase):
     """
     One of the transactions has an invalid ``bundle_hash`` value.
     """
-    # noinspection SpellCheckingInspection
     self.bundle.transactions[3].bundle_hash =\
       BundleHash(
         b'NFDPEEZCWVYLKZGSLCQNOFUSENIXRHWWTZFBXMPS'
@@ -294,7 +288,6 @@ class BundleValidatorTestCase(TestCase):
     One of the signature fragments for an input is associated with the
     wrong address.
     """
-    # noinspection SpellCheckingInspection
     self.bundle[5].address =\
       Address(
         b'QHEDFWZULBZFEOMNLRNIDQKDNNIELAOXOVMYEI9P'
@@ -426,7 +419,6 @@ class BundleValidatorMultisigTestCase(TestCase):
     super(BundleValidatorMultisigTestCase, self).setUp()
 
     # This is the result from ``examples/multisig.py``.
-    # noinspection SpellCheckingInspection
     self.bundle =\
       Bundle.from_tryte_strings([
         # Spend transaction.

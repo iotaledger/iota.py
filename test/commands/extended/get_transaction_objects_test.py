@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 from iota import Iota, AsyncIota, MockAdapter, Transaction
@@ -11,7 +7,6 @@ from test import patch, MagicMock, mock, async_test
 
 
 class GetTransactionObjectsCommandTestCase(TestCase):
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(GetTransactionObjectsCommandTestCase, self).setUp()
 

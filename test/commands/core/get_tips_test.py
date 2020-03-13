@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -49,7 +45,6 @@ class GetTipsResponseFilterTestCase(BaseFilterTestCase):
   filter_type = GetTipsCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def test_pass_lots_of_hashes(self):
     """
     The response contains lots of hashes.
@@ -167,7 +162,6 @@ class GetTipsCommandTestCase(TestCase):
 
     https://github.com/iotaledger/iota.py/issues/130
     """
-    # noinspection SpellCheckingInspection
     self.adapter.seed_response('getTips', {
       'duration': 42,
       'hashes': [

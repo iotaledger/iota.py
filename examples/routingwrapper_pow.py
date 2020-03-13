@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Simple example using the RoutingWrapper to route API requests to
 different nodes.
@@ -18,7 +17,6 @@ router.add_route('attachToTangle', 'http://localhost:14265')
 api = Iota(router, seed=b'SEED9GOES9HERE')
 
 # Example of sending a transfer using the adapter.
-# noinspection SpellCheckingInspection
 bundle = api.send_transfer(
     depth=3,
 

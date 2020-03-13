@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -50,7 +46,6 @@ class GetMissingTransactionsResponseFilterTestCase(BaseFilterTestCase):
         GetMissingTransactionsCommand(MockAdapter()).get_response_filter
     skip_value_check = True
 
-    # noinspection SpellCheckingInspection
     def test_no_results(self):
         """
         The incoming response contains no hashes.
@@ -64,7 +59,6 @@ class GetMissingTransactionsResponseFilterTestCase(BaseFilterTestCase):
         self.assertFilterPasses(filter_)
         self.assertDictEqual(filter_.cleaned_data, response)
 
-    # noinspection SpellCheckingInspection
     def test_search_results(self):
         """
         The incoming response contains lots of hashes.

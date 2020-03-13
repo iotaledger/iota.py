@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from itertools import chain
 from typing import Optional
 
@@ -100,7 +96,6 @@ class GetTransfersRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        # noinspection PyProtectedMember
         filtered = super(GetTransfersRequestFilter, self)._apply(value)
 
         if self._has_errors:

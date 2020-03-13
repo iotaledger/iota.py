@@ -1,13 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import Hash, TryteString
 from iota.adapter import MockAdapter, async_return
 from iota.crypto import FRAGMENT_LENGTH
@@ -20,7 +14,6 @@ from test import mock, patch, MagicMock, async_test
 
 
 class GetDigestsCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetDigestsCommandTestCase, self).setUp()
 
@@ -92,7 +85,6 @@ class GetDigestsCommandTestCase(TestCase):
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
         mock_get_private_keys
     ):
-      # noinspection PyUnresolvedReferences
       with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
@@ -121,11 +113,9 @@ class GetDigestsCommandTestCase(TestCase):
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
         mock_get_private_keys
     ):
-      # noinspection PyUnresolvedReferences
       with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
-        # noinspection PyUnresolvedReferences
         with mock.patch.object(self.key2, 'get_digest') as mock_get_digest_2: # type: mock.MagicMock
           mock_get_digest_2.return_value = self.digest2
 
@@ -149,7 +139,6 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     super(GetDigestsRequestFilterTestCase, self).setUp()
 
     # Define some tryte sequences that we can reuse between tests.
-    # noinspection SpellCheckingInspection
     self.seed = b'HELLOIOTA'
 
   def test_pass_happy_path(self):
@@ -195,7 +184,7 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # ``seed`` can be any value that is convertible to TryteString.
-      'seed': binary_type(self.seed),
+      'seed': bytes(self.seed),
 
       # These values must be integers, however.
       'index':          100,

@@ -1,13 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import text_type
-
 from iota import Address, Iota, AsyncIota
 from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.is_reattachable import IsReattachableCommand
@@ -18,7 +12,6 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
   filter_type = IsReattachableCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(IsReattachableRequestFilterTestCase, self).setUp()
 
@@ -54,8 +47,8 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
       {
         'addresses': [
-          text_type(Address(self.address_1)),
-          text_type(Address(self.address_2))
+          str(Address(self.address_1)),
+          str(Address(self.address_2))
         ],
       },
     )
@@ -129,12 +122,10 @@ class IsReattachableRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class IsReattachableResponseFilterTestCase(BaseFilterTestCase):
   filter_type = IsReattachableCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(IsReattachableResponseFilterTestCase, self).setUp()
 

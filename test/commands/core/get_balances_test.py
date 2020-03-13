@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -18,7 +14,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
     filter_type = GetBalancesCommand(MockAdapter()).get_request_filter
     skip_value_check = True
 
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(GetBalancesRequestFilterTestCase, self).setUp()
 
@@ -305,7 +300,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
         )
 
 
-# noinspection SpellCheckingInspection
 class GetBalancesResponseFilterTestCase(BaseFilterTestCase):
     filter_type = GetBalancesCommand(MockAdapter()).get_response_filter
     skip_value_check = True

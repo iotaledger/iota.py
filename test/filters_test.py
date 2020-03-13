@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 import filters as f
 from filters.test import BaseFilterTestCase
 
@@ -48,7 +44,6 @@ class GeneratedAddressTestCase(BaseFilterTestCase):
     """
     Incoming value is not an :py:class:`Address` instance.
     """
-    # noinspection SpellCheckingInspection
     self.assertFilterErrors(
       # The only way to ensure ``key_index`` is set is to require that
       # the incoming value is an :py:class:`Address` instance.
@@ -121,7 +116,6 @@ class NodeUriTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class TrytesTestCase(BaseFilterTestCase):
   filter_type = Trytes
 
@@ -227,11 +221,9 @@ class TrytesTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class AddressNoChecksumTestCase(BaseFilterTestCase):
   filter_type = AddressNoChecksum
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(AddressNoChecksumTestCase, self).setUp()
 

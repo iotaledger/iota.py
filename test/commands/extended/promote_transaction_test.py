@@ -1,13 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import Bundle, Iota, TransactionHash, TransactionTrytes, \
   BadApiResponse, AsyncIota
 from iota.adapter import MockAdapter, async_return
@@ -21,7 +15,6 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
   filter_type = PromoteTransactionCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(PromoteTransactionRequestFilterTestCase, self).setUp()
 
@@ -52,7 +45,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # This can be any TrytesCompatible value.
-      'transaction': binary_type(self.trytes1),
+      'transaction': bytes(self.trytes1),
 
       # These values must still be ints, however.
       'depth':              100,

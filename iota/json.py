@@ -1,16 +1,9 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from abc import ABCMeta, abstractmethod as abstract_method
 from json.encoder import JSONEncoder as BaseJsonEncoder
 from typing import Iterable, Mapping
 
-from six import add_metaclass
 
-
-@add_metaclass(ABCMeta)
-class JsonSerializable(object):
+class JsonSerializable(object, metaclass=ABCMeta):
     """
     Interface for classes that can be safely converted to JSON.
     """

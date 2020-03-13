@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -22,7 +18,6 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
   maxDiff = None
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(PrepareMultisigTransferRequestFilterTestCase, self).setUp()
 
@@ -482,7 +477,6 @@ class PrepareMultisigTransferRequestFilterTestCase(BaseFilterTestCase):
 
 
 class PrepareMultisigTransferCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(PrepareMultisigTransferCommandTestCase, self).setUp()
 

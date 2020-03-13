@@ -1,13 +1,6 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
-
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import TryteString
 from iota.adapter import MockAdapter, async_return
 from iota.crypto import FRAGMENT_LENGTH
@@ -20,7 +13,6 @@ from test import mock, patch, MagicMock, async_test
 
 
 class GetPrivateKeysCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetPrivateKeysCommandTestCase, self).setUp()
 
@@ -179,7 +171,7 @@ class GetPrivateKeysRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # ``seed`` can be any value that is convertible to TryteString.
-      'seed': binary_type(self.seed),
+      'seed': bytes(self.seed),
 
       # These values must be integers, however.
       'index':          100,

@@ -1,12 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
 
 from iota import Iota, AsyncIota, TransactionTrytes, TryteString
 from iota.adapter import MockAdapter, async_return
@@ -19,7 +14,6 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = BroadcastTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(BroadcastTransactionsRequestFilterTestCase, self).setUp()
 
@@ -36,8 +30,8 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     """
     request = {
       'trytes': [
-        text_type(self.trytes1),
-        text_type(self.trytes2),
+        str(self.trytes1),
+        str(self.trytes2),
       ],
     }
 
@@ -54,7 +48,7 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
     # Any values that can be converted into TryteStrings are accepted.
     filter_ = self._filter({
       'trytes': [
-        binary_type(self.trytes1),
+        bytes(self.trytes1),
         self.trytes2,
       ],
     })
@@ -66,8 +60,8 @@ class BroadcastTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         'trytes': [
           # Raw trytes are extracted to match the IRI's JSON protocol.
-          text_type(self.trytes1),
-          text_type(self.trytes2),
+          str(self.trytes1),
+          str(self.trytes2),
         ],
       },
     )

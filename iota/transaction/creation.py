@@ -1,10 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Iterable, Iterator, List, Optional, Sequence
-
-from six import PY2
 
 from iota.crypto import HASH_LENGTH
 from iota.crypto.kerl import Kerl
@@ -215,10 +209,6 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         :return: ``bool``
         """
         return bool(self._transactions)
-
-    # :bc: Magic methods have different names in Python 2.
-    if PY2:
-        __nonzero__ = __bool__
 
     def __contains__(self, transaction):
         # type: (ProposedTransaction) -> bool

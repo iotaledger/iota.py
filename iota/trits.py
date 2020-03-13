@@ -1,13 +1,9 @@
-# coding=utf-8
 """
 Provides functions for manipulating sequences of trits.
 
 Based on
 https://github.com/iotaledger/iota.lib.js/blob/v0.4.2/lib/crypto/helpers/adder.js
 """
-
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 from typing import Iterable, List, Optional, Sequence, Tuple
 

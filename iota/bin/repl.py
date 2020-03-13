@@ -1,17 +1,10 @@
 #!/usr/bin/env python
-# coding=utf-8
 """
 Launches a Python shell with a configured API client ready to go.
 """
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from argparse import ArgumentParser
 from logging import basicConfig, getLogger, DEBUG
 from sys import stderr
-
-from six import text_type
-from six.moves import http_client
 
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
@@ -43,15 +36,13 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
         # If ``debug_requests`` is specified, log HTTP requests/responses.
         if debug_requests:
             # Inject a logger into the IOTA HTTP adapter.
+            # This will turn on logging for underlying httpx client as well
             basicConfig(level=DEBUG, stream=stderr)
 
             logger = getLogger(__name__)
             logger.setLevel(DEBUG)
 
             api.adapter.set_logger(logger)
-
-            # Turn on debugging for the underlying HTTP library.
-            http_client.HTTPConnection.debuglevel = 1
 
         try:
             self._start_repl(api)
@@ -66,7 +57,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
 
         parser.add_argument(
             '--pow-uri',
-            type=text_type,
+            type=str,
             default=None,
             dest='pow_uri',
             help='URI of node to send POW requests to.'
@@ -100,7 +91,6 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
         scope_vars = {'api': api}
 
         try:
-            # noinspection PyUnresolvedReferences
             import IPython
         except ImportError:
             # IPython not available; use regular Python REPL.

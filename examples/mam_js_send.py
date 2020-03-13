@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 import codecs
 import json
@@ -10,7 +7,6 @@ from subprocess import PIPE, run
 from typing import List, Optional, Text
 
 import filters as f
-from six import binary_type, text_type
 
 from iota import Bundle, Iota, TransactionTrytes
 from iota.bin import IotaCommandLineApp
@@ -71,14 +67,14 @@ class IotaMamExample(IotaCommandLineApp):
                 mam_encrypt_path,
 
                 # Required arguments
-                binary_type(api.seed),
+                bytes(api.seed),
                 message,
 
                 # Options
-                '--channel-key-index', text_type(channel_key_index),
-                '--start', text_type(start),
-                '--count', text_type(count),
-                '--security-level', text_type(security_level),
+                '--channel-key-index', str(channel_key_index),
+                '--start', str(start),
+                '--count', str(count),
+                '--security-level', str(security_level),
             ],
 
             check=True,

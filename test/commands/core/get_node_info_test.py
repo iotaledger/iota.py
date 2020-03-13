@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -47,7 +43,6 @@ class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
   filter_type = GetNodeInfoCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def test_pass_happy_path(self):
     """
     The incoming response contains valid values.

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 import json
 import socket
 from typing import Text
@@ -11,7 +7,6 @@ import httpx
 from iota import BadApiResponse, InvalidUri, TryteString
 from iota.adapter import API_VERSION, HttpAdapter, MockAdapter, \
   resolve_adapter, async_return
-from six import BytesIO, text_type
 from test import mock, async_test
 
 class ResolveAdapterTestCase(TestCase):
@@ -143,7 +138,6 @@ class HttpAdapterTestCase(TestCase):
     mocked_response = create_http_response(json.dumps(expected_result))
     mocked_sender   = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       result = await adapter.send_request(payload)
 
@@ -181,7 +175,6 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_sender = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         await adapter.send_request({'command': 'helloWorld'})
@@ -212,13 +205,12 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_sender = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         await adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text_type(context.exception),
+      str(context.exception),
       '500 response from node: {error}'.format(error=error_message),
     )
 
@@ -239,13 +231,12 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_sender = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         await adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text_type(context.exception),
+      str(context.exception),
       '429 response from node: {decoded}'.format(decoded=decoded_response),
     )
 
@@ -260,13 +251,12 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_sender = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         await adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text_type(context.exception),
+      str(context.exception),
       'Empty 200 response from node.',
     )
 
@@ -282,13 +272,12 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_sender = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         await adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text_type(context.exception),
+      str(context.exception),
       'Non-JSON 200 response from node: ' + invalid_response,
     )
 
@@ -304,13 +293,12 @@ class HttpAdapterTestCase(TestCase):
 
     mocked_sender = mock.Mock(return_value=async_return(mocked_response))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       with self.assertRaises(BadApiResponse) as context:
         await adapter.send_request({'command': 'helloWorld'})
 
     self.assertEqual(
-      text_type(context.exception),
+      str(context.exception),
 
       'Malformed 200 response from node: {response!r}'.format(
         response = invalid_response,
@@ -330,7 +318,6 @@ class HttpAdapterTestCase(TestCase):
       )
     )
 
-    # noinspection PyUnresolvedReferences
     with mock.patch('iota.adapter.AsyncClient.request', mocked_request):
       # test with default timeout
       await adapter.send_request(payload=mock_payload)
@@ -399,7 +386,6 @@ class HttpAdapterTestCase(TestCase):
     _, kwargs = mocked_request.call_args
     self.assertEqual(kwargs['timeout'], 99)
 
-  # noinspection SpellCheckingInspection
   @async_test
   async def test_trytes_in_request(self):
     """
@@ -411,7 +397,6 @@ class HttpAdapterTestCase(TestCase):
     # sure that the request is converted correctly.
     mocked_sender = mock.Mock(return_value=async_return(create_http_response('{}')))
 
-    # noinspection PyUnresolvedReferences
     with mock.patch.object(adapter, '_send_http_request', mocked_sender):
       await adapter.send_request({
         'command':  'helloWorld',

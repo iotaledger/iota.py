@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from csv import DictReader
 from os.path import dirname, join
 from random import randrange
@@ -27,7 +23,6 @@ class TestKerl(TestCase):
         )
 
     def test_correct_first(self):
-        # noinspection SpellCheckingInspection
         inp = (
           'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
           'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
@@ -42,7 +37,6 @@ class TestKerl(TestCase):
 
         trytes_out = trits_to_trytes(trits_out)
 
-        # noinspection SpellCheckingInspection
         self.assertEqual(
           trytes_out,
 
@@ -51,7 +45,6 @@ class TestKerl(TestCase):
         )
 
     def test_output_greater_243(self):
-        # noinspection SpellCheckingInspection
         inp = (
           '9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
           'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
@@ -66,7 +59,6 @@ class TestKerl(TestCase):
 
         trytes_out = trits_to_trytes(trits_out)
 
-        # noinspection SpellCheckingInspection
         self.assertEqual(
           trytes_out,
 
@@ -76,7 +68,6 @@ class TestKerl(TestCase):
         )
 
     def test_input_greater_243(self):
-        # noinspection SpellCheckingInspection
         inp = (
           'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
           'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
@@ -92,7 +83,6 @@ class TestKerl(TestCase):
 
         trytes_out = trits_to_trytes(trits_out)
 
-        # noinspection SpellCheckingInspection
         self.assertEqual(
           trytes_out,
 

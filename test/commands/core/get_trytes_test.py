@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
@@ -18,7 +14,6 @@ class GetTrytesRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetTrytesCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetTrytesRequestFilterTestCase, self).setUp()
 
@@ -180,7 +175,6 @@ class GetTrytesResponseFilter(BaseFilterTestCase):
   filter_type = GetTrytesCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetTrytesResponseFilter, self).setUp()
 

@@ -1,10 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
-
-from six import text_type
 
 from iota import Iota, AsyncIota, TransactionTrytes
 from iota.adapter import MockAdapter, async_return
@@ -12,7 +6,6 @@ from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
 from test import patch, MagicMock, async_test
 
 class BroadcastAndStoreCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(BroadcastAndStoreCommandTestCase, self).setUp()
 
@@ -76,8 +69,8 @@ class BroadcastAndStoreCommandTestCase(TestCase):
     """
     self.adapter.seed_response('broadcastTransactions', {
       'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
+        str(self.trytes1, 'ascii'),
+        str(self.trytes2, 'ascii'),
       ],
     })
 

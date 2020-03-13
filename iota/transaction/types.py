@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from iota.crypto import FRAGMENT_LENGTH
 from iota.exceptions import with_context
 from iota.types import Hash, TryteString, TrytesCompatible

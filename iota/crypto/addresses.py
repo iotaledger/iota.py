@@ -60,27 +60,29 @@ class AddressGenerator(Iterable[Address]):
 
     def __init__(
             self,
-            seed,
-            security_level=DEFAULT_SECURITY_LEVEL,
-            checksum=False,
-    ):
-        # type: (TrytesCompatible, int, bool) -> None
+            seed: TrytesCompatible,
+            security_level: int = DEFAULT_SECURITY_LEVEL,
+            checksum: bool = False,
+    ) -> None:
         super(AddressGenerator, self).__init__()
 
         self.security_level = security_level
         self.checksum = checksum
         self.seed = Seed(seed)
 
-    def __iter__(self):
-        # type: () -> Generator[Address, None, None]
+    def __iter__(self) -> Generator[Address, None, None]:
         """
         Returns a generator for creating new addresses, starting at
         index 0 and potentially continuing on forever.
         """
         return self.create_iterator()
 
-    def get_addresses(self, start, count=1, step=1):
-        # type: (int, int, int) -> List[Address]
+    def get_addresses(
+            self,
+            start: int,
+            count: int = 1,
+            step: int = 1
+    ) -> List[Address]:
         """
         Generates and returns one or more addresses at the specified
         index(es).
@@ -154,8 +156,11 @@ class AddressGenerator(Iterable[Address]):
 
         return addresses
 
-    def create_iterator(self, start=0, step=1):
-        # type: (int, int) -> Generator[Address, None, None]
+    def create_iterator(
+            self,
+            start: int = 0,
+            step: int = 1
+    ) -> Generator[Address, None, None]:
         """
         Creates an iterator that can be used to progressively generate new
         addresses.
@@ -194,12 +199,11 @@ class AddressGenerator(Iterable[Address]):
             yield self._generate_address(key_iterator)
 
     @staticmethod
-    def address_from_digest(digest):
-        # type: (Digest) -> Address
+    def address_from_digest(digest: Digest) -> Address:
         """
         Generates an address from a private key digest.
         """
-        address_trits = [0] * (Address.LEN * TRITS_PER_TRYTE)  # type: List[int]
+        address_trits: List[int] = [0] * (Address.LEN * TRITS_PER_TRYTE)
 
         sponge = Kerl()
         sponge.absorb(digest.as_trits())
@@ -212,8 +216,7 @@ class AddressGenerator(Iterable[Address]):
             security_level=digest.security_level,
         )
 
-    def _generate_address(self, key_iterator):
-        # type: (KeyIterator) -> Address
+    def _generate_address(self, key_iterator: KeyIterator) -> Address:
         """
         Generates a new address.
 
@@ -229,13 +232,12 @@ class AddressGenerator(Iterable[Address]):
             return self.address_from_digest(self._get_digest(key_iterator))
 
     @staticmethod
-    def _get_digest(key_iterator):
-        # type: (KeyIterator) -> Digest
+    def _get_digest(key_iterator: KeyIterator) -> Digest:
         """
         Extracts parameters for :py:meth:`address_from_digest`.
 
         Split into a separate method so that it can be mocked during
         unit tests.
         """
-        private_key = next(key_iterator)  # type: PrivateKey
+        private_key: PrivateKey = next(key_iterator)
         return private_key.get_digest()

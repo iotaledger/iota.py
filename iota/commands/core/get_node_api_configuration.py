@@ -21,7 +21,7 @@ class GetNodeAPIConfigurationCommand(FilterCommand):
 
 
 class GetNodeAPIConfigurationRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         # ``getNodeAPIConfiguration`` does not accept any parameters.
         # Using a filter here just to enforce that the request is empty.
         super(GetNodeAPIConfigurationRequestFilter, self).__init__({})

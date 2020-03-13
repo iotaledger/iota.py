@@ -14,8 +14,7 @@ __all__ = [
 ]
 
 
-def add_trits(left, right):
-    # type: (Sequence[int], Sequence[int]) -> List[int]
+def add_trits(left: Sequence[int], right: Sequence[int]) -> List[int]:
     """
     Adds two sequences of trits together.
 
@@ -40,8 +39,7 @@ def add_trits(left, right):
     return res
 
 
-def int_from_trits(trits):
-    # type: (Iterable[int]) -> int
+def int_from_trits(trits: Iterable[int]) -> int:
     """
     Converts a sequence of trits into an integer value.
     """
@@ -50,8 +48,7 @@ def int_from_trits(trits):
     return sum(base * (3 ** power) for power, base in enumerate(trits))
 
 
-def trits_from_int(n, pad=1):
-    # type: (int, Optional[int]) -> List[int]
+def trits_from_int(n: int, pad: Optional[int] = 1) -> List[int]:
     """
     Returns a trit representation of an integer value.
 
@@ -86,8 +83,7 @@ def trits_from_int(n, pad=1):
     return trits
 
 
-def _cons_trits(left, right):
-    # type: (int, int) -> int
+def _cons_trits(left: int, right: int) -> int:
     """
     Compares two trits.  If they have the same value, returns that
     value.  Otherwise, returns 0.
@@ -95,8 +91,7 @@ def _cons_trits(left, right):
     return left if left == right else 0
 
 
-def _add_trits(left, right):
-    # type: (int, int) -> int
+def _add_trits(left: int, right: int) -> int:
     """
     Adds two individual trits together.
 
@@ -106,8 +101,7 @@ def _add_trits(left, right):
     return res if -2 < res < 2 else (res < 0) - (res > 0)
 
 
-def _any_trits(left, right):
-    # type: (int, int) -> int
+def _any_trits(left: int, right: int) -> int:
     """
     Adds two individual trits together and returns a single trit
     indicating whether the result is positive or negative.
@@ -116,8 +110,7 @@ def _any_trits(left, right):
     return (res > 0) - (res < 0)
 
 
-def _full_add_trits(left, right, carry):
-    # type: (int, int, int) -> Tuple[int, int]
+def _full_add_trits(left: int, right: int, carry: int) -> Tuple[int, int]:
     """
     Adds two trits together, with support for a carry trit.
     """

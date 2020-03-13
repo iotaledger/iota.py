@@ -24,7 +24,7 @@ class WereAddressesSpentFromCommand(FilterCommand):
 
 
 class WereAddressesSpentFromRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(WereAddressesSpentFromRequestFilter, self).__init__({
             'addresses':
                 f.Required | f.Array | f.FilterRepeater(

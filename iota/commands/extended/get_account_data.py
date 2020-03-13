@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import filters as f
 
@@ -32,16 +32,16 @@ class GetAccountDataCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        inclusion_states = request['inclusionStates']  # type: bool
-        seed = request['seed']  # type: Seed
-        start = request['start']  # type: int
-        stop = request['stop']  # type: Optional[int]
-        security_level = request['security_level']  # type: Optional[int]
+    async def _execute(self, request: Dict) -> Dict:
+        inclusion_states: bool = request['inclusionStates']
+        seed: Seed = request['seed']
+        start: int = request['start']
+        stop: Optional[int] = request['stop']
+        security_level: Optional[int] = request['security_level']
 
         if stop is None:
-            my_addresses = []  # type: List[Address]
-            my_hashes = []  # type: List[TransactionHash]
+            my_addresses: List[Address] = []
+            my_hashes: List[TransactionHash] = []
 
             async for addy, hashes in iter_used_addresses(self.adapter, seed, start, security_level):
                 my_addresses.append(addy)
@@ -91,7 +91,7 @@ class GetAccountDataRequestFilter(RequestFilter):
         CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetAccountDataRequestFilter, self).__init__(
             {
                 # Required parameters.

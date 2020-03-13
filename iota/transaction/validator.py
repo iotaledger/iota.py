@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional, Text
+from typing import Generator, List, Optional, Text, Type
 
 from iota.crypto.kerl import Kerl
 from iota.crypto.signing import validate_signature_fragments
@@ -24,18 +24,16 @@ class BundleValidator(object):
     Checks a bundle and its transactions for problems.
     """
 
-    def __init__(self, bundle):
-        # type: (Bundle) -> None
+    def __init__(self, bundle: Bundle) -> None:
         super(BundleValidator, self).__init__()
 
         self.bundle = bundle
 
-        self._errors = []  # type: Optional[List[Text]]
+        self._errors: Optional[List[Text]] = []
         self._validator = self._create_validator()
 
     @property
-    def errors(self):
-        # type: () -> List[Text]
+    def errors(self) -> List[Text]:
         """
         Returns all errors found with the bundle.
         """
@@ -46,8 +44,7 @@ class BundleValidator(object):
 
         return self._errors
 
-    def is_valid(self):
-        # type: () -> bool
+    def is_valid(self) -> bool:
         """
         Returns whether the bundle is valid.
         """
@@ -61,8 +58,7 @@ class BundleValidator(object):
 
         return not self._errors
 
-    def _create_validator(self):
-        # type: () -> Generator[Text, None, None]
+    def _create_validator(self) -> Generator[Text, None, None]:
         """
         Creates a generator that does all the work.
         """
@@ -124,7 +120,7 @@ class BundleValidator(object):
         # Signature validation is only meaningful if the transactions
         # are otherwise valid.
         if not self._errors:
-            signature_validation_queue = []  # type: List[List[Transaction]]
+            signature_validation_queue: List[List[Transaction]] = []
 
             for group in grouped_transactions:
                 # Signature validation only applies to inputs.
@@ -181,8 +177,10 @@ class BundleValidator(object):
                 ):
                     yield error
 
-    def _get_bundle_signature_errors(self, groups):
-        # type: (List[List[Transaction]]) -> List[Text]
+    def _get_bundle_signature_errors(
+            self,
+            groups: List[List[Transaction]]
+    ) -> List[Text]:
         """
         Validates the signature fragments in the bundle.
 
@@ -230,8 +228,10 @@ class BundleValidator(object):
         return current_errors
 
     @staticmethod
-    def _get_group_signature_error(group, sponge_type):
-        # type: (List[Transaction], type) -> Optional[Text]
+    def _get_group_signature_error(
+            group: List[Transaction],
+            sponge_type: Type
+    ) -> Optional[Text]:
         """
         Validates the signature fragments for a group of transactions
         using the specified sponge type.

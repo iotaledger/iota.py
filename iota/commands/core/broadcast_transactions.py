@@ -25,7 +25,7 @@ class BroadcastTransactionsCommand(FilterCommand):
 
 
 class BroadcastTransactionsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(BroadcastTransactionsRequestFilter, self).__init__({
             'trytes': StringifiedTrytesArray(TransactionTrytes) | f.Required,
         })

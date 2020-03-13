@@ -20,16 +20,16 @@ class MultisigAddressBuilder(object):
     multiple addresses from a single input (seed).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(MultisigAddressBuilder, self).__init__()
 
-        self._digests = []  # type: List[Digest]
+        self._digests: List[Digest] = []
         """
         Keeps track of digests that were added, so that we can attach
         them to the final :py:class:`MultisigAddress` object.
         """
 
-        self._address = None  # type: Optional[MultisigAddress]
+        self._address: Optional[MultisigAddress] = None
         """
         Caches the generated address.
 
@@ -40,8 +40,7 @@ class MultisigAddressBuilder(object):
 
         self._sponge = Kerl()
 
-    def add_digest(self, digest):
-        # type: (Digest) -> None
+    def add_digest(self, digest: Digest) -> None:
         """
         Absorbs a digest into the sponge.
 
@@ -61,8 +60,7 @@ class MultisigAddressBuilder(object):
         self._sponge.absorb(digest.as_trits())
         self._digests.append(digest)
 
-    def get_address(self):
-        # type: () -> MultisigAddress
+    def get_address(self) -> MultisigAddress:
         """
         Returns the new multisig address.
 

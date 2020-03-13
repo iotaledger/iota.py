@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import filters as f
 
@@ -28,15 +28,15 @@ class SendTransferCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        change_address = request['changeAddress']  # type: Optional[Address]
-        depth = request['depth']  # type: int
-        inputs = request['inputs']  # type: Optional[List[Address]]
-        min_weight_magnitude = request['minWeightMagnitude']  # type: int
-        seed = request['seed']  # type: Seed
-        transfers = request['transfers']  # type: List[ProposedTransaction]
-        reference = request['reference']  # type: Optional[TransactionHash]
-        security_level = request['securityLevel']  # int
+    async def _execute(self, request: Dict) -> Dict:
+        change_address: Optional[Address] = request['changeAddress']
+        depth: int = request['depth']
+        inputs: Optional[List[Address]] = request['inputs']
+        min_weight_magnitude: int = request['minWeightMagnitude']
+        seed: Seed = request['seed']
+        transfers: List[ProposedTransaction] = request['transfers']
+        reference: Optional[TransactionHash] = request['reference']
+        security_level: int = request['securityLevel']
 
         pt_response = await PrepareTransferCommand(self.adapter)(
             changeAddress=change_address,
@@ -59,7 +59,7 @@ class SendTransferCommand(FilterCommand):
 
 
 class SendTransferRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(SendTransferRequestFilter, self).__init__(
             {
                 # Required parameters.

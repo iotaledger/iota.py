@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 
 from iota import Address, Iota, AsyncIota, ProposedTransaction
 from iota.crypto.addresses import AddressGenerator
@@ -47,8 +47,10 @@ class AsyncMultisigIota(AsyncIota):
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
     """
 
-    async def create_multisig_address(self, digests):
-        # type: (Iterable[Digest]) -> dict
+    async def create_multisig_address(
+            self,
+            digests: Iterable[Digest]
+    ) -> Dict:
         """
         Generates a multisig address from a collection of digests.
 
@@ -74,11 +76,10 @@ class AsyncMultisigIota(AsyncIota):
 
     async def get_digests(
             self,
-            index=0,
-            count=1,
-            security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ):
-        # type: (int, int, int) -> dict
+            index: int = 0,
+            count: int = 1,
+            security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+    ) -> Dict:
         """
         Generates one or more key digests from the seed.
 
@@ -117,11 +118,10 @@ class AsyncMultisigIota(AsyncIota):
 
     async def get_private_keys(
             self,
-            index=0,
-            count=1,
-            security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ):
-        # type: (int, int, int) -> dict
+            index: int = 0,
+            count: int = 1,
+            security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+    ) -> Dict:
         """
         Generates one or more private keys from the seed.
 
@@ -166,11 +166,10 @@ class AsyncMultisigIota(AsyncIota):
 
     async def prepare_multisig_transfer(
             self,
-            transfers,  # type: Iterable[ProposedTransaction]
-            multisig_input,  # type: MultisigAddress
-            change_address=None,  # type: Optional[Address]
-    ):
-        # type: (...) -> dict
+            transfers: Iterable[ProposedTransaction],
+            multisig_input: MultisigAddress,
+            change_address: Optional[Address] = None,
+    ) -> Dict:
         """
         Prepares a bundle that authorizes the spending of IOTAs from a
         multisig address.
@@ -291,8 +290,10 @@ class MultisigIota(Iota, AsyncMultisigIota):
     - https://github.com/iotaledger/wiki/blob/master/multisigs.md
     """
 
-    def create_multisig_address(self, digests):
-        # type: (Iterable[Digest]) -> dict
+    def create_multisig_address(
+            self,
+            digests: Iterable[Digest]
+    ) -> Dict:
         """
         Generates a multisig address from a collection of digests.
 
@@ -318,11 +319,10 @@ class MultisigIota(Iota, AsyncMultisigIota):
 
     def get_digests(
             self,
-            index=0,
-            count=1,
-            security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ):
-        # type: (int, int, int) -> dict
+            index: int = 0,
+            count: int = 1,
+            security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+    ) -> Dict:
         """
         Generates one or more key digests from the seed.
 
@@ -362,11 +362,10 @@ class MultisigIota(Iota, AsyncMultisigIota):
 
     def get_private_keys(
             self,
-            index=0,
-            count=1,
-            security_level=AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ):
-        # type: (int, int, int) -> dict
+            index: int = 0,
+            count: int = 1,
+            security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
+    ) -> Dict:
         """
         Generates one or more private keys from the seed.
 
@@ -412,11 +411,10 @@ class MultisigIota(Iota, AsyncMultisigIota):
 
     def prepare_multisig_transfer(
             self,
-            transfers,  # type: Iterable[ProposedTransaction]
-            multisig_input,  # type: MultisigAddress
-            change_address=None,  # type: Optional[Address]
-    ):
-        # type: (...) -> dict
+            transfers: Iterable[ProposedTransaction],
+            multisig_input: MultisigAddress,
+            change_address: Optional[Address] = None,
+    ) -> Dict:
         """
         Prepares a bundle that authorizes the spending of IOTAs from a
         multisig address.

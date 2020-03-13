@@ -1,3 +1,5 @@
+from typing import Dict, Iterable
+
 import filters as f
 
 from iota import BadApiResponse, TransactionHash
@@ -27,8 +29,8 @@ class GetBundlesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        transaction_hashes = request['transactions']  # type: Iterable[TransactionHash]
+    async def _execute(self, request: Dict) -> Dict:
+        transaction_hashes: Iterable[TransactionHash] = request['transactions']
 
         async def fetch_and_validate(tx_hash):
             bundle = (await TraverseBundleCommand(self.adapter)(
@@ -60,8 +62,9 @@ class GetBundlesCommand(FilterCommand):
             'bundles': bundles,
         }
 
+
 class GetBundlesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetBundlesRequestFilter, self).__init__({
             'transactions':
                 f.Required | f.Array | f.FilterRepeater(

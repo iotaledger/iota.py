@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 import filters as f
 
@@ -27,8 +27,8 @@ class GetLatestInclusionCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        hashes = request['hashes']  # type: List[TransactionHash]
+    async def _execute(self, request: Dict) -> Dict:
+        hashes: List[TransactionHash] = request['hashes']
 
         gni_response = await GetNodeInfoCommand(self.adapter)()
 
@@ -43,7 +43,7 @@ class GetLatestInclusionCommand(FilterCommand):
 
 
 class GetLatestInclusionRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetLatestInclusionRequestFilter, self).__init__({
             'hashes':
                 f.Required | f.Array | f.FilterRepeater(

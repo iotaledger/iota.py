@@ -25,7 +25,7 @@ class GetInclusionStatesCommand(FilterCommand):
 
 
 class GetInclusionStatesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetInclusionStatesRequestFilter, self).__init__(
             {
                 # Required parameters.

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 import filters as f
 
@@ -6,7 +6,7 @@ from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.commands.extended import FindTransactionObjectsCommand, \
     GetLatestInclusionCommand
-from iota.filters import Trytes, StringifiedTrytesArray
+from iota.filters import StringifiedTrytesArray
 
 __all__ = [
     'IsReattachableCommand',
@@ -25,8 +25,8 @@ class IsReattachableCommand(FilterCommand):
     def get_response_filter(self):
         return IsReattachableResponseFilter()
 
-    async def _execute(self, request):
-        addresses = request['addresses']  # type: List[Address]
+    async def _execute(self, request: Dict) -> Dict:
+        addresses: List[Address] = request['addresses']
 
         # fetch full transaction objects
         transactions = (await FindTransactionObjectsCommand(adapter=self.adapter)(
@@ -62,7 +62,7 @@ class IsReattachableCommand(FilterCommand):
 
 
 class IsReattachableRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(IsReattachableRequestFilter, self).__init__(
             {
                 'addresses': StringifiedTrytesArray(Address) | f.Required,
@@ -71,7 +71,7 @@ class IsReattachableRequestFilter(RequestFilter):
 
 
 class IsReattachableResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(IsReattachableResponseFilter, self).__init__({
             'reattachable':
                 f.Required | f.Array | f.FilterRepeater(f.Type(bool)),

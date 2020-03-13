@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Dict
 
 from iota import Address, BundleHash, Tag, Transaction, TransactionHash
 from iota.commands.core import GetTrytesCommand, FindTransactionsCommand
@@ -19,15 +19,15 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        bundles = request\
-            .get('bundles')  # type: Optional[Iterable[BundleHash]]
-        addresses = request\
-            .get('addresses')  # type: Optional[Iterable[Address]]
-        tags = request\
-            .get('tags')  # type: Optional[Iterable[Tag]]
-        approvees = request\
-            .get('approvees')  # type: Optional[Iterable[TransactionHash]]
+    async def _execute(self, request: Dict) -> Dict:
+        bundles: Optional[Iterable[BundleHash]] = request\
+            .get('bundles')
+        addresses: Optional[Iterable[Address]] = request\
+            .get('addresses')
+        tags: Optional[Iterable[Tag]] = request\
+            .get('tags')
+        approvees: Optional[Iterable[TransactionHash]] = request\
+            .get('approvees')
 
         ft_response = await FindTransactionsCommand(adapter=self.adapter)(
             bundles=bundles,
@@ -41,10 +41,10 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
         if hashes:
             gt_response = await GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
 
-            transactions = list(map(
+            transactions: List[Transaction] = list(map(
                 Transaction.from_tryte_string,
                 gt_response.get('trytes') or [],
-            ))  # type: List[Transaction]
+            ))
 
         return {
             'transactions': transactions,

@@ -14,22 +14,19 @@ class BaseWrapper(BaseAdapter, metaclass=ABCMeta):
     functionality of IOTA adapters.
     """
 
-    def __init__(self, adapter):
-        # type: (AdapterSpec) -> None
+    def __init__(self, adapter: AdapterSpec) -> None:
         super(BaseWrapper, self).__init__()
 
         if not isinstance(adapter, BaseAdapter):
             adapter = resolve_adapter(adapter)
 
-        self.adapter = adapter  # type: BaseAdapter
+        self.adapter: BaseAdapter = adapter
 
-    def get_uri(self):
-        # type: () -> Text
+    def get_uri(self) -> Text:
         return self.adapter.get_uri()
 
     @abstract_method
-    def send_request(self, payload, **kwargs):
-        # type: (dict, dict) -> dict
+    def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
         raise NotImplementedError(
             'Not implemented in {cls}.'.format(cls=type(self).__name__),
         )
@@ -86,8 +83,7 @@ class RoutingWrapper(BaseWrapper):
         defined in :py:class:`RoutingWrapper`.
     """
 
-    def __init__(self, default_adapter):
-        # type: (AdapterSpec) -> None
+    def __init__(self, default_adapter: AdapterSpec) -> None:
         """
         :param default_adapter:
             Adapter to use for any routes not listed in ``routes``.
@@ -96,12 +92,11 @@ class RoutingWrapper(BaseWrapper):
 
         # Try to limit the number of distinct adapter instances we create
         # when resolving URIs.
-        self.adapter_aliases = {}  # type: Dict[AdapterSpec, BaseAdapter]
+        self.adapter_aliases: Dict[AdapterSpec, BaseAdapter] = {}
 
-        self.routes = {}  # type: Dict[Text, BaseAdapter]
+        self.routes: Dict[Text, BaseAdapter] = {}
 
-    def add_route(self, command, adapter):
-        # type: (Text, AdapterSpec) -> RoutingWrapper
+    def add_route(self, command: Text, adapter: AdapterSpec) -> 'RoutingWrapper':
         """
         Adds a route to the wrapper.
 
@@ -130,15 +125,13 @@ class RoutingWrapper(BaseWrapper):
 
         return self
 
-    def get_adapter(self, command):
-        # type: (Text) -> BaseAdapter
+    def get_adapter(self, command: Text) -> BaseAdapter:
         """
         Return the adapter for the specified command.
         """
         return self.routes.get(command, self.adapter)
 
-    async def send_request(self, payload, **kwargs):
-        # type: (dict, dict) -> dict
+    async def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
         command = payload.get('command')
 
         return await self.get_adapter(command).send_request(payload, **kwargs)

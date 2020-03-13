@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 
 import filters as f
 
@@ -22,7 +22,7 @@ class GetDigestsCommand(FilterCommand):
     """
     command = 'getDigests'
 
-    def get_request_filter(self):
+    def get_request_filter(self) -> 'GetDigestsRequestFilter':
         return GetDigestsRequestFilter()
 
     def get_response_filter(self):
@@ -30,11 +30,11 @@ class GetDigestsCommand(FilterCommand):
 
     # There is no async operation going on here, but the base class is async,
     # so from the outside, we have to act like we are doing async.
-    async def _execute(self, request):
-        count = request['count']  # type: Optional[int]
-        index = request['index']  # type: int
-        seed = request['seed']  # type: Seed
-        security_level = request['securityLevel']  # type: int
+    async def _execute(self, request: Dict):
+        count: Optional[int] = request['count']
+        index: int = request['index']
+        seed: Seed = request['seed']
+        security_level: int = request['securityLevel']
 
         gpk_result = await GetPrivateKeysCommand(self.adapter)(
             seed=seed,
@@ -49,7 +49,7 @@ class GetDigestsCommand(FilterCommand):
 
 
 class GetDigestsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetDigestsRequestFilter, self).__init__(
             {
                 # Optional Parameters

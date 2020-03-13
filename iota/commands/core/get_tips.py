@@ -25,14 +25,14 @@ class GetTipsCommand(FilterCommand):
 
 
 class GetTipsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         # ``getTips`` doesn't accept any parameters.
         # Using a filter here just to enforce that the request is empty.
         super(GetTipsRequestFilter, self).__init__({})
 
 
 class GetTipsResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTipsResponseFilter, self).__init__({
             'hashes':
                 f.Array | f.FilterRepeater(

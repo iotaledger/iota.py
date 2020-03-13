@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import filters as f
 
@@ -31,12 +31,12 @@ class GetNewAddressesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        checksum = request['checksum']  # type: bool
-        count = request['count']  # type: Optional[int]
-        index = request['index']  # type: int
-        security_level = request['securityLevel']  # type: int
-        seed = request['seed']  # type: Seed
+    async def _execute(self, request: Dict) -> Dict:
+        checksum: bool = request['checksum']
+        count: Optional[int] = request['count']
+        index: int = request['index']
+        security_level: int = request['securityLevel']
+        seed: Seed = request['seed']
 
         return {
             'addresses':
@@ -49,8 +49,14 @@ class GetNewAddressesCommand(FilterCommand):
                 ),
         }
 
-    async def _find_addresses(self, seed, index, count, security_level, checksum):
-        # type: (Seed, int, Optional[int], int, bool) -> List[Address]
+    async def _find_addresses(
+            self,
+            seed: Seed,
+            index: int,
+            count: Optional[int],
+            security_level: int,
+            checksum: bool
+    ) -> List[Address]:
         """
         Find addresses matching the command parameters.
         """
@@ -81,7 +87,7 @@ class GetNewAddressesCommand(FilterCommand):
 
 
 class GetNewAddressesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetNewAddressesRequestFilter, self).__init__(
             {
                 # Everything except ``seed`` is optional.

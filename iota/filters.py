@@ -40,7 +40,7 @@ class GeneratedAddress(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(Address))  # type: Address
+        value: Address = self._filter(value, f.Type(Address))
 
         if self._has_errors:
             return None
@@ -77,7 +77,7 @@ class NodeUri(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(str))  # type: Text
+        value: Text = self._filter(value, f.Type(str))
 
         if self._has_errors:
             return None
@@ -91,7 +91,7 @@ class NodeUri(f.BaseFilter):
 
 
 @filter_macro
-def SecurityLevel():
+def SecurityLevel() -> f.FilterChain:
     """
     Generates a filter chain for validating a security level.
 
@@ -133,8 +133,7 @@ class Trytes(f.BaseFilter):
         CODE_WRONG_FORMAT: 'This value is not a valid {result_type}.',
     }
 
-    def __init__(self, result_type=TryteString):
-        # type: (type) -> None
+    def __init__(self, result_type: type = TryteString) -> None:
         super(Trytes, self).__init__()
 
         if not isinstance(result_type, type):
@@ -159,13 +158,13 @@ class Trytes(f.BaseFilter):
         self.result_type = result_type
 
     def _apply(self, value):
-        value = self._filter(
+        value: TrytesCompatible = self._filter(
             filter_chain=f.Type(
                 (bytes, bytearray, str, TryteString)
             ),
 
             value=value,
-        )  # type: TrytesCompatible
+        )
 
         if self._has_errors:
             return None
@@ -206,8 +205,7 @@ class Trytes(f.BaseFilter):
 
 
 @filter_macro
-def StringifiedTrytesArray(trytes_type=TryteString):
-    # type: (Type[TryteString]) -> f.FilterChain
+def StringifiedTrytesArray(trytes_type: Type = TryteString) -> f.FilterChain:
     """
     Validates that the incoming value is an array containing tryte
     strings corresponding to the specified type (e.g.,
@@ -216,7 +214,7 @@ def StringifiedTrytesArray(trytes_type=TryteString):
     When a value doesn't pass the filter, a ``ValueError`` is raised with lots
     of contextual info attached to it.
 
-    :param TryteString result_type:
+    :param TryteString trytes_type:
         Any subclass of :py:class:`~iota.TryteString` that you want the filter
         to validate.
 
@@ -258,7 +256,7 @@ class AddressNoChecksum(Trytes):
             'Checksum is {supplied_checksum}, should be {expected_checksum}?',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(AddressNoChecksum, self).__init__(result_type=Address)
 
     def _apply(self, value):

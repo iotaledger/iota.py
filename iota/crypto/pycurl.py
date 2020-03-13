@@ -45,19 +45,21 @@ class Curl(object):
     **IMPORTANT: Not thread-safe!**
     """
 
-    def __init__(self):
-        # type: (Optional[Sequence[int]]) -> None
+    def __init__(self) -> None:
         self.reset()
 
-    def reset(self):
-        # type: () -> None
+    def reset(self) -> None:
         """
         Resets internal state.
         """
-        self._state = [0] * STATE_LENGTH  # type: List[int]
+        self._state: List[int] = [0] * STATE_LENGTH
 
-    def absorb(self, trits, offset=0, length=None):
-        # type: (Sequence[int], Optional[int], Optional[int]) -> None
+    def absorb(
+            self,
+            trits: Sequence[int],
+            offset: Optional[int] = 0,
+            length: Optional[int] = None
+    ) -> None:
         """
         Absorb trits into the sponge.
 
@@ -107,8 +109,12 @@ class Curl(object):
             # Move on to the next hash.
             offset += HASH_LENGTH
 
-    def squeeze(self, trits, offset=0, length=HASH_LENGTH):
-        # type: (MutableSequence[int], Optional[int], Optional[int]) -> None
+    def squeeze(
+            self,
+            trits: MutableSequence[int],
+            offset: Optional[int] = 0,
+            length: Optional[int] = HASH_LENGTH
+    ) -> None:
         """
         Squeeze trits from the sponge.
 
@@ -166,8 +172,7 @@ class Curl(object):
             offset += HASH_LENGTH
             length -= HASH_LENGTH
 
-    def _transform(self):
-        # type: () -> None
+    def _transform(self) -> None:
         """
         Transforms internal state.
         """

@@ -36,8 +36,7 @@ class ProposedMultisigBundle(ProposedBundle):
 
   :return: :py:class:`ProposedMultisigBundle` object.
   """
-  def add_inputs(self, inputs):
-    # type: (Iterable[MultisigAddress]) -> None
+  def add_inputs(self, inputs: Iterable[MultisigAddress]) -> None:
     """
     Adds inputs to spend in the bundle.
 

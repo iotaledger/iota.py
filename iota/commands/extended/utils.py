@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from iota import Address, Bundle, Transaction, \
     TransactionHash, TransactionTrytes, BadApiResponse
@@ -17,12 +17,13 @@ from iota.crypto.types import Seed
 
 
 async def iter_used_addresses(
-        adapter,  # type: BaseAdapter
-        seed,  # type: Seed
-        start,  # type: int
-        security_level=None,  # type: Optional[int]
-):
-    # type: (...) -> Generator[Tuple[Address, List[TransactionHash]], None, None]
+        adapter: BaseAdapter,
+        seed: Seed,
+        start: int,
+        security_level: Optional[int] = None,
+        # 'typing' only supports AsyncGenerator from python 3.6.1, so put it
+        # as string literal here.
+) -> 'AsyncGenerator[Tuple[Address, List[TransactionHash]], None]':
     """
     Scans the Tangle for used addresses. A used address is an address that
     was spent from or has a transaction.
@@ -58,11 +59,10 @@ async def iter_used_addresses(
 
 
 async def get_bundles_from_transaction_hashes(
-        adapter,
-        transaction_hashes,
-        inclusion_states,
-):
-    # type: (BaseAdapter, Iterable[TransactionHash], bool) -> List[Bundle]
+        adapter: BaseAdapter,
+        transaction_hashes: Iterable[TransactionHash],
+        inclusion_states: bool,
+) -> List[Bundle]:
     """
     Given a set of transaction hashes, returns the corresponding bundles,
     sorted by tail transaction timestamp.
@@ -91,10 +91,10 @@ async def get_bundles_from_transaction_hashes(
                         'returned_transaction_trytes': tx_trytes,
                     },
             )
-    all_transactions = list(map(
+    all_transactions: List[Transaction] = list(map(
         Transaction.from_tryte_string,
         gt_response['trytes'],
-    ))  # type: List[Transaction]
+    ))
 
     for txn in all_transactions:
         if txn.is_tail:
@@ -131,9 +131,9 @@ async def get_bundles_from_transaction_hashes(
             txn.is_confirmed = gli_response['states'].get(txn.hash)
 
     # Find the bundles for each transaction.
-    txn_bundles = (await GetBundlesCommand(adapter)(
+    txn_bundles: List[Bundle] = (await GetBundlesCommand(adapter)(
         transactions=[txn.hash for txn in tail_transactions]
-    ))['bundles']  # type: List[Bundle]
+    ))['bundles']
 
     if inclusion_states:
         for bundle, txn in zip(txn_bundles, tail_transactions):

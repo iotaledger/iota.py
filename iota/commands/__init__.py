@@ -24,22 +24,20 @@ class BaseCommand(object, metaclass=ABCMeta):
   """
   An API command ready to send to the node.
   """
-  command = None # Text
+  command: Text = None
 
-  def __init__(self, adapter):
-    # type: (BaseAdapter) -> None
+  def __init__(self, adapter: BaseAdapter) -> None:
     """
     :param adapter:
       Adapter that will send request payloads to the node.
     """
-    self.adapter  = adapter
+    self.adapter = adapter
 
-    self.called   = False
-    self.request  = None # type: dict
-    self.response = None # type: dict
+    self.called: bool = False
+    self.request: Dict = None
+    self.response: Dict = None
 
-  async def __call__(self, **kwargs):
-    # type: (**Any) -> dict
+  async def __call__(self, **kwargs: Any) -> Dict:
     """
     Sends the command to the node.
     """
@@ -69,17 +67,15 @@ class BaseCommand(object, metaclass=ABCMeta):
 
     return self.response
 
-  def reset(self):
-    # type: () -> None
+  def reset(self) -> None:
     """
     Resets the command, allowing it to be called again.
     """
-    self.called   = False
-    self.request  = None # type: dict
-    self.response = None # type: dict
+    self.called = False
+    self.request = None
+    self.response = None
 
-  async def _execute(self, request):
-    # type: (dict) -> dict
+  async def _execute(self, request: Dict) -> Dict:
     """
     Sends the request object to the adapter and returns the response.
 
@@ -90,8 +86,7 @@ class BaseCommand(object, metaclass=ABCMeta):
     return await self.adapter.send_request(request)
 
   @abstract_method
-  def _prepare_request(self, request):
-    # type: (dict) -> Optional[dict]
+  def _prepare_request(self, request: Dict) -> Optional[Dict]:
     """
     Modifies the request before sending it to the node.
 
@@ -109,8 +104,7 @@ class BaseCommand(object, metaclass=ABCMeta):
     )
 
   @abstract_method
-  def _prepare_response(self, response):
-    # type: (dict) -> Optional[dict]
+  def _prepare_response(self, response: Dict) -> Optional[Dict]:
     """
     Modifies the response from the node.
 
@@ -132,8 +126,7 @@ class CustomCommand(BaseCommand):
 
   Useful for executing experimental/undocumented commands.
   """
-  def __init__(self, adapter, command):
-    # type: (BaseAdapter, Text) -> None
+  def __init__(self, adapter: BaseAdapter, command: Text) -> None:
     super(CustomCommand, self).__init__(adapter)
 
     self.command = command
@@ -198,8 +191,7 @@ class FilterCommand(BaseCommand, metaclass=ABCMeta):
   """
 
   @abstract_method
-  def get_request_filter(self):
-    # type: () -> Optional[RequestFilter]
+  def get_request_filter(self) -> Optional[RequestFilter]:
     """
     Returns the filter that should be applied to the request (if any).
 
@@ -212,8 +204,7 @@ class FilterCommand(BaseCommand, metaclass=ABCMeta):
     )
 
   @abstract_method
-  def get_response_filter(self):
-    # type: () -> Optional[ResponseFilter]
+  def get_response_filter(self) -> Optional[ResponseFilter]:
     """
     Returns the filter that should be applied to the response (if any).
 
@@ -225,14 +216,14 @@ class FilterCommand(BaseCommand, metaclass=ABCMeta):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
-  def _prepare_request(self, request):
+  def _prepare_request(self, request: Dict) -> Dict:
     return self._apply_filter(
       value           = request,
       filter_         = self.get_request_filter(),
       failure_message = 'Request failed validation',
     )
 
-  def _prepare_response(self, response):
+  def _prepare_response(self, response: Dict) -> Dict:
     return self._apply_filter(
       value           = response,
       filter_         = self.get_response_filter(),
@@ -240,8 +231,11 @@ class FilterCommand(BaseCommand, metaclass=ABCMeta):
     )
 
   @staticmethod
-  def _apply_filter(value, filter_, failure_message):
-    # type: (dict, Optional[f.BaseFilter], Text) -> dict
+  def _apply_filter(
+          value: Dict,
+          filter_: Optional[f.BaseFilter],
+          failure_message: Text
+  ) -> Dict:
     """
     Applies a filter to a value.  If the value does not pass the
     filter, an exception will be raised with lots of contextual info

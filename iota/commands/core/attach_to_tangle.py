@@ -1,3 +1,5 @@
+from typing import Dict
+
 import filters as f
 
 from iota import TransactionHash, TransactionTrytes
@@ -24,7 +26,7 @@ class AttachToTangleCommand(FilterCommand):
     def get_response_filter(self):
         return AttachToTangleResponseFilter()
 
-    async def _execute(self, request):
+    async def _execute(self, request: Dict) -> Dict:
         if self.adapter.local_pow is True:
             from pow import ccurl_interface
             powed_trytes = ccurl_interface.attach_to_tangle(
@@ -37,8 +39,9 @@ class AttachToTangleCommand(FilterCommand):
         else:
             return await super(FilterCommand, self)._execute(request)
 
+
 class AttachToTangleRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(AttachToTangleRequestFilter, self).__init__({
             'branchTransaction': f.Required | Trytes(TransactionHash),
             'trunkTransaction': f.Required | Trytes(TransactionHash),
@@ -57,7 +60,7 @@ class AttachToTangleRequestFilter(RequestFilter):
 
 
 class AttachToTangleResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(AttachToTangleResponseFilter, self).__init__({
             'trytes':
                 f.FilterRepeater(

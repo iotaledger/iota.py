@@ -1,4 +1,5 @@
 from codecs import Codec, CodecInfo, register as lookup_function
+from typing import Union, Text, Tuple
 from warnings import warn
 
 from iota.exceptions import with_context
@@ -51,25 +52,26 @@ class AsciiTrytesCodec(Codec):
     """
 
     @classmethod
-    def get_codec_info(cls):
+    def get_codec_info(cls) -> CodecInfo:
         """
         Returns information used by the codecs library to configure the
         codec for use.
         """
         codec = cls()
 
+        # In Python 2, all codecs are made equal.
+        # In Python 3, some codecs are more equal than others
         codec_info = {
             'encode': codec.encode,
             'decode': codec.decode,
+            '_is_text_encoding': False
         }
-
-        # In Python 2, all codecs are made equal.
-        # In Python 3, some codecs are more equal than others
-        codec_info['_is_text_encoding'] = False
 
         return CodecInfo(**codec_info)
 
-    def encode(self, input, errors='strict'):
+    def encode(self,
+               input: Union[memoryview, bytes, bytearray],
+               errors: Text = 'strict') -> Tuple[bytes, int]:
         """
         Encodes a byte string into trytes.
         """
@@ -103,7 +105,9 @@ class AsciiTrytesCodec(Codec):
 
         return bytes(trytes), len(input)
 
-    def decode(self, input, errors='strict'):
+    def decode(self,
+               input: Union[memoryview, bytes, bytearray],
+               errors: Text = 'strict') -> Tuple[bytes, int]:
         """
         Decodes a tryte string into bytes.
         """

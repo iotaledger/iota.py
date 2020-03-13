@@ -1,3 +1,5 @@
+from typing import Dict, Optional
+
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core import CheckConsistencyCommand, GetTrytesCommand
 from iota.transaction import Transaction
@@ -33,6 +35,7 @@ get_current_ms = lambda : int(round(time.time() * 1000))
 Calculate current time in milliseconds.
 """
 
+
 class IsPromotableCommand(FilterCommand):
     """
     Determines if a tail transaction is promotable.
@@ -47,8 +50,8 @@ class IsPromotableCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        tails = request['tails']
+    async def _execute(self, request: Dict) -> Dict:
+        tails: TransactionHash = request['tails']
 
         # First, check consistency
         # A transaction is consistent, if:
@@ -62,18 +65,18 @@ class IsPromotableCommand(FilterCommand):
         if not cc_response['state']:
             # One or more transactions are inconsistent
             return {
-                'promotable' : False,
-                'info' : cc_response['info'],
+                'promotable': False,
+                'info': cc_response['info'],
             }
       
         transactions = [
             Transaction.from_tryte_string(x) for x in
-                (await GetTrytesCommand(self.adapter)(hashes=tails))['trytes']
+            (await GetTrytesCommand(self.adapter)(hashes=tails))['trytes']
         ]
 
         response = {
-            'promotable' : True,
-            'info' : [],
+            'promotable': True,
+            'info': [],
         }
 
         # Check timestamps
@@ -89,14 +92,15 @@ class IsPromotableCommand(FilterCommand):
             response['promotable'] = response['promotable'] and is_within
 
         # If there are no problems, we don't need 'info' field
-        # Delete info field to make it consistent with check_consistency repsonse.
+        # Delete info field to make it consistent with check_consistency response.
         if response['promotable']:
             del response['info']
 
         return response
 
+
 class IsPromotableRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(IsPromotableRequestFilter, self).__init__({
             'tails':
                 f.Required |
@@ -104,8 +108,12 @@ class IsPromotableRequestFilter(RequestFilter):
                 f.FilterRepeater(f.Required | Trytes(TransactionHash)),
         })
 
-def is_within_depth(attachment_timestamp, now, depth=DEPTH):
-    # type (int, int, Optiona(int)) -> bool
+
+def is_within_depth(
+        attachment_timestamp: int,
+        now: int,
+        depth: Optional[int] = DEPTH
+):
     """
     Checks if `attachment_timestamp` is within limits of `depth`.
     """

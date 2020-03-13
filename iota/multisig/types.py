@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 
 from iota import Address, TrytesCompatible
 from iota.crypto.types import Digest
@@ -42,8 +42,12 @@ class MultisigAddress(Address):
         :py:class:`MultisigAddress` object.
     """
 
-    def __init__(self, trytes, digests, balance=None):
-        # type: (TrytesCompatible, Iterable[Digest], Optional[int]) -> None
+    def __init__(
+            self,
+            trytes: TrytesCompatible,
+            digests: Iterable[Digest],
+            balance: Optional[int] = None
+    ) -> None:
         # Key index is meaningless for multisig addresses.
         super(MultisigAddress, self).__init__(trytes, balance, key_index=None)
 
@@ -53,7 +57,7 @@ class MultisigAddress(Address):
             map(attrgetter('security_level'), self.digests)
         )
 
-    def as_json_compatible(self):
+    def as_json_compatible(self) -> Dict:
         """
         Get a JSON represenation of the :py:class:`MultisigAddress` object.
 
@@ -70,7 +74,6 @@ class MultisigAddress(Address):
                 }
 
         """
-        # type: () -> dict
         return {
             'trytes': self._trytes.decode('ascii'),
             'balance': self.balance,

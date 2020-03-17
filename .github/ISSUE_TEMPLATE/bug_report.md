@@ -12,7 +12,8 @@ Briefly describe the bug.
 
 Which version of the library are you running?
 
-- Version:
+- PyOTA Version:
+- Python Version:
 
 ## IOTA network
 
@@ -48,4 +49,4 @@ Describe what actually happens.
 
 ## Errors
 
-Paste any errors that you see.
+Paste here any error messages and/or stacktraces that you see.

@@ -75,7 +75,7 @@ This section guides you through suggesting a new feature. Following these guidel
 
 To suggest a new feature, talk to the IOTA community and IOTA Foundation members on [Discord](https://discord.iota.org/).
 
-If the team members approves your feature, they will create an issue for it.
+If the team members approve your feature, they will create an issue for it.
 </details>
 
 <br>
@@ -94,7 +94,7 @@ Otherwise, your feature may not be approved at all.
 
 ### Building a new feature
 
-To build a new feature, check out a new branch based on the `master` branch, and be sure to consider the following:
+To build a new feature, check out a new branch based on the `develop` branch, and be sure to consider the following:
 
 - If the feature has a public facing API, make sure to document it, using [Sphinx](https://www.sphinx-doc.org/en/master/) code comments
 
@@ -129,7 +129,7 @@ When creating a pull request, please follow these steps to have your contributio
 
     **Note:** Minor changes such as fixing a typo can but do not need an open issue.
 
-- All code should be well tested
+- All code should include comprehensive unit tests.
 
 ### Submitting a pull request
 
@@ -142,7 +142,7 @@ The following is a typical workflow for submitting a new pull request:
 
 If all [status checks](https://help.github.com/articles/about-status-checks/) pass, and the maintainer approves the PR, it will be merged.
 
-**Note:** Reviewers may ask you to complete additional work, tests, or other changes before your pull request can be approved and merged.
+**Note:** Reviewers may request changes before your pull request can be approved and merged.
 </details>
 
 <br>
@@ -151,4 +151,4 @@ If all [status checks](https://help.github.com/articles/about-status-checks/) pa
 <summary>Code of Conduct :clipboard:</summary>
 <br>
 
-This project and everyone participating in it is governed by the [IOTA Code of Conduct](CODE_OF_CONDUCT.md).
+This project and everyone participating in it are governed by the [IOTA Code of Conduct](CODE_OF_CONDUCT.md).

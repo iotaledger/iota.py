@@ -25,5 +25,5 @@ Add an `x` to the boxes that are relevant to your changes, and delete any items 
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
-- [ ] I have added tests using ginkgo that prove my fix is effective or that my feature works
+- [ ] I have followed [PEP-8](https://www.python.org/dev/peps/pep-0008/) Style Guide in my code.
 - [ ] New and existing unit tests pass locally with my changes

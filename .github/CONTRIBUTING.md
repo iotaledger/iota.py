@@ -125,7 +125,7 @@ When creating a pull request, please follow these steps to have your contributio
 
 - A pull request should have only one concern (for example one feature or one bug). If a PR addresses more than one concern, it should be split into two or more PRs.
 
-- A pull request can be merged only if it references an open issue
+- A pull request can be merged only if it references an open issue.
 
     **Note:** Minor changes such as fixing a typo can but do not need an open issue.
 

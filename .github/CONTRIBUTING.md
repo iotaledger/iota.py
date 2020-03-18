@@ -138,7 +138,7 @@ The following is a typical workflow for submitting a new pull request:
 1. Fork this repository
 2. Create a new branch based on your fork
 3. Commit changes and push them to your fork
-4. Create a pull request against the `master` branch
+4. Create a pull request against the `develop` branch
 
 If all [status checks](https://help.github.com/articles/about-status-checks/) pass, and the maintainer approves the PR, it will be merged.
 

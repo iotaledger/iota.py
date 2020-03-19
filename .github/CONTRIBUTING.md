@@ -96,7 +96,7 @@ Otherwise, your feature may not be approved at all.
 
 To build a new feature, check out a new branch based on the `develop` branch, and be sure to consider the following:
 
-- If the feature has a public facing API, make sure to document it, using [Sphinx](https://www.sphinx-doc.org/en/master/) code comments
+- If the feature will become part of PyOTA's public interface (i.e., it includes methods that will be invoked by other developers in their applications), make sure to document it, using [Sphinx-style](https://www.sphinx-doc.org/en/master/) code comments.
 
 </details>
 

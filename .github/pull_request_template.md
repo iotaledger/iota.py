@@ -24,6 +24,6 @@ Add an `x` to the boxes that are relevant to your changes, and delete any items 
 - [ ] My code follows the contribution guidelines for this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+- [ ] I have made corresponding changes to the documentation (`docs/` directory and/or `docstring`s in source code)
 - [ ] I have followed [PEP-8](https://www.python.org/dev/peps/pep-0008/) Style Guide in my code.
 - [ ] New and existing unit tests pass locally with my changes

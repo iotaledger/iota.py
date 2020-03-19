@@ -27,8 +27,6 @@ Which node are you connected to and which IOTA network is it in?
 What operating system are you using?
 
 - Operating system:
-
-
 ## Steps To reproduce the bug
 
 Explain how the maintainer can reproduce the bug.

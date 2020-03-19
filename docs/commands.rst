@@ -214,4 +214,4 @@ it constructs a list of transaction objects that are returned to
 .. _filters documentation site: https://filters.readthedocs.io/en/latest/
 .. _create custom filters: https://filters.readthedocs.io/en/latest/writing_filters.html
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
-.. _Contributing to PyOTA: https://github.com/iotaledger/iota.py/blob/master/CONTRIBUTING.rst
+.. _Contributing to PyOTA: https://github.com/iotaledger/iota.py/blob/master/.github/CONTRIBUTING.md

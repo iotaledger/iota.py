@@ -1,24 +1,17 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 from warnings import catch_warnings, simplefilter as simple_filter
-
-from six import binary_type, text_type
 
 from iota import Address, AddressChecksum, AsciiTrytesCodec, Hash, Tag, \
   TryteString, TrytesDecodeError
 
 
-# noinspection SpellCheckingInspection
 class TryteStringTestCase(TestCase):
   def test_ascii_bytes(self):
     """
     Getting an ASCII representation of a TryteString, as bytes.
     """
     self.assertEqual(
-      binary_type(TryteString(b'HELLOIOTA')),
+      bytes(TryteString(b'HELLOIOTA')),
       b'HELLOIOTA',
     )
 
@@ -28,7 +21,7 @@ class TryteStringTestCase(TestCase):
     string.
     """
     self.assertEqual(
-      text_type(TryteString(b'HELLOIOTA')),
+      str(TryteString(b'HELLOIOTA')),
       'HELLOIOTA',
     )
 
@@ -74,7 +67,6 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes3 == bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
     self.assertTrue(trytes3 != bytearray(b'RBTC9D9DCDQAEASBYBCCKBFA'))
 
-  # noinspection PyTypeChecker
   def test_comparison_error_wrong_type(self):
     """
     Attempting to compare a TryteString with something that is not a
@@ -85,7 +77,6 @@ class TryteStringTestCase(TestCase):
     with self.assertRaises(TypeError):
       # TryteString is not a numeric type, so comparing against a
       # numeric value doesn't make any sense.
-      # noinspection PyStatementEffect
       trytes == 42
 
     # Identity comparison still works though.
@@ -141,26 +132,22 @@ class TryteStringTestCase(TestCase):
     with self.assertRaises(TypeError):
       # TryteString is not a numeric type, so this makes about as much
       # sense as ``16 in b'Hello, world!'``.
-      # noinspection PyStatementEffect,PyTypeChecker
       16 in trytes
 
     with self.assertRaises(TypeError):
       # This is too ambiguous.  Is this a list of trit values that can
       # appar anywhere in the tryte sequence, or does it have to match
       # a tryte exactly?
-      # noinspection PyStatementEffect,PyTypeChecker
       [0, 1, 1, 0, -1, 0] in trytes
 
     with self.assertRaises(TypeError):
       # This makes more sense than the previous example, but for
       # consistency, we will not allow checking for trytes inside
       # of a TryteString.
-      # noinspection PyStatementEffect,PyTypeChecker
       [[0, 0, 0], [1, 1, 0]] in trytes
 
     with self.assertRaises(TypeError):
       # Did I miss something? When did we get to DisneyLand?
-      # noinspection PyStatementEffect,PyTypeChecker
       None in trytes
 
   def test_concatenation(self):
@@ -172,21 +159,21 @@ class TryteStringTestCase(TestCase):
 
     concat = trytes1 + trytes2
     self.assertIsInstance(concat, TryteString)
-    self.assertEqual(binary_type(concat), b'RBTC9D9DCDQAEASBYBCCKBFA')
+    self.assertEqual(bytes(concat), b'RBTC9D9DCDQAEASBYBCCKBFA')
 
     # You can also concatenate a TryteString with any TrytesCompatible.
     self.assertEqual(
-      binary_type(trytes1 + b'EASBYBCCKBFA'),
+      bytes(trytes1 + b'EASBYBCCKBFA'),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
     self.assertEqual(
-      binary_type(trytes1 + 'EASBYBCCKBFA'),
+      bytes(trytes1 + 'EASBYBCCKBFA'),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
     self.assertEqual(
-      binary_type(trytes1 + bytearray(b'EASBYBCCKBFA')),
+      bytes(trytes1 + bytearray(b'EASBYBCCKBFA')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
@@ -220,7 +207,6 @@ class TryteStringTestCase(TestCase):
     self.assertEqual(ts[4:-4:4], TryteString(b'9CEY'))
 
     with self.assertRaises(IndexError):
-      # noinspection PyStatementEffect
       ts[42]
 
     # To match the behavior of built-in types, TryteString will allow
@@ -329,7 +315,7 @@ class TryteStringTestCase(TestCase):
     addy = Address(TryteString(tag))
 
     self.assertEqual(
-      binary_type(addy),
+      bytes(addy),
 
       b'RBTC9D9DCDQAEASBYBCCKBFA9999999999999999'
       b'99999999999999999999999999999999999999999',
@@ -348,7 +334,7 @@ class TryteStringTestCase(TestCase):
     )
 
     self.assertEqual(
-      binary_type(trytes),
+      bytes(trytes),
 
       # Note the additional Tryte([-1, -1, -1]) values appended to the
       #   end of the sequence (represented in ASCII as '9').
@@ -367,7 +353,7 @@ class TryteStringTestCase(TestCase):
     self.assertFalse(trytes1 is trytes2)
     self.assertFalse(trytes1 == trytes2)
 
-    self.assertEqual(binary_type(trytes2), b'RBTC9D9DCDQAEASBYBCCKBFA999')
+    self.assertEqual(bytes(trytes2), b'RBTC9D9DCDQAEASBYBCCKBFA999')
 
   def test_init_error_invalid_characters(self):
     """
@@ -377,7 +363,6 @@ class TryteStringTestCase(TestCase):
     with self.assertRaises(ValueError):
       TryteString(b'not valid')
 
-  # noinspection PyTypeChecker
   def test_init_error_int(self):
     """
     Attempting to reset a TryteString from an int.
@@ -773,7 +758,7 @@ class TryteStringTestCase(TestCase):
     Converting a sequence of bytes into a TryteString.
     """
     self.assertEqual(
-      binary_type(TryteString.from_bytes(b'Hello, IOTA!')),
+      bytes(TryteString.from_bytes(b'Hello, IOTA!')),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
@@ -782,7 +767,7 @@ class TryteStringTestCase(TestCase):
     Converting a Unicode string into a TryteString.
     """
     self.assertEqual(
-      binary_type(TryteString.from_unicode('你好，世界！')),
+      bytes(TryteString.from_unicode('你好，世界！')),
       b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD',
     )
 
@@ -804,7 +789,7 @@ class TryteStringTestCase(TestCase):
     )
 
     self.assertEqual(
-      binary_type(trytes),
+      bytes(trytes),
       b'LH9GYEMHCF9GWHZFEELHVFOEOHNEEEWHZFUD',
     )
 
@@ -840,7 +825,7 @@ class TryteStringTestCase(TestCase):
     ]
 
     self.assertEqual(
-      binary_type(TryteString.from_trytes(trytes)),
+      bytes(TryteString.from_trytes(trytes)),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
@@ -876,7 +861,7 @@ class TryteStringTestCase(TestCase):
     ]
 
     self.assertEqual(
-      binary_type(TryteString.from_trits(trits)),
+      bytes(TryteString.from_trits(trits)),
       b'RBTC9D9DCDQAEASBYBCCKBFA',
     )
 
@@ -893,7 +878,7 @@ class TryteStringTestCase(TestCase):
     ]
 
     self.assertEqual(
-      binary_type(TryteString.from_trits(trits)),
+      bytes(TryteString.from_trits(trits)),
       b'RBTC',
     )
 
@@ -906,7 +891,6 @@ class HashTestCase(TestCase):
     self.assertEqual(len(rand), Hash.LEN)
 
 
-# noinspection SpellCheckingInspection
 class AddressTestCase(TestCase):
   def test_init_automatic_pad(self):
     """
@@ -918,7 +902,7 @@ class AddressTestCase(TestCase):
     )
 
     self.assertEqual(
-      binary_type(addy),
+      bytes(addy),
 
       # Note the extra 9's added to the end.
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
@@ -928,7 +912,7 @@ class AddressTestCase(TestCase):
     # This attribute will make more sense once we start working with
     # address checksums.
     self.assertEqual(
-      binary_type(addy.address),
+      bytes(addy.address),
 
       b'JVMTDGDPDFYHMZPMWEKKANBQSLSDTIIHAYQUMZOK'
       b'HXXXGJHJDQPOMDOMNRDKYCZRUFZROZDADTHZC9999',
@@ -960,21 +944,21 @@ class AddressTestCase(TestCase):
     )
 
     self.assertEqual(
-      binary_type(addy),
+      bytes(addy),
 
       b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
       b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAFOXM9MUBX',
     )
 
     self.assertEqual(
-      binary_type(addy.address),
+      bytes(addy.address),
 
       b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
       b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVA',
     )
 
     self.assertEqual(
-      binary_type(addy.checksum),
+      bytes(addy.checksum),
       b'FOXM9MUBX',
     )
 
@@ -1003,7 +987,7 @@ class AddressTestCase(TestCase):
     self.assertTrue(addy.is_checksum_valid())
 
     self.assertEqual(
-      binary_type(addy.with_valid_checksum()),
+      bytes(addy.with_valid_checksum()),
 
       b'RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE'
       b'9JQKG9REPKIASHUUECPSQO9JT9XNMVKWYGVAITCOXAQSD',
@@ -1025,7 +1009,7 @@ class AddressTestCase(TestCase):
     self.assertFalse(addy.is_checksum_valid())
 
     self.assertEqual(
-      binary_type(addy.with_valid_checksum()),
+      bytes(addy.with_valid_checksum()),
 
       b'IGKUOZGEFNSVJXETLIBKRSUZAWMYSVDPMHGQPCETEFNZP'
       b'XSJLZMBLAWDRLUBWPIPKFNEPADIWMXMYYRKQXYYNAFRMA',
@@ -1045,7 +1029,7 @@ class AddressTestCase(TestCase):
     self.assertFalse(addy.is_checksum_valid())
 
     self.assertEqual(
-      binary_type(addy.with_valid_checksum()),
+      bytes(addy.with_valid_checksum()),
 
       b'ZKIUDZXQYQAWSHPKSAATJXPAQZPGYCDCQDRSMWWCGQJNI'
       b'PCOORMDRNREDUDKBMUYENYTFVUNEWDBAKXMVJJJGBARPB',
@@ -1153,13 +1137,12 @@ class AddressTestCase(TestCase):
     addy = Address.random()
     self.assertEqual(len(addy), Address.LEN)
 
-# noinspection SpellCheckingInspection
 class AddressChecksumTestCase(TestCase):
   def test_init_happy_path(self):
     """
     Creating a valid address checksum.
     """
-    self.assertEqual(binary_type(AddressChecksum(b'FOXM9MUBX')), b'FOXM9MUBX')
+    self.assertEqual(bytes(AddressChecksum(b'FOXM9MUBX')), b'FOXM9MUBX')
 
   def test_init_error_too_short(self):
     """
@@ -1185,7 +1168,6 @@ class AddressChecksumTestCase(TestCase):
     self.assertEqual(len(checksum), AddressChecksum.LEN)
 
 
-# noinspection SpellCheckingInspection
 class TagTestCase(TestCase):
   def test_init_automatic_pad(self):
     """
@@ -1193,7 +1175,7 @@ class TagTestCase(TestCase):
     """
     tag = Tag(b'COLOREDCOINS')
 
-    self.assertEqual(binary_type(tag), b'COLOREDCOINS999999999999999')
+    self.assertEqual(bytes(tag), b'COLOREDCOINS999999999999999')
 
   def test_init_error_too_long(self):
     """

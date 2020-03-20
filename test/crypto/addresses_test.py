@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import Address
@@ -12,7 +8,6 @@ from iota.crypto.types import Seed
 class AddressGeneratorTestCase(TestCase):
   maxDiff = None
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(AddressGeneratorTestCase, self).setUp()
 
@@ -34,7 +29,6 @@ class AddressGeneratorTestCase(TestCase):
     """
     ag = AddressGenerator(self.seed_1)
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=0),
 
@@ -46,7 +40,6 @@ class AddressGeneratorTestCase(TestCase):
       ],
     )
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=10),
 
@@ -64,7 +57,6 @@ class AddressGeneratorTestCase(TestCase):
     """
     ag = AddressGenerator(self.seed_2)
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=0, count=3),
 
@@ -86,7 +78,6 @@ class AddressGeneratorTestCase(TestCase):
       ],
     )
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=10, count=3),
 
@@ -149,7 +140,6 @@ class AddressGeneratorTestCase(TestCase):
     """
     ag = AddressGenerator(self.seed_1)
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=1, count=2, step=-1),
 
@@ -174,7 +164,6 @@ class AddressGeneratorTestCase(TestCase):
 
     generator = ag.create_iterator()
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       next(generator),
 
@@ -184,7 +173,6 @@ class AddressGeneratorTestCase(TestCase):
       ),
     )
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       next(generator),
 
@@ -204,7 +192,6 @@ class AddressGeneratorTestCase(TestCase):
 
     generator = ag.create_iterator(start=1, step=2)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       next(generator),
 
@@ -214,7 +201,6 @@ class AddressGeneratorTestCase(TestCase):
       ),
     )
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       next(generator),
 
@@ -230,7 +216,6 @@ class AddressGeneratorTestCase(TestCase):
     """
     ag = AddressGenerator(self.seed_1, security_level=1)
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=0, count=3),
 
@@ -258,7 +243,6 @@ class AddressGeneratorTestCase(TestCase):
     """
     ag = AddressGenerator(self.seed_1, security_level=3)
 
-    # noinspection SpellCheckingInspection
     self.assertListEqual(
       ag.get_addresses(start=0, count=3),
 
@@ -292,7 +276,6 @@ class AddressGeneratorTestCase(TestCase):
 
     generator = ag.create_iterator()
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       next(generator),
 
@@ -303,7 +286,6 @@ class AddressGeneratorTestCase(TestCase):
       ),
     )
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       next(generator),
 

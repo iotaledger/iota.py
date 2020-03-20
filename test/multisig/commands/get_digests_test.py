@@ -1,26 +1,19 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import Hash, TryteString
-from iota.adapter import MockAdapter
+from iota.adapter import MockAdapter, async_return
 from iota.crypto import FRAGMENT_LENGTH
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Digest, PrivateKey, Seed
 from iota.filters import Trytes
-from iota.multisig import MultisigIota
+from iota.multisig import MultisigIota, AsyncMultisigIota
 from iota.multisig.commands import GetDigestsCommand
-from test import mock, patch, MagicMock
+from test import mock, patch, MagicMock, async_test
 
 
 class GetDigestsCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetDigestsCommandTestCase, self).setUp()
 
@@ -36,12 +29,12 @@ class GetDigestsCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.multisig.commands.get_digests.GetDigestsCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = MultisigIota(self.adapter)
@@ -56,23 +49,46 @@ class GetDigestsCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_generate_single_digest(self):
+  @async_test
+  async def test_wireup(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.multisig.commands.get_digests.GetDigestsCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncMultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_digests()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_generate_single_digest(self):
     """
     Generating a single digest.
     """
     seed = Seed.random()
 
-    mock_get_private_keys = mock.Mock(return_value={'keys': [self.key1]})
+    mock_get_private_keys = mock.Mock(return_value=async_return({'keys': [self.key1]}))
 
     with mock.patch(
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
         mock_get_private_keys
     ):
-      # noinspection PyUnresolvedReferences
       with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
-        result = self.command(seed=seed, index=0, count=1, securityLevel=1)
+        result = await self.command(seed=seed, index=0, count=1, securityLevel=1)
 
     self.assertDictEqual(result, {'digests': [self.digest1]})
 
@@ -83,28 +99,27 @@ class GetDigestsCommandTestCase(TestCase):
       'seed':           seed,
     })
 
-  def test_generate_multiple_digests(self):
+  @async_test
+  async def test_generate_multiple_digests(self):
     """
     Generating multiple digests.
     """
     seed = Seed.random()
 
     mock_get_private_keys =\
-      mock.Mock(return_value={'keys': [self.key1, self.key2]})
+      mock.Mock(return_value=async_return({'keys': [self.key1, self.key2]}))
 
     with mock.patch(
         'iota.multisig.commands.get_private_keys.GetPrivateKeysCommand._execute',
         mock_get_private_keys
     ):
-      # noinspection PyUnresolvedReferences
       with mock.patch.object(self.key1, 'get_digest') as mock_get_digest_1: # type: mock.MagicMock
         mock_get_digest_1.return_value = self.digest1
 
-        # noinspection PyUnresolvedReferences
         with mock.patch.object(self.key2, 'get_digest') as mock_get_digest_2: # type: mock.MagicMock
           mock_get_digest_2.return_value = self.digest2
 
-          result = self.command(seed=seed, index=0, count=2, securityLevel=1)
+          result = await self.command(seed=seed, index=0, count=2, securityLevel=1)
 
     self.assertDictEqual(result, {'digests': [self.digest1, self.digest2]})
 
@@ -124,7 +139,6 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     super(GetDigestsRequestFilterTestCase, self).setUp()
 
     # Define some tryte sequences that we can reuse between tests.
-    # noinspection SpellCheckingInspection
     self.seed = b'HELLOIOTA'
 
   def test_pass_happy_path(self):
@@ -170,7 +184,7 @@ class GetDigestsRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # ``seed`` can be any value that is convertible to TryteString.
-      'seed': binary_type(self.seed),
+      'seed': bytes(self.seed),
 
       # These values must be integers, however.
       'index':          100,

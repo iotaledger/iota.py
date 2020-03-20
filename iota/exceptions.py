@@ -1,14 +1,10 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 __all__ = [
     'with_context',
 ]
 
 
-def with_context(exc, context):
-    # type: (Exception, dict) -> Exception
+def with_context(exc: Exception, context: dict) -> Exception:
     """
     Attaches a ``context`` value to an Exception.
 

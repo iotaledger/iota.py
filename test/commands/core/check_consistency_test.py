@@ -1,24 +1,19 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
 
-from iota import Iota, TransactionHash, TryteString
-from iota.adapter import MockAdapter
+from iota import Iota, AsyncIota, TransactionHash, TryteString
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.check_consistency import CheckConsistencyCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class CheckConsistencyRequestFilterTestCase(BaseFilterTestCase):
     filter_type = CheckConsistencyCommand(MockAdapter()).get_request_filter
     skip_value_check = True
 
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(CheckConsistencyRequestFilterTestCase, self).setUp()
 
@@ -172,7 +167,6 @@ class CheckConsistencyRequestFilterTestCase(BaseFilterTestCase):
 
 
 class CheckConsistencyCommandTestCase(TestCase):
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(CheckConsistencyCommandTestCase, self).setUp()
 
@@ -200,17 +194,16 @@ class CheckConsistencyCommandTestCase(TestCase):
 
     def test_wireup(self):
         """
-        Verify that the command is wired up correctly.
+        Verify that the command is wired up correctly. (sync)
 
         The API method indeed calls the appropiate command.
         """
         with patch('iota.commands.core.check_consistency.CheckConsistencyCommand.__call__',
-                MagicMock(return_value='You found me!')
-                ) as mocked_command:
+                   MagicMock(return_value=async_return('You found me!'))
+                  ) as mocked_command:
 
             api = Iota(self.adapter)
 
-            # Don't need to call with proper args here.
             response = api.check_consistency('tails')
 
             self.assertTrue(mocked_command.called)
@@ -220,7 +213,30 @@ class CheckConsistencyCommandTestCase(TestCase):
                 'You found me!'
             )
 
-    def test_happy_path(self):
+    @async_test
+    async def test_wireup_async(self):
+        """
+        Verify that the command is wired up correctly. (async)
+
+        The API method indeed calls the appropiate command.
+        """
+        with patch('iota.commands.core.check_consistency.CheckConsistencyCommand.__call__',
+                   MagicMock(return_value=async_return('You found me!'))
+                  ) as mocked_command:
+
+            api = AsyncIota(self.adapter)
+
+            response = await api.check_consistency('tails')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
+
+    @async_test
+    async def test_happy_path(self):
         """
         Successfully checking consistency.
         """
@@ -229,7 +245,7 @@ class CheckConsistencyCommandTestCase(TestCase):
             'state': True,
         })
 
-        response = self.command(tails=[self.hash1, self.hash2])
+        response = await self.command(tails=[self.hash1, self.hash2])
 
         self.assertDictEqual(
             response,
@@ -239,7 +255,8 @@ class CheckConsistencyCommandTestCase(TestCase):
             }
         )
 
-    def test_info_with_false_state(self):
+    @async_test
+    async def test_info_with_false_state(self):
         """
         `info` field exists when `state` is False.
         """
@@ -249,7 +266,7 @@ class CheckConsistencyCommandTestCase(TestCase):
             'info': 'Additional information',
         })
 
-        response = self.command(tails=[self.hash1, self.hash2])
+        response = await self.command(tails=[self.hash1, self.hash2])
 
         self.assertDictEqual(
             response,

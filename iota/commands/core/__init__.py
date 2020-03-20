@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Core commands are defined by the node API.
 
@@ -6,9 +5,6 @@ References:
 
 - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference
 """
-
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 from .add_neighbors import *
 from .attach_to_tangle import *

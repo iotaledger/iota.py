@@ -1,17 +1,7 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from abc import ABCMeta, abstractmethod as abstract_method
-from importlib import import_module
-from inspect import getmembers as get_members, isabstract as is_abstract, \
-  isclass as is_class
-from pkgutil import walk_packages
-from types import ModuleType
-from typing import Any, Dict, Mapping, Optional, Text, Union
+from typing import Any, Mapping, Optional
 
 import filters as f
-import six
 
 from iota.adapter import BaseAdapter
 from iota.exceptions import with_context
@@ -24,27 +14,25 @@ __all__ = [
   'ResponseFilter',
 ]
 
-@six.add_metaclass(ABCMeta)
-class BaseCommand(object):
+
+class BaseCommand(object, metaclass=ABCMeta):
   """
   An API command ready to send to the node.
   """
-  command = None # Text
+  command: str = None
 
-  def __init__(self, adapter):
-    # type: (BaseAdapter) -> None
+  def __init__(self, adapter: BaseAdapter) -> None:
     """
     :param adapter:
       Adapter that will send request payloads to the node.
     """
-    self.adapter  = adapter
+    self.adapter = adapter
 
-    self.called   = False
-    self.request  = None # type: dict
-    self.response = None # type: dict
+    self.called: bool = False
+    self.request: Optional[dict] = None
+    self.response: Optional[dict] = None
 
-  def __call__(self, **kwargs):
-    # type: (**Any) -> dict
+  async def __call__(self, **kwargs: Any) -> dict:
     """
     Sends the command to the node.
     """
@@ -64,7 +52,7 @@ class BaseCommand(object):
     if replacement is not None:
       self.request = replacement
 
-    self.response = self._execute(self.request)
+    self.response = await self._execute(self.request)
 
     replacement = self._prepare_response(self.response)
     if replacement is not None:
@@ -74,17 +62,15 @@ class BaseCommand(object):
 
     return self.response
 
-  def reset(self):
-    # type: () -> None
+  def reset(self) -> None:
     """
     Resets the command, allowing it to be called again.
     """
-    self.called   = False
-    self.request  = None # type: dict
-    self.response = None # type: dict
+    self.called = False
+    self.request = None
+    self.response = None
 
-  def _execute(self, request):
-    # type: (dict) -> dict
+  async def _execute(self, request: dict) -> dict:
     """
     Sends the request object to the adapter and returns the response.
 
@@ -92,11 +78,10 @@ class BaseCommand(object):
     before it is sent (note: this will modify the request object).
     """
     request['command'] = self.command
-    return self.adapter.send_request(request)
+    return await self.adapter.send_request(request)
 
   @abstract_method
-  def _prepare_request(self, request):
-    # type: (dict) -> Optional[dict]
+  def _prepare_request(self, request: dict) -> Optional[dict]:
     """
     Modifies the request before sending it to the node.
 
@@ -114,8 +99,7 @@ class BaseCommand(object):
     )
 
   @abstract_method
-  def _prepare_response(self, response):
-    # type: (dict) -> Optional[dict]
+  def _prepare_response(self, response: dict) -> Optional[dict]:
     """
     Modifies the response from the node.
 
@@ -137,8 +121,7 @@ class CustomCommand(BaseCommand):
 
   Useful for executing experimental/undocumented commands.
   """
-  def __init__(self, adapter, command):
-    # type: (BaseAdapter, Text) -> None
+  def __init__(self, adapter: BaseAdapter, command: str) -> None:
     super(CustomCommand, self).__init__(adapter)
 
     self.command = command
@@ -197,15 +180,13 @@ class ResponseFilter(f.FilterChain):
     return self._apply({})
 
 
-@six.add_metaclass(ABCMeta)
-class FilterCommand(BaseCommand):
+class FilterCommand(BaseCommand, metaclass=ABCMeta):
   """
   Uses filters to manipulate request/response values.
   """
 
   @abstract_method
-  def get_request_filter(self):
-    # type: () -> Optional[RequestFilter]
+  def get_request_filter(self) -> Optional[RequestFilter]:
     """
     Returns the filter that should be applied to the request (if any).
 
@@ -218,8 +199,7 @@ class FilterCommand(BaseCommand):
     )
 
   @abstract_method
-  def get_response_filter(self):
-    # type: () -> Optional[ResponseFilter]
+  def get_response_filter(self) -> Optional[ResponseFilter]:
     """
     Returns the filter that should be applied to the response (if any).
 
@@ -231,14 +211,14 @@ class FilterCommand(BaseCommand):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
-  def _prepare_request(self, request):
+  def _prepare_request(self, request: dict) -> dict:
     return self._apply_filter(
       value           = request,
       filter_         = self.get_request_filter(),
       failure_message = 'Request failed validation',
     )
 
-  def _prepare_response(self, response):
+  def _prepare_response(self, response: dict) -> dict:
     return self._apply_filter(
       value           = response,
       filter_         = self.get_response_filter(),
@@ -246,8 +226,11 @@ class FilterCommand(BaseCommand):
     )
 
   @staticmethod
-  def _apply_filter(value, filter_, failure_message):
-    # type: (dict, Optional[f.BaseFilter], Text) -> dict
+  def _apply_filter(
+          value: dict,
+          filter_: Optional[f.BaseFilter],
+          failure_message: str
+  ) -> dict:
     """
     Applies a filter to a value.  If the value does not pass the
     filter, an exception will be raised with lots of contextual info

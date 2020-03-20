@@ -1,11 +1,8 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from iota.commands import FilterCommand
 from iota.commands.core.broadcast_transactions import \
     BroadcastTransactionsCommand
 from iota.commands.core.store_transactions import StoreTransactionsCommand
+import asyncio
 
 __all__ = [
     'BroadcastAndStoreCommand',
@@ -26,9 +23,13 @@ class BroadcastAndStoreCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        BroadcastTransactionsCommand(self.adapter)(**request)
-        StoreTransactionsCommand(self.adapter)(**request)
+    async def _execute(self, request: dict) -> dict:
+        # Submit the two coroutines to the already running event loop
+        await asyncio.gather(
+            BroadcastTransactionsCommand(self.adapter)(**request),
+            StoreTransactionsCommand(self.adapter)(**request),
+        )
+
         return {
             'trytes': request['trytes'],
         }

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Optional
 
 import filters as f
@@ -34,16 +30,16 @@ class GetInputsCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        stop = request['stop']  # type: Optional[int]
-        seed = request['seed']  # type: Seed
-        start = request['start']  # type: int
-        threshold = request['threshold']  # type: Optional[int]
-        security_level = request['securityLevel']  # int
+    async def _execute(self, request: dict) -> dict:
+        stop: Optional[int] = request['stop']
+        seed: Seed = request['seed']
+        start: int = request['start']
+        threshold: Optional[int] = request['threshold']
+        security_level: int = request['securityLevel']
 
         # Determine the addresses we will be scanning.
         if stop is None:
-            addresses = [addy for addy, _ in iter_used_addresses(
+            addresses = [addy async for addy, _ in iter_used_addresses(
                 adapter=self.adapter,
                 seed=seed,
                 start=start,
@@ -59,7 +55,7 @@ class GetInputsCommand(FilterCommand):
 
         if addresses:
             # Load balances for the addresses that we generated.
-            gb_response = GetBalancesCommand(self.adapter)(addresses=addresses)
+            gb_response = await GetBalancesCommand(self.adapter)(addresses=addresses)
         else:
             gb_response = {'balances': []}
 
@@ -119,7 +115,7 @@ class GetInputsRequestFilter(RequestFilter):
         CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetInputsRequestFilter, self).__init__(
             {
                 # These arguments are optional.

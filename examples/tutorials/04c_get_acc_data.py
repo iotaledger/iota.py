@@ -9,7 +9,7 @@ my_seed = Seed(b'YOURSEEDFROMTHEPREVIOUSTUTORIAL99999999999999999999999999999999
 api = Iota(
     adapter='https://nodes.devnet.iota.org:443',
     seed=my_seed,
-    testnet=True
+    devnet=True
 )
 
 # Script actually runs until it finds balance

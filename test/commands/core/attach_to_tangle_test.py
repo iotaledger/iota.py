@@ -1,24 +1,19 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash, TransactionTrytes, TryteString
-from iota.adapter import MockAdapter
+from iota import Iota, TransactionHash, TransactionTrytes, TryteString, \
+  AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.attach_to_tangle import AttachToTangleCommand
 from iota.filters import Trytes
-from six import binary_type, text_type
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
   filter_type = AttachToTangleCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(AttachToTangleRequestFilterTestCase, self).setUp()
 
@@ -38,14 +33,14 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     The incoming request is valid.
     """
     request = {
-      'trunkTransaction':   text_type(TransactionHash(self.txn_id)),
-      'branchTransaction':  text_type(TransactionHash(self.txn_id)),
+      'trunkTransaction':   str(TransactionHash(self.txn_id)),
+      'branchTransaction':  str(TransactionHash(self.txn_id)),
       'minWeightMagnitude': 20,
 
       'trytes': [
         # Raw trytes are extracted to match the IRI's JSON protocol.
-        text_type(TransactionTrytes(self.trytes1)),
-        text_type(TransactionTrytes(self.trytes2)),
+        str(TransactionTrytes(self.trytes1)),
+        str(TransactionTrytes(self.trytes2)),
       ],
     }
 
@@ -54,7 +49,6 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, request)
 
-  # noinspection SpellCheckingInspection
   def test_pass_compatible_types(self):
     """
     Incoming values can be converted into the expected types.
@@ -68,7 +62,7 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
       'trytes': [
         # ``trytes`` can contain any value that can be converted into a
         # TryteString.
-        binary_type(TransactionTrytes(self.trytes1)),
+        bytes(TransactionTrytes(self.trytes1)),
 
         # This is probably wrong (s/b :py:class:`TransactionTrytes`),
         # but technically it's valid.
@@ -93,9 +87,9 @@ class AttachToTangleRequestFilterTestCase(BaseFilterTestCase):
         'minWeightMagnitude': 30,
 
         'trytes':               [
-          text_type(TransactionTrytes(self.trytes1)),
+          str(TransactionTrytes(self.trytes1)),
 
-          text_type(TransactionTrytes(
+          str(TransactionTrytes(
             b'CCPCBDVC9DTCEAKDXC9D9DEARCWCPCBDVCTCEAHD'
             b'WCTCEAKDCDFD9DSCSA99999999999999999999999',
           )),
@@ -385,7 +379,6 @@ class AttachToTangleResponseFilterTestCase(BaseFilterTestCase):
   filter_type = AttachToTangleCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(AttachToTangleResponseFilterTestCase, self).setUp()
 
@@ -432,18 +425,39 @@ class AttachToTangleCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.core.attach_to_tangle.AttachToTangleCommand.__call__',
-               MagicMock(return_value='You found me!')
+               MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
 
-      # Don't need to call with proper args here.
       response = api.attach_to_tangle('trunk', 'branch', 'trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.core.attach_to_tangle.AttachToTangleCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      response = await api.attach_to_tangle('trunk', 'branch', 'trytes')
 
       self.assertTrue(mocked_command.called)
 

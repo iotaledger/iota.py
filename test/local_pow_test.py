@@ -1,18 +1,9 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from iota import Iota, TryteString, TransactionHash, TransactionTrytes, \
     HttpAdapter, MockAdapter
 from iota.adapter.wrappers import RoutingWrapper
 from unittest import TestCase
 import sys
-from six import PY2
-
-if PY2:
-    from mock import MagicMock, patch
-else:
-    from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 # Load mocked package on import from pow pkg.
 # Therefore we can test without having to install it.

@@ -1,16 +1,11 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from abc import ABCMeta
 from unittest import TestCase
-
-from six import add_metaclass
 
 from iota import InvalidCommand, StrictIota
 from iota.adapter import MockAdapter
 from iota.commands import CustomCommand
 from iota.commands.core.get_node_info import GetNodeInfoCommand
+from test import async_test
 
 
 class CustomCommandTestCase(TestCase):
@@ -21,7 +16,8 @@ class CustomCommandTestCase(TestCase):
         self.adapter = MockAdapter()
         self.command = CustomCommand(self.adapter, self.name)
 
-    def test_call(self):
+    @async_test
+    async def test_call(self):
         """
         Sending a custom command.
         """
@@ -29,7 +25,7 @@ class CustomCommandTestCase(TestCase):
 
         self.adapter.seed_response('helloWorld', expected_response)
 
-        response = self.command()
+        response = await self.command()
 
         self.assertEqual(response, expected_response)
         self.assertTrue(self.command.called)
@@ -39,7 +35,8 @@ class CustomCommandTestCase(TestCase):
             [{'command': 'helloWorld'}],
         )
 
-    def test_call_with_parameters(self):
+    @async_test
+    async def test_call_with_parameters(self):
         """
         Sending a custom command with parameters.
         """
@@ -47,7 +44,7 @@ class CustomCommandTestCase(TestCase):
 
         self.adapter.seed_response('helloWorld', expected_response)
 
-        response = self.command(foo='bar', baz='luhrmann')
+        response = await self.command(foo='bar', baz='luhrmann')
 
         self.assertEqual(response, expected_response)
         self.assertTrue(self.command.called)
@@ -57,24 +54,26 @@ class CustomCommandTestCase(TestCase):
             [{'command': 'helloWorld', 'foo': 'bar', 'baz': 'luhrmann'}],
         )
 
-    def test_call_error_already_called(self):
+    @async_test
+    async def test_call_error_already_called(self):
         """
         A command can only be called once.
         """
         self.adapter.seed_response('helloWorld', {})
-        self.command()
+        await self.command()
 
         with self.assertRaises(RuntimeError):
-            self.command(extra='params')
+            await self.command(extra='params')
 
         self.assertDictEqual(self.command.request, {'command': 'helloWorld'})
 
-    def test_call_reset(self):
+    @async_test
+    async def test_call_reset(self):
         """
         Resetting a command allows it to be called more than once.
         """
         self.adapter.seed_response('helloWorld', {'message': 'Hello, IOTA!'})
-        self.command()
+        await self.command()
 
         self.command.reset()
 
@@ -84,7 +83,7 @@ class CustomCommandTestCase(TestCase):
 
         expected_response = {'message': 'Welcome back!'}
         self.adapter.seed_response('helloWorld', expected_response)
-        response = self.command(foo='bar')
+        response = await self.command(foo='bar')
 
         self.assertDictEqual(response, expected_response)
         self.assertDictEqual(self.command.response, expected_response)
@@ -128,7 +127,5 @@ class IotaApiTestCase(TestCase):
         """
         # This statement will raise an exception if the regression is
         # present; no assertions necessary.
-        # noinspection PyUnusedLocal
-        @add_metaclass(ABCMeta)
-        class CustomClient(object):
+        class CustomClient(object, metaclass=ABCMeta):
             client = StrictIota(MockAdapter())

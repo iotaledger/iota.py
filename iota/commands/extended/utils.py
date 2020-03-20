@@ -1,12 +1,9 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
-from typing import Generator, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from iota import Address, Bundle, Transaction, \
-    TransactionHash
+    TransactionHash, TransactionTrytes, BadApiResponse
 from iota.adapter import BaseAdapter
+from iota.exceptions import with_context
 from iota.commands.core.find_transactions import FindTransactionsCommand
 from iota.commands.core.get_trytes import GetTrytesCommand
 from iota.commands.core.were_addresses_spent_from import \
@@ -19,19 +16,24 @@ from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 
 
-def iter_used_addresses(
-        adapter,  # type: BaseAdapter
-        seed,  # type: Seed
-        start,  # type: int
-        security_level=None,  # type: Optional[int]
-):
-    # type: (...) -> Generator[Tuple[Address, List[TransactionHash]], None, None]
+async def iter_used_addresses(
+        adapter: BaseAdapter,
+        seed: Seed,
+        start: int,
+        security_level: Optional[int] = None,
+        # 'typing' only supports AsyncGenerator from python 3.6.1, so put it
+        # as string literal here.
+) -> 'AsyncGenerator[Tuple[Address, List[TransactionHash]], None]':
     """
     Scans the Tangle for used addresses. A used address is an address that
     was spent from or has a transaction.
 
     This is basically the opposite of invoking ``getNewAddresses`` with
     ``count=None``.
+
+    .. important::
+        This is an async generator!
+
     """
     if security_level is None:
         security_level = AddressGenerator.DEFAULT_SECURITY_LEVEL
@@ -40,12 +42,12 @@ def iter_used_addresses(
     wasf_command = WereAddressesSpentFromCommand(adapter)
 
     for addy in AddressGenerator(seed, security_level).create_iterator(start):
-        ft_response = ft_command(addresses=[addy])
+        ft_response = await ft_command(addresses=[addy])
 
         if ft_response['hashes']:
             yield addy, ft_response['hashes']
         else:
-            wasf_response = wasf_command(addresses=[addy])
+            wasf_response = await wasf_command(addresses=[addy])
             if wasf_response['states'][0]:
                 yield addy, []
             else:
@@ -56,12 +58,11 @@ def iter_used_addresses(
         wasf_command.reset()
 
 
-def get_bundles_from_transaction_hashes(
-        adapter,
-        transaction_hashes,
-        inclusion_states,
-):
-    # type: (BaseAdapter, Iterable[TransactionHash], bool) -> List[Bundle]
+async def get_bundles_from_transaction_hashes(
+        adapter: BaseAdapter,
+        transaction_hashes: Iterable[TransactionHash],
+        inclusion_states: bool,
+) -> List[Bundle]:
     """
     Given a set of transaction hashes, returns the corresponding bundles,
     sorted by tail transaction timestamp.
@@ -70,17 +71,30 @@ def get_bundles_from_transaction_hashes(
     if not transaction_hashes:
         return []
 
-    my_bundles = []  # type: List[Bundle]
-
     # Sort transactions into tail and non-tail.
     tail_transaction_hashes = set()
     non_tail_bundle_hashes = set()
 
-    gt_response = GetTrytesCommand(adapter)(hashes=transaction_hashes)
-    all_transactions = list(map(
+    gt_response = await GetTrytesCommand(adapter)(hashes=transaction_hashes)
+    for tx_hash, tx_trytes in zip(transaction_hashes, gt_response['trytes']):
+        # If no tx was found by the node for tx_hash, it returns 9s,
+        # so we check here if it returned all 9s trytes.
+        if tx_trytes == TransactionTrytes(''):
+            raise with_context(
+                    exc=BadApiResponse(
+                            'Could not get trytes of transaction {hash} from the Tangle. '
+                            '(``exc.context`` has more info).'.format(hash=tx_hash),
+                    ),
+
+                    context={
+                        'transaction_hash': tx_hash,
+                        'returned_transaction_trytes': tx_trytes,
+                    },
+            )
+    all_transactions: List[Transaction] = list(map(
         Transaction.from_tryte_string,
         gt_response['trytes'],
-    ))  # type: List[Transaction]
+    ))
 
     for txn in all_transactions:
         if txn.is_tail:
@@ -92,9 +106,9 @@ def get_bundles_from_transaction_hashes(
             non_tail_bundle_hashes.add(txn.bundle_hash)
 
     if non_tail_bundle_hashes:
-        for txn in FindTransactionObjectsCommand(adapter=adapter)(
+        for txn in (await FindTransactionObjectsCommand(adapter=adapter)(
                 bundles=list(non_tail_bundle_hashes),
-        )['transactions']:
+        ))['transactions']:
             if txn.is_tail:
                 if txn.hash not in tail_transaction_hashes:
                     all_transactions.append(txn)
@@ -109,7 +123,7 @@ def get_bundles_from_transaction_hashes(
 
     # Attach inclusion states, if requested.
     if inclusion_states:
-        gli_response = GetLatestInclusionCommand(adapter)(
+        gli_response = await GetLatestInclusionCommand(adapter)(
             hashes=list(tail_transaction_hashes),
         )
 
@@ -117,17 +131,15 @@ def get_bundles_from_transaction_hashes(
             txn.is_confirmed = gli_response['states'].get(txn.hash)
 
     # Find the bundles for each transaction.
-    for txn in tail_transactions:
-        gb_response = GetBundlesCommand(adapter)(transactions=[txn.hash])
-        txn_bundles = gb_response['bundles']  # type: List[Bundle]
+    txn_bundles: List[Bundle] = (await GetBundlesCommand(adapter)(
+        transactions=[txn.hash for txn in tail_transactions]
+    ))['bundles']
 
-        if inclusion_states:
-            for bundle in txn_bundles:
-                bundle.is_confirmed = txn.is_confirmed
-
-        my_bundles.extend(txn_bundles)
+    if inclusion_states:
+        for bundle, txn in zip(txn_bundles, tail_transactions):
+            bundle.is_confirmed = txn.is_confirmed
 
     return list(sorted(
-        my_bundles,
+        txn_bundles,
         key=lambda bundle_: bundle_.tail_transaction.timestamp,
     ))

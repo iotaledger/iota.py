@@ -1,16 +1,10 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import sys
 from abc import ABCMeta, abstractmethod as abstract_method
 from argparse import ArgumentParser
 from getpass import getpass as secure_input
 from io import StringIO
 from sys import exit
-from typing import Any, Optional, Text
-
-from six import text_type, add_metaclass
+from typing import Any, Optional
 
 from iota import Iota, __version__
 from iota.crypto.types import Seed
@@ -20,8 +14,7 @@ __all__ = [
 ]
 
 
-@add_metaclass(ABCMeta)
-class IotaCommandLineApp(object):
+class IotaCommandLineApp(object, metaclass=ABCMeta):
     """
     Base functionality for a PyOTA-powered command-line application.
     """
@@ -30,8 +23,12 @@ class IotaCommandLineApp(object):
     Whether the command requires the user to provide a seed.
     """
 
-    def __init__(self, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin):
-        # type: (StringIO, StringIO, StringIO) -> None
+    def __init__(
+            self,
+            stdout: StringIO = sys.stdout,
+            stderr: StringIO = sys.stderr,
+            stdin: StringIO = sys.stdin
+    ) -> None:
         super(IotaCommandLineApp, self).__init__()
 
         self.stdout = stdout
@@ -39,8 +36,7 @@ class IotaCommandLineApp(object):
         self.stdin = stdin
 
     @abstract_method
-    def execute(self, api, **arguments):
-        # type: (Iota, **Any) -> Optional[int]
+    def execute(self, api: Iota, **arguments: Any) -> Optional[int]:
         """
         Executes the command and (optionally) returns an exit code (used by
         the shell to determine if the application exited cleanly).
@@ -55,14 +51,13 @@ class IotaCommandLineApp(object):
             'Not implemented in {cls}.'.format(cls=type(self).__name__),
         )
 
-    def main(self):
+    def main(self) -> None:
         """
         Executes the command from :py:data:`sys.argv` and exits.
         """
         exit(self.run_from_argv())
 
-    def run_from_argv(self, argv=None):
-        # type: (Optional[tuple]) -> int
+    def run_from_argv(self, argv: Optional[tuple] = None) -> int:
         """
         Executes the command from a collection of arguments (e.g.,
         :py:data`sys.argv`) and returns the exit code.
@@ -78,8 +73,7 @@ class IotaCommandLineApp(object):
 
         return exit_code
 
-    def parse_argv(self, argv=None):
-        # type: (Optional[tuple]) -> dict
+    def parse_argv(self, argv: Optional[tuple] = None) -> dict:
         """
         Parses arguments for the command.
 
@@ -102,13 +96,12 @@ class IotaCommandLineApp(object):
         arguments['api'] = Iota(
             adapter=arguments.pop('uri'),
             seed=seed,
-            testnet=arguments.pop('testnet'),
+            devnet=arguments.pop('devnet'),
         )
 
         return arguments
 
-    def create_argument_parser(self):
-        # type: () -> ArgumentParser
+    def create_argument_parser(self) -> ArgumentParser:
         """
         Returns the argument parser that will be used to interpret
         arguments and options from argv.
@@ -120,7 +113,7 @@ class IotaCommandLineApp(object):
 
         parser.add_argument(
             '--uri',
-            type=text_type,
+            type=str,
             default='http://localhost:14265/',
 
             help=(
@@ -132,7 +125,7 @@ class IotaCommandLineApp(object):
         if self.requires_seed:
             parser.add_argument(
                 '--seed-file',
-                type=text_type,
+                type=str,
                 dest='seed_file',
 
                 help=(
@@ -143,17 +136,16 @@ class IotaCommandLineApp(object):
             )
 
         parser.add_argument(
-            '--testnet',
+            '--devnet',
             action='store_true',
             default=False,
-            help='If set, use testnet settings (e.g., for PoW).',
+            help='If set, use devnet settings (e.g., for PoW).',
         )
 
         return parser
 
     @staticmethod
-    def seed_from_filepath(filepath):
-        # type: (Text) -> Seed
+    def seed_from_filepath(filepath: str) -> Seed:
         """
         Reads a seed from the first line of a text file.
 
@@ -163,8 +155,7 @@ class IotaCommandLineApp(object):
             return Seed(f_.readline().strip())
 
     @staticmethod
-    def prompt_for_seed():
-        # type: () -> Seed
+    def prompt_for_seed() -> Seed:
         """
         Prompts the user to enter their seed via stdin.
         """
@@ -173,7 +164,7 @@ class IotaCommandLineApp(object):
             'If no seed is specified, a random one will be used instead.\n'
         )
 
-        if isinstance(seed, text_type):
+        if isinstance(seed, str):
             seed = seed.encode('ascii')
 
         return Seed(seed) if seed else Seed.random()

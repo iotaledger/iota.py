@@ -1,16 +1,12 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import StrictIota
-from iota.adapter import MockAdapter
+from iota import Iota, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.add_neighbors import AddNeighborsCommand
 from iota.filters import NodeUri
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class AddNeighborsRequestFilterTestCase(BaseFilterTestCase):
@@ -151,17 +147,39 @@ class AddNeighborsCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.core.add_neighbors.AddNeighborsCommand.__call__',
-               MagicMock(return_value='You found me!')
+               MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
-      api = StrictIota(self.adapter)
+      api = Iota(self.adapter)
 
       response = api.add_neighbors('test_uri')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.core.add_neighbors.AddNeighborsCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      response = await api.add_neighbors('test_uri')
 
       self.assertTrue(mocked_command.called)
 

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 
 from iota import TransactionHash
@@ -29,7 +25,7 @@ class GetTransactionsToApproveCommand(FilterCommand):
 
 
 class GetTransactionsToApproveRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTransactionsToApproveRequestFilter, self).__init__(
             {
                 'depth': f.Required | f.Type(int) | f.Min(1),
@@ -42,9 +38,9 @@ class GetTransactionsToApproveRequestFilter(RequestFilter):
             })
 
     def _apply(self, value):
-        value = super(GetTransactionsToApproveRequestFilter, self)._apply(
+        value: dict = super(GetTransactionsToApproveRequestFilter, self)._apply(
             value,
-        )  # type: dict
+        )
 
         if self._has_errors:
             return value
@@ -57,7 +53,7 @@ class GetTransactionsToApproveRequestFilter(RequestFilter):
 
 
 class GetTransactionsToApproveResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTransactionsToApproveResponseFilter, self).__init__({
             'branchTransaction':
                 f.ByteString(encoding='ascii') | Trytes(TransactionHash),

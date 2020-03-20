@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List
 
 import filters as f
@@ -10,7 +6,7 @@ from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.commands.extended import FindTransactionObjectsCommand, \
     GetLatestInclusionCommand
-from iota.filters import Trytes, StringifiedTrytesArray
+from iota.filters import StringifiedTrytesArray
 
 __all__ = [
     'IsReattachableCommand',
@@ -29,13 +25,13 @@ class IsReattachableCommand(FilterCommand):
     def get_response_filter(self):
         return IsReattachableResponseFilter()
 
-    def _execute(self, request):
-        addresses = request['addresses']  # type: List[Address]
+    async def _execute(self, request: dict) -> dict:
+        addresses: List[Address] = request['addresses']
 
         # fetch full transaction objects
-        transactions = FindTransactionObjectsCommand(adapter=self.adapter)(
+        transactions = (await FindTransactionObjectsCommand(adapter=self.adapter)(
             addresses=addresses,
-        )['transactions']
+        ))['transactions']
 
         # Map and filter transactions which have zero value.
         # If multiple transactions for the same address are returned,
@@ -52,7 +48,7 @@ class IsReattachableCommand(FilterCommand):
         }
 
         # Fetch inclusion states.
-        inclusion_states = GetLatestInclusionCommand(adapter=self.adapter)(
+        inclusion_states = await GetLatestInclusionCommand(adapter=self.adapter)(
             hashes=list(transaction_map.values()),
         )
         inclusion_states = inclusion_states['states']
@@ -66,7 +62,7 @@ class IsReattachableCommand(FilterCommand):
 
 
 class IsReattachableRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(IsReattachableRequestFilter, self).__init__(
             {
                 'addresses': StringifiedTrytesArray(Address) | f.Required,
@@ -75,7 +71,7 @@ class IsReattachableRequestFilter(RequestFilter):
 
 
 class IsReattachableResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(IsReattachableResponseFilter, self).__init__({
             'reattachable':
                 f.Required | f.Array | f.FilterRepeater(f.Type(bool)),

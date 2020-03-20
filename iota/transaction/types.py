@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from iota.crypto import FRAGMENT_LENGTH
 from iota.exceptions import with_context
 from iota.types import Hash, TryteString, TrytesCompatible
@@ -41,8 +37,7 @@ class Fragment(TryteString):
     Length of a fragment in trytes.
     """
 
-    def __init__(self, trytes):
-        # type: (TrytesCompatible) -> None
+    def __init__(self, trytes: TrytesCompatible) -> None:
         super(Fragment, self).__init__(trytes, pad=self.LEN)
 
         if len(self._trytes) > self.LEN:
@@ -69,8 +64,7 @@ class TransactionTrytes(TryteString):
     Length of a transaction in trytes.
     """
 
-    def __init__(self, trytes):
-        # type: (TrytesCompatible) -> None
+    def __init__(self, trytes: TrytesCompatible) -> None:
         super(TransactionTrytes, self).__init__(trytes, pad=self.LEN)
 
         if len(self._trytes) > self.LEN:
@@ -97,8 +91,7 @@ class Nonce(TryteString):
     Length of a nonce in trytes.
     """
 
-    def __init__(self, trytes):
-        # type: (TrytesCompatible) -> None
+    def __init__(self, trytes: TrytesCompatible) -> None:
         super(Nonce, self).__init__(trytes, pad=self.LEN)
 
         if len(self._trytes) > self.LEN:

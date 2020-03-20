@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List, Optional
 
 import filters as f
@@ -33,20 +29,20 @@ class SendTrytesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        depth = request['depth']  # type: int
-        min_weight_magnitude = request['minWeightMagnitude']  # type: int
-        trytes = request['trytes']  # type: List[TryteString]
-        reference = request['reference']  # type: Optional[TransactionHash]
+    async def _execute(self, request: dict) -> dict:
+        depth: int = request['depth']
+        min_weight_magnitude: int = request['minWeightMagnitude']
+        trytes: List[TryteString] = request['trytes']
+        reference: Optional[TransactionHash] = request['reference']
 
         # Call ``getTransactionsToApprove`` to locate trunk and branch
         # transactions so that we can attach the bundle to the Tangle.
-        gta_response = GetTransactionsToApproveCommand(self.adapter)(
+        gta_response = await GetTransactionsToApproveCommand(self.adapter)(
             depth=depth,
             reference=reference,
         )
 
-        att_response = AttachToTangleCommand(self.adapter)(
+        att_response = await AttachToTangleCommand(self.adapter)(
             branchTransaction=gta_response.get('branchTransaction'),
             trunkTransaction=gta_response.get('trunkTransaction'),
 
@@ -57,7 +53,7 @@ class SendTrytesCommand(FilterCommand):
         # ``trytes`` now have POW!
         trytes = att_response['trytes']
 
-        BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
+        await BroadcastAndStoreCommand(self.adapter)(trytes=trytes)
 
         return {
             'trytes': trytes,
@@ -65,7 +61,7 @@ class SendTrytesCommand(FilterCommand):
 
 
 class SendTrytesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(SendTrytesRequestFilter, self).__init__({
             'depth': f.Required | f.Type(int) | f.Min(1),
 
@@ -74,7 +70,7 @@ class SendTrytesRequestFilter(RequestFilter):
                     f.Required | Trytes(TransactionTrytes),
                 ),
 
-            # Loosely-validated; testnet nodes require a different value
+            # Loosely-validated; devnet nodes require a different value
             # than mainnet.
             'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
 

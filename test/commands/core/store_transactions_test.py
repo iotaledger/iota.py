@@ -1,25 +1,19 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import text_type
 
-from iota import Iota, TransactionTrytes, TryteString
-from iota.adapter import MockAdapter
+from iota import Iota, TransactionTrytes, TryteString, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.store_transactions import StoreTransactionsCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = StoreTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(StoreTransactionsRequestFilterTestCase, self).setUp()
 
@@ -36,8 +30,8 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
     request = {
       # Raw trytes are extracted to match the IRI's JSON protocol.
       'trytes': [
-        text_type(TransactionTrytes(self.trytes1)),
-        text_type(TransactionTrytes(self.trytes2)),
+        str(TransactionTrytes(self.trytes1)),
+        str(TransactionTrytes(self.trytes2)),
       ],
     }
 
@@ -67,8 +61,8 @@ class StoreTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         # Raw trytes are extracted to match the IRI's JSON protocol.
         'trytes': [
-          text_type(TransactionTrytes(self.trytes1)),
-          text_type(TransactionTrytes(self.trytes2)),
+          str(TransactionTrytes(self.trytes1)),
+          str(TransactionTrytes(self.trytes2)),
         ],
       },
     )
@@ -187,18 +181,39 @@ class StoreTransactionsCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.core.store_transactions.StoreTransactionsCommand.__call__',
-              MagicMock(return_value='You found me!')
+               MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
 
-      # Don't need to call with proper args here.
       response = api.store_transactions('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.core.store_transactions.StoreTransactionsCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      response = await api.store_transactions('trytes')
 
       self.assertTrue(mocked_command.called)
 

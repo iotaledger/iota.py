@@ -11,14 +11,14 @@ from getpass import getpass
 import json
 
 # Declare an API object
-api = Iota('https://nodes.devnet.iota.org:443', testnet=True)
+api = Iota('https://nodes.devnet.iota.org:443', devnet=True)
 
 # Prompt user for tail tx hash of the bundle
 tail_hash = input('Tail transaction hash of the bundle: ')
 
 print('Looking for bundle on the Tangle...')
 # Fetch bundle
-bundle = api.get_bundles(tail_hash)['bundles'][0]
+bundle = api.get_bundles([tail_hash])['bundles'][0]
 
 print('Extracting data from bundle...')
 # Get all messages from the bundle and concatenate them

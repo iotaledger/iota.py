@@ -1,19 +1,11 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
-from six import text_type
-
-from iota import Iota, TransactionTrytes
-from iota.adapter import MockAdapter
+from iota import Iota, AsyncIota, TransactionTrytes
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.broadcast_and_store import BroadcastAndStoreCommand
-from test import patch, MagicMock
-
+from test import patch, MagicMock, async_test
 
 class BroadcastAndStoreCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(BroadcastAndStoreCommandTestCase, self).setUp()
 
@@ -27,12 +19,12 @@ class BroadcastAndStoreCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.broadcast_and_store.BroadcastAndStoreCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -47,14 +39,38 @@ class BroadcastAndStoreCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.broadcast_and_store.BroadcastAndStoreCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.broadcast_and_store('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Successful invocation of ``broadcastAndStore``.
     """
     self.adapter.seed_response('broadcastTransactions', {
       'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
+        str(self.trytes1, 'ascii'),
+        str(self.trytes2, 'ascii'),
       ],
     })
 
@@ -65,6 +81,6 @@ class BroadcastAndStoreCommandTestCase(TestCase):
       TransactionTrytes(self.trytes2),
     ]
 
-    response = self.command(trytes=trytes)
+    response = await self.command(trytes=trytes)
 
     self.assertDictEqual(response, {'trytes': trytes})

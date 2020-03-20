@@ -1,15 +1,13 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from typing import Dict
 
 # Define a few magic constants.
-DEFAULT_PORT = 14265
+DEFAULT_PORT: int = 14265
 """
 Default port to use when configuring an adapter, if the port is not
 specified.
 """
 
-TRITS_PER_TRYTE = 3
+TRITS_PER_TRYTE: int = 3
 """
 Number of trits in a tryte.
 Changing this will probably break everything, but there's a chance it
@@ -17,7 +15,7 @@ could create a sexy new altcoin instead.
 In that way, it's kind of like toxic waste in a superhero story.
 """
 
-STANDARD_UNITS = {
+STANDARD_UNITS: Dict[str, int] = {
     # Valid IOTA unit suffixes. Example value '-273.15 Ki'
     'i': 1,
     'Ki': 1000,
@@ -35,6 +33,7 @@ from .codecs import *
 from .types import *
 from .transaction import *
 from .adapter import *
+from .api_async import *
 from .api import *
 from .trits import *
 

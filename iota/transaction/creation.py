@@ -1,10 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Iterable, Iterator, List, Optional, Sequence
-
-from six import PY2
 
 from iota.crypto import HASH_LENGTH
 from iota.crypto.kerl import Kerl
@@ -78,12 +72,12 @@ class ProposedTransaction(Transaction):
 
     def __init__(
             self,
-            address,  # type: Address
-            value,  # type: int
-            tag=None,  # type: Optional[Tag]
-            message=None,  # type: Optional[TryteString]
-            timestamp=None,  # type: Optional[int]
-    ):
+            address: Address,
+            value: int,
+            tag: Optional[Tag] = None,
+            message: Optional[TryteString] = None,
+            timestamp: Optional[int] = None,
+    ) -> None:
         if not timestamp:
             timestamp = get_current_timestamp()
 
@@ -113,8 +107,7 @@ class ProposedTransaction(Transaction):
 
         self.message = TryteString(b'') if message is None else message
 
-    def as_tryte_string(self):
-        # type: () -> TryteString
+    def as_tryte_string(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction.
 
@@ -142,7 +135,7 @@ class ProposedTransaction(Transaction):
 
         return super(ProposedTransaction, self).as_tryte_string()
 
-    def increment_legacy_tag(self):
+    def increment_legacy_tag(self) -> None:
         """
         Increments the transaction's legacy tag, used to fix insecure
         bundle hashes when finalizing a bundle.
@@ -190,13 +183,13 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
     def __init__(
             self,
-            transactions=None,  # type: Optional[Iterable[ProposedTransaction]]
-            inputs=None,  # type: Optional[Iterable[Address]]
-            change_address=None,  # type: Optional[Address]
-    ):
+            transactions: Optional[Iterable[ProposedTransaction]] = None,
+            inputs: Optional[Iterable[Address]] = None,
+            change_address: Optional[Address] = None,
+    ) -> None:
         super(ProposedBundle, self).__init__()
 
-        self._transactions = []  # type: List[ProposedTransaction]
+        self._transactions: List[ProposedTransaction] = []
 
         if transactions:
             for t in transactions:
@@ -207,8 +200,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         self.change_address = change_address
 
-    def __bool__(self):
-        # type: () -> bool
+    def __bool__(self) -> bool:
         """
         Returns whether this bundle has any transactions.
 
@@ -216,38 +208,29 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         """
         return bool(self._transactions)
 
-    # :bc: Magic methods have different names in Python 2.
-    if PY2:
-        __nonzero__ = __bool__
-
-    def __contains__(self, transaction):
-        # type: (ProposedTransaction) -> bool
+    def __contains__(self, transaction: ProposedTransaction) -> bool:
         return transaction in self._transactions
 
-    def __getitem__(self, index):
-        # type: (int) -> ProposedTransaction
+    def __getitem__(self, index: int) -> ProposedTransaction:
         """
         Returns the transaction at the specified index.
         """
         return self._transactions[index]
 
-    def __iter__(self):
-        # type: () -> Iterator[ProposedTransaction]
+    def __iter__(self) -> Iterator[ProposedTransaction]:
         """
         Iterates over transactions in the bundle.
         """
         return iter(self._transactions)
 
-    def __len__(self):
-        # type: () -> int
+    def __len__(self) -> int:
         """
         Returns te number of transactions in the bundle.
         """
         return len(self._transactions)
 
     @property
-    def balance(self):
-        # type: () -> int
+    def balance(self) -> int:
         """
         Returns the bundle balance.
         In order for a bundle to be valid, its balance must be 0:
@@ -265,8 +248,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         return sum(t.value for t in self._transactions)
 
     @property
-    def tag(self):
-        # type: () -> Tag
+    def tag(self) -> Tag:
         """
         Determines the most relevant tag for the bundle.
 
@@ -278,8 +260,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         return Tag(b'')
 
-    def as_json_compatible(self):
-        # type: () -> List[dict]
+    def as_json_compatible(self) -> List[dict]:
         """
         Returns a JSON-compatible representation of the object.
 
@@ -293,8 +274,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
         """
         return [txn.as_json_compatible() for txn in self]
 
-    def add_transaction(self, transaction):
-        # type: (ProposedTransaction) -> None
+    def add_transaction(self, transaction: ProposedTransaction) -> None:
         """
         Adds a transaction to the bundle.
 
@@ -338,8 +318,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
             fragment = fragment[Fragment.LEN:]
 
-    def add_inputs(self, inputs):
-        # type: (Iterable[Address]) -> None
+    def add_inputs(self, inputs: Iterable[Address]) -> None:
         """
         Specifies inputs that can be used to fund transactions that spend iotas.
 
@@ -396,8 +375,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
             self._create_input_transactions(addy)
 
-    def send_unspent_inputs_to(self, address):
-        # type: (Address) -> None
+    def send_unspent_inputs_to(self, address: Address) -> None:
         """
         Specifies the address that will receive unspent iotas.
 
@@ -416,8 +394,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         self.change_address = address
 
-    def finalize(self):
-        # type: () -> None
+    def finalize(self) -> None:
         """
         Finalizes the bundle, preparing it to be attached to the Tangle.
 
@@ -476,7 +453,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
                 txn.current_index = i
                 txn.last_index = last_index
 
-                sponge.absorb(txn.get_signature_validation_trytes().as_trits())
+                sponge.absorb(txn.get_bundle_essence_trytes().as_trits())
 
             bundle_hash_trits = [0] * HASH_LENGTH
             sponge.squeeze(bundle_hash_trits)
@@ -487,9 +464,9 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             # https://github.com/iotaledger/iota.py/issues/84
             if any(13 in part for part in normalize(bundle_hash)):
                 # Increment the legacy tag and try again.
-                tail_transaction = (
+                tail_transaction: ProposedTransaction = (
                     self.tail_transaction
-                )  # type: ProposedTransaction
+                )
                 tail_transaction.increment_legacy_tag()
             else:
                 break
@@ -501,8 +478,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
             # Initialize signature/message fragment.
             txn.signature_message_fragment = Fragment(txn.message or b'')
 
-    def sign_inputs(self, key_generator):
-        # type: (KeyGenerator) -> None
+    def sign_inputs(self, key_generator: KeyGenerator) -> None:
         """
         Sign inputs in a finalized bundle.
 
@@ -572,8 +548,11 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
                 # cases); skip this transaction.
                 i += 1
 
-    def sign_input_at(self, start_index, private_key):
-        # type: (int, PrivateKey) -> None
+    def sign_input_at(
+            self,
+            start_index: int,
+            private_key: PrivateKey
+    ) -> None:
         """
         Signs the input at the specified index.
 
@@ -600,8 +579,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         private_key.sign_input_transactions(self, start_index)
 
-    def _create_input_transactions(self, addy):
-        # type: (Address) -> None
+    def _create_input_transactions(self, addy: Address) -> None:
         """
         Creates transactions for the specified input address.
 
@@ -631,10 +609,9 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
     def add_signature_or_message(
             self,
-            fragments,  # type: Iterable[Fragment]
-            start_index=0  # type: Optional[int]
-    ):
-        # type: (...) -> None
+            fragments: Iterable[Fragment],
+            start_index: Optional[int] = 0
+    ) -> None:
         """
         Adds signature/message fragments to transactions in the bundle
         starting at start_index. If a transaction already has a fragment,

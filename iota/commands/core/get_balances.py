@@ -1,9 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
-from six import iteritems
 
 from iota import TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
@@ -30,7 +25,7 @@ class GetBalancesCommand(FilterCommand):
 
 
 class GetBalancesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetBalancesRequestFilter, self).__init__(
             {
                 'addresses':
@@ -55,9 +50,9 @@ class GetBalancesRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        value = super(GetBalancesRequestFilter, self)._apply(
+        value: dict = super(GetBalancesRequestFilter, self)._apply(
             value
-        )  # type: dict
+        )
 
         if self._has_errors:
             return value
@@ -66,7 +61,7 @@ class GetBalancesRequestFilter(RequestFilter):
         # Note: We will assume that empty lists are intentional.
         search_terms = {
             term: query
-            for term, query in iteritems(value)
+            for term, query in value.items()
             if query is not None
         }
 
@@ -74,7 +69,7 @@ class GetBalancesRequestFilter(RequestFilter):
 
 
 class GetBalancesResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetBalancesResponseFilter, self).__init__({
             'balances': f.Array | f.FilterRepeater(f.Int),
 

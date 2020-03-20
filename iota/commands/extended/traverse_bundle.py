@@ -1,12 +1,8 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List, Optional
 
 import filters as f
 
-from iota import BadApiResponse, BundleHash, Transaction, \
+from iota import BadApiResponse, Transaction, \
     TransactionHash, TryteString, Bundle, TransactionTrytes
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core.get_trytes import GetTrytesCommand
@@ -32,18 +28,22 @@ class TraverseBundleCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        txn_hash = request['transaction']  # type: TransactionHash
+    async def _execute(self, request: dict) -> dict:
+        txn_hash: TransactionHash = request['transaction']
 
-        bundle = Bundle(self._traverse_bundle(txn_hash, None))
+        bundle = Bundle(await self._traverse_bundle(txn_hash, None))
 
         # No bundle validation
 
         return {
-            'bundles' : [bundle]
+            'bundles': [bundle]
         }
 
-    def _traverse_bundle(self, txn_hash, target_bundle_hash):
+    async def _traverse_bundle(
+            self,
+            txn_hash: TransactionHash,
+            target_bundle_hash: Optional[TransactionHash]
+    ) -> List[Transaction]:
         """
         Recursively traverse the Tangle, collecting transactions until
         we hit a new bundle.
@@ -51,9 +51,9 @@ class TraverseBundleCommand(FilterCommand):
         This method is (usually) faster than ``findTransactions``, and
         it ensures we don't collect transactions from replayed bundles.
         """
-        trytes = (
-            GetTrytesCommand(self.adapter)(hashes=[txn_hash])['trytes']
-        )  # type: List[TryteString]
+        trytes: List[TryteString] = (await GetTrytesCommand(self.adapter)(
+            hashes=[txn_hash])
+        )['trytes']
 
         # If no tx was found by the node for txn_hash, it returns 9s,
         # so we check here if it returned all 9s trytes.
@@ -99,13 +99,14 @@ class TraverseBundleCommand(FilterCommand):
 
         # Recursively follow the trunk transaction, to fetch the next
         # transaction in the bundle.
-        return [transaction] + self._traverse_bundle(
+        return [transaction] + await self._traverse_bundle(
             transaction.trunk_transaction_hash,
             target_bundle_hash
         )
 
+
 class TraverseBundleRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(TraverseBundleRequestFilter, self).__init__({
             'transaction': f.Required | Trytes(TransactionHash),
         })

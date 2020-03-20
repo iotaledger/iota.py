@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 from iota.filters import Trytes
 
@@ -31,19 +27,19 @@ class BroadcastBundleCommand(FilterCommand):
         # Return value is filtered before hitting us.
         pass
 
-    def _execute(self, request):
+    async def _execute(self, request: dict) -> dict:
         # Given tail hash, fetches the bundle from the tangle
         # and validates it.
-        # Returns List[List[TransactionTrytes]]
-        # (outer list has one item in current implementation)
-        bundle = GetBundlesCommand(self.adapter)(transactions=[request['tail_hash']])
-        BroadcastTransactionsCommand(self.adapter)(trytes=bundle[0])
+        tail_hash: TransactionHash = request['tail_hash']
+        bundle = await GetBundlesCommand(self.adapter)(transactions=[tail_hash])
+        await BroadcastTransactionsCommand(self.adapter)(trytes=bundle[0])
         return {
             'trytes': bundle[0],
         }
 
+
 class BroadcastBundleRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(BroadcastBundleRequestFilter, self).__init__({
             'tail_hash': f.Required | Trytes(TransactionHash),
         })

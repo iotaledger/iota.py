@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List, Optional
 
 import filters as f
@@ -29,45 +25,45 @@ class PrepareMultisigTransferCommand(FilterCommand):
     """
     command = 'prepareMultisigTransfer'
 
-    def get_request_filter(self):
+    def get_request_filter(self) -> 'PrepareMultisigTransferRequestFilter':
         return PrepareMultisigTransferRequestFilter()
 
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        change_address = request['changeAddress']  # type: Optional[Address]
-        multisig_input = request['multisigInput']  # type: MultisigAddress
-        transfers = request['transfers']  # type: List[ProposedTransaction]
+    async def _execute(self, request: dict) -> dict:
+        change_address: Optional[Address] = request['changeAddress']
+        multisig_input: MultisigAddress = request['multisigInput']
+        transfers: List[ProposedTransaction] = request['transfers']
 
         bundle = ProposedMultisigBundle(transfers)
 
         want_to_spend = bundle.balance
         if want_to_spend > 0:
-            gb_response = GetBalancesCommand(self.adapter)(
-                addresses=[multisig_input],
+            gb_response = await GetBalancesCommand(self.adapter)(
+                    addresses=[multisig_input],
             )
 
             multisig_input.balance = gb_response['balances'][0]
 
             if multisig_input.balance < want_to_spend:
                 raise with_context(
-                    exc=ValueError(
-                        'Insufficient balance; found {found}, need {need} '
-                        '(``exc.context`` has more info).'.format(
-                            found=multisig_input.balance,
-                            need=want_to_spend,
+                        exc=ValueError(
+                                'Insufficient balance; found {found}, need {need} '
+                                '(``exc.context`` has more info).'.format(
+                                        found=multisig_input.balance,
+                                        need=want_to_spend,
+                                ),
                         ),
-                    ),
 
-                    # The structure of this context object is intended
-                    # to match the one from ``PrepareTransferCommand``.
-                    context={
-                        'available_to_spend': multisig_input.balance,
-                        'confirmed_inputs': [multisig_input],
-                        'request': request,
-                        'want_to_spend': want_to_spend,
-                    },
+                        # The structure of this context object is intended
+                        # to match the one from ``PrepareTransferCommand``.
+                        context={
+                            'available_to_spend': multisig_input.balance,
+                            'confirmed_inputs': [multisig_input],
+                            'request': request,
+                            'want_to_spend': want_to_spend,
+                        },
                 )
 
             bundle.add_inputs([multisig_input])
@@ -90,29 +86,29 @@ class PrepareMultisigTransferCommand(FilterCommand):
                     # method!
                     #
                     raise with_context(
-                        exc=ValueError(
-                            'Bundle has unspent inputs, '
-                            'but no change address specified.',
-                        ),
+                            exc=ValueError(
+                                    'Bundle has unspent inputs, '
+                                    'but no change address specified.',
+                            ),
 
-                        context={
-                            'available_to_spend': multisig_input.balance,
-                            'balance': bundle.balance,
-                            'confirmed_inputs': [multisig_input],
-                            'request': request,
-                            'want_to_spend': want_to_spend,
-                        },
+                            context={
+                                'available_to_spend': multisig_input.balance,
+                                'balance': bundle.balance,
+                                'confirmed_inputs': [multisig_input],
+                                'request': request,
+                                'want_to_spend': want_to_spend,
+                            },
                     )
         else:
             raise with_context(
-                exc=ValueError(
-                    'Use ``prepare_transfer`` '
-                    'to create a bundle without spending IOTAs.',
-                ),
+                    exc=ValueError(
+                            'Use ``prepare_transfer`` '
+                            'to create a bundle without spending IOTAs.',
+                    ),
 
-                context={
-                    'request': request,
-                },
+                    context={
+                        'request': request,
+                    },
             )
 
         bundle.finalize()
@@ -124,19 +120,19 @@ class PrepareMultisigTransferCommand(FilterCommand):
 
 
 class PrepareMultisigTransferRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(PrepareMultisigTransferRequestFilter, self).__init__(
-            {
-                'changeAddress': Trytes(Address),
-                'multisigInput': f.Required | f.Type(MultisigAddress),
+                {
+                    'changeAddress': Trytes(Address),
+                    'multisigInput': f.Required | f.Type(MultisigAddress),
 
-                'transfers':
-                    f.Required | f.Array | f.FilterRepeater(
-                        f.Required | f.Type(ProposedTransaction),
-                    ),
-            },
+                    'transfers':
+                        f.Required | f.Array | f.FilterRepeater(
+                                f.Required | f.Type(ProposedTransaction),
+                        ),
+                },
 
-            allow_missing_keys={
-                'changeAddress',
-            },
+                allow_missing_keys={
+                    'changeAddress',
+                },
         )

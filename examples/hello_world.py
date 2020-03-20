@@ -1,19 +1,13 @@
-# coding=utf-8
 """
 Simple "Hello, world!" example that sends a `getNodeInfo` command to
 your friendly neighborhood node.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from argparse import ArgumentParser
 from pprint import pprint
 from sys import argv
 from typing import Text
-
-from requests.exceptions import ConnectionError
-from six import text_type
+from httpx.exceptions import NetworkError
 
 from iota import BadApiResponse, StrictIota, __version__
 
@@ -24,7 +18,7 @@ def main(uri):
 
     try:
         node_info = api.get_node_info()
-    except ConnectionError as e:
+    except NetworkError as e:
         print(
             "Hm.  {uri} isn't responding; is the node running?".format(uri=uri)
         )
@@ -45,7 +39,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--uri',
-        type=text_type,
+        type=str,
         default='http://localhost:14265/',
 
         help=(

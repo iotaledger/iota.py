@@ -1,15 +1,11 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash
-from iota.adapter import MockAdapter
+from iota import Iota, TransactionHash, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.get_node_info import GetNodeInfoCommand
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetNodeInfoRequestFilterTestCase(BaseFilterTestCase):
@@ -47,7 +43,6 @@ class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
   filter_type = GetNodeInfoCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def test_pass_happy_path(self):
     """
     The incoming response contains valid values.
@@ -122,18 +117,39 @@ class GetNodeInfoCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.core.get_node_info.GetNodeInfoCommand.__call__',
-              MagicMock(return_value='You found me!')
+               MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
 
-      # Don't need to call with proper args here.
       response = api.get_node_info()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.core.get_node_info.GetNodeInfoCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      response = await api.get_node_info()
 
       self.assertTrue(mocked_command.called)
 

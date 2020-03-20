@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from itertools import chain
 from typing import Optional
 
@@ -34,22 +30,24 @@ class GetTransfersCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        inclusion_states = request['inclusionStates']  # type: bool
-        seed = request['seed']  # type: Seed
-        start = request['start']  # type: int
-        stop = request['stop']  # type: Optional[int]
+    async def _execute(self, request: dict) -> dict:
+        inclusion_states: bool = request['inclusionStates']
+        seed: Seed = request['seed']
+        start: int = request['start']
+        stop: Optional[int] = request['stop']
 
         # Determine the addresses we will be scanning, and pull their
         # transaction hashes.
         if stop is None:
             my_hashes = list(chain(*(
-                hashes
-                for _, hashes in iter_used_addresses(self.adapter, seed, start)
+                [
+                    hashes async for _, hashes in
+                    iter_used_addresses(self.adapter, seed, start)
+                ]
             )))
         else:
             ft_response = \
-                FindTransactionsCommand(self.adapter)(
+                await FindTransactionsCommand(self.adapter)(
                     addresses=
                     AddressGenerator(seed).get_addresses(start, stop - start),
                 )
@@ -58,7 +56,7 @@ class GetTransfersCommand(FilterCommand):
 
         return {
             'bundles':
-                get_bundles_from_transaction_hashes(
+                await get_bundles_from_transaction_hashes(
                     adapter=self.adapter,
                     transaction_hashes=my_hashes,
                     inclusion_states=inclusion_states,
@@ -77,7 +75,7 @@ class GetTransfersRequestFilter(RequestFilter):
         CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTransfersRequestFilter, self).__init__(
             {
                 # Required parameters.
@@ -98,7 +96,6 @@ class GetTransfersRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        # noinspection PyProtectedMember
         filtered = super(GetTransfersRequestFilter, self)._apply(value)
 
         if self._has_errors:

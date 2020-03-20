@@ -1,12 +1,8 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
-from typing import Text, Type
+from typing import Type
 
 import filters as f
 from filters.macros import filter_macro
-from six import binary_type, moves as compat, text_type
+from urllib.parse import urlparse
 
 from iota import Address, TryteString, TrytesCompatible
 from iota.crypto.addresses import AddressGenerator
@@ -44,7 +40,7 @@ class GeneratedAddress(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(Address))  # type: Address
+        value: Address = self._filter(value, f.Type(Address))
 
         if self._has_errors:
             return None
@@ -81,12 +77,12 @@ class NodeUri(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value = self._filter(value, f.Type(text_type))  # type: Text
+        value: str = self._filter(value, f.Type(str))
 
         if self._has_errors:
             return None
 
-        parsed = compat.urllib_parse.urlparse(value)
+        parsed = urlparse(value)
 
         if parsed.scheme not in self.SCHEMES:
             return self._invalid_value(value, self.CODE_NOT_NODE_URI)
@@ -94,9 +90,8 @@ class NodeUri(f.BaseFilter):
         return value
 
 
-# noinspection PyPep8Naming
 @filter_macro
-def SecurityLevel():
+def SecurityLevel() -> f.FilterChain:
     """
     Generates a filter chain for validating a security level.
 
@@ -138,8 +133,7 @@ class Trytes(f.BaseFilter):
         CODE_WRONG_FORMAT: 'This value is not a valid {result_type}.',
     }
 
-    def __init__(self, result_type=TryteString):
-        # type: (type) -> None
+    def __init__(self, result_type: type = TryteString) -> None:
         super(Trytes, self).__init__()
 
         if not isinstance(result_type, type):
@@ -164,14 +158,13 @@ class Trytes(f.BaseFilter):
         self.result_type = result_type
 
     def _apply(self, value):
-        # noinspection PyTypeChecker
-        value = self._filter(
+        value: TrytesCompatible = self._filter(
             filter_chain=f.Type(
-                (binary_type, bytearray, text_type, TryteString)
+                (bytes, bytearray, str, TryteString)
             ),
 
             value=value,
-        )  # type: TrytesCompatible
+        )
 
         if self._has_errors:
             return None
@@ -211,10 +204,8 @@ class Trytes(f.BaseFilter):
             )
 
 
-# noinspection PyPep8Naming
 @filter_macro
-def StringifiedTrytesArray(trytes_type=TryteString):
-    # type: (Type[TryteString]) -> f.FilterChain
+def StringifiedTrytesArray(trytes_type: Type = TryteString) -> f.FilterChain:
     """
     Validates that the incoming value is an array containing tryte
     strings corresponding to the specified type (e.g.,
@@ -223,7 +214,7 @@ def StringifiedTrytesArray(trytes_type=TryteString):
     When a value doesn't pass the filter, a ``ValueError`` is raised with lots
     of contextual info attached to it.
 
-    :param TryteString result_type:
+    :param TryteString trytes_type:
         Any subclass of :py:class:`~iota.TryteString` that you want the filter
         to validate.
 
@@ -265,7 +256,7 @@ class AddressNoChecksum(Trytes):
             'Checksum is {supplied_checksum}, should be {expected_checksum}?',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(AddressNoChecksum, self).__init__(result_type=Address)
 
     def _apply(self, value):

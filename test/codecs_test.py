@@ -1,17 +1,10 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from codecs import decode, encode
 from unittest import TestCase
 from warnings import catch_warnings, simplefilter as simple_filter
 
-from six import text_type
-
 from iota.codecs import AsciiTrytesCodec, TrytesDecodeError
 
 
-# noinspection SpellCheckingInspection
 class AsciiTrytesCodecTestCase(TestCase):
   def test_encode_byte_string(self):
     """
@@ -134,4 +127,4 @@ class AsciiTrytesCodecTestCase(TestCase):
 
     self.assertEqual(len(warnings), 1)
     self.assertEqual(warnings[0].category, DeprecationWarning)
-    self.assertIn('codec will be removed', text_type(warnings[0].message))
+    self.assertIn('codec will be removed', str(warnings[0].message))

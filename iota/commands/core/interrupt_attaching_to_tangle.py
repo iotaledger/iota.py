@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from iota.commands import FilterCommand, RequestFilter
 
 __all__ = [
@@ -25,7 +21,7 @@ class InterruptAttachingToTangleCommand(FilterCommand):
 
 
 class InterruptAttachingToTangleRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         # ``interruptAttachingToTangle`` takes no parameters.
         # Using a filter here just to enforce that the request is empty.
         super(InterruptAttachingToTangleRequestFilter, self).__init__({})

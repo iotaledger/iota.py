@@ -1,26 +1,20 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
-from iota import Bundle, Iota, TransactionHash, TransactionTrytes, BadApiResponse
-from iota.adapter import MockAdapter
+from iota import Bundle, Iota, TransactionHash, TransactionTrytes, \
+  BadApiResponse, AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.promote_transaction import PromoteTransactionCommand
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
   filter_type = PromoteTransactionCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(PromoteTransactionRequestFilterTestCase, self).setUp()
 
@@ -51,7 +45,7 @@ class PromoteTransactionRequestFilterTestCase(BaseFilterTestCase):
     """
     filter_ = self._filter({
       # This can be any TrytesCompatible value.
-      'transaction': binary_type(self.trytes1),
+      'transaction': bytes(self.trytes1),
 
       # These values must still be ints, however.
       'depth':              100,
@@ -312,12 +306,12 @@ class PromoteTransactionCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.promote_transaction.PromoteTransactionCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -332,7 +326,31 @@ class PromoteTransactionCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.promote_transaction.PromoteTransactionCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.promote_transaction('transaction')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Successfully promoting a bundle.
     """
@@ -345,16 +363,16 @@ class PromoteTransactionCommandTestCase(TestCase):
       TransactionTrytes(self.trytes1),
       TransactionTrytes(self.trytes2),
     ])
-    mock_send_transfer = mock.Mock(return_value={
+    mock_send_transfer = mock.Mock(return_value=async_return({
       'bundle': result_bundle,
-    })
+    }))
 
     with mock.patch(
         'iota.commands.extended.send_transfer.SendTransferCommand._execute',
         mock_send_transfer,
     ):
 
-      response = self.command(
+      response = await self.command(
         transaction=self.hash1,
         depth=3,
         minWeightMagnitude=16,
@@ -368,17 +386,19 @@ class PromoteTransactionCommandTestCase(TestCase):
       }
     )
 
-  def test_not_promotable(self):
+  @async_test
+  async def test_not_promotable(self):
     """
     Bundle isn't promotable.
     """
 
     self.adapter.seed_response('checkConsistency', {
       'state': False,
+      'info': 'Something went terribly wrong.',
     })
 
     with self.assertRaises(BadApiResponse):
-      response = self.command(
+      response = await self.command(
         transaction=self.hash1,
         depth=3,
         minWeightMagnitude=16,

@@ -1,18 +1,14 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 import json
 from abc import ABCMeta, abstractmethod as abstract_method
+from asyncio import Future
 from collections import deque
 from inspect import isabstract as is_abstract
 from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Container, Dict, List, Optional, Text, Tuple, Union
-
-from requests import Response, auth, codes, request
-from six import PY2, binary_type, iteritems, moves as compat, text_type, \
-    add_metaclass
+from typing import Container, List, Optional, Tuple, Union, Any, Dict
+from httpx import AsyncClient, Response, codes, BasicAuth
+import asyncio
 
 from iota.exceptions import with_context
 from iota.json import JsonEncoder
@@ -28,13 +24,6 @@ __all__ = [
     'resolve_adapter',
 ]
 
-if PY2:
-    # Fix an error when importing this package using the ``imp`` library
-    # (note: ``imp`` is deprecated since Python 3.4 in favor of
-    # ``importlib``).
-    # https://docs.python.org/3/library/imp.html
-    # https://travis-ci.org/iotaledger/iota.py/jobs/191974244
-    __all__ = map(binary_type, __all__)
 
 API_VERSION = '1'
 """
@@ -43,7 +32,7 @@ https://github.com/iotaledger/iota.py/issues/84
 """
 
 # Custom types for type hints and docstrings.
-AdapterSpec = Union[Text, 'BaseAdapter']
+AdapterSpec = Union[str, 'BaseAdapter']
 """
 Placeholder that means “URI or adapter instance”.
 
@@ -52,12 +41,18 @@ upon API instance creation.
 """
 
 # Load SplitResult for IDE type hinting and autocompletion.
-if PY2:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urlparse import SplitResult
-else:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urllib.parse import SplitResult
+from urllib.parse import SplitResult, urlsplit
+
+
+def async_return(result: Any) -> Future:
+  """
+  Turns 'result' into a `Future` object with 'result' value.
+
+  Important for mocking, as we can await the mock's return value.
+  """
+  f = asyncio.Future()
+  f.set_result(result)
+  return f
 
 
 class BadApiResponse(ValueError):
@@ -74,21 +69,20 @@ class InvalidUri(ValueError):
     pass
 
 
-adapter_registry = {}  # type: Dict[Text, AdapterMeta]
+adapter_registry: Dict[str, 'AdapterMeta'] = {}
 """
 Keeps track of available adapters and their supported protocols.
 """
 
 
-def resolve_adapter(uri):
-    # type: (AdapterSpec) -> BaseAdapter
+def resolve_adapter(uri: AdapterSpec) -> 'BaseAdapter':
     """
     Given a URI, returns a properly-configured adapter instance.
     """
     if isinstance(uri, BaseAdapter):
         return uri
 
-    parsed = compat.urllib_parse.urlsplit(uri)  # type: SplitResult
+    parsed: SplitResult = urlsplit(uri)
 
     if not parsed.scheme:
         raise with_context(
@@ -124,8 +118,7 @@ class AdapterMeta(ABCMeta):
     Automatically registers new adapter classes in ``adapter_registry``.
     """
 
-    # noinspection PyShadowingBuiltins
-    def __init__(cls, what, bases=None, dict=None):
+    def __init__(cls, what, bases=None, dict=None) -> None:
         super(AdapterMeta, cls).__init__(what, bases, dict)
 
         if not is_abstract(cls):
@@ -134,8 +127,7 @@ class AdapterMeta(ABCMeta):
                 # adapters.
                 adapter_registry.setdefault(protocol, cls)
 
-    def configure(cls, parsed):
-        # type: (Union[Text, SplitResult]) -> HttpAdapter
+    def configure(cls, parsed: Union[str, SplitResult]) -> 'HttpAdapter':
         """
         Creates a new instance using the specified URI.
 
@@ -145,29 +137,27 @@ class AdapterMeta(ABCMeta):
         return cls(parsed)
 
 
-@add_metaclass(AdapterMeta)
-class BaseAdapter(object):
+class BaseAdapter(object, metaclass=AdapterMeta):
     """
     Interface for IOTA API adapters.
 
     Adapters make it easy to customize the way an API instance
     communicates with a node.
     """
-    supported_protocols = ()  # type: Tuple[Text]
+    supported_protocols: Tuple[str] = ()
     """
     Protocols that ``resolve_adapter`` can use to identify this adapter
     type.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(BaseAdapter, self).__init__()
 
-        self._logger = None  # type: Logger
-        self.local_pow = False # type: boolean
+        self._logger: Optional[Logger] = None
+        self.local_pow: bool = False
 
     @abstract_method
-    def get_uri(self):
-        # type: () -> Text
+    def get_uri(self) -> str:
         """
         Returns the URI that this adapter will use.
         """
@@ -176,8 +166,7 @@ class BaseAdapter(object):
         )
 
     @abstract_method
-    def send_request(self, payload, **kwargs):
-        # type: (dict, dict) -> dict
+    def send_request(self, payload: dict, **kwargs: Any) -> dict:
         """
         Sends an API request to the node.
 
@@ -198,8 +187,7 @@ class BaseAdapter(object):
             'Not implemented in {cls}.'.format(cls=type(self).__name__),
         )
 
-    def set_logger(self, logger):
-        # type: (Logger) -> BaseAdapter
+    def set_logger(self, logger: Logger) -> 'BaseAdapter':
         """
         Attaches a logger instance to the adapter.
         The adapter will send information about API requests/responses
@@ -208,16 +196,19 @@ class BaseAdapter(object):
         self._logger = logger
         return self
 
-    def _log(self, level, message, context=None):
-        # type: (int, Text, Optional[dict]) -> None
+    def _log(
+            self,
+            level: int,
+            message: str,
+            context: Optional[dict] = None
+    ) -> None:
         """
         Sends a message to the instance's logger, if configured.
         """
         if self._logger:
             self._logger.log(level, message, extra={'context': context or {}})
 
-    def set_local_pow(self, local_pow):
-        # type: (bool) -> None
+    def set_local_pow(self, local_pow: bool) -> None:
         """
         Sets the local_pow attribute of the adapter. If it is true,
         attach_to_tangle command calls external interface to perform
@@ -226,6 +217,7 @@ class BaseAdapter(object):
         """
         self.local_pow = local_pow
 
+
 class HttpAdapter(BaseAdapter):
     """
     Sends standard HTTP(S) requests to the node.
@@ -233,13 +225,13 @@ class HttpAdapter(BaseAdapter):
     :param AdapterSpec uri:
         URI or adapter instance.
 
-        If ``uri`` is a ``text_type``, it is parsed to extract ``scheme``,
+        If ``uri`` is a ``str``, it is parsed to extract ``scheme``,
         ``hostname`` and ``port``.
 
     :param Optional[int] timeout:
         Connection timeout in seconds.
 
-    :param Optional[Tuple(Text,Text)] authentication:
+    :param Optional[Tuple(str,str)] authentication:
         Credetentials for basic authentication with the node.
 
     :return:
@@ -267,15 +259,20 @@ class HttpAdapter(BaseAdapter):
     in the ``headers`` kwarg.
     """
 
-    def __init__(self, uri, timeout=None, authentication=None):
-        # type: (Union[Text, SplitResult], Optional[int]) -> None
+    def __init__(
+            self,
+            uri: Union[str, SplitResult],
+            timeout: Optional[int] = None,
+            authentication: Optional[Tuple[str, str]] = None
+    ) -> None:
         super(HttpAdapter, self).__init__()
 
+        self.client = AsyncClient()
         self.timeout = timeout
         self.authentication = authentication
 
-        if isinstance(uri, text_type):
-            uri = compat.urllib_parse.urlsplit(uri)  # type: SplitResult
+        if isinstance(uri, str):
+            uri: SplitResult = urlsplit(uri)
 
         if uri.scheme not in self.supported_protocols:
             raise with_context(
@@ -302,7 +299,6 @@ class HttpAdapter(BaseAdapter):
             )
 
         try:
-            # noinspection PyStatementEffect
             uri.port
         except ValueError:
             raise with_context(
@@ -320,24 +316,21 @@ class HttpAdapter(BaseAdapter):
         self.uri = uri
 
     @property
-    def node_url(self):
-        # type: () -> Text
+    def node_url(self) -> str:
         """
         Returns the node URL.
         """
         return self.uri.geturl()
 
-    def get_uri(self):
-        # type: () -> Text
+    def get_uri(self) -> str:
         return self.uri.geturl()
 
-    def send_request(self, payload, **kwargs):
-        # type: (dict, dict) -> dict
+    async def send_request(self, payload: dict, **kwargs: Any) -> dict:
         kwargs.setdefault('headers', {})
-        for key, value in iteritems(self.DEFAULT_HEADERS):
+        for key, value in self.DEFAULT_HEADERS.items():
             kwargs['headers'].setdefault(key, value)
 
-        response = self._send_http_request(
+        response = await self._send_http_request(
             # Use a custom JSON encoder that knows how to convert Tryte
             # values.
             payload=JsonEncoder().encode(payload),
@@ -346,10 +339,15 @@ class HttpAdapter(BaseAdapter):
             **kwargs
         )
 
-        return self._interpret_response(response, payload, {codes['ok']})
+        return self._interpret_response(response, payload, {codes['OK']})
 
-    def _send_http_request(self, url, payload, method='post', **kwargs):
-        # type: (Text, Optional[Text], Text, dict) -> Response
+    async def _send_http_request(
+            self,
+            url: str,
+            payload: Optional[str],
+            method: str = 'post',
+            **kwargs: Any
+    ) -> Response:
         """
         Sends the actual HTTP request.
 
@@ -362,7 +360,7 @@ class HttpAdapter(BaseAdapter):
         )
 
         if self.authentication:
-            kwargs.setdefault('auth', auth.HTTPBasicAuth(*self.authentication))
+            kwargs.setdefault('auth', BasicAuth(*self.authentication))
 
         self._log(
             level=DEBUG,
@@ -380,8 +378,7 @@ class HttpAdapter(BaseAdapter):
                 'request_url': url,
             },
         )
-
-        response = request(method=method, url=url, data=payload, **kwargs)
+        response = await self.client.request(method=method, url=url, data=payload, **kwargs)
 
         self._log(
             level=DEBUG,
@@ -405,8 +402,12 @@ class HttpAdapter(BaseAdapter):
 
         return response
 
-    def _interpret_response(self, response, payload, expected_status):
-        # type: (Response, dict, Container[int]) -> dict
+    def _interpret_response(
+            self,
+            response: Response,
+            payload: dict,
+            expected_status: Container[int]
+    ) -> dict:
         """
         Interprets the HTTP response from the node.
 
@@ -436,7 +437,7 @@ class HttpAdapter(BaseAdapter):
             )
 
         try:
-            decoded = json.loads(raw_content)  # type: dict
+            decoded: dict = json.loads(raw_content)
         # :bc: py2k doesn't have JSONDecodeError
         except ValueError:
             raise with_context(
@@ -474,9 +475,9 @@ class HttpAdapter(BaseAdapter):
 
         error = None
         try:
-            if response.status_code == codes['bad_request']:
+            if response.status_code == codes['BAD_REQUEST']:
                 error = decoded['error']
-            elif response.status_code == codes['internal_server_error']:
+            elif response.status_code == codes['INTERNAL_SERVER_ERROR']:
                 error = decoded['exception']
         except KeyError:
             pass
@@ -530,22 +531,20 @@ class MockAdapter(BaseAdapter):
     """
     supported_protocols = ('mock',)
 
-    # noinspection PyUnusedLocal
     @classmethod
     def configure(cls, uri):
         return cls()
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(MockAdapter, self).__init__()
 
-        self.responses = {}  # type: Dict[Text, deque]
-        self.requests = []  # type: List[dict]
+        self.responses: Dict[str, deque] = {}
+        self.requests: List[dict] = []
 
-    def get_uri(self):
+    def get_uri(self) -> str:
         return 'mock://'
 
-    def seed_response(self, command, response):
-        # type: (Text, dict) -> MockAdapter
+    def seed_response(self, command: str, response: dict) -> 'MockAdapter':
         """
         Sets the response that the adapter will return for the specified
         command.
@@ -559,7 +558,7 @@ class MockAdapter(BaseAdapter):
         have a seeded response for a particular command, it will raise a
         ``BadApiResponse`` exception (simulates a 404 response).
 
-        :param Text command:
+        :param str command:
             The name of the command. Note that this is the camelCase version
             of the command name (e.g., ``getNodeInfo``, not ``get_node_info``).
 
@@ -585,8 +584,10 @@ class MockAdapter(BaseAdapter):
         self.responses[command].append(response)
         return self
 
-    def send_request(self, payload, **kwargs):
-        # type: (dict, dict) -> dict
+    async def send_request(self, payload: Dict, **kwargs: Any) -> dict:
+        """
+        Mimic asynchronous behavior of `HttpAdapter.send_request`.
+        """
         # Store a snapshot so that we can inspect the request later.
         self.requests.append(dict(payload))
 
@@ -627,4 +628,4 @@ class MockAdapter(BaseAdapter):
             raise with_context(BadApiResponse(error),
                                context={'request': payload})
 
-        return response
+        return await async_return(response)

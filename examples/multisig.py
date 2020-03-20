@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Example of how to use PyOTA's multisig feature.
 
@@ -9,9 +8,6 @@ finally broadcast the transactions to the Tangle.
 References:
   - https://github.com/iotaledger/wiki/blob/master/multisigs.md
 """
-
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
 from typing import List
 
@@ -35,7 +31,6 @@ participants don't have to share their seeds.
 ##
 # Create digest 1 of 3.
 #
-# noinspection SpellCheckingInspection
 api_1 = MultisigIota(
     adapter='http://localhost:14265',
 
@@ -64,7 +59,6 @@ digest_1 = gd_result['digests'][0]  # type: Digest
 ##
 # Create digest 2 of 3.
 #
-# noinspection SpellCheckingInspection
 api_2 = MultisigIota(
     adapter='http://localhost:14265',
 
@@ -83,7 +77,6 @@ digest_2 = gd_result['digests'][0]  # type: Digest
 ##
 # Create digest 3 of 3.
 #
-# noinspection SpellCheckingInspection
 api_3 = MultisigIota(
     adapter='http://localhost:14265',
 
@@ -128,7 +121,6 @@ multisig address, or generate a new multisig address that will receive
 the change from the transaction!
 """
 
-# noinspection SpellCheckingInspection
 pmt_result = api_1.prepare_multisig_transfer(
     # These are the transactions that will spend the IOTAs.
     # You can divide up the IOTAs to send to multiple addresses if you

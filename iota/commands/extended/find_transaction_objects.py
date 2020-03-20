@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Iterable, List, Optional
 
 from iota import Address, BundleHash, Tag, Transaction, TransactionHash
@@ -23,17 +19,17 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        bundles = request\
-            .get('bundles')  # type: Optional[Iterable[BundleHash]]
-        addresses = request\
-            .get('addresses')  # type: Optional[Iterable[Address]]
-        tags = request\
-            .get('tags')  # type: Optional[Iterable[Tag]]
-        approvees = request\
-            .get('approvees')  # type: Optional[Iterable[TransactionHash]]
+    async def _execute(self, request: dict) -> dict:
+        bundles: Optional[Iterable[BundleHash]] = request\
+            .get('bundles')
+        addresses: Optional[Iterable[Address]] = request\
+            .get('addresses')
+        tags: Optional[Iterable[Tag]] = request\
+            .get('tags')
+        approvees: Optional[Iterable[TransactionHash]] = request\
+            .get('approvees')
 
-        ft_response = FindTransactionsCommand(adapter=self.adapter)(
+        ft_response = await FindTransactionsCommand(adapter=self.adapter)(
             bundles=bundles,
             addresses=addresses,
             tags=tags,
@@ -43,12 +39,12 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
         hashes = ft_response['hashes']
         transactions = []
         if hashes:
-            gt_response = GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
+            gt_response = await GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
 
-            transactions = list(map(
+            transactions: List[Transaction] = list(map(
                 Transaction.from_tryte_string,
                 gt_response.get('trytes') or [],
-            ))  # type: List[Transaction]
+            ))
 
         return {
             'transactions': transactions,

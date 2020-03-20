@@ -1,28 +1,21 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
-from iota import Address, Bundle, Iota, Tag, Transaction, TryteString
-from iota.adapter import MockAdapter
+from iota import Address, Bundle, Iota, AsyncIota, Tag, Transaction, TryteString
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_transfers import GetTransfersCommand, \
   GetTransfersRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetTransfersCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetTransfersRequestFilterTestCase, self).setUp()
 
@@ -316,7 +309,6 @@ class GetTransfersRequestFilterTestCase(BaseFilterTestCase):
     )
 
 
-# noinspection SpellCheckingInspection
 class GetTransfersCommandTestCase(TestCase):
   def setUp(self):
     super(GetTransfersCommandTestCase, self).setUp()
@@ -339,12 +331,12 @@ class GetTransfersCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.get_transfers.GetTransfersCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -358,7 +350,32 @@ class GetTransfersCommandTestCase(TestCase):
         response,
         'You found me!'
       )
-  def test_full_scan(self):
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.get_transfers.GetTransfersCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_transfers()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_full_scan(self):
     """
     Scanning the Tangle for all transfers.
     """
@@ -366,7 +383,6 @@ class GetTransfersCommandTestCase(TestCase):
     # :py:class:`iota.crypto.addresses.AddressGenerator` already has
     # its own test case, so this does not impact the stability of the
     # codebase.
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       for addy in [self.addy1, self.addy2][start::step]:
         yield addy
@@ -437,9 +453,9 @@ class GetTransfersCommandTestCase(TestCase):
     ])
 
     mock_get_bundles =\
-      mock.Mock(return_value={
+      mock.Mock(return_value=async_return({
         'bundles': [bundle],
-      })
+      }))
 
     with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
@@ -449,7 +465,7 @@ class GetTransfersCommandTestCase(TestCase):
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
-        response = self.command(seed=Seed.random())
+        response = await self.command(seed=Seed.random())
 
     self.assertDictEqual(
       response,
@@ -459,7 +475,8 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-  def test_no_transactions(self):
+  @async_test
+  async def test_no_transactions(self):
     """
     There are no transactions for the specified seed.
     """
@@ -467,7 +484,6 @@ class GetTransfersCommandTestCase(TestCase):
     # :py:class:`iota.crypto.addresses.AddressGenerator` already has
     # its own test case, so this does not impact the stability of the
     # codebase.
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       for addy in [self.addy1][start::step]:
         yield addy
@@ -491,15 +507,15 @@ class GetTransfersCommandTestCase(TestCase):
         'iota.crypto.addresses.AddressGenerator.create_iterator',
         create_generator,
     ):
-      response = self.command(seed=Seed.random())
+      response = await self.command(seed=Seed.random())
 
     self.assertDictEqual(response, {'bundles': []})
 
-  def test_start(self):
+  @async_test
+  async def test_start(self):
     """
     Scanning the Tangle for all transfers, with start index.
     """
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       # Inject an invalid value into the generator, to ensure it is
       # skipped.
@@ -568,9 +584,9 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = mock.Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value=async_return({
       'bundles': [bundle],
-    })
+    }))
 
     with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
@@ -580,7 +596,7 @@ class GetTransfersCommandTestCase(TestCase):
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
-        response = self.command(seed=Seed.random(), start=1)
+        response = await self.command(seed=Seed.random(), start=1)
 
     self.assertDictEqual(
       response,
@@ -590,11 +606,11 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-  def test_stop(self):
+  @async_test
+  async def test_stop(self):
     """
     Scanning the Tangle for all transfers, with stop index.
     """
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       # Inject an invalid value into the generator, to ensure it is
       # skipped.
@@ -646,9 +662,9 @@ class GetTransfersCommandTestCase(TestCase):
       )
     ])
 
-    mock_get_bundles = mock.Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value=async_return({
       'bundles': [bundle],
-    })
+    }))
 
     with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
@@ -658,7 +674,7 @@ class GetTransfersCommandTestCase(TestCase):
           'iota.commands.extended.get_bundles.GetBundlesCommand._execute',
           mock_get_bundles,
       ):
-        response = self.command(seed=Seed.random(), stop=1)
+        response = await self.command(seed=Seed.random(), stop=1)
 
     self.assertDictEqual(
       response,
@@ -668,11 +684,11 @@ class GetTransfersCommandTestCase(TestCase):
       },
     )
 
-  def test_get_inclusion_states(self):
+  @async_test
+  async def test_get_inclusion_states(self):
     """
     Fetching inclusion states with transactions.
     """
-    # noinspection PyUnusedLocal
     def create_generator(ag, start, step=1):
       for addy in [self.addy1][start::step]:
         yield addy
@@ -742,21 +758,21 @@ class GetTransfersCommandTestCase(TestCase):
 
       {
         'duration': 99,
-        'trytes':   [binary_type(transaction_trytes)],
+        'trytes':   [bytes(transaction_trytes)],
       },
     )
 
     transaction = Transaction.from_tryte_string(transaction_trytes)
 
-    mock_get_bundles = mock.Mock(return_value={
+    mock_get_bundles = mock.Mock(return_value=async_return({
       'bundles': [Bundle([transaction])],
-    })
+    }))
 
-    mock_get_latest_inclusion = mock.Mock(return_value={
+    mock_get_latest_inclusion = mock.Mock(return_value=async_return({
       'states': {
         transaction.hash: True,
       },
-    })
+    }))
 
     with mock.patch(
         'iota.crypto.addresses.AddressGenerator.create_iterator',
@@ -770,7 +786,7 @@ class GetTransfersCommandTestCase(TestCase):
           'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand._execute',
           mock_get_latest_inclusion,
         ):
-          response = self.command(
+          response = await self.command(
             seed = Seed.random(),
 
             inclusionStates = True,

@@ -1,6 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from typing import Iterable
 
 import filters as f
 
@@ -10,6 +8,7 @@ from iota.commands.extended.traverse_bundle import TraverseBundleCommand
 from iota.exceptions import with_context
 from iota.transaction.validator import BundleValidator
 from iota.filters import Trytes
+import asyncio
 
 __all__ = [
     'GetBundlesCommand',
@@ -30,16 +29,13 @@ class GetBundlesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        transaction_hashes = request['transactions']  # type: Iterable[TransactionHash]
+    async def _execute(self, request: dict) -> dict:
+        transaction_hashes: Iterable[TransactionHash] = request['transactions']
 
-        bundles = []
-
-        # Fetch bundles one-by-one
-        for tx_hash in transaction_hashes:
-            bundle = TraverseBundleCommand(self.adapter)(
+        async def fetch_and_validate(tx_hash):
+            bundle = (await TraverseBundleCommand(self.adapter)(
                 transaction=tx_hash
-            )['bundles'][0]  # Currently 1 bundle only
+            ))['bundles'][0]  # Currently 1 bundle only
 
             validator = BundleValidator(bundle)
 
@@ -55,14 +51,20 @@ class GetBundlesCommand(FilterCommand):
                     },
                 )
 
-            bundles.append(bundle)
+            return bundle
+
+        # Fetch bundles asynchronously
+        bundles = await asyncio.gather(
+            *[fetch_and_validate(tx_hash) for tx_hash in transaction_hashes]
+        )
 
         return {
             'bundles': bundles,
         }
 
+
 class GetBundlesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetBundlesRequestFilter, self).__init__({
             'transactions':
                 f.Required | f.Array | f.FilterRepeater(

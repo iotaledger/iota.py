@@ -1,25 +1,19 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type, text_type
-
-from iota import Iota, TransactionTrytes, TryteString, TransactionHash
-from iota.adapter import MockAdapter
+from iota import Iota, TransactionTrytes, TryteString, TransactionHash, \
+  AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.send_trytes import SendTrytesCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
   filter_type = SendTrytesCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(SendTrytesRequestFilterTestCase, self).setUp()
 
@@ -58,10 +52,10 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       # This can accept any TrytesCompatible values.
       'trytes': [
-        binary_type(self.trytes1),
+        bytes(self.trytes1),
         bytearray(self.trytes2),
       ],
-      'reference': binary_type(self.trytes2),
+      'reference': bytes(self.trytes2),
 
       # These still have to be ints, however.
       'depth':              100,
@@ -347,7 +341,6 @@ class SendTrytesRequestFilterTestCase(BaseFilterTestCase):
 
 
 class SendTrytesCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(SendTrytesCommandTestCase, self).setUp()
 
@@ -376,7 +369,7 @@ class SendTrytesCommandTestCase(TestCase):
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.send_trytes.SendTrytesCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -391,19 +384,43 @@ class SendTrytesCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.send_trytes.SendTrytesCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.send_trytes('trytes')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Successful invocation of ``sendTrytes``.
     """
     self.adapter.seed_response('getTransactionsToApprove', {
-      'trunkTransaction':   text_type(self.transaction1, 'ascii'),
-      'branchTransaction':  text_type(self.transaction2, 'ascii'),
+      'trunkTransaction':   str(self.transaction1, 'ascii'),
+      'branchTransaction':  str(self.transaction2, 'ascii'),
     })
 
     self.adapter.seed_response('attachToTangle', {
       'trytes': [
-        text_type(self.trytes1, 'ascii'),
-        text_type(self.trytes2, 'ascii'),
+        str(self.trytes1, 'ascii'),
+        str(self.trytes2, 'ascii'),
       ],
     })
 
@@ -415,7 +432,7 @@ class SendTrytesCommandTestCase(TestCase):
       TransactionTrytes(self.trytes2),
     ]
 
-    response = self.command(
+    response = await self.command(
       trytes              = trytes,
       depth               = 100,
       minWeightMagnitude  = 18,

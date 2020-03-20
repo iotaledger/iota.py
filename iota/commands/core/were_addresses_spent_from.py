@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 
 from iota.commands import FilterCommand, RequestFilter
@@ -28,7 +24,7 @@ class WereAddressesSpentFromCommand(FilterCommand):
 
 
 class WereAddressesSpentFromRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(WereAddressesSpentFromRequestFilter, self).__init__({
             'addresses':
                 f.Required | f.Array | f.FilterRepeater(

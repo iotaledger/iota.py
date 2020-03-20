@@ -1,15 +1,13 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota.adapter import HttpAdapter, MockAdapter
 from iota.adapter.wrappers import RoutingWrapper
+from test import async_test
 
 
 class RoutingWrapperTestCase(TestCase):
-  def test_routing(self):
+  @async_test
+  async def test_routing(self):
     """
     Routing commands to different adapters.
     """
@@ -27,18 +25,18 @@ class RoutingWrapperTestCase(TestCase):
     pow_adapter.seed_response('interruptAttachingToTangle', {'id': 'pow2'})
 
     self.assertDictEqual(
-      wrapper.send_request({'command': 'attachToTangle'}),
+      await wrapper.send_request({'command': 'attachToTangle'}),
       {'id': 'pow1'},
     )
 
     self.assertDictEqual(
-      wrapper.send_request({'command': 'interruptAttachingToTangle'}),
+      await wrapper.send_request({'command': 'interruptAttachingToTangle'}),
       {'id': 'pow2'},
     )
 
     # Any commands that aren't routed go to the default adapter.
     self.assertDictEqual(
-      wrapper.send_request({'command': 'getNodeInfo'}),
+      await wrapper.send_request({'command': 'getNodeInfo'}),
       {'id': 'default1'},
     )
 

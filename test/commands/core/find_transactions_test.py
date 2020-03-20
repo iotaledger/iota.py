@@ -1,26 +1,21 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import text_type
 
-from iota import Address, Iota, Tag, BundleHash, TransactionHash, TryteString
-from iota.adapter import MockAdapter
+from iota import Address, Iota, Tag, BundleHash, TransactionHash, TryteString, \
+  AsyncIota
+from iota.adapter import MockAdapter, async_return
 from iota.commands.core.find_transactions import FindTransactionsCommand, \
   FindTransactionsRequestFilter
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
   filter_type = FindTransactionsCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(FindTransactionsRequestFilterTestCase, self).setUp()
 
@@ -37,23 +32,23 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
     # Raw trytes are extracted to match the IRI's JSON protocol.
     request = {
       'bundles': [
-        text_type(BundleHash(self.trytes1)),
-        text_type(BundleHash(self.trytes2)),
+        str(BundleHash(self.trytes1)),
+        str(BundleHash(self.trytes2)),
       ],
 
       'addresses': [
-        text_type(Address(self.trytes1)),
-        text_type(Address(self.trytes2)),
+        str(Address(self.trytes1)),
+        str(Address(self.trytes2)),
       ],
 
       'tags': [
-        text_type(Tag(self.trytes1)),
-        text_type(Tag(self.trytes3)),
+        str(Tag(self.trytes1)),
+        str(Tag(self.trytes3)),
       ],
 
       'approvees': [
-        text_type(TransactionHash(self.trytes1)),
-        text_type(TransactionHash(self.trytes3)),
+        str(TransactionHash(self.trytes1)),
+        str(TransactionHash(self.trytes3)),
       ],
     }
 
@@ -96,23 +91,23 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
       {
         # Raw trytes are extracted to match the IRI's JSON protocol.
         'bundles': [
-          text_type(BundleHash(self.trytes1)),
-          text_type(BundleHash(self.trytes2)),
+          str(BundleHash(self.trytes1)),
+          str(BundleHash(self.trytes2)),
         ],
 
         'addresses': [
-          text_type(Address(self.trytes1)),
-          text_type(Address(self.trytes2)),
+          str(Address(self.trytes1)),
+          str(Address(self.trytes2)),
         ],
 
         'tags': [
-          text_type(Tag(self.trytes1)),
-          text_type(Tag(self.trytes3)),
+          str(Tag(self.trytes1)),
+          str(Tag(self.trytes3)),
         ],
 
         'approvees': [
-          text_type(TransactionHash(self.trytes1)),
-          text_type(TransactionHash(self.trytes3)),
+          str(TransactionHash(self.trytes1)),
+          str(TransactionHash(self.trytes3)),
         ],
       },
     )
@@ -136,8 +131,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'bundles': [
-          text_type(BundleHash(self.trytes1)),
-          text_type(BundleHash(self.trytes2)),
+          str(BundleHash(self.trytes1)),
+          str(BundleHash(self.trytes2)),
         ],
 
         # Null criteria are not included in the request.
@@ -167,8 +162,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'addresses': [
-          text_type(Address(self.trytes1)),
-          text_type(Address(self.trytes2)),
+          str(Address(self.trytes1)),
+          str(Address(self.trytes2)),
         ],
 
         # Null criteria are not included in the request.
@@ -198,8 +193,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'tags': [
-          text_type(Tag(self.trytes1)),
-          text_type(Tag(self.trytes3)),
+          str(Tag(self.trytes1)),
+          str(Tag(self.trytes3)),
         ],
 
         # Null criteria are not included in the request.
@@ -229,8 +224,8 @@ class FindTransactionsRequestFilterTestCase(BaseFilterTestCase):
 
       {
         'approvees': [
-          text_type(TransactionHash(self.trytes1)),
-          text_type(TransactionHash(self.trytes3)),
+          str(TransactionHash(self.trytes1)),
+          str(TransactionHash(self.trytes3)),
         ],
 
         # Null criteria are not included in the request.
@@ -490,7 +485,6 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
   filter_type = FindTransactionsCommand(MockAdapter()).get_response_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(FindTransactionsResponseFilterTestCase, self).setUp()
 
@@ -514,7 +508,6 @@ class FindTransactionsResponseFilterTestCase(BaseFilterTestCase):
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, response)
 
-  # noinspection SpellCheckingInspection
   def test_search_results(self):
     """
     The incoming response contains lots of hashes.
@@ -561,18 +554,39 @@ class FindTransactionsCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
-    with patch('iota.commands.core.check_consistency.CheckConsistencyCommand.__call__',
-              MagicMock(return_value='You found me!')
+    with patch('iota.commands.core.find_transactions.FindTransactionsCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
 
-      # Don't need to call with proper args here.
-      response = api.check_consistency('tails')
+      response = api.find_transactions('addresses')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.core.find_transactions.FindTransactionsCommand.__call__',
+               MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      response = await api.find_transactions('addresses')
 
       self.assertTrue(mocked_command.called)
 

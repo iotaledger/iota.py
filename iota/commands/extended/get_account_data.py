@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from operator import attrgetter
 from typing import List, Optional
 
@@ -36,18 +32,18 @@ class GetAccountDataCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        inclusion_states = request['inclusionStates']  # type: bool
-        seed = request['seed']  # type: Seed
-        start = request['start']  # type: int
-        stop = request['stop']  # type: Optional[int]
-        security_level = request['security_level']  # type: Optional[int]
+    async def _execute(self, request: dict) -> dict:
+        inclusion_states: bool = request['inclusionStates']
+        seed: Seed = request['seed']
+        start: int = request['start']
+        stop: Optional[int] = request['stop']
+        security_level: Optional[int] = request['security_level']
 
         if stop is None:
-            my_addresses = []  # type: List[Address]
-            my_hashes = []  # type: List[TransactionHash]
+            my_addresses: List[Address] = []
+            my_hashes: List[TransactionHash] = []
 
-            for addy, hashes in iter_used_addresses(self.adapter, seed, start, security_level):
+            async for addy, hashes in iter_used_addresses(self.adapter, seed, start, security_level):
                 my_addresses.append(addy)
                 my_hashes.extend(hashes)
         else:
@@ -56,13 +52,13 @@ class GetAccountDataCommand(FilterCommand):
             my_addresses = (
                 AddressGenerator(seed, security_level).get_addresses(start, stop - start)
             )
-            my_hashes = ft_command(addresses=my_addresses).get('hashes') or []
+            my_hashes = (await ft_command(addresses=my_addresses)).get('hashes') or []
 
         account_balance = 0
         if my_addresses:
             # Load balances for the addresses that we generated.
             gb_response = (
-                GetBalancesCommand(self.adapter)(addresses=my_addresses)
+                await GetBalancesCommand(self.adapter)(addresses=my_addresses)
             )
 
             for i, balance in enumerate(gb_response['balances']):
@@ -76,7 +72,7 @@ class GetAccountDataCommand(FilterCommand):
             'balance': account_balance,
 
             'bundles':
-                get_bundles_from_transaction_hashes(
+                await get_bundles_from_transaction_hashes(
                     adapter=self.adapter,
                     transaction_hashes=my_hashes,
                     inclusion_states=inclusion_states,
@@ -95,7 +91,7 @@ class GetAccountDataRequestFilter(RequestFilter):
         CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetAccountDataRequestFilter, self).__init__(
             {
                 # Required parameters.
@@ -117,7 +113,6 @@ class GetAccountDataRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        # noinspection PyProtectedMember
         filtered = super(GetAccountDataRequestFilter, self)._apply(value)
 
         if self._has_errors:

@@ -1,28 +1,21 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
-
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
 
-from iota import Address, Bundle, Iota, TransactionHash
-from iota.adapter import MockAdapter
+from iota import Address, Bundle, Iota, AsyncIota, TransactionHash
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_account_data import GetAccountDataCommand, \
   GetAccountDataRequestFilter
 from iota.crypto.types import Seed
 from iota.filters import Trytes
 from test import mock
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
   filter_type = GetAccountDataCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetAccountDataRequestFilterTestCase, self).setUp()
 
@@ -54,7 +47,7 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       # ``seed`` can be any value that is convertible into a
       # TryteString.
-      'seed': binary_type(self.seed),
+      'seed': bytes(self.seed),
 
       # These values must still be integers/bools, however.
       'start':            42,
@@ -322,9 +315,20 @@ class GetAccountDataRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
+class AsyncIter:
+  """
+  Class for mocking async generators.
+
+  Used here to mock the return values of `iter_used_addresses`.
+  """
+  def __init__(self, items):
+    self.items = items
+
+  async def __aiter__(self):
+    for item in self.items:
+      yield item
 
 class GetAccountDataCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(GetAccountDataCommandTestCase, self).setUp()
 
@@ -362,12 +366,12 @@ class GetAccountDataCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.commands.extended.get_account_data.GetAccountDataCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = Iota(self.adapter)
@@ -382,12 +386,35 @@ class GetAccountDataCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.commands.extended.get_account_data.GetAccountDataCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.get_account_data()
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Loading account data for an account.
     """
-    # noinspection PyUnusedLocal
-    def mock_iter_used_addresses(adapter, seed, start, security_level):
+    async def mock_iter_used_addresses(adapter, seed, start, security_level):
       """
       Mocks the ``iter_used_addresses`` function, so that we can
       simulate its functionality without actually connecting to the
@@ -399,12 +426,12 @@ class GetAccountDataCommandTestCase(TestCase):
       yield self.addy1, [self.hash1]
       yield self.addy2, [self.hash2]
 
-    mock_get_balances = mock.Mock(return_value={'balances': [42, 0]})
+    mock_get_balances = mock.Mock(return_value=async_return({'balances': [42, 0]}))
 
     # Not particularly realistic, but good enough to prove that the
     # mocked function was invoked correctly.
     bundles = [Bundle(), Bundle()]
-    mock_get_bundles_from_transaction_hashes = mock.Mock(return_value=bundles)
+    mock_get_bundles_from_transaction_hashes = mock.Mock(return_value=async_return(bundles))
 
     with mock.patch(
         'iota.commands.extended.get_account_data.iter_used_addresses',
@@ -418,7 +445,7 @@ class GetAccountDataCommandTestCase(TestCase):
           'iota.commands.core.get_balances.GetBalancesCommand._execute',
           mock_get_balances,
         ):
-          response = self.command(seed=Seed.random())
+          response = await self.command(seed=Seed.random())
 
     self.assertDictEqual(
       response,
@@ -430,15 +457,16 @@ class GetAccountDataCommandTestCase(TestCase):
       },
     )
 
-  def test_no_transactions(self):
+  @async_test
+  async def test_no_transactions(self):
     """
     Loading account data for a seed that hasn't been used yet.
     """
     with mock.patch(
         'iota.commands.extended.get_account_data.iter_used_addresses',
-        mock.Mock(return_value=[]),
+        mock.Mock(return_value=AsyncIter([])),
     ):
-      response = self.command(seed=Seed.random())
+      response = await self.command(seed=Seed.random())
 
     self.assertDictEqual(
       response,
@@ -450,20 +478,21 @@ class GetAccountDataCommandTestCase(TestCase):
       },
     )
 
-  def test_balance_is_found_for_address_without_transaction(self):
+  @async_test
+  async def test_balance_is_found_for_address_without_transaction(self):
     """
     If an address has a balance, no transactions and was spent from, the
     balance should still be found and returned.
     """
     with mock.patch(
         'iota.commands.extended.get_account_data.iter_used_addresses',
-        mock.Mock(return_value=[(self.addy1, [])]),
+        mock.Mock(return_value=AsyncIter([(self.addy1, [])])),
     ):
       self.adapter.seed_response('getBalances', {
         'balances': [42],
       })
 
-      response = self.command(seed=Seed.random())
+      response = await self.command(seed=Seed.random())
 
     self.assertDictEqual(
       response,

@@ -1,11 +1,6 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import MutableSequence, Optional
 
 from sha3 import keccak_384
-from six import PY2
 
 from iota.crypto.kerl import conv
 from iota.exceptions import with_context
@@ -19,13 +14,17 @@ TRIT_HASH_LENGTH = 243
 
 
 class Kerl(object):
-    k = None  # type: keccak_384
+    k: keccak_384 = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
 
-    def absorb(self, trits, offset=0, length=None):
-        # type: (MutableSequence[int], int, Optional[int]) -> None
+    def absorb(
+            self,
+            trits: MutableSequence[int],
+            offset: int = 0,
+            length: Optional[int] = None
+    ) -> None:
         """
         Absorb trits into the sponge from a buffer.
 
@@ -79,8 +78,12 @@ class Kerl(object):
 
             offset += TRIT_HASH_LENGTH
 
-    def squeeze(self, trits, offset=0, length=None):
-        # type: (MutableSequence[int], int, Optional[int]) -> None
+    def squeeze(
+            self,
+            trits: MutableSequence[int],
+            offset: int = 0,
+            length: Optional[int] = None
+    ) -> None:
         """
         Squeeze trits from the sponge into a buffer.
 
@@ -122,9 +125,6 @@ class Kerl(object):
         while offset < length:
             unsigned_hash = self.k.digest()
 
-            if PY2:
-                unsigned_hash = map(ord, unsigned_hash)  # type: ignore
-
             signed_hash = [conv.convert_sign(b) for b in unsigned_hash]
 
             trits_from_hash = conv.convertToTrits(signed_hash)
@@ -143,5 +143,5 @@ class Kerl(object):
 
             offset += TRIT_HASH_LENGTH
 
-    def reset(self):
+    def reset(self) -> None:
         self.k = keccak_384()

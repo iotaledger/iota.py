@@ -1,9 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
-from six import iteritems
 
 from iota import BundleHash, Tag, TransactionHash
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
@@ -36,7 +31,7 @@ class FindTransactionsRequestFilter(RequestFilter):
         CODE_NO_SEARCH_VALUES: 'No search values specified.',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(FindTransactionsRequestFilter, self).__init__(
             {
                 'addresses':
@@ -58,9 +53,9 @@ class FindTransactionsRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        value = super(FindTransactionsRequestFilter, self)._apply(
+        value: dict = super(FindTransactionsRequestFilter, self)._apply(
             value
-        )  # type: dict
+        )
 
         if self._has_errors:
             return value
@@ -70,7 +65,7 @@ class FindTransactionsRequestFilter(RequestFilter):
         # https://github.com/iotaledger/iota.py/issues/96
         search_terms = {
             term: query
-            for term, query in iteritems(value)
+            for term, query in value.items()
             if query is not None
         }
 
@@ -83,7 +78,7 @@ class FindTransactionsRequestFilter(RequestFilter):
 
 
 class FindTransactionsResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(FindTransactionsResponseFilter, self).__init__({
             'hashes':
                 f.FilterRepeater(

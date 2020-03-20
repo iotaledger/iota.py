@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import Address, Bundle, BundleHash, Fragment, Hash, Nonce, Tag, \
@@ -12,7 +8,6 @@ class BundleTestCase(TestCase):
   def setUp(self):
     super(BundleTestCase, self).setUp()
 
-    # noinspection SpellCheckingInspection
     self.bundle = Bundle([
       # This transaction does not have a message.
       Transaction(
@@ -303,7 +298,6 @@ class BundleTestCase(TestCase):
 
     self.assertEqual(messages[0], 'Hello, world!')
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       messages[1],
 
@@ -386,7 +380,6 @@ class TransactionTestCase(TestCase):
   - ``lib/utils/utils.js:transactionTrytes``:  Convert an object back
     into a tryte sequence.
   """
-  # noinspection SpellCheckingInspection
   def test_from_tryte_string(self):
     """
     Initializing a Transaction object from a TryteString.
@@ -553,7 +546,6 @@ class TransactionTestCase(TestCase):
     Initializing a Transaction object from a TryteString, with a
     pre-computed hash.
     """
-    # noinspection SpellCheckingInspection
     txn_hash =\
       TransactionHash(
         b'TESTVALUE9DONTUSEINPRODUCTION99999VALCXC'
@@ -564,7 +556,6 @@ class TransactionTestCase(TestCase):
 
     self.assertEqual(txn.hash, txn_hash)
 
-  # noinspection SpellCheckingInspection
   def test_as_tryte_string(self):
     """
     Converting a Transaction into a TryteString.

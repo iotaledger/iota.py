@@ -1,18 +1,14 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
 
 from iota import Address, BadApiResponse, Bundle, \
-    Iota, TransactionHash, TransactionTrytes
-from iota.adapter import MockAdapter
+    Iota, AsyncIota, TransactionHash, TransactionTrytes
+from iota.adapter import MockAdapter, async_return
 from iota.commands.extended.get_bundles import GetBundlesCommand
 from iota.filters import Trytes
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
@@ -22,7 +18,6 @@ class GetBundlesRequestFilterTestCase(BaseFilterTestCase):
     def setUp(self):
         super(GetBundlesRequestFilterTestCase, self).setUp()
 
-        # noinspection SpellCheckingInspection
         self.transactions = [
             (
                 'TESTVALUE9DONTUSEINPRODUCTION99999KPZOTR'
@@ -330,12 +325,12 @@ class GetBundlesCommandTestCase(TestCase):
 
     def test_wireup(self):
         """
-        Verify that the command is wired up correctly.
+        Verify that the command is wired up correctly. (sync)
 
         The API method indeed calls the appropiate command.
         """
         with patch('iota.commands.extended.get_bundles.GetBundlesCommand.__call__',
-                MagicMock(return_value='You found me!')
+                MagicMock(return_value=async_return('You found me!'))
                 ) as mocked_command:
 
             api = Iota(self.adapter)
@@ -350,7 +345,31 @@ class GetBundlesCommandTestCase(TestCase):
                 'You found me!'
             )
 
-    def test_happy_path(self):
+    @async_test
+    async def test_wireup_async(self):
+        """
+        Verify that the command is wired up correctly. (async)
+
+        The API method indeed calls the appropiate command.
+        """
+        with patch('iota.commands.extended.get_bundles.GetBundlesCommand.__call__',
+                MagicMock(return_value=async_return('You found me!'))
+                ) as mocked_command:
+
+            api = AsyncIota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = await api.get_bundles('transactions')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
+
+    @async_test
+    async def test_happy_path(self):
         """
         Get a bundle with multiple transactions.
         """
@@ -363,7 +382,7 @@ class GetBundlesCommandTestCase(TestCase):
             'trytes': [self.spam_trytes],
         })
 
-        response = self.command(transactions = [self.tx_hash])
+        response = await self.command(transactions = [self.tx_hash])
 
         self.maxDiff = None
         original_bundle = Bundle.from_tryte_strings(self.bundle_trytes)
@@ -372,7 +391,8 @@ class GetBundlesCommandTestCase(TestCase):
             original_bundle.as_json_compatible(),
         )
 
-    def test_happy_path_multiple_bundles(self):
+    @async_test
+    async def test_happy_path_multiple_bundles(self):
         """
         Get two bundles with multiple transactions.
         """
@@ -387,7 +407,7 @@ class GetBundlesCommandTestCase(TestCase):
                 'trytes': [self.spam_trytes],
             })
 
-        response = self.command(transactions = [self.tx_hash, self.tx_hash])
+        response = await self.command(transactions = [self.tx_hash, self.tx_hash])
 
         self.maxDiff = None
         original_bundle = Bundle.from_tryte_strings(self.bundle_trytes)
@@ -402,7 +422,8 @@ class GetBundlesCommandTestCase(TestCase):
             original_bundle.as_json_compatible(),
         )
 
-    def test_validator_error(self):
+    @async_test
+    async def test_validator_error(self):
         """
         TraverseBundleCommand returns bundle but it is invalid.
         """
@@ -420,4 +441,4 @@ class GetBundlesCommandTestCase(TestCase):
         })
 
         with self.assertRaises(BadApiResponse):
-            response = self.command(transactions = [self.tx_hash])
+            response = await self.command(transactions = [self.tx_hash])

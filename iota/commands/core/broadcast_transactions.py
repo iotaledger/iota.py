@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 
 from iota import TransactionTrytes
@@ -29,7 +25,7 @@ class BroadcastTransactionsCommand(FilterCommand):
 
 
 class BroadcastTransactionsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(BroadcastTransactionsRequestFilter, self).__init__({
             'trytes': StringifiedTrytesArray(TransactionTrytes) | f.Required,
         })

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List
 
 import filters as f
@@ -26,14 +22,16 @@ class CreateMultisigAddressCommand(FilterCommand):
     """
     command = 'createMultisigAddress'
 
-    def get_request_filter(self):
+    def get_request_filter(self) -> 'CreateMultisigAddressRequestFilter':
         return CreateMultisigAddressRequestFilter()
 
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        digests = request['digests']  # type: List[Digest]
+    # There is no async operation going on here, but the base class is async,
+    # so from the outside, we have to act like we are doing async.
+    async def _execute(self, request: dict) -> dict:
+        digests: List[Digest] = request['digests']
 
         builder = MultisigAddressBuilder()
 
@@ -46,7 +44,7 @@ class CreateMultisigAddressCommand(FilterCommand):
 
 
 class CreateMultisigAddressRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(CreateMultisigAddressRequestFilter, self).__init__({
             'digests':
                 f.Required | f.Array | f.FilterRepeater(

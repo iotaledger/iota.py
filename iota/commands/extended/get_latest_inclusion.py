@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import List
 
 import filters as f
@@ -31,12 +27,12 @@ class GetLatestInclusionCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        hashes = request['hashes']  # type: List[TransactionHash]
+    async def _execute(self, request: dict) -> dict:
+        hashes: List[TransactionHash] = request['hashes']
 
-        gni_response = GetNodeInfoCommand(self.adapter)()
+        gni_response = await GetNodeInfoCommand(self.adapter)()
 
-        gis_response = GetInclusionStatesCommand(self.adapter)(
+        gis_response = await GetInclusionStatesCommand(self.adapter)(
             transactions=hashes,
             tips=[gni_response['latestSolidSubtangleMilestone']],
         )
@@ -47,7 +43,7 @@ class GetLatestInclusionCommand(FilterCommand):
 
 
 class GetLatestInclusionRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetLatestInclusionRequestFilter, self).__init__({
             'hashes':
                 f.Required | f.Array | f.FilterRepeater(

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from typing import Optional
 
 import filters as f
@@ -27,17 +23,19 @@ class GetPrivateKeysCommand(FilterCommand):
     """
     command = 'getPrivateKeys'
 
-    def get_request_filter(self):
+    def get_request_filter(self) -> 'GetPrivateKeysRequestFilter':
         return GetPrivateKeysRequestFilter()
 
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        count = request['count']  # type: Optional[int]
-        index = request['index']  # type: int
-        seed = request['seed']  # type: Seed
-        security_level = request['securityLevel']  # type: int
+    # There is no async operation going on here, but the base class is async,
+    # so from the outside, we have to act like we are doing async.
+    async def _execute(self, request: dict) -> dict:
+        count: Optional[int] = request['count']
+        index: int = request['index']
+        seed: Seed = request['seed']
+        security_level: int = request['securityLevel']
 
         generator = KeyGenerator(seed)
 
@@ -51,7 +49,7 @@ class GetPrivateKeysCommand(FilterCommand):
 
 
 class GetPrivateKeysRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetPrivateKeysRequestFilter, self).__init__(
             {
                 # Optional Parameters

@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
 
 from iota import TryteString
@@ -25,7 +21,6 @@ class CurlTestCase(TestCase):
     """
     Typical use case.
     """
-    # noinspection SpellCheckingInspection
     input_ = (
       'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
       'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
@@ -40,7 +35,6 @@ class CurlTestCase(TestCase):
 
     trits_out = TryteString.from_trits(trits_out)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       trits_out,
 
@@ -52,7 +46,6 @@ class CurlTestCase(TestCase):
     """
     The input is longer than 1 hash.
     """
-    # noinspection SpellCheckingInspection
     input_ = (
       'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
       'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
@@ -68,7 +61,6 @@ class CurlTestCase(TestCase):
 
     trits_out = TryteString.from_trits(trits_out)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       trits_out,
 
@@ -80,7 +72,6 @@ class CurlTestCase(TestCase):
     """
     Specifying different values for the ``length`` argument.
     """
-    # noinspection SpellCheckingInspection
     input_ = (
       'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
       'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
@@ -97,7 +88,6 @@ class CurlTestCase(TestCase):
 
     trits_out = TryteString.from_trits(trits_out)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       trits_out,
 
@@ -109,7 +99,6 @@ class CurlTestCase(TestCase):
     """
     Passing an ``offset`` argument to :py:meth:`Curl.absorb`.
     """
-    # noinspection SpellCheckingInspection
     input_ = (
       'G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJB'
       'VBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ'
@@ -126,7 +115,6 @@ class CurlTestCase(TestCase):
 
     trits_out = TryteString.from_trits(trits_out)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       trits_out,
 
@@ -141,7 +129,6 @@ class CurlTestCase(TestCase):
     Example use case:
     https://github.com/iotaledger/iri/blob/v1.4.1.6/src/main/java/com/iota/iri/hash/ISS.java#L83
     """
-    # noinspection SpellCheckingInspection
     input_ = (
       'CDLFODMOGMQAWXDURDXTUAOO9BFESHYGZLBUWIIHPTLNZCUNHZAAXSUPUIBW'
       'IRLOVKCVWJSWEKRJQZUVRDZGZRNANUNCSGANCJWVHMZMVNJVUAZNFZKDAIVV'
@@ -169,7 +156,6 @@ class CurlTestCase(TestCase):
 
     trits_out = TryteString.from_trits(trits_out)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       trits_out,
 
@@ -181,7 +167,6 @@ class CurlTestCase(TestCase):
     """
     Squeezing more than 1 hash from the sponge.
     """
-    # noinspection SpellCheckingInspection
     input_ = (
       'EMIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJ'
       'FGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH'
@@ -196,7 +181,6 @@ class CurlTestCase(TestCase):
 
     trits_out = TryteString.from_trits(trits_out)
 
-    # noinspection SpellCheckingInspection
     self.assertEqual(
       trits_out,
 

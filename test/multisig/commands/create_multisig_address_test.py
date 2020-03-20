@@ -1,25 +1,17 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-  unicode_literals
-
 from unittest import TestCase
-
 import filters as f
 from filters.test import BaseFilterTestCase
-from six import binary_type
-
 from iota import TryteString
-from iota.adapter import MockAdapter
+from iota.adapter import MockAdapter, async_return
 from iota.crypto.types import Digest
 from iota.filters import Trytes
-from iota.multisig import MultisigIota
+from iota.multisig import MultisigIota, AsyncMultisigIota
 from iota.multisig.commands import CreateMultisigAddressCommand
 from iota.multisig.types import MultisigAddress
-from test import patch, MagicMock
+from test import patch, MagicMock, async_test
 
 
 class CreateMultisigAddressCommandTestCase(TestCase):
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(CreateMultisigAddressCommandTestCase, self).setUp()
 
@@ -49,12 +41,12 @@ class CreateMultisigAddressCommandTestCase(TestCase):
 
   def test_wireup(self):
     """
-    Verify that the command is wired up correctly.
+    Verify that the command is wired up correctly. (sync)
 
     The API method indeed calls the appropiate command.
     """
     with patch('iota.multisig.commands.create_multisig_address.CreateMultisigAddressCommand.__call__',
-              MagicMock(return_value='You found me!')
+              MagicMock(return_value=async_return('You found me!'))
               ) as mocked_command:
 
       api = MultisigIota(self.adapter)
@@ -69,13 +61,36 @@ class CreateMultisigAddressCommandTestCase(TestCase):
         'You found me!'
       )
 
-  def test_happy_path(self):
+  @async_test
+  async def test_wireup_async(self):
+    """
+    Verify that the command is wired up correctly. (async)
+
+    The API method indeed calls the appropiate command.
+    """
+    with patch('iota.multisig.commands.create_multisig_address.CreateMultisigAddressCommand.__call__',
+              MagicMock(return_value=async_return('You found me!'))
+              ) as mocked_command:
+
+      api = AsyncMultisigIota(self.adapter)
+
+      # Don't need to call with proper args here.
+      response = await api.create_multisig_address('digests')
+
+      self.assertTrue(mocked_command.called)
+
+      self.assertEqual(
+        response,
+        'You found me!'
+      )
+
+  @async_test
+  async def test_happy_path(self):
     """
     Generating a multisig address.
     """
-    result = self.command(digests=[self.digest_1, self.digest_2])
+    result = await self.command(digests=[self.digest_1, self.digest_2])
 
-    # noinspection SpellCheckingInspection
     self.assertDictEqual(
       result,
 
@@ -96,7 +111,6 @@ class CreateMultisigAddressRequestFilterTestCase(BaseFilterTestCase):
   filter_type = CreateMultisigAddressCommand(MockAdapter()).get_request_filter
   skip_value_check = True
 
-  # noinspection SpellCheckingInspection
   def setUp(self):
     super(CreateMultisigAddressRequestFilterTestCase, self).setUp()
 
@@ -142,7 +156,7 @@ class CreateMultisigAddressRequestFilterTestCase(BaseFilterTestCase):
     filter_ = self._filter({
       # ``digests`` may contain any values that can be converted into
       # :py:class:`Digest` objects.
-      'digests': [binary_type(self.digest_1), TryteString(self.digest_2)],
+      'digests': [bytes(self.digest_1), TryteString(self.digest_2)],
     })
 
     self.assertFilterPasses(filter_)

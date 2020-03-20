@@ -1,8 +1,4 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 
 import filters as f
 
@@ -30,25 +26,26 @@ class GetTransactionObjectsCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        hashes = request\
-            .get('hashes') # type: Iterable[TransactionHash]
+    async def _execute(self, request: dict) -> dict:
+        hashes: Iterable[TransactionHash] = request\
+            .get('hashes')
 
         transactions = []
         if hashes:
-            gt_response = GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
+            gt_response = await GetTrytesCommand(adapter=self.adapter)(hashes=hashes)
 
-            transactions = list(map(
+            transactions: List[Transaction] = list(map(
                 Transaction.from_tryte_string,
                 gt_response.get('trytes') or [],
-            ))  # type: List[Transaction]
+            ))
 
         return {
             'transactions': transactions,
         }
 
+
 class GetTransactionObjectsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTransactionObjectsRequestFilter, self).__init__({
             'hashes':
                 StringifiedTrytesArray(TransactionHash) | f.Required

@@ -7,7 +7,7 @@ my_seed = Seed(b'YOURSEEDFROMTHEPREVIOUSTUTORIAL')
 api = Iota(
     adapter='https://nodes.devnet.iota.org:443',
     seed=my_seed,
-    testnet=True,
+    devnet=True,
 )
 
 # Addres to receive 1i

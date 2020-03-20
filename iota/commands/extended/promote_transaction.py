@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 
 from iota import Address, BadApiResponse, ProposedTransaction, TransactionHash
@@ -30,16 +26,16 @@ class PromoteTransactionCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        depth = request['depth']  # type: int
-        min_weight_magnitude = request['minWeightMagnitude']  # type: int
-        transaction = request['transaction']  # type: TransactionHash
+    async def _execute(self, request: dict) -> dict:
+        depth: int = request['depth']
+        min_weight_magnitude: int = request['minWeightMagnitude']
+        transaction: TransactionHash = request['transaction']
 
-        cc_response = CheckConsistencyCommand(self.adapter)(tails=[transaction])
+        cc_response = await CheckConsistencyCommand(self.adapter)(tails=[transaction])
         if cc_response['state'] is False:
             raise BadApiResponse(
                 'Transaction {transaction} is not promotable. '
-                'You should reattach first.'.format(transaction=transaction)
+                'Info: {reason}'.format(transaction=transaction, reason=cc_response['info'])
             )
 
         spam_transfer = ProposedTransaction(
@@ -47,7 +43,7 @@ class PromoteTransactionCommand(FilterCommand):
             value=0,
         )
 
-        return SendTransferCommand(self.adapter)(
+        return await SendTransferCommand(self.adapter)(
             seed=spam_transfer.address,
             depth=depth,
             transfers=[spam_transfer],
@@ -57,12 +53,12 @@ class PromoteTransactionCommand(FilterCommand):
 
 
 class PromoteTransactionRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(PromoteTransactionRequestFilter, self).__init__({
             'depth': f.Required | f.Type(int) | f.Min(1),
             'transaction': f.Required | Trytes(TransactionHash),
 
-            # Loosely-validated; testnet nodes require a different value
+            # Loosely-validated; devnet nodes require a different value
             # than mainnet.
             'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
         })

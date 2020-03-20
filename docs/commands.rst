@@ -10,15 +10,15 @@ Advanced: PyOTA Commands
     However, if you are a curious mind or happen to do development on the
     library, the following information might be useful.
 
-PyOTA provides the API interface (:ref:`Core API Methods` and
-:ref:`Extended API Methods`) for users of the library. These handle
+PyOTA provides the API interface (:ref:`core_api:Core API Methods` and
+:ref:`extended_api:Extended API Methods`) for users of the library. These handle
 constructing and sending HTTP requests to the specified node through adapters,
 furthermore creating, transforming and translating between PyOTA-specific types
 and (JSON-encoded) raw data. They also filter outgoing requests and incoming
 responses to ensure that only appropriate data is communicated with the node.
 
 PyOTA implements the `Command Design Pattern`_. High level API interface
-methods (:ref:`Core API Methods` and :ref:`Extended API Methods`)
+methods (:ref:`core_api:Core API Methods` and :ref:`extended_api:Extended API Methods`)
 internally call PyOTA commands to get the job done.
 
 Most PyOTA commands are sub-classed from :py:class:`FilterCommand` class, which
@@ -142,7 +142,7 @@ Extended Commands
 Core commands, like :py:meth:`~Iota.find_transactions` in the example above,
 are for direct communication with the node for simple tasks such
 as finding a transaction on the Tangle or getting info about the node.
-Extended commands (that serve :ref:`Extended API Methods`) on the other hand
+Extended commands (that serve :ref:`extended_api:Extended API Methods`) on the other hand
 carry out more complex operations such as combining core commands, building
 objects, etc...
 
@@ -214,4 +214,4 @@ it constructs a list of transaction objects that are returned to
 .. _filters documentation site: https://filters.readthedocs.io/en/latest/
 .. _create custom filters: https://filters.readthedocs.io/en/latest/writing_filters.html
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
-.. _Contributing to PyOTA: https://github.com/iotaledger/iota.py/blob/master/CONTRIBUTING.rst
+.. _Contributing to PyOTA: https://github.com/iotaledger/iota.py/blob/master/.github/CONTRIBUTING.md

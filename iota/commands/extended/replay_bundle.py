@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 
 from iota import Bundle, TransactionHash
@@ -29,18 +25,18 @@ class ReplayBundleCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    def _execute(self, request):
-        depth = request['depth']  # type: int
-        min_weight_magnitude = request['minWeightMagnitude']  # type: int
-        transaction = request['transaction']  # type: TransactionHash
+    async def _execute(self, request: dict) -> dict:
+        depth: int = request['depth']
+        min_weight_magnitude: int = request['minWeightMagnitude']
+        transaction: TransactionHash = request['transaction']
 
-        gb_response = GetBundlesCommand(self.adapter)(transactions=[transaction])
+        gb_response = await GetBundlesCommand(self.adapter)(transactions=[transaction])
 
         # Note that we only replay the first bundle returned by
         # ``getBundles``.
-        bundle = gb_response['bundles'][0]  # type: Bundle
+        bundle: Bundle = gb_response['bundles'][0]
 
-        return SendTrytesCommand(self.adapter)(
+        return await SendTrytesCommand(self.adapter)(
             depth=depth,
             minWeightMagnitude=min_weight_magnitude,
             trytes=bundle.as_tryte_strings(),
@@ -48,12 +44,12 @@ class ReplayBundleCommand(FilterCommand):
 
 
 class ReplayBundleRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(ReplayBundleRequestFilter, self).__init__({
             'depth': f.Required | f.Type(int) | f.Min(1),
             'transaction': f.Required | Trytes(TransactionHash),
 
-            # Loosely-validated; testnet nodes require a different value
+            # Loosely-validated; devnet nodes require a different value
             # than mainnet.
             'minWeightMagnitude': f.Required | f.Type(int) | f.Min(1),
         })

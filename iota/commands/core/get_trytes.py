@@ -1,7 +1,3 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import filters as f
 
 from iota import TransactionHash
@@ -29,7 +25,7 @@ class GetTrytesCommand(FilterCommand):
 
 
 class GetTrytesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTrytesRequestFilter, self).__init__({
             'hashes':
                 StringifiedTrytesArray(TransactionHash) | f.Required,
@@ -37,7 +33,7 @@ class GetTrytesRequestFilter(RequestFilter):
 
 
 class GetTrytesResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTrytesResponseFilter, self).__init__({
             'trytes':
                 f.Array | f.FilterRepeater(

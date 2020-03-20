@@ -1,16 +1,12 @@
-# coding=utf-8
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from unittest import TestCase
 
-from iota import Iota, MockAdapter, Transaction
+from iota import Iota, AsyncIota, MockAdapter, Transaction
 from iota.commands.extended import FindTransactionObjectsCommand
-from test import patch, MagicMock, mock
+from iota.adapter import async_return
+from test import patch, MagicMock, mock, async_test
 
 
 class FindTransactionObjectsCommandTestCase(TestCase):
-    # noinspection SpellCheckingInspection
     def setUp(self):
         super(FindTransactionObjectsCommandTestCase, self).setUp()
 
@@ -70,12 +66,12 @@ class FindTransactionObjectsCommandTestCase(TestCase):
 
     def test_wireup(self):
         """
-        Verify that the command is wired up correctly.
+        Verify that the command is wired up correctly. (sync)
 
         The API method indeed calls the appropiate command.
         """
         with patch('iota.commands.extended.find_transaction_objects.FindTransactionObjectsCommand.__call__',
-                MagicMock(return_value='You found me!')
+                MagicMock(return_value=async_return('You found me!'))
                 ) as mocked_command:
 
             api = Iota(self.adapter)
@@ -90,7 +86,53 @@ class FindTransactionObjectsCommandTestCase(TestCase):
                 'You found me!'
             )
 
-    def test_transaction_found(self):
+    def test_wireup(self):
+        """
+        Verify that the command is wired up correctly. (sync)
+
+        The API method indeed calls the appropiate command.
+        """
+        with patch('iota.commands.extended.find_transaction_objects.FindTransactionObjectsCommand.__call__',
+                MagicMock(return_value=async_return('You found me!'))
+                ) as mocked_command:
+
+            api = Iota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = api.find_transaction_objects('bundle')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
+
+    @async_test
+    async def test_wireup_async(self):
+        """
+        Verify that the command is wired up correctly. (async)
+
+        The API method indeed calls the appropiate command.
+        """
+        with patch('iota.commands.extended.find_transaction_objects.FindTransactionObjectsCommand.__call__',
+                MagicMock(return_value=async_return('You found me!'))
+                ) as mocked_command:
+
+            api = AsyncIota(self.adapter)
+
+            # Don't need to call with proper args here.
+            response = await api.find_transaction_objects('bundle')
+
+            self.assertTrue(mocked_command.called)
+
+            self.assertEqual(
+                response,
+                'You found me!'
+            )
+
+    @async_test
+    async def test_transaction_found(self):
         """
         A transaction is found with the inputs. A transaction object is
         returned
@@ -98,29 +140,30 @@ class FindTransactionObjectsCommandTestCase(TestCase):
         with mock.patch(
             'iota.commands.core.find_transactions.FindTransactionsCommand.'
             '_execute',
-            mock.Mock(return_value={'hashes': [self.transaction_hash, ]}),
+            mock.Mock(return_value=async_return({'hashes': [self.transaction_hash, ]})),
         ):
             with mock.patch(
                 'iota.commands.core.get_trytes.GetTrytesCommand._execute',
-                mock.Mock(return_value={'trytes': [self.trytes, ]}),
+                mock.Mock(return_value=async_return({'trytes': [self.trytes, ]})),
             ):
-                response = self.command(addresses=[self.address])
+                response = await self.command(addresses=[self.address])
 
         self.assertEqual(len(response['transactions']), 1)
         transaction = response['transactions'][0]
         self.assertIsInstance(transaction, Transaction)
         self.assertEqual(transaction.address, self.address)
 
-    def test_no_transactions_fround(self):
+    @async_test
+    async def test_no_transactions_fround(self):
         """
         No transaction is found with the inputs. An empty list is returned
         """
         with mock.patch(
             'iota.commands.core.find_transactions.FindTransactionsCommand.'
             '_execute',
-            mock.Mock(return_value={'hashes': []}),
+            mock.Mock(return_value=async_return({'hashes': []})),
         ):
-            response = self.command(addresses=[self.address])
+            response = await self.command(addresses=[self.address])
 
         self.assertDictEqual(
             response,

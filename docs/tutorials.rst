@@ -8,7 +8,7 @@ to help you understand how to carry out specific tasks with PyOTA.
 
 The example scripts displayed here can also be found under ``examples/tutorials/``
 directory in the repository. Run them in a Python environment that has PyOTA
-installed. See :ref:`Install PyOTA` for more info.
+installed. See :ref:`README:Install PyOTA` for more info.
 
 If you feel that something is missing or not clear, please post your questions
 and suggestions in the `PyOTA Bug Tracker`_.
@@ -43,7 +43,7 @@ something from the library, you need to import it from there.
 
 Notice, how we import the :py:class:`Iota` object, that defines a
 so-called extended API object. We will use this to send and receive data from
-the network. Read more about API objects at :ref:`PyOTA API Classes`.
+the network. Read more about API objects at :ref:`api:PyOTA API Classes`.
 
 We also import the ``pprint`` method that prettifies the output before printing
 it to the console.
@@ -100,9 +100,9 @@ Discussion
 We have seen this part before. Note, that now we import more objects which we
 will use to construct our transaction.
 
-Notice ``testnet=True`` in the argument list of the API instantiation. We
-tell the API directly that we will use the devnet/testnet. By default, the API
-is configured for the mainnet.
+Notice ``devnet=True`` in the argument list of the API instantiation. We
+tell the API directly that we will use IOTA's testnet, known as the devnet.
+By default, the API is configured for the mainnet.
 
 .. literalinclude:: ../examples/tutorials/02_send_data.py
    :lines: 7-8
@@ -141,7 +141,7 @@ therefore we are restricted to the `tryte alphabet`_.
    :lines: 16-22
    :lineno-start: 16
 
-It's time to construct the transaction. According to :ref:`Transaction Types`,
+It's time to construct the transaction. According to :ref:`types:Transaction Types`,
 PyOTA uses :py:class:`ProposedTransaction` to build transactions that are not
 yet broadcast to the network. Oberve, that the ``value=0`` means this is
 a zero-value transaction.
@@ -284,7 +284,7 @@ that has no transactions referencing it on the Tangle and was never spent from.
 
 If we were to generate more addresses starting from a desired index,
 we could specify the ``start`` and ``count`` parameters. Read more about how to
-generate addresses in PyOTA at :ref:`Generating Addresses`.
+generate addresses in PyOTA at :ref:`addresses:Generating Addresses`.
 
 On line 20 we access the first element of the list of addresses in the response
 dictionary.
@@ -588,7 +588,7 @@ An address is also needed, so we generate one with the help of
 index of the generated address, and don't forget, that the method returns a
 ``dict`` with a list of addresses, even if it contains only one.
 For more detailed explanation on how addresses are generated in PyOTA,
-refer to the :ref:`Generating Addresses` page.
+refer to the :ref:`adresses:Generating Addresses` page.
 
 We also attach a custom :py:class:`Tag` to our :py:class:`ProposedTransaction`.
 Note, that if our ``trytes_encrypted_data`` was longer than the maximum payload
@@ -716,6 +716,177 @@ Now you know how to use the Tangle for data storage while keeping privacy.
 When you need more granular access control on how and when one could read
 data from the Tangle, consider using `Masked Authenticated Messaging`_ (MAM).
 
+8. Send and Monitor Concurrently
+--------------------------------
+
+In this example, you will learn how to:
+
+- **Use the asynchronous PyOTA API.**
+- **Send transactions concurrently.**
+- **Monitor confirmation of transactions concurrently.**
+- **Execute arbitrary code concurrently while doing the former two.**
+
+.. warning::
+
+    If you are new to `coroutines`_  and asynchronous programming in Python, it
+    is strongly recommended that you check out this `article`_ and the official
+    `asyncio`_ documentation before proceeding.
+
+Code
+~~~~
+.. literalinclude:: ../examples/tutorials/08_async_send_monitor.py
+   :linenos:
+
+Discussion
+~~~~~~~~~~
+This example is divided into 4 logical parts:
+
+ 1. Imports and constant declarations
+ 2. `Coroutine`_ to send and monitor a list of transactions as a bundle.
+ 3. `Coroutine`_ to execute arbitrary code concurrently.
+ 4. A main `coroutine`_ to schedule the execution of our application.
+
+Let's start with the most simple one: **Imports and Constants**.
+
+.. literalinclude:: ../examples/tutorials/08_async_send_monitor.py
+   :lines: 1-17
+   :lineno-start: 1
+
+Notice, that we import the :py:class:`AsyncIota` api class, because we
+would like to use the asynchronous and concurrent features of PyOTA.
+:py:class:`List` from the :py:class:`typing` library is needed for correct
+type annotations, and we also import the `asyncio`_ library. This will come
+in handy when we want to schedule and run the coroutines.
+
+On line 6, we instantiate an asynchronous IOTA api. Functionally, it does the
+same operations as :py:class:`Iota`, but the api calls are defined as
+coroutines. For this tutorial, we connect to a devnet node, and explicitly tell
+this as well to the api on line 8.
+
+On line 12, we declare an IOTA address. We will send our zero value transactions
+to this address. Feel free to change it to your own address.
+
+Once we have sent the transactions, we start monitoring their confirmation by the
+network. Confirmation time depends on current network activity, the referenced
+tips, etc., therefore we set a ``timeout`` of 120 seconds on line 15. You might
+have to modify this value later to see the confirmation of your transactions.
+
+You can also fine-tune the example code by tinkering with ``polling_interval``.
+This is the interval between two subsequent confirmation checks.
+
+Let's move on to the next block, namely the **send and monitor coroutine**.
+
+.. literalinclude:: ../examples/tutorials/08_async_send_monitor.py
+   :lines: 20-62
+   :lineno-start: 20
+
+Notice, that coroutines are defined in python by the ``async def`` keywords.
+This makes them `awaitable`_.
+
+From the type annotations, we see that :py:meth:`send_and_monitor` accepts a
+list of :py:class:`ProposedTransaction` objects and return a ``bool``.
+
+On line 28, we send the transfers with the help of
+:py:meth:`AsyncIota.send_transfer`. Since this is not a regular method, but a
+coroutine, we have to ``await`` its result. :py:meth:`AsyncIota.send_transfer`
+takes care of building the bundle, doing proof-of-work and sending the
+transactions within the bundle to the network.
+
+Once we sent the transfer, we collect individual transaction hashes from the
+bundle, which we will use for confirmation checking.
+
+On line 39, the so-called confirmation checking starts. With the help of
+:py:meth:`AsyncIota.get_inclusion_states`, we determine if our transactions
+have been confirmed by the network.
+
+.. note::
+
+    You might wonder how your transactions get accepted by the network, that is,
+    how they become confirmed.
+
+        - Pre-`Coordicide`_ (current state), transactions are confirmed by
+          directly or indirectly being referenced by a `milestone`_.
+          A milestone is a special transaction issued by the `Coordinator`_.
+        - Post-`Coordicide`_ , confirmation is the result of nodes reaching
+          consensus by a `voting mechanism`_.
+
+The ``None`` value for the ``tips``
+parameter in the argument list basically means that we check against the latest
+milestone.
+
+On line 43, we iterate over our original ``sent_tx_hashes`` list of sent
+transaction hashes and ``gis_response['states']``, which is a list of ``bool``
+values, at the same time using the built-in `zip`_ method. We also employ
+`enumerate`_, because we need the index of the elements in each iteration.
+
+If a transaction is confirmed, we delete the corresponding elements from the
+lists. When all transactions are confirmed, ``sent_tx_hashes`` becomes empty,
+and the loop condition becomes ``False``.
+
+If however, not all transactions have been confirmed, we should continue
+checking for confirmation. Observe line 58, where we suspend the coroutine
+with :py:meth:`asyncio.sleep` for ``polling_interval`` seconds. Awaiting the
+result of :py:meth:`asyncio.sleep` will cause our coroutine to continue
+execution in ``polling_interval`` time. While our coroutine is sleeping,
+other coroutines can run concurrently, hence it is a non-blocking call.
+
+To do something in the meantime, we can **execute another coroutine concurrently**:
+
+.. literalinclude:: ../examples/tutorials/08_async_send_monitor.py
+   :lines: 65-71
+   :lineno-start: 65
+
+This is really just a dummy coroutine that prints something to the terminal and
+then goes to sleep periodically, but in a real application, you could do
+meaningful tasks here.
+
+Now let's look at how to **schedule the execution of our application with the
+main coroutine**:
+
+.. literalinclude:: ../examples/tutorials/08_async_send_monitor.py
+   :lines: 74-115
+   :lineno-start: 74
+
+First, we declare a list of :py:meth:`ProposedTransaction` objects, that will
+be the input for our :py:meth:`send_and_monitor` coroutine.
+
+The important stuff begins on line 101. We use :py:meth:`asyncio.gather` to
+submit our coroutines for execution, wait for their results and then return
+them in a list. `gather`_ takes our coroutines, transforms them into runnable
+`tasks`_, and runs them concurrently.
+
+Notice, that we listed :py:meth:`send_and_monitor` twice in
+:py:meth:`asyncio.gather` with the same list of :py:meth:`ProposedTransaction`
+objects. This is to showcase how you can send and monitor multiple transfers
+concurrently. In this example, two different bundles will be created from the
+same :py:meth:`ProposedTransaction` objects. The two bundles post zero value
+transactions to the same address, contain the same messages respectively,
+but are not dependent on each other in any way. That is why we can send them
+concurrently.
+
+As discussed previously, ``result`` will be a list of results of the coroutines
+submitted to :py:meth:`asyncio.gather`, preserving their order.
+``result[0]`` is the result from the first :py:meth:`send_and_monitor`, and
+``result[1]`` is the result from the second :py:meth:`send_and_monitor` from the
+argument list. If any of these are ``False``, confirmation did not happen
+before ``timeout``.
+
+When you see the message from line 109 in your terminal, try increasing
+``timeout``, or check the status of the network, maybe there is a temporary
+downtime on the devnet due to maintenance.
+
+Lastly, observe lines 113-115. If the current file (python module) is run
+from the terminal, we use :py:meth:`ayncio.run` to execute the main coroutine
+inside an `event loop`_.
+
+To run this example, navigate to ``examples/tutorial`` inside the cloned
+PyOTA repository, or download the source file of `Tutorial 8 from GitHub`_
+and run the following in a terminal:
+
+.. code-block:: sh
+
+    $ python 08_async_send_monitor.py
+
 .. _PyOTA Bug Tracker: https://github.com/iotaledger/iota.py/issues
 .. _bytestring: https://docs.python.org/3/library/stdtypes.html#bytes
 .. _tryte alphabet: https://docs.iota.org/docs/getting-started/0.1/introduction/ternary#tryte-encoding
@@ -724,3 +895,18 @@ data from the Tangle, consider using `Masked Authenticated Messaging`_ (MAM).
 .. _spending twice from the same address: https://docs.iota.org/docs/getting-started/0.1/clients/addresses#spent-addresses
 .. _Base64: https://en.wikipedia.org/wiki/Base64
 .. _Masked Authenticated Messaging: https://docs.iota.org/docs/client-libraries/0.1/mam/introduction/overview?q=masked%20auth&highlights=author;authent
+.. _coroutine: https://docs.python.org/3/glossary.html#term-coroutine
+.. _coroutines: https://docs.python.org/3/glossary.html#term-coroutine
+.. _asyncio: https://docs.python.org/3/library/asyncio.html
+.. _article: https://realpython.com/async-io-python/
+.. _awaitable: https://docs.python.org/3/library/asyncio-task.html#awaitables
+.. _Coordicide: https://coordicide.iota.org/
+.. _milestone: https://docs.iota.org/docs/getting-started/0.1/network/the-coordinator#milestones
+.. _coordinator: https://docs.iota.org/docs/getting-started/0.1/network/the-coordinator
+.. _voting mechanism: https://coordicide.iota.org/module4.1
+.. _zip: https://docs.python.org/3.3/library/functions.html#zip
+.. _enumerate: https://docs.python.org/3.3/library/functions.html#enumerate
+.. _gather: https://docs.python.org/3/library/asyncio-task.html#running-tasks-concurrently
+.. _tasks: https://docs.python.org/3/library/asyncio-task.html#asyncio.Task
+.. _event loop: https://docs.python.org/3/library/asyncio-eventloop.html
+.. _Tutorial 8 from GitHub: https://github.com/iotaledger/iota.py/blob/master/examples/tutorials/08_async_send_monitor.py

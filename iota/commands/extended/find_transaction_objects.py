@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Dict
+from typing import Iterable, List, Optional
 
 from iota import Address, BundleHash, Tag, Transaction, TransactionHash
 from iota.commands.core import GetTrytesCommand, FindTransactionsCommand
@@ -19,7 +19,7 @@ class FindTransactionObjectsCommand(FindTransactionsCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         bundles: Optional[Iterable[BundleHash]] = request\
             .get('bundles')
         addresses: Optional[Iterable[Address]] = request\

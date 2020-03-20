@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 
 import filters as f
 
@@ -30,7 +30,7 @@ class CreateMultisigAddressCommand(FilterCommand):
 
     # There is no async operation going on here, but the base class is async,
     # so from the outside, we have to act like we are doing async.
-    async def _execute(self, request: Dict):
+    async def _execute(self, request: dict) -> dict:
         digests: List[Digest] = request['digests']
 
         builder = MultisigAddressBuilder()

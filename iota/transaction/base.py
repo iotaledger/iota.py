@@ -1,6 +1,6 @@
 from operator import attrgetter
 from typing import Iterable, Iterator, List, MutableSequence, \
-    Optional, Sequence, Text, TypeVar, Type, Dict
+    Optional, Sequence, TypeVar, Type
 
 from iota.codecs import TrytesDecodeError
 from iota.crypto import Curl, HASH_LENGTH
@@ -482,7 +482,7 @@ class Transaction(JsonSerializable):
                 trits_from_int(self.attachment_timestamp_upper_bound, pad=27),
         )
 
-    def as_json_compatible(self) -> Dict:
+    def as_json_compatible(self) -> dict:
         """
         Returns a JSON-compatible representation of the object.
 
@@ -741,12 +741,12 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         """
         return self[0]
 
-    def get_messages(self, errors: Text = 'drop') -> List[Text]:
+    def get_messages(self, errors: str = 'drop') -> List[str]:
         """
         Attempts to decipher encoded messages from the transactions in
         the bundle.
 
-        :param Text errors:
+        :param str errors:
             How to handle trytes that can't be converted, or bytes that
             can't be decoded using UTF-8:
 
@@ -762,7 +762,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
             'ignore'
                 Omit the invalid tryte/byte sequence.
 
-        :return: ``List[Text]``
+        :return: ``List[str]``
         """
         decode_errors = 'strict' if errors == 'drop' else errors
 
@@ -805,7 +805,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         transactions = self if head_to_tail else reversed(self)
         return [t.as_tryte_string() for t in transactions]
 
-    def as_json_compatible(self) -> List[Dict]:
+    def as_json_compatible(self) -> List[dict]:
         """
         Returns a JSON-compatible representation of the object.
 

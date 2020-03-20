@@ -1,5 +1,3 @@
-from typing import Dict
-
 import filters as f
 
 from iota import BundleHash, Tag, TransactionHash
@@ -55,7 +53,7 @@ class FindTransactionsRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        value: Dict = super(FindTransactionsRequestFilter, self)._apply(
+        value: dict = super(FindTransactionsRequestFilter, self)._apply(
             value
         )
 

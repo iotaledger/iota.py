@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod as abstract_method
-from typing import Dict, Text
+from typing import Dict, Any
 
 from iota.adapter import AdapterSpec, BaseAdapter, resolve_adapter
 
@@ -22,11 +22,11 @@ class BaseWrapper(BaseAdapter, metaclass=ABCMeta):
 
         self.adapter: BaseAdapter = adapter
 
-    def get_uri(self) -> Text:
+    def get_uri(self) -> str:
         return self.adapter.get_uri()
 
     @abstract_method
-    def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
+    def send_request(self, payload: dict, **kwargs: Any) -> dict:
         raise NotImplementedError(
             'Not implemented in {cls}.'.format(cls=type(self).__name__),
         )
@@ -94,13 +94,13 @@ class RoutingWrapper(BaseWrapper):
         # when resolving URIs.
         self.adapter_aliases: Dict[AdapterSpec, BaseAdapter] = {}
 
-        self.routes: Dict[Text, BaseAdapter] = {}
+        self.routes: Dict[str, BaseAdapter] = {}
 
-    def add_route(self, command: Text, adapter: AdapterSpec) -> 'RoutingWrapper':
+    def add_route(self, command: str, adapter: AdapterSpec) -> 'RoutingWrapper':
         """
         Adds a route to the wrapper.
 
-        :param Text command:
+        :param str command:
             The name of the command. Note that this is the camelCase version of
             the command name (e.g., ``attachToTangle``, not ``attach_to_tangle``).
 
@@ -125,13 +125,13 @@ class RoutingWrapper(BaseWrapper):
 
         return self
 
-    def get_adapter(self, command: Text) -> BaseAdapter:
+    def get_adapter(self, command: str) -> BaseAdapter:
         """
         Return the adapter for the specified command.
         """
         return self.routes.get(command, self.adapter)
 
-    async def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
+    async def send_request(self, payload: dict, **kwargs: Any) -> dict:
         command = payload.get('command')
 
         return await self.get_adapter(command).send_request(payload, **kwargs)

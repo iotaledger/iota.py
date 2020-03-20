@@ -6,10 +6,9 @@ from argparse import ArgumentParser
 from logging import basicConfig, getLogger, DEBUG
 from sys import stderr
 
+from typing import Any
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
-from typing import Any
-
 from iota import *
 from iota.adapter import resolve_adapter
 from iota.adapter.wrappers import RoutingWrapper

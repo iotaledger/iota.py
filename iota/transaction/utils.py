@@ -1,6 +1,5 @@
 from calendar import timegm as unix_timestamp
 from datetime import datetime
-from typing import Text
 
 from iota import STANDARD_UNITS
 from iota.exceptions import with_context
@@ -11,7 +10,7 @@ __all__ = [
 ]
 
 
-def convert_value_to_standard_unit(value: Text, symbol: Text = 'i') -> float:
+def convert_value_to_standard_unit(value: str, symbol: str = 'i') -> float:
     """
     Converts between any two standard units of iota.
 

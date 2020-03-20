@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 
 from iota.commands import FilterCommand, RequestFilter
 from iota.commands.core import CheckConsistencyCommand, GetTrytesCommand
@@ -50,7 +50,7 @@ class IsPromotableCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         tails: TransactionHash = request['tails']
 
         # First, check consistency

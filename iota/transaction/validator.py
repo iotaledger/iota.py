@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional, Text, Type
+from typing import Generator, List, Optional, Type
 
 from iota.crypto.kerl import Kerl
 from iota.crypto.signing import validate_signature_fragments
@@ -29,16 +29,16 @@ class BundleValidator(object):
 
         self.bundle = bundle
 
-        self._errors: Optional[List[Text]] = []
+        self._errors: Optional[List[str]] = []
         self._validator = self._create_validator()
 
     @property
-    def errors(self) -> List[Text]:
+    def errors(self) -> List[str]:
         """
         Returns all errors found with the bundle.
         """
         try:
-            self._errors.extend(self._validator)  # type: List[Text]
+            self._errors.extend(self._validator)  # type: List[str]
         except StopIteration:
             pass
 
@@ -58,7 +58,7 @@ class BundleValidator(object):
 
         return not self._errors
 
-    def _create_validator(self) -> Generator[Text, None, None]:
+    def _create_validator(self) -> Generator[str, None, None]:
         """
         Creates a generator that does all the work.
         """
@@ -180,7 +180,7 @@ class BundleValidator(object):
     def _get_bundle_signature_errors(
             self,
             groups: List[List[Transaction]]
-    ) -> List[Text]:
+    ) -> List[str]:
         """
         Validates the signature fragments in the bundle.
 
@@ -231,7 +231,7 @@ class BundleValidator(object):
     def _get_group_signature_error(
             group: List[Transaction],
             sponge_type: Type
-    ) -> Optional[Text]:
+    ) -> Optional[str]:
         """
         Validates the signature fragments for a group of transactions
         using the specified sponge type.
@@ -242,7 +242,7 @@ class BundleValidator(object):
 
         :return:
           - ``None``:  Indicates that the signature fragments are valid.
-          - ``Text``:  Error message indicating the fragments are invalid.
+          - ``str``:  Error message indicating the fragments are invalid.
         """
         validate_group_signature = validate_signature_fragments(
             fragments=[txn.signature_message_fragment for txn in group],

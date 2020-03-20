@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from getpass import getpass as secure_input
 from io import StringIO
 from sys import exit
-from typing import Any, Optional, Text, Dict
+from typing import Any, Optional
 
 from iota import Iota, __version__
 from iota.crypto.types import Seed
@@ -73,7 +73,7 @@ class IotaCommandLineApp(object, metaclass=ABCMeta):
 
         return exit_code
 
-    def parse_argv(self, argv: Optional[tuple] = None) -> Dict:
+    def parse_argv(self, argv: Optional[tuple] = None) -> dict:
         """
         Parses arguments for the command.
 
@@ -145,7 +145,7 @@ class IotaCommandLineApp(object, metaclass=ABCMeta):
         return parser
 
     @staticmethod
-    def seed_from_filepath(filepath: Text) -> Seed:
+    def seed_from_filepath(filepath: str) -> Seed:
         """
         Reads a seed from the first line of a text file.
 

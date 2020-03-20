@@ -1,7 +1,6 @@
+from typing import Dict
 
 # Define a few magic constants.
-from typing import Dict, Text
-
 DEFAULT_PORT: int = 14265
 """
 Default port to use when configuring an adapter, if the port is not
@@ -16,7 +15,7 @@ could create a sexy new altcoin instead.
 In that way, it's kind of like toxic waste in a superhero story.
 """
 
-STANDARD_UNITS: Dict[Text, int] = {
+STANDARD_UNITS: Dict[str, int] = {
     # Valid IOTA unit suffixes. Example value '-273.15 Ki'
     'i': 1,
     'Ki': 1000,

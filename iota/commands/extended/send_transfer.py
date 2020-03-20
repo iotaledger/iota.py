@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 import filters as f
 
@@ -28,7 +28,7 @@ class SendTransferCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         change_address: Optional[Address] = request['changeAddress']
         depth: int = request['depth']
         inputs: Optional[List[Address]] = request['inputs']

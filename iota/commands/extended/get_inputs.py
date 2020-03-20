@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional
 
 import filters as f
 
@@ -30,7 +30,7 @@ class GetInputsCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         stop: Optional[int] = request['stop']
         seed: Seed = request['seed']
         start: int = request['start']

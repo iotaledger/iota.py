@@ -1,4 +1,4 @@
-from typing import Dict, Iterable
+from typing import Iterable
 
 import filters as f
 
@@ -29,7 +29,7 @@ class GetBundlesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         transaction_hashes: Iterable[TransactionHash] = request['transactions']
 
         async def fetch_and_validate(tx_hash):

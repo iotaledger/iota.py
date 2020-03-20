@@ -1,10 +1,10 @@
-from typing import Dict, Text, List
+from typing import List, Dict
 
 
 BYTE_HASH_LENGTH = 48
 TRIT_HASH_LENGTH = 243
 
-tryte_table: Dict[Text, List[int]] = {
+tryte_table: Dict[str, List[int]] = {
     '9': [0, 0, 0],  # 0
     'A': [1, 0, 0],  # 1
     'B': [-1, 1, 0],  # 2
@@ -38,7 +38,7 @@ tryte_table: Dict[Text, List[int]] = {
 trit_table = {tuple(v): k for k, v in tryte_table.items()}
 
 
-def trytes_to_trits(trytes: Text) -> List[int]:
+def trytes_to_trits(trytes: str) -> List[int]:
     trits = []
     for tryte in trytes:
         trits.extend(tryte_table[tryte])
@@ -46,7 +46,7 @@ def trytes_to_trits(trytes: Text) -> List[int]:
     return trits
 
 
-def trits_to_trytes(trits: List[int]) -> Text:
+def trits_to_trytes(trits: List[int]) -> str:
     trytes = []
     trits_chunks = [trits[i:i + 3] for i in range(0, len(trits), 3)]
 
@@ -64,7 +64,7 @@ def convertToTrits(bytes_k: List[int]) -> List[int]:
 
 def convertToBytes(trits: List[int]) -> List[int]:
     bigInt = convertBaseToBigint(trits, 3)
-    bytes_k = convertBigintToBytes(bigInt)
+    bytes_k = convertBigIntToBytes(bigInt)
     return bytes_k
 
 

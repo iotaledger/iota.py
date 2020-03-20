@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 
 import filters as f
 
@@ -25,7 +25,7 @@ class IsReattachableCommand(FilterCommand):
     def get_response_filter(self):
         return IsReattachableResponseFilter()
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         addresses: List[Address] = request['addresses']
 
         # fetch full transaction objects

@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 import filters as f
 
@@ -31,7 +31,7 @@ class GetNewAddressesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         checksum: bool = request['checksum']
         count: Optional[int] = request['count']
         index: int = request['index']

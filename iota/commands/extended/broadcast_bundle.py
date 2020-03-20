@@ -1,5 +1,3 @@
-from typing import Dict
-
 import filters as f
 from iota.filters import Trytes
 
@@ -29,7 +27,7 @@ class BroadcastBundleCommand(FilterCommand):
         # Return value is filtered before hitting us.
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         # Given tail hash, fetches the bundle from the tangle
         # and validates it.
         tail_hash: TransactionHash = request['tail_hash']

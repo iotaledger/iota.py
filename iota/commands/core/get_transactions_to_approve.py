@@ -1,5 +1,3 @@
-from typing import Dict
-
 import filters as f
 
 from iota import TransactionHash
@@ -40,7 +38,7 @@ class GetTransactionsToApproveRequestFilter(RequestFilter):
             })
 
     def _apply(self, value):
-        value: Dict = super(GetTransactionsToApproveRequestFilter, self)._apply(
+        value: dict = super(GetTransactionsToApproveRequestFilter, self)._apply(
             value,
         )
 

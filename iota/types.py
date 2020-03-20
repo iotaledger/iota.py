@@ -4,7 +4,7 @@ from itertools import chain
 from math import ceil
 from random import SystemRandom
 from typing import Any, AnyStr, Generator, Iterable, Iterator, List, \
-    MutableSequence, Optional, Text, Type, TypeVar, Union, Dict
+    MutableSequence, Optional, Type, TypeVar, Union, Dict
 from warnings import warn
 
 from iota import AsciiTrytesCodec, TRITS_PER_TRYTE
@@ -96,7 +96,7 @@ class TryteString(JsonSerializable):
     @classmethod
     def from_bytes(cls: Type[T],
                    bytes_: Union[bytes, bytearray],
-                   codec: Text = AsciiTrytesCodec.name,
+                   codec: str = AsciiTrytesCodec.name,
                    *args: Any,
                    **kwargs: Any) -> T:
         """
@@ -106,7 +106,7 @@ class TryteString(JsonSerializable):
             Source bytes. ASCII representation of a sequence of bytes.
             Note that only tryte alphabet supported!
 
-        :param Text codec:
+        :param str codec:
             Reserved for future use.
             Currently supports only the 'trytes_ascii' codec.
             See https://github.com/iotaledger/iota.py/issues/62 for
@@ -131,13 +131,13 @@ class TryteString(JsonSerializable):
 
     @classmethod
     def from_unicode(cls: Type[T],
-                     string: Text,
+                     string: str,
                      *args: Any,
                      **kwargs: Any) -> T:
         """
         Creates a TryteString from a Unicode string.
 
-        :param Text string:
+        :param str string:
             Source Unicode string.
 
         :param args:
@@ -370,7 +370,7 @@ class TryteString(JsonSerializable):
     def __hash__(self) -> int:
         return hash(bytes(self._trytes))
 
-    def __repr__(self) -> Text:
+    def __repr__(self) -> str:
         return '{cls}({trytes!r})'.format(
             cls=type(self).__name__,
             trytes=bytes(self._trytes),
@@ -540,13 +540,13 @@ class TryteString(JsonSerializable):
         return ChunkIterator(self, chunk_size)
 
     def encode(self,
-               errors: Text = 'strict',
-               codec: Text = AsciiTrytesCodec.name) -> bytes:
+               errors: str = 'strict',
+               codec: str = AsciiTrytesCodec.name) -> bytes:
         """
         Encodes the TryteString into a lower-level primitive (usually
         bytes).
 
-        :param Text errors:
+        :param str errors:
             How to handle trytes that can't be converted:
 
             'strict'
@@ -558,7 +558,7 @@ class TryteString(JsonSerializable):
             'ignore'
                 omit the tryte from the result.
 
-        :param Text codec:
+        :param str codec:
             Reserved for future use.
 
             See https://github.com/iotaledger/iota.py/issues/62 for
@@ -614,13 +614,13 @@ class TryteString(JsonSerializable):
         )
         return self.encode(*args, **kwargs)
 
-    def decode(self, errors: Text = 'strict',
-               strip_padding: bool = True) -> Text:
+    def decode(self, errors: str = 'strict',
+               strip_padding: bool = True) -> str:
         """
         Decodes the TryteString into a higher-level abstraction (usually
         Unicode characters).
 
-        :param Text errors:
+        :param str errors:
             How to handle trytes that can't be converted, or bytes that can't
             be decoded using UTF-8:
 
@@ -677,7 +677,7 @@ class TryteString(JsonSerializable):
         )
         return self.decode(*args, **kwargs)
 
-    def as_json_compatible(self) -> Text:
+    def as_json_compatible(self) -> str:
         """
         Returns a JSON-compatible representation of the object.
 
@@ -992,7 +992,7 @@ class Address(TryteString):
         address.
         """
 
-    def as_json_compatible(self) -> Dict[Text, Union[Text, int]]:
+    def as_json_compatible(self) -> Dict[str, Union[str, int]]:
         """
         Returns a JSON-compatible representation of the Address.
 
@@ -1000,7 +1000,7 @@ class Address(TryteString):
             ``dict`` with the following structure::
 
                 {
-                    'trytes': Text,
+                    'trytes': str,
                     'balance': int,
                     'key_index': int,
                     'security_level': int,

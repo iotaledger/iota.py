@@ -6,8 +6,8 @@ from collections import deque
 from inspect import isabstract as is_abstract
 from logging import DEBUG, Logger
 from socket import getdefaulttimeout as get_default_timeout
-from typing import Container, Dict, List, Optional, Text, Tuple, Union, Any
-from httpx import AsyncClient, Response, codes, auth
+from typing import Container, List, Optional, Tuple, Union, Any, Dict
+from httpx import AsyncClient, Response, codes, BasicAuth
 import asyncio
 
 from iota.exceptions import with_context
@@ -32,7 +32,7 @@ https://github.com/iotaledger/iota.py/issues/84
 """
 
 # Custom types for type hints and docstrings.
-AdapterSpec = Union[Text, 'BaseAdapter']
+AdapterSpec = Union[str, 'BaseAdapter']
 """
 Placeholder that means “URI or adapter instance”.
 
@@ -69,7 +69,7 @@ class InvalidUri(ValueError):
     pass
 
 
-adapter_registry: Dict[Text, 'AdapterMeta'] = {}
+adapter_registry: Dict[str, 'AdapterMeta'] = {}
 """
 Keeps track of available adapters and their supported protocols.
 """
@@ -127,7 +127,7 @@ class AdapterMeta(ABCMeta):
                 # adapters.
                 adapter_registry.setdefault(protocol, cls)
 
-    def configure(cls, parsed: Union[Text, SplitResult]) -> 'HttpAdapter':
+    def configure(cls, parsed: Union[str, SplitResult]) -> 'HttpAdapter':
         """
         Creates a new instance using the specified URI.
 
@@ -144,7 +144,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
     Adapters make it easy to customize the way an API instance
     communicates with a node.
     """
-    supported_protocols: Tuple[Text] = ()
+    supported_protocols: Tuple[str] = ()
     """
     Protocols that ``resolve_adapter`` can use to identify this adapter
     type.
@@ -157,7 +157,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
         self.local_pow: bool = False
 
     @abstract_method
-    def get_uri(self) -> Text:
+    def get_uri(self) -> str:
         """
         Returns the URI that this adapter will use.
         """
@@ -166,7 +166,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
         )
 
     @abstract_method
-    def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
+    def send_request(self, payload: dict, **kwargs: Any) -> dict:
         """
         Sends an API request to the node.
 
@@ -199,7 +199,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
     def _log(
             self,
             level: int,
-            message: Text,
+            message: str,
             context: Optional[dict] = None
     ) -> None:
         """
@@ -231,7 +231,7 @@ class HttpAdapter(BaseAdapter):
     :param Optional[int] timeout:
         Connection timeout in seconds.
 
-    :param Optional[Tuple(Text,Text)] authentication:
+    :param Optional[Tuple(str,str)] authentication:
         Credetentials for basic authentication with the node.
 
     :return:
@@ -261,9 +261,9 @@ class HttpAdapter(BaseAdapter):
 
     def __init__(
             self,
-            uri: Union[Text, SplitResult],
+            uri: Union[str, SplitResult],
             timeout: Optional[int] = None,
-            authentication: Optional[Tuple[Text, Text]] = None
+            authentication: Optional[Tuple[str, str]] = None
     ) -> None:
         super(HttpAdapter, self).__init__()
 
@@ -316,16 +316,16 @@ class HttpAdapter(BaseAdapter):
         self.uri = uri
 
     @property
-    def node_url(self) -> Text:
+    def node_url(self) -> str:
         """
         Returns the node URL.
         """
         return self.uri.geturl()
 
-    def get_uri(self) -> Text:
+    def get_uri(self) -> str:
         return self.uri.geturl()
 
-    async def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
+    async def send_request(self, payload: dict, **kwargs: Any) -> dict:
         kwargs.setdefault('headers', {})
         for key, value in self.DEFAULT_HEADERS.items():
             kwargs['headers'].setdefault(key, value)
@@ -343,9 +343,9 @@ class HttpAdapter(BaseAdapter):
 
     async def _send_http_request(
             self,
-            url: Text,
-            payload: Optional[Text],
-            method: Text = 'post',
+            url: str,
+            payload: Optional[str],
+            method: str = 'post',
             **kwargs: Any
     ) -> Response:
         """
@@ -360,7 +360,7 @@ class HttpAdapter(BaseAdapter):
         )
 
         if self.authentication:
-            kwargs.setdefault('auth', auth.BasicAuth(*self.authentication))
+            kwargs.setdefault('auth', BasicAuth(*self.authentication))
 
         self._log(
             level=DEBUG,
@@ -405,9 +405,9 @@ class HttpAdapter(BaseAdapter):
     def _interpret_response(
             self,
             response: Response,
-            payload: Dict,
+            payload: dict,
             expected_status: Container[int]
-    ) -> Dict:
+    ) -> dict:
         """
         Interprets the HTTP response from the node.
 
@@ -437,7 +437,7 @@ class HttpAdapter(BaseAdapter):
             )
 
         try:
-            decoded: Dict = json.loads(raw_content)
+            decoded: dict = json.loads(raw_content)
         # :bc: py2k doesn't have JSONDecodeError
         except ValueError:
             raise with_context(
@@ -538,13 +538,13 @@ class MockAdapter(BaseAdapter):
     def __init__(self) -> None:
         super(MockAdapter, self).__init__()
 
-        self.responses: Dict[Text, deque] = {}
+        self.responses: Dict[str, deque] = {}
         self.requests: List[dict] = []
 
-    def get_uri(self) -> Text:
+    def get_uri(self) -> str:
         return 'mock://'
 
-    def seed_response(self, command: Text, response: Dict) -> 'MockAdapter':
+    def seed_response(self, command: str, response: dict) -> 'MockAdapter':
         """
         Sets the response that the adapter will return for the specified
         command.
@@ -558,7 +558,7 @@ class MockAdapter(BaseAdapter):
         have a seeded response for a particular command, it will raise a
         ``BadApiResponse`` exception (simulates a 404 response).
 
-        :param Text command:
+        :param str command:
             The name of the command. Note that this is the camelCase version
             of the command name (e.g., ``getNodeInfo``, not ``get_node_info``).
 
@@ -584,7 +584,7 @@ class MockAdapter(BaseAdapter):
         self.responses[command].append(response)
         return self
 
-    async def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
+    async def send_request(self, payload: Dict, **kwargs: Any) -> dict:
         """
         Mimic asynchronous behavior of `HttpAdapter.send_request`.
         """

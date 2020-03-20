@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Dict
+from typing import Iterable, Optional
 
 from iota import Address, Iota, AsyncIota, ProposedTransaction
 from iota.crypto.addresses import AddressGenerator
@@ -50,7 +50,7 @@ class AsyncMultisigIota(AsyncIota):
     async def create_multisig_address(
             self,
             digests: Iterable[Digest]
-    ) -> Dict:
+    ) -> dict:
         """
         Generates a multisig address from a collection of digests.
 
@@ -63,7 +63,7 @@ class AsyncMultisigIota(AsyncIota):
                 keys in the exact same order.
 
         :return:
-            Dict with the following items::
+           ``dict`` with the following items::
 
                 {
                     'address': MultisigAddress,
@@ -79,7 +79,7 @@ class AsyncMultisigIota(AsyncIota):
             index: int = 0,
             count: int = 1,
             security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ) -> Dict:
+    ) -> dict:
         """
         Generates one or more key digests from the seed.
 
@@ -101,7 +101,7 @@ class AsyncMultisigIota(AsyncIota):
             This value must be between 1 and 3, inclusive.
 
         :return:
-            Dict with the following items::
+           ``dict`` with the following items::
 
                 {
                     'digests': List[Digest],
@@ -121,7 +121,7 @@ class AsyncMultisigIota(AsyncIota):
             index: int = 0,
             count: int = 1,
             security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ) -> Dict:
+    ) -> dict:
         """
         Generates one or more private keys from the seed.
 
@@ -144,7 +144,7 @@ class AsyncMultisigIota(AsyncIota):
             This value must be between 1 and 3, inclusive.
 
         :return:
-            Dict with the following items::
+           ``dict`` with the following items::
 
                 {
                     'keys': List[PrivateKey],
@@ -169,7 +169,7 @@ class AsyncMultisigIota(AsyncIota):
             transfers: Iterable[ProposedTransaction],
             multisig_input: MultisigAddress,
             change_address: Optional[Address] = None,
-    ) -> Dict:
+    ) -> dict:
         """
         Prepares a bundle that authorizes the spending of IOTAs from a
         multisig address.
@@ -233,7 +233,7 @@ class AsyncMultisigIota(AsyncIota):
                     signing the input(s)!
 
         :return:
-            Dict containing the following values::
+           ``dict`` wontaining the following values::
 
                 {
                     'trytes': List[TransactionTrytes],
@@ -293,7 +293,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
     def create_multisig_address(
             self,
             digests: Iterable[Digest]
-    ) -> Dict:
+    ) -> dict:
         """
         Generates a multisig address from a collection of digests.
 
@@ -306,7 +306,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
                 keys in the exact same order.
 
         :return:
-            Dict with the following items::
+           ``dict`` with the following items::
 
                 {
                     'address': MultisigAddress,
@@ -322,7 +322,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
             index: int = 0,
             count: int = 1,
             security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ) -> Dict:
+    ) -> dict:
         """
         Generates one or more key digests from the seed.
 
@@ -344,7 +344,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
             This value must be between 1 and 3, inclusive.
 
         :return:
-            Dict with the following items::
+            ``dict`` with the following items::
 
                 {
                     'digests': List[Digest],
@@ -365,7 +365,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
             index: int = 0,
             count: int = 1,
             security_level: int = AddressGenerator.DEFAULT_SECURITY_LEVEL,
-    ) -> Dict:
+    ) -> dict:
         """
         Generates one or more private keys from the seed.
 
@@ -388,7 +388,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
             This value must be between 1 and 3, inclusive.
 
         :return:
-            Dict with the following items::
+            ``dict`` with the following items::
 
                 {
                     'keys': List[PrivateKey],
@@ -414,7 +414,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
             transfers: Iterable[ProposedTransaction],
             multisig_input: MultisigAddress,
             change_address: Optional[Address] = None,
-    ) -> Dict:
+    ) -> dict:
         """
         Prepares a bundle that authorizes the spending of IOTAs from a
         multisig address.
@@ -478,7 +478,7 @@ class MultisigIota(Iota, AsyncMultisigIota):
                     signing the input(s)!
 
         :return:
-            Dict containing the following values::
+            ``dict`` containing the following values::
 
                 {
                     'trytes': List[TransactionTrytes],

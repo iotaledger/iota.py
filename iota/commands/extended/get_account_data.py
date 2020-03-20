@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 import filters as f
 
@@ -32,7 +32,7 @@ class GetAccountDataCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         inclusion_states: bool = request['inclusionStates']
         seed: Seed = request['seed']
         start: int = request['start']

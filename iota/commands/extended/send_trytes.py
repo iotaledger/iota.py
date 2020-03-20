@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 import filters as f
 
@@ -29,7 +29,7 @@ class SendTrytesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         depth: int = request['depth']
         min_weight_magnitude: int = request['minWeightMagnitude']
         trytes: List[TryteString] = request['trytes']

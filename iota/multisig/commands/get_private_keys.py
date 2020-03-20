@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional
 
 import filters as f
 
@@ -31,7 +31,7 @@ class GetPrivateKeysCommand(FilterCommand):
 
     # There is no async operation going on here, but the base class is async,
     # so from the outside, we have to act like we are doing async.
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         count: Optional[int] = request['count']
         index: int = request['index']
         seed: Seed = request['seed']

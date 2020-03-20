@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Optional, Dict
+from typing import Optional
 
 import filters as f
 
@@ -30,7 +30,7 @@ class GetTransfersCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         inclusion_states: bool = request['inclusionStates']
         seed: Seed = request['seed']
         start: int = request['start']

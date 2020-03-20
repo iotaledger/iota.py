@@ -1,5 +1,3 @@
-from typing import Dict
-
 import filters as f
 
 from iota import Bundle, TransactionHash
@@ -27,7 +25,7 @@ class ReplayBundleCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         depth: int = request['depth']
         min_weight_magnitude: int = request['minWeightMagnitude']
         transaction: TransactionHash = request['transaction']

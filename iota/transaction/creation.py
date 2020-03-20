@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator, List, Optional, Sequence, Dict
+from typing import Iterable, Iterator, List, Optional, Sequence
 
 from iota.crypto import HASH_LENGTH
 from iota.crypto.kerl import Kerl
@@ -260,7 +260,7 @@ class ProposedBundle(Bundle, Sequence[ProposedTransaction]):
 
         return Tag(b'')
 
-    def as_json_compatible(self) -> List[Dict]:
+    def as_json_compatible(self) -> List[dict]:
         """
         Returns a JSON-compatible representation of the object.
 

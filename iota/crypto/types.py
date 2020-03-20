@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Dict
+from typing import Optional
 
 from iota.crypto import FRAGMENT_LENGTH, HASH_LENGTH, SeedWarning
 from iota.crypto.kerl import Kerl
@@ -70,7 +70,7 @@ class Digest(TryteString):
         """
         return len(self) // Hash.LEN
 
-    def as_json_compatible(self) -> Dict:
+    def as_json_compatible(self) -> dict:
         """
         Returns a JSON-compatible representation of the digest.
 
@@ -78,7 +78,7 @@ class Digest(TryteString):
             ``dict`` with the following structure::
 
                 {
-                    trytes': Text,
+                    trytes': str,
                     'key_index': int,
                 }
 
@@ -201,7 +201,7 @@ class PrivateKey(TryteString):
         self.key_index = key_index
         self.security_level = security_level
 
-    def as_json_compatible(self) -> Dict:
+    def as_json_compatible(self) -> dict:
         """
         Returns a JSON-compatible representation of the private key.
 
@@ -209,7 +209,7 @@ class PrivateKey(TryteString):
             ``dict`` with the following structure::
 
                 {
-                    trytes': Text,
+                    trytes': str,
                     'key_index': int,
                     'security_level': int,
                 }

@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 import filters as f
 
@@ -28,7 +28,7 @@ class TraverseBundleCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict) -> Dict:
+    async def _execute(self, request: dict) -> dict:
         txn_hash: TransactionHash = request['transaction']
 
         bundle = Bundle(await self._traverse_bundle(txn_hash, None))

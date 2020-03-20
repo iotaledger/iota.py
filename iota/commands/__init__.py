@@ -1,10 +1,5 @@
 from abc import ABCMeta, abstractmethod as abstract_method
-from importlib import import_module
-from inspect import getmembers as get_members, isabstract as is_abstract, \
-  isclass as is_class
-from pkgutil import walk_packages
-from types import ModuleType
-from typing import Any, Dict, Mapping, Optional, Text, Union
+from typing import Any, Mapping, Optional
 
 import filters as f
 
@@ -24,7 +19,7 @@ class BaseCommand(object, metaclass=ABCMeta):
   """
   An API command ready to send to the node.
   """
-  command: Text = None
+  command: str = None
 
   def __init__(self, adapter: BaseAdapter) -> None:
     """
@@ -34,10 +29,10 @@ class BaseCommand(object, metaclass=ABCMeta):
     self.adapter = adapter
 
     self.called: bool = False
-    self.request: Optional[Dict] = None
-    self.response: Optional[Dict] = None
+    self.request: Optional[dict] = None
+    self.response: Optional[dict] = None
 
-  async def __call__(self, **kwargs: Any) -> Dict:
+  async def __call__(self, **kwargs: Any) -> dict:
     """
     Sends the command to the node.
     """
@@ -75,7 +70,7 @@ class BaseCommand(object, metaclass=ABCMeta):
     self.request = None
     self.response = None
 
-  async def _execute(self, request: Dict) -> Dict:
+  async def _execute(self, request: dict) -> dict:
     """
     Sends the request object to the adapter and returns the response.
 
@@ -86,7 +81,7 @@ class BaseCommand(object, metaclass=ABCMeta):
     return await self.adapter.send_request(request)
 
   @abstract_method
-  def _prepare_request(self, request: Dict) -> Optional[Dict]:
+  def _prepare_request(self, request: dict) -> Optional[dict]:
     """
     Modifies the request before sending it to the node.
 
@@ -104,7 +99,7 @@ class BaseCommand(object, metaclass=ABCMeta):
     )
 
   @abstract_method
-  def _prepare_response(self, response: Dict) -> Optional[Dict]:
+  def _prepare_response(self, response: dict) -> Optional[dict]:
     """
     Modifies the response from the node.
 
@@ -126,7 +121,7 @@ class CustomCommand(BaseCommand):
 
   Useful for executing experimental/undocumented commands.
   """
-  def __init__(self, adapter: BaseAdapter, command: Text) -> None:
+  def __init__(self, adapter: BaseAdapter, command: str) -> None:
     super(CustomCommand, self).__init__(adapter)
 
     self.command = command
@@ -216,14 +211,14 @@ class FilterCommand(BaseCommand, metaclass=ABCMeta):
       'Not implemented in {cls}.'.format(cls=type(self).__name__),
     )
 
-  def _prepare_request(self, request: Dict) -> Dict:
+  def _prepare_request(self, request: dict) -> dict:
     return self._apply_filter(
       value           = request,
       filter_         = self.get_request_filter(),
       failure_message = 'Request failed validation',
     )
 
-  def _prepare_response(self, response: Dict) -> Dict:
+  def _prepare_response(self, response: dict) -> dict:
     return self._apply_filter(
       value           = response,
       filter_         = self.get_response_filter(),
@@ -232,10 +227,10 @@ class FilterCommand(BaseCommand, metaclass=ABCMeta):
 
   @staticmethod
   def _apply_filter(
-          value: Dict,
+          value: dict,
           filter_: Optional[f.BaseFilter],
-          failure_message: Text
-  ) -> Dict:
+          failure_message: str
+  ) -> dict:
     """
     Applies a filter to a value.  If the value does not pass the
     filter, an exception will be raised with lots of contextual info

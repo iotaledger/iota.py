@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import Iterable, Optional, Dict
+from typing import Iterable, Optional
 
 from iota import Address, TrytesCompatible
 from iota.crypto.types import Digest
@@ -57,7 +57,7 @@ class MultisigAddress(Address):
             map(attrgetter('security_level'), self.digests)
         )
 
-    def as_json_compatible(self) -> Dict:
+    def as_json_compatible(self) -> dict:
         """
         Get a JSON represenation of the :py:class:`MultisigAddress` object.
 
@@ -65,7 +65,7 @@ class MultisigAddress(Address):
             ``dict`` with the following structure::
 
                 {
-                    'trytes': Text,
+                    'trytes': str,
                         String representation of the address trytes.
                     'balance': int,
                         Balance of the address.

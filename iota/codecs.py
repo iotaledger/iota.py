@@ -1,5 +1,5 @@
 from codecs import Codec, CodecInfo, register as lookup_function
-from typing import Union, Text, Tuple
+from typing import Union, Tuple
 from warnings import warn
 
 from iota.exceptions import with_context
@@ -72,7 +72,7 @@ class AsciiTrytesCodec(Codec):
 
     def encode(self,
                input: Union[memoryview, bytes, bytearray],
-               errors: Text = 'strict') -> Tuple[bytes, int]:
+               errors: str = 'strict') -> Tuple[bytes, int]:
         """
         Encodes a byte string into trytes.
         """
@@ -108,7 +108,7 @@ class AsciiTrytesCodec(Codec):
 
     def decode(self,
                input: Union[memoryview, bytes, bytearray],
-               errors: Text = 'strict') -> Tuple[bytes, int]:
+               errors: str = 'strict') -> Tuple[bytes, int]:
         """
         Decodes a tryte string into bytes.
         """

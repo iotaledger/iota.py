@@ -1,4 +1,4 @@
-from typing import Text, Type
+from typing import Type
 
 import filters as f
 from filters.macros import filter_macro
@@ -77,7 +77,7 @@ class NodeUri(f.BaseFilter):
     }
 
     def _apply(self, value):
-        value: Text = self._filter(value, f.Type(str))
+        value: str = self._filter(value, f.Type(str))
 
         if self._has_errors:
             return None

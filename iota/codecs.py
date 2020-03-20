@@ -59,11 +59,12 @@ class AsciiTrytesCodec(Codec):
         """
         codec = cls()
 
-        # In Python 2, all codecs are made equal.
-        # In Python 3, some codecs are more equal than others
         codec_info = {
             'encode': codec.encode,
             'decode': codec.decode,
+            
+            # In Python 2, all codecs are made equal.
+            # In Python 3, some codecs are more equal than others.
             '_is_text_encoding': False
         }
 

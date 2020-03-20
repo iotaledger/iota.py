@@ -34,8 +34,8 @@ class BaseCommand(object, metaclass=ABCMeta):
     self.adapter = adapter
 
     self.called: bool = False
-    self.request: Dict = None
-    self.response: Dict = None
+    self.request: Optional[Dict] = None
+    self.response: Optional[Dict] = None
 
   async def __call__(self, **kwargs: Any) -> Dict:
     """

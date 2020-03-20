@@ -91,7 +91,7 @@ def convertBytesToBigInt(ba: List[int]) -> int:
                enumerate(reversed(bytesArray))) * signum
 
 
-def convertBigintToBytes(big: int) -> List[int]:
+def convertBigIntToBytes(big: int) -> List[int]:
     bytesArrayTemp = [(abs(big) >> pos * 8) % (1 << 8) for pos in
                       range(48)]
 

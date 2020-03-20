@@ -153,7 +153,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
     def __init__(self) -> None:
         super(BaseAdapter, self).__init__()
 
-        self._logger: Logger = None
+        self._logger: Optional[Logger] = None
         self.local_pow: bool = False
 
     @abstract_method
@@ -166,7 +166,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
         )
 
     @abstract_method
-    def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
+    def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
         """
         Sends an API request to the node.
 
@@ -200,7 +200,7 @@ class BaseAdapter(object, metaclass=AdapterMeta):
             self,
             level: int,
             message: Text,
-            context: Optional[int] = None
+            context: Optional[dict] = None
     ) -> None:
         """
         Sends a message to the instance's logger, if configured.
@@ -263,7 +263,7 @@ class HttpAdapter(BaseAdapter):
             self,
             uri: Union[Text, SplitResult],
             timeout: Optional[int] = None,
-            authentication: Optional[Dict] = None
+            authentication: Optional[Tuple[Text, Text]] = None
     ) -> None:
         super(HttpAdapter, self).__init__()
 
@@ -325,7 +325,7 @@ class HttpAdapter(BaseAdapter):
     def get_uri(self) -> Text:
         return self.uri.geturl()
 
-    async def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
+    async def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
         kwargs.setdefault('headers', {})
         for key, value in self.DEFAULT_HEADERS.items():
             kwargs['headers'].setdefault(key, value)
@@ -406,7 +406,7 @@ class HttpAdapter(BaseAdapter):
             self,
             response: Response,
             payload: Dict,
-            expected_status: Container[Dict]
+            expected_status: Container[int]
     ) -> Dict:
         """
         Interprets the HTTP response from the node.
@@ -584,7 +584,7 @@ class MockAdapter(BaseAdapter):
         self.responses[command].append(response)
         return self
 
-    async def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
+    async def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
         """
         Mimic asynchronous behavior of `HttpAdapter.send_request`.
         """

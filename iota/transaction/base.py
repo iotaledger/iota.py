@@ -214,7 +214,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`TransactionHash`
         """
 
-        self.bundle_hash: BundleHash = bundle_hash
+        self.bundle_hash: Optional[BundleHash] = bundle_hash
         """
         The bundle hash, used to identify transactions that are part of the same
         bundle.
@@ -249,7 +249,7 @@ class Transaction(JsonSerializable):
         :type: ``int``
         """
 
-        self._legacy_tag: Tag = legacy_tag
+        self._legacy_tag: Optional[Tag] = legacy_tag
         """
         A short message attached to the transaction.
 
@@ -259,7 +259,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Tag`
         """
 
-        self.nonce: Nonce = nonce
+        self.nonce: Optional[Nonce] = nonce
         """
         Unique value used to increase security of the transaction hash.
 
@@ -281,7 +281,7 @@ class Transaction(JsonSerializable):
         :type: ``int``, unix timestamp in seconds.
         """
 
-        self.current_index: int = current_index
+        self.current_index: Optional[int] = current_index
         """
         The position of the transaction inside the bundle.
 
@@ -295,7 +295,7 @@ class Transaction(JsonSerializable):
         :type: ``int``
         """
 
-        self.last_index: int = last_index
+        self.last_index: Optional[int] = last_index
         """
         The index of the final transaction in the bundle.
 
@@ -305,7 +305,7 @@ class Transaction(JsonSerializable):
         :type: ``int``
         """
 
-        self.trunk_transaction_hash: TransactionHash = trunk_transaction_hash
+        self.trunk_transaction_hash: Optional[TransactionHash] = trunk_transaction_hash
         """
         The transaction hash of the next transaction in the bundle.
 
@@ -319,7 +319,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`TransactionHash`
         """
 
-        self.branch_transaction_hash: TransactionHash = branch_transaction_hash
+        self.branch_transaction_hash: Optional[TransactionHash] = branch_transaction_hash
         """
         An unrelated transaction that this transaction "approves".
 
@@ -334,7 +334,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`TransactionHash`
         """
 
-        self.tag: Tag = tag
+        self.tag: Optional[Tag] = tag
         """
         Optional classification tag applied to this transaction.
 
@@ -343,7 +343,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Tag`
         """
 
-        self.attachment_timestamp: int = attachment_timestamp
+        self.attachment_timestamp: Optional[int] = attachment_timestamp
         """
         Estimated epoch time of the attachment to the tangle.
 
@@ -352,21 +352,21 @@ class Transaction(JsonSerializable):
         :type: ``int``, unix timestamp in milliseconds,
         """
 
-        self.attachment_timestamp_lower_bound: int = attachment_timestamp_lower_bound
+        self.attachment_timestamp_lower_bound: Optional[int] = attachment_timestamp_lower_bound
         """
         The lowest possible epoch time of the attachment to the tangle.
 
         :type: ``int``, unix timestamp in milliseconds.
         """
 
-        self.attachment_timestamp_upper_bound: int = attachment_timestamp_upper_bound
+        self.attachment_timestamp_upper_bound: Optional[int] = attachment_timestamp_upper_bound
         """
         The highest possible epoch time of the attachment to the tangle.
 
         :type: ``int``, unix timestamp in milliseconds.
         """
 
-        self.signature_message_fragment: Fragment = signature_message_fragment
+        self.signature_message_fragment: Optional[Fragment] = signature_message_fragment
         """
         "Signature/Message Fragment" (note the slash):
 

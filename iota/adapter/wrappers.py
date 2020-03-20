@@ -26,7 +26,7 @@ class BaseWrapper(BaseAdapter, metaclass=ABCMeta):
         return self.adapter.get_uri()
 
     @abstract_method
-    def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
+    def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
         raise NotImplementedError(
             'Not implemented in {cls}.'.format(cls=type(self).__name__),
         )
@@ -131,7 +131,7 @@ class RoutingWrapper(BaseWrapper):
         """
         return self.routes.get(command, self.adapter)
 
-    async def send_request(self, payload: Dict, **kwargs: Dict) -> Dict:
+    async def send_request(self, payload: Dict, **kwargs: Any) -> Dict:
         command = payload.get('command')
 
         return await self.get_adapter(command).send_request(payload, **kwargs)

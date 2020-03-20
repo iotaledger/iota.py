@@ -31,7 +31,7 @@ class PrepareMultisigTransferCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request: Dict):
+    async def _execute(self, request: Dict) -> Dict:
         change_address: Optional[Address] = request['changeAddress']
         multisig_input: MultisigAddress = request['multisigInput']
         transfers: List[ProposedTransaction] = request['transfers']

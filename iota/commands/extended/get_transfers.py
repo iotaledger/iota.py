@@ -30,11 +30,11 @@ class GetTransfersCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        inclusion_states = request['inclusionStates']  # type: bool
-        seed = request['seed']  # type: Seed
-        start = request['start']  # type: int
-        stop = request['stop']  # type: Optional[int]
+    async def _execute(self, request: dict) -> dict:
+        inclusion_states: bool = request['inclusionStates']
+        seed: Seed = request['seed']
+        start: int = request['start']
+        stop: Optional[int] = request['stop']
 
         # Determine the addresses we will be scanning, and pull their
         # transaction hashes.
@@ -75,7 +75,7 @@ class GetTransfersRequestFilter(RequestFilter):
         CODE_INTERVAL_TOO_BIG: '``stop`` - ``start`` must be <= {max_interval}',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetTransfersRequestFilter, self).__init__(
             {
                 # Required parameters.

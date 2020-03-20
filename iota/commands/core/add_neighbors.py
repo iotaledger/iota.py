@@ -24,7 +24,7 @@ class AddNeighborsCommand(FilterCommand):
 
 
 class AddNeighborsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(AddNeighborsRequestFilter, self).__init__({
             'uris':
                 f.Required | f.Array | f.FilterRepeater(f.Required | NodeUri),

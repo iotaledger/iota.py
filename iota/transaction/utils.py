@@ -1,6 +1,5 @@
 from calendar import timegm as unix_timestamp
 from datetime import datetime
-from typing import Text
 
 from iota import STANDARD_UNITS
 from iota.exceptions import with_context
@@ -11,8 +10,7 @@ __all__ = [
 ]
 
 
-def convert_value_to_standard_unit(value, symbol='i'):
-    # type: (Text, Text) -> float
+def convert_value_to_standard_unit(value: str, symbol: str = 'i') -> float:
     """
     Converts between any two standard units of iota.
 
@@ -57,8 +55,7 @@ def convert_value_to_standard_unit(value, symbol='i'):
     return amount * (unit_factor_from / unit_factor_to)
 
 
-def get_current_timestamp():
-    # type: () -> int
+def get_current_timestamp() -> int:
     """
     Returns the current timestamp, used to set ``timestamp`` for new
     :py:class:`ProposedTransaction` objects.

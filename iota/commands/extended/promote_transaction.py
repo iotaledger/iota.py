@@ -26,10 +26,10 @@ class PromoteTransactionCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        depth = request['depth']  # type: int
-        min_weight_magnitude = request['minWeightMagnitude']  # type: int
-        transaction = request['transaction']  # type: TransactionHash
+    async def _execute(self, request: dict) -> dict:
+        depth: int = request['depth']
+        min_weight_magnitude: int = request['minWeightMagnitude']
+        transaction: TransactionHash = request['transaction']
 
         cc_response = await CheckConsistencyCommand(self.adapter)(tails=[transaction])
         if cc_response['state'] is False:
@@ -53,7 +53,7 @@ class PromoteTransactionCommand(FilterCommand):
 
 
 class PromoteTransactionRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(PromoteTransactionRequestFilter, self).__init__({
             'depth': f.Required | f.Type(int) | f.Min(1),
             'transaction': f.Required | Trytes(TransactionHash),

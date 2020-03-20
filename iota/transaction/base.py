@@ -1,6 +1,6 @@
 from operator import attrgetter
 from typing import Iterable, Iterator, List, MutableSequence, \
-    Optional, Sequence, Text
+    Optional, Sequence, TypeVar, Type
 
 from iota.codecs import TrytesDecodeError
 from iota.crypto import Curl, HASH_LENGTH
@@ -14,6 +14,8 @@ __all__ = [
     'Bundle',
     'Transaction',
 ]
+
+T = TypeVar('T', bound='Transaction')
 
 
 class Transaction(JsonSerializable):
@@ -76,8 +78,11 @@ class Transaction(JsonSerializable):
     """
 
     @classmethod
-    def from_tryte_string(cls, trytes, hash_=None):
-        # type: (TrytesCompatible, Optional[TransactionHash]) -> Transaction
+    def from_tryte_string(
+            cls: Type[T],
+            trytes: TrytesCompatible,
+            hash_: Optional[TransactionHash] = None
+    ) -> T:
         """
         Creates a Transaction object from a sequence of trytes.
 
@@ -146,7 +151,7 @@ class Transaction(JsonSerializable):
         tryte_string = TransactionTrytes(trytes)
 
         if not hash_:
-            hash_trits = [0] * HASH_LENGTH  # type: MutableSequence[int]
+            hash_trits: MutableSequence[int] = [0] * HASH_LENGTH
 
             sponge = Curl()
             sponge.absorb(tryte_string.as_trits())
@@ -155,51 +160,51 @@ class Transaction(JsonSerializable):
             hash_ = TransactionHash.from_trits(hash_trits)
 
         return cls(
-            hash_=hash_,
-            signature_message_fragment=Fragment(tryte_string[0:2187]),
-            address=Address(tryte_string[2187:2268]),
-            value=int_from_trits(tryte_string[2268:2295].as_trits()),
-            legacy_tag=Tag(tryte_string[2295:2322]),
-            timestamp=int_from_trits(tryte_string[2322:2331].as_trits()),
-            current_index=int_from_trits(tryte_string[2331:2340].as_trits()),
-            last_index=int_from_trits(tryte_string[2340:2349].as_trits()),
-            bundle_hash=BundleHash(tryte_string[2349:2430]),
-            trunk_transaction_hash=TransactionHash(tryte_string[2430:2511]),
-            branch_transaction_hash=TransactionHash(tryte_string[2511:2592]),
-            tag=Tag(tryte_string[2592:2619]),
+                hash_=hash_,
+                signature_message_fragment=Fragment(tryte_string[0:2187]),
+                address=Address(tryte_string[2187:2268]),
+                value=int_from_trits(tryte_string[2268:2295].as_trits()),
+                legacy_tag=Tag(tryte_string[2295:2322]),
+                timestamp=int_from_trits(tryte_string[2322:2331].as_trits()),
+                current_index=int_from_trits(tryte_string[2331:2340].as_trits()),
+                last_index=int_from_trits(tryte_string[2340:2349].as_trits()),
+                bundle_hash=BundleHash(tryte_string[2349:2430]),
+                trunk_transaction_hash=TransactionHash(tryte_string[2430:2511]),
+                branch_transaction_hash=TransactionHash(tryte_string[2511:2592]),
+                tag=Tag(tryte_string[2592:2619]),
 
-            attachment_timestamp=int_from_trits(
-                tryte_string[2619:2628].as_trits()),
+                attachment_timestamp=int_from_trits(
+                        tryte_string[2619:2628].as_trits()),
 
-            attachment_timestamp_lower_bound=int_from_trits(
-                tryte_string[2628:2637].as_trits()),
+                attachment_timestamp_lower_bound=int_from_trits(
+                        tryte_string[2628:2637].as_trits()),
 
-            attachment_timestamp_upper_bound=int_from_trits(
-                tryte_string[2637:2646].as_trits()),
+                attachment_timestamp_upper_bound=int_from_trits(
+                        tryte_string[2637:2646].as_trits()),
 
-            nonce=Nonce(tryte_string[2646:2673]),
+                nonce=Nonce(tryte_string[2646:2673]),
         )
 
     def __init__(
             self,
-            hash_,  # type: Optional[TransactionHash]
-            signature_message_fragment,  # type: Optional[Fragment]
-            address,  # type: Address
-            value,  # type: int
-            timestamp,  # type: int
-            current_index,  # type: Optional[int]
-            last_index,  # type: Optional[int]
-            bundle_hash,  # type: Optional[BundleHash]
-            trunk_transaction_hash,  # type: Optional[TransactionHash]
-            branch_transaction_hash,  # type: Optional[TransactionHash]
-            tag,  # type: Optional[Tag]
-            attachment_timestamp,  # type: Optional[int]
-            attachment_timestamp_lower_bound,  # type: Optional[int]
-            attachment_timestamp_upper_bound,  # type: Optional[int]
-            nonce,  # type: Optional[Nonce]
-            legacy_tag=None  # type: Optional[Tag]
-    ):
-        self.hash = hash_
+            hash_: Optional[TransactionHash],
+            signature_message_fragment: Optional[Fragment],
+            address: Address,
+            value: int,
+            timestamp: int,
+            current_index: Optional[int],
+            last_index: Optional[int],
+            bundle_hash: Optional[BundleHash],
+            trunk_transaction_hash: Optional[TransactionHash],
+            branch_transaction_hash: Optional[TransactionHash],
+            tag: Optional[Tag],
+            attachment_timestamp: Optional[int],
+            attachment_timestamp_lower_bound: Optional[int],
+            attachment_timestamp_upper_bound: Optional[int],
+            nonce: Optional[Nonce],
+            legacy_tag: Optional[Tag] = None
+    ) -> None:
+        self.hash: TransactionHash = hash_
         """
         The transaction hash, used to uniquely identify the transaction on the
         Tangle.
@@ -209,7 +214,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`TransactionHash`
         """
 
-        self.bundle_hash = bundle_hash
+        self.bundle_hash: Optional[BundleHash] = bundle_hash
         """
         The bundle hash, used to identify transactions that are part of the same
         bundle.
@@ -220,7 +225,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`BundleHash`
         """
 
-        self.address = address
+        self.address: Address = address
         """
         The address associated with this transaction.
 
@@ -231,7 +236,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Address`
         """
 
-        self.value = value
+        self.value: int = value
         """
         The number of iotas being transferred in this transaction:
 
@@ -244,7 +249,7 @@ class Transaction(JsonSerializable):
         :type: ``int``
         """
 
-        self._legacy_tag = legacy_tag
+        self._legacy_tag: Optional[Tag] = legacy_tag
         """
         A short message attached to the transaction.
 
@@ -254,7 +259,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Tag`
         """
 
-        self.nonce = nonce
+        self.nonce: Optional[Nonce] = nonce
         """
         Unique value used to increase security of the transaction hash.
 
@@ -263,7 +268,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Nonce`
         """
 
-        self.timestamp = timestamp
+        self.timestamp: int = timestamp
         """
         Timestamp used to increase the security of the transaction hash.
 
@@ -276,7 +281,7 @@ class Transaction(JsonSerializable):
         :type: ``int``, unix timestamp in seconds.
         """
 
-        self.current_index = current_index
+        self.current_index: Optional[int] = current_index
         """
         The position of the transaction inside the bundle.
 
@@ -290,7 +295,7 @@ class Transaction(JsonSerializable):
         :type: ``int``
         """
 
-        self.last_index = last_index
+        self.last_index: Optional[int] = last_index
         """
         The index of the final transaction in the bundle.
 
@@ -300,7 +305,7 @@ class Transaction(JsonSerializable):
         :type: ``int``
         """
 
-        self.trunk_transaction_hash = trunk_transaction_hash
+        self.trunk_transaction_hash: Optional[TransactionHash] = trunk_transaction_hash
         """
         The transaction hash of the next transaction in the bundle.
 
@@ -314,7 +319,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`TransactionHash`
         """
 
-        self.branch_transaction_hash = branch_transaction_hash
+        self.branch_transaction_hash: Optional[TransactionHash] = branch_transaction_hash
         """
         An unrelated transaction that this transaction "approves".
 
@@ -329,7 +334,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`TransactionHash`
         """
 
-        self.tag = tag
+        self.tag: Optional[Tag] = tag
         """
         Optional classification tag applied to this transaction.
 
@@ -338,7 +343,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Tag`
         """
 
-        self.attachment_timestamp = attachment_timestamp
+        self.attachment_timestamp: Optional[int] = attachment_timestamp
         """
         Estimated epoch time of the attachment to the tangle.
 
@@ -347,21 +352,21 @@ class Transaction(JsonSerializable):
         :type: ``int``, unix timestamp in milliseconds,
         """
 
-        self.attachment_timestamp_lower_bound = attachment_timestamp_lower_bound
+        self.attachment_timestamp_lower_bound: Optional[int] = attachment_timestamp_lower_bound
         """
         The lowest possible epoch time of the attachment to the tangle.
 
         :type: ``int``, unix timestamp in milliseconds.
         """
 
-        self.attachment_timestamp_upper_bound = attachment_timestamp_upper_bound
+        self.attachment_timestamp_upper_bound: Optional[int] = attachment_timestamp_upper_bound
         """
         The highest possible epoch time of the attachment to the tangle.
 
         :type: ``int``, unix timestamp in milliseconds.
         """
 
-        self.signature_message_fragment = signature_message_fragment
+        self.signature_message_fragment: Optional[Fragment] = signature_message_fragment
         """
         "Signature/Message Fragment" (note the slash):
 
@@ -381,7 +386,7 @@ class Transaction(JsonSerializable):
         :type: :py:class:`Fragment`
         """
 
-        self.is_confirmed = None  # type: Optional[bool]
+        self.is_confirmed: bool = None
         """
         Whether this transaction has been confirmed by neighbor nodes.
         Must be set manually via the ``getInclusionStates`` API command.
@@ -395,8 +400,7 @@ class Transaction(JsonSerializable):
         """
 
     @property
-    def is_tail(self):
-        # type: () -> bool
+    def is_tail(self) -> bool:
         """
         Returns whether this transaction is a tail (first one in the
         bundle).
@@ -408,8 +412,7 @@ class Transaction(JsonSerializable):
         return self.current_index == 0
 
     @property
-    def value_as_trytes(self):
-        # type: () -> TryteString
+    def value_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`value`.
@@ -418,8 +421,7 @@ class Transaction(JsonSerializable):
         return TryteString.from_trits(trits_from_int(self.value, pad=81))
 
     @property
-    def timestamp_as_trytes(self):
-        # type: () -> TryteString
+    def timestamp_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`timestamp`.
@@ -428,20 +430,18 @@ class Transaction(JsonSerializable):
         return TryteString.from_trits(trits_from_int(self.timestamp, pad=27))
 
     @property
-    def current_index_as_trytes(self):
-        # type: () -> TryteString
+    def current_index_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`current_index`.
         """
         # Note that we are padding to 27 *trits*.
         return TryteString.from_trits(
-            trits_from_int(self.current_index, pad=27),
+                trits_from_int(self.current_index, pad=27),
         )
 
     @property
-    def last_index_as_trytes(self):
-        # type: () -> TryteString
+    def last_index_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`last_index`.
@@ -450,43 +450,39 @@ class Transaction(JsonSerializable):
         return TryteString.from_trits(trits_from_int(self.last_index, pad=27))
 
     @property
-    def attachment_timestamp_as_trytes(self):
-        # type: () -> TryteString
+    def attachment_timestamp_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`attachment_timestamp`.
         """
         # Note that we are padding to 27 *trits*.
         return TryteString.from_trits(
-            trits_from_int(self.attachment_timestamp, pad=27),
+                trits_from_int(self.attachment_timestamp, pad=27),
         )
 
     @property
-    def attachment_timestamp_lower_bound_as_trytes(self):
-        # type: () -> TryteString
+    def attachment_timestamp_lower_bound_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`attachment_timestamp_lower_bound`.
         """
         # Note that we are padding to 27 *trits*.
         return TryteString.from_trits(
-            trits_from_int(self.attachment_timestamp_lower_bound, pad=27),
+                trits_from_int(self.attachment_timestamp_lower_bound, pad=27),
         )
 
     @property
-    def attachment_timestamp_upper_bound_as_trytes(self):
-        # type: () -> TryteString
+    def attachment_timestamp_upper_bound_as_trytes(self) -> TryteString:
         """
         Returns a TryteString representation of the transaction's
         :py:attr:`attachment_timestamp_upper_bound`.
         """
         # Note that we are padding to 27 *trits*.
         return TryteString.from_trits(
-            trits_from_int(self.attachment_timestamp_upper_bound, pad=27),
+                trits_from_int(self.attachment_timestamp_upper_bound, pad=27),
         )
 
-    def as_json_compatible(self):
-        # type: () -> dict
+    def as_json_compatible(self) -> dict:
         """
         Returns a JSON-compatible representation of the object.
 
@@ -540,8 +536,7 @@ class Transaction(JsonSerializable):
             'nonce': self.nonce,
         }
 
-    def as_tryte_string(self):
-        # type: () -> TransactionTrytes
+    def as_tryte_string(self) -> TransactionTrytes:
         """
         Returns a TryteString representation of the transaction.
 
@@ -549,25 +544,24 @@ class Transaction(JsonSerializable):
             :py:class:`TryteString` object.
         """
         return TransactionTrytes(
-            self.signature_message_fragment
-            + self.address.address
-            + self.value_as_trytes
-            + self.legacy_tag
-            + self.timestamp_as_trytes
-            + self.current_index_as_trytes
-            + self.last_index_as_trytes
-            + self.bundle_hash
-            + self.trunk_transaction_hash
-            + self.branch_transaction_hash
-            + self.tag
-            + self.attachment_timestamp_as_trytes
-            + self.attachment_timestamp_lower_bound_as_trytes
-            + self.attachment_timestamp_upper_bound_as_trytes
-            + self.nonce
+                self.signature_message_fragment
+                + self.address.address
+                + self.value_as_trytes
+                + self.legacy_tag
+                + self.timestamp_as_trytes
+                + self.current_index_as_trytes
+                + self.last_index_as_trytes
+                + self.bundle_hash
+                + self.trunk_transaction_hash
+                + self.branch_transaction_hash
+                + self.tag
+                + self.attachment_timestamp_as_trytes
+                + self.attachment_timestamp_lower_bound_as_trytes
+                + self.attachment_timestamp_upper_bound_as_trytes
+                + self.nonce
         )
 
-    def get_bundle_essence_trytes(self):
-        # type: () -> TryteString
+    def get_bundle_essence_trytes(self) -> TryteString:
         """
         Returns the values needed for calculating bundle hash.
         The bundle hash is the hash of the bundle essence, which is itself
@@ -597,13 +591,15 @@ class Transaction(JsonSerializable):
         )
 
     @property
-    def legacy_tag(self):
-        # type: () -> Tag
+    def legacy_tag(self) -> Tag:
         """
         Return the legacy tag of the transaction.
         If no legacy tag was set, returns the tag instead.
         """
         return self._legacy_tag or self.tag
+
+
+B = TypeVar('B', bound='Bundle')
 
 
 class Bundle(JsonSerializable, Sequence[Transaction]):
@@ -630,8 +626,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
     """
 
     @classmethod
-    def from_tryte_strings(cls, trytes):
-        # type: (Iterable[TryteString]) -> Bundle
+    def from_tryte_strings(cls: Type[B], trytes: Iterable[TryteString]) -> B:
         """
         Creates a Bundle object from a list of tryte values.
 
@@ -657,20 +652,22 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         """
         return cls(map(Transaction.from_tryte_string, trytes))
 
-    def __init__(self, transactions=None):
-        # type: (Optional[Iterable[Transaction]]) -> None
+    def __init__(
+            self,
+            transactions: Optional[Iterable[Transaction]] = None
+    ) -> None:
         super(Bundle, self).__init__()
 
-        self.transactions = []  # type: List[Transaction]
+        self.transactions: List[Transaction] = []
         """
         List of :py:class:`Transaction` objects that are in the bundle.
         """
         if transactions:
             self.transactions.extend(
-                sorted(transactions, key=attrgetter('current_index')),
+                    sorted(transactions, key=attrgetter('current_index')),
             )
 
-        self._is_confirmed = None  # type: Optional[bool]
+        self._is_confirmed: Optional[bool] = None
         """
         Whether this bundle has been confirmed by neighbor nodes.
         Must be set manually.
@@ -680,25 +677,20 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         - :py:class:`Iota.get_transfers`
         """
 
-    def __contains__(self, transaction):
-        # type: (Transaction) -> bool
+    def __contains__(self, transaction: Transaction) -> bool:
         return transaction in self.transactions
 
-    def __getitem__(self, index):
-        # type: (int) -> Transaction
+    def __getitem__(self, index: int) -> Transaction:
         return self.transactions[index]
 
-    def __iter__(self):
-        # type: () -> Iterator[Transaction]
+    def __iter__(self) -> Iterator[Transaction]:
         return iter(self.transactions)
 
-    def __len__(self):
-        # type: () -> int
+    def __len__(self) -> int:
         return len(self.transactions)
 
     @property
-    def is_confirmed(self):
-        # type: () -> Optional[bool]
+    def is_confirmed(self) -> Optional[bool]:
         """
         Returns whether this bundle has been confirmed by neighbor
         nodes.
@@ -714,8 +706,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         return self._is_confirmed
 
     @is_confirmed.setter
-    def is_confirmed(self, new_is_confirmed):
-        # type: (bool) -> None
+    def is_confirmed(self, new_is_confirmed: bool) -> None:
         """
         Sets the ``is_confirmed`` for the bundle.
         """
@@ -725,8 +716,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
             txn.is_confirmed = new_is_confirmed
 
     @property
-    def hash(self):
-        # type: () -> Optional[BundleHash]
+    def hash(self) -> Optional[BundleHash]:
         """
         Returns the hash of the bundle.
 
@@ -743,8 +733,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
             return None
 
     @property
-    def tail_transaction(self):
-        # type: () -> Transaction
+    def tail_transaction(self) -> Transaction:
         """
         Returns the tail transaction of the bundle.
 
@@ -752,13 +741,12 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         """
         return self[0]
 
-    def get_messages(self, errors='drop'):
-        # type: (Text) -> List[Text]
+    def get_messages(self, errors: str = 'drop') -> List[str]:
         """
         Attempts to decipher encoded messages from the transactions in
         the bundle.
 
-        :param Text errors:
+        :param str errors:
             How to handle trytes that can't be converted, or bytes that
             can't be decoded using UTF-8:
 
@@ -774,7 +762,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
             'ignore'
                 Omit the invalid tryte/byte sequence.
 
-        :return: ``List[Text]``
+        :return: ``List[str]``
         """
         decode_errors = 'strict' if errors == 'drop' else errors
 
@@ -798,8 +786,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
 
         return messages
 
-    def as_tryte_strings(self, head_to_tail=False):
-        # type: (bool) -> List[TransactionTrytes]
+    def as_tryte_strings(self, head_to_tail: bool = False) -> List[TransactionTrytes]:
         """
         Returns TryteString representations of the transactions in this
         bundle.
@@ -818,8 +805,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         transactions = self if head_to_tail else reversed(self)
         return [t.as_tryte_string() for t in transactions]
 
-    def as_json_compatible(self):
-        # type: () -> List[dict]
+    def as_json_compatible(self) -> List[dict]:
         """
         Returns a JSON-compatible representation of the object.
 
@@ -833,8 +819,7 @@ class Bundle(JsonSerializable, Sequence[Transaction]):
         """
         return [txn.as_json_compatible() for txn in self]
 
-    def group_transactions(self):
-        # type: () -> List[List[Transaction]]
+    def group_transactions(self) -> List[List[Transaction]]:
         """
         Groups transactions in the bundle by address.
 

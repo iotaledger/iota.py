@@ -14,13 +14,17 @@ TRIT_HASH_LENGTH = 243
 
 
 class Kerl(object):
-    k = None  # type: keccak_384
+    k: keccak_384 = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
 
-    def absorb(self, trits, offset=0, length=None):
-        # type: (MutableSequence[int], int, Optional[int]) -> None
+    def absorb(
+            self,
+            trits: MutableSequence[int],
+            offset: int = 0,
+            length: Optional[int] = None
+    ) -> None:
         """
         Absorb trits into the sponge from a buffer.
 
@@ -74,8 +78,12 @@ class Kerl(object):
 
             offset += TRIT_HASH_LENGTH
 
-    def squeeze(self, trits, offset=0, length=None):
-        # type: (MutableSequence[int], int, Optional[int]) -> None
+    def squeeze(
+            self,
+            trits: MutableSequence[int],
+            offset: int = 0,
+            length: Optional[int] = None
+    ) -> None:
         """
         Squeeze trits from the sponge into a buffer.
 
@@ -135,5 +143,5 @@ class Kerl(object):
 
             offset += TRIT_HASH_LENGTH
 
-    def reset(self):
+    def reset(self) -> None:
         self.k = keccak_384()

@@ -4,7 +4,7 @@ from itertools import chain
 from math import ceil
 from random import SystemRandom
 from typing import Any, AnyStr, Generator, Iterable, Iterator, List, \
-    MutableSequence, Optional, Text, Type, TypeVar, Union
+    MutableSequence, Optional, Type, TypeVar, Union, Dict
 from warnings import warn
 
 from iota import AsciiTrytesCodec, TRITS_PER_TRYTE
@@ -61,8 +61,7 @@ class TryteString(JsonSerializable):
     """
 
     @classmethod
-    def random(cls, length=None):
-        # type: (Optional[int]) -> TryteString
+    def random(cls: Type[T], length: Optional[int] = None) -> T:
         """
         Generates a random sequence of trytes.
 
@@ -95,8 +94,11 @@ class TryteString(JsonSerializable):
         )
 
     @classmethod
-    def from_bytes(cls, bytes_, codec=AsciiTrytesCodec.name, *args, **kwargs):
-        # type: (Type[T], Union[bytes, bytearray], Text, *Any, **Any) -> T
+    def from_bytes(cls: Type[T],
+                   bytes_: Union[bytes, bytearray],
+                   codec: str = AsciiTrytesCodec.name,
+                   *args: Any,
+                   **kwargs: Any) -> T:
         """
         Creates a TryteString from a sequence of bytes.
 
@@ -104,7 +106,7 @@ class TryteString(JsonSerializable):
             Source bytes. ASCII representation of a sequence of bytes.
             Note that only tryte alphabet supported!
 
-        :param Text codec:
+        :param str codec:
             Reserved for future use.
             Currently supports only the 'trytes_ascii' codec.
             See https://github.com/iotaledger/iota.py/issues/62 for
@@ -128,12 +130,14 @@ class TryteString(JsonSerializable):
         return cls(encode(bytes_, codec), *args, **kwargs)
 
     @classmethod
-    def from_unicode(cls, string, *args, **kwargs):
-        # type: (Type[T], Text, *Any, **Any) -> T
+    def from_unicode(cls: Type[T],
+                     string: str,
+                     *args: Any,
+                     **kwargs: Any) -> T:
         """
         Creates a TryteString from a Unicode string.
 
-        :param Text string:
+        :param str string:
             Source Unicode string.
 
         :param args:
@@ -159,7 +163,7 @@ class TryteString(JsonSerializable):
         )
 
     @classmethod
-    def from_string(cls, *args, **kwargs):
+    def from_string(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """
         Deprecated; use :py:meth:`from_unicode` instead.
 
@@ -175,8 +179,10 @@ class TryteString(JsonSerializable):
         return cls.from_unicode(*args, **kwargs)
 
     @classmethod
-    def from_trytes(cls, trytes, *args, **kwargs):
-        # type: (Type[T], Iterable[Iterable[int]], *Any, **Any) -> T
+    def from_trytes(cls: Type[T],
+                    trytes: Iterable[Iterable[int]],
+                    *args: Any,
+                    **kwargs: Any) -> T:
         """
         Creates a TryteString from a sequence of trytes.
 
@@ -229,8 +235,10 @@ class TryteString(JsonSerializable):
         return cls(chars, *args, **kwargs)
 
     @classmethod
-    def from_trits(cls, trits, *args, **kwargs):
-        # type: (Type[T], Iterable[int], *Any, **Any) -> T
+    def from_trits(cls: Type[T],
+                   trits: Iterable[int],
+                   *args: Any,
+                   **kwargs: Any) -> T:
         """
         Creates a TryteString from a sequence of trits.
 
@@ -274,8 +282,7 @@ class TryteString(JsonSerializable):
             **kwargs
         )
 
-    def __init__(self, trytes, pad=None):
-        # type: (TrytesCompatible, Optional[int]) -> None
+    def __init__(self, trytes: TrytesCompatible, pad: Optional[int] = None) -> None:
         """
         :param TrytesCompatible trytes:
             Byte string or bytearray.
@@ -358,20 +365,18 @@ class TryteString(JsonSerializable):
         if pad:
             trytes += b'9' * max(0, pad - len(trytes))
 
-        self._trytes = trytes  # type: bytearray
+        self._trytes: bytearray = trytes
 
-    def __hash__(self):
-        # type: () -> int
+    def __hash__(self) -> int:
         return hash(bytes(self._trytes))
 
-    def __repr__(self):
-        # type: () -> Text
+    def __repr__(self) -> str:
         return '{cls}({trytes!r})'.format(
             cls=type(self).__name__,
             trytes=bytes(self._trytes),
         )
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         """
         Converts the TryteString into an ASCII representation.
 
@@ -387,7 +392,7 @@ class TryteString(JsonSerializable):
         """
         return bytes(self._trytes)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Same as :py:meth:`__bytes__`, except this method returns a
         unicode string.
@@ -397,21 +402,17 @@ class TryteString(JsonSerializable):
 
         return bytes(self._trytes).decode('ascii')
 
-    def __bool__(self):
-        # type: () -> bool
+    def __bool__(self) -> bool:
         return bool(self._trytes) and any(t != b'9' for t in self)
 
-    def __len__(self):
-        # type: () -> int
+    def __len__(self) -> int:
         return len(self._trytes)
 
-    def __iter__(self):
-        # type: () -> Generator[bytes, None, None]
+    def __iter__(self) -> Generator[bytes, None, None]:
         # :see: http://stackoverflow.com/a/14267935/
         return (bytes(self._trytes[i:i + 1]) for i in range(len(self)))
 
-    def __contains__(self, other):
-        # type: (TrytesCompatible) -> bool
+    def __contains__(self, other: TrytesCompatible) -> bool:
         if isinstance(other, TryteString):
             return other._trytes in self._trytes
         elif isinstance(other, str):
@@ -434,8 +435,7 @@ class TryteString(JsonSerializable):
                 },
             )
 
-    def __getitem__(self, item):
-        # type: (Union[int, slice]) -> TryteString
+    def __getitem__(self, item: Union[int, slice]) -> T:
         new_trytes = bytearray()
 
         sliced = self._trytes[item]
@@ -447,8 +447,9 @@ class TryteString(JsonSerializable):
 
         return TryteString(new_trytes)
 
-    def __setitem__(self, item, trytes):
-        # type: (Union[int, slice], TrytesCompatible) -> None
+    def __setitem__(self,
+                    item: Union[int, slice],
+                    trytes: TrytesCompatible) -> None:
         new_trytes = TryteString(trytes)
 
         if isinstance(item, slice):
@@ -469,8 +470,7 @@ class TryteString(JsonSerializable):
         else:
             self._trytes[item] = new_trytes._trytes[0]
 
-    def __add__(self, other):
-        # type: (TrytesCompatible) -> TryteString
+    def __add__(self, other: TrytesCompatible) -> T:
         if isinstance(other, TryteString):
             return TryteString(self._trytes + other._trytes)
         elif isinstance(other, str):
@@ -493,8 +493,7 @@ class TryteString(JsonSerializable):
                 },
             )
 
-    def __eq__(self, other):
-        # type: (TrytesCompatible) -> bool
+    def __eq__(self, other: TrytesCompatible) -> bool:
         if isinstance(other, TryteString):
             return self._trytes == other._trytes
         elif isinstance(other, str):
@@ -517,13 +516,7 @@ class TryteString(JsonSerializable):
                 },
             )
 
-    # :bc: In Python 2 this must be defined explicitly.
-    def __ne__(self, other):
-        # type: (TrytesCompatible) -> bool
-        return not (self == other)
-
-    def count_chunks(self, chunk_size):
-        # type: (int) -> int
+    def count_chunks(self, chunk_size: int) -> int:
         """
         Returns the number of constant-size chunks the TryteString can
         be divided into (rounded up).
@@ -533,8 +526,9 @@ class TryteString(JsonSerializable):
         """
         return len(self.iter_chunks(chunk_size))
 
-    def iter_chunks(self, chunk_size):
-        # type: (int) -> ChunkIterator
+    # Declare forward reference as string until
+    # https://www.python.org/dev/peps/pep-0563/
+    def iter_chunks(self, chunk_size: int) -> 'ChunkIterator':
         """
         Iterates over the TryteString, in chunks of constant size.
 
@@ -545,13 +539,14 @@ class TryteString(JsonSerializable):
         """
         return ChunkIterator(self, chunk_size)
 
-    def encode(self, errors='strict', codec=AsciiTrytesCodec.name):
-        # type: (Text, Text) -> bytes
+    def encode(self,
+               errors: str = 'strict',
+               codec: str = AsciiTrytesCodec.name) -> bytes:
         """
         Encodes the TryteString into a lower-level primitive (usually
         bytes).
 
-        :param Text errors:
+        :param str errors:
             How to handle trytes that can't be converted:
 
             'strict'
@@ -563,7 +558,7 @@ class TryteString(JsonSerializable):
             'ignore'
                 omit the tryte from the result.
 
-        :param Text codec:
+        :param str codec:
             Reserved for future use.
 
             See https://github.com/iotaledger/iota.py/issues/62 for
@@ -619,13 +614,13 @@ class TryteString(JsonSerializable):
         )
         return self.encode(*args, **kwargs)
 
-    def decode(self, errors='strict', strip_padding=True):
-        # type: (Text, bool) -> Text
+    def decode(self, errors: str = 'strict',
+               strip_padding: bool = True) -> str:
         """
         Decodes the TryteString into a higher-level abstraction (usually
         Unicode characters).
 
-        :param Text errors:
+        :param str errors:
             How to handle trytes that can't be converted, or bytes that can't
             be decoded using UTF-8:
 
@@ -682,8 +677,7 @@ class TryteString(JsonSerializable):
         )
         return self.decode(*args, **kwargs)
 
-    def as_json_compatible(self):
-        # type: () -> Text
+    def as_json_compatible(self) -> str:
         """
         Returns a JSON-compatible representation of the object.
 
@@ -705,8 +699,7 @@ class TryteString(JsonSerializable):
         """
         return self._trytes.decode('ascii')
 
-    def as_integers(self):
-        # type: () -> List[int]
+    def as_integers(self) -> List[int]:
         """
         Converts the TryteString into a sequence of integers.
 
@@ -733,8 +726,7 @@ class TryteString(JsonSerializable):
             for c in self._trytes
         ]
 
-    def as_trytes(self):
-        # type: () -> List[List[int]]
+    def as_trytes(self) -> List[List[int]]:
         """
         Converts the TryteString into a sequence of trytes.
 
@@ -763,8 +755,7 @@ class TryteString(JsonSerializable):
             for n in self.as_integers()
         ]
 
-    def as_trits(self):
-        # type: () -> List[int]
+    def as_trits(self) -> List[int]:
         """
         Converts the TryteString into a sequence of trit values.
 
@@ -810,8 +801,7 @@ class TryteString(JsonSerializable):
         return p.text(repr(self))
 
     @staticmethod
-    def _normalize(n):
-        # type: (int) -> int
+    def _normalize(n: int) -> int:
         if n > 26:
             raise ValueError(
                 '{n} cannot be represented by a single tryte.'.format(
@@ -828,8 +818,7 @@ class ChunkIterator(Iterator[TryteString]):
     Iterates over a TryteString, in chunks of constant size.
     """
 
-    def __init__(self, trytes, chunk_size):
-        # type: (TryteString, int) -> None
+    def __init__(self, trytes: TryteString, chunk_size: int) -> None:
         """
         :param trytes:
             :py:class:`TryteString` to iterate over.
@@ -846,12 +835,12 @@ class ChunkIterator(Iterator[TryteString]):
 
         self._offset = 0
 
-    def __iter__(self):
-        # type: () -> ChunkIterator
+    # ChunkIterator class is not defined yet here, so we can't use
+    # it as a type... Forward ref type annotation as available from PY3.7
+    def __iter__(self) -> 'ChunkIterator':
         return self
 
-    def __len__(self):
-        # type: () -> int
+    def __len__(self) -> int:
         """
         Returns how many chunks this iterator will return.
 
@@ -861,8 +850,7 @@ class ChunkIterator(Iterator[TryteString]):
         """
         return int(ceil(len(self.trytes) / self.chunk_size))
 
-    def __next__(self):
-        # type: () -> TryteString
+    def __next__(self) -> TryteString:
         """
         Returns the next chunk in the iterator.
 
@@ -897,8 +885,7 @@ class Hash(TryteString):
     Length is always 81 trytes long.
     """
 
-    def __init__(self, trytes):
-        # type: (TrytesCompatible) -> None
+    def __init__(self, trytes: TrytesCompatible) -> None:
         super(Hash, self).__init__(trytes, pad=self.LEN)
 
         if len(self._trytes) > self.LEN:
@@ -944,19 +931,17 @@ class Address(TryteString):
 
     def __init__(
             self,
-            trytes,  # type: TrytesCompatible
-            balance=None,  # type: Optional[int]
-            key_index=None,  # type: Optional[int]
-            security_level=None,  # type: Optional[int]
-    ):
-        # type: (...) -> None
+            trytes: TrytesCompatible,
+            balance: Optional[int] = None,
+            key_index: Optional[int] = None,
+            security_level: Optional[int] = None,) -> None:
         super(Address, self).__init__(trytes, pad=self.LEN)
 
         self.checksum = None
         if len(self._trytes) == (self.LEN + AddressChecksum.LEN):
-            self.checksum = AddressChecksum(
+            self.checksum: Optional[AddressChecksum] = AddressChecksum(
                 self[self.LEN:]
-            )  # type: Optional[AddressChecksum]
+            )
 
         elif len(self._trytes) > self.LEN:
             raise with_context(
@@ -975,7 +960,7 @@ class Address(TryteString):
             )
 
         # Make the address sans checksum accessible.
-        self.address = self[:self.LEN]  # type: TryteString
+        self.address: TryteString = self[:self.LEN]
         """
         Address trytes without the checksum.
         """
@@ -1007,7 +992,7 @@ class Address(TryteString):
         address.
         """
 
-    def as_json_compatible(self):
+    def as_json_compatible(self) -> Dict[str, Union[str, int]]:
         """
         Returns a JSON-compatible representation of the Address.
 
@@ -1015,7 +1000,7 @@ class Address(TryteString):
             ``dict`` with the following structure::
 
                 {
-                    'trytes': Text,
+                    'trytes': str,
                     'balance': int,
                     'key_index': int,
                     'security_level': int,
@@ -1034,7 +1019,6 @@ class Address(TryteString):
             print(addy.as_json_compatible())
 
         """
-        # type: () -> dict
         return {
             'trytes': self._trytes.decode('ascii'),
             'balance': self.balance,
@@ -1042,8 +1026,7 @@ class Address(TryteString):
             'security_level': self.security_level,
         }
 
-    def is_checksum_valid(self):
-        # type: () -> bool
+    def is_checksum_valid(self) -> bool:
         """
         Returns whether this address has a valid checksum.
 
@@ -1074,8 +1057,7 @@ class Address(TryteString):
 
         return False
 
-    def with_valid_checksum(self):
-        # type: () -> Address
+    def with_valid_checksum(self) -> 'Address':
         """
         Returns the address with a valid checksum attached.
 
@@ -1109,12 +1091,11 @@ class Address(TryteString):
             security_level=self.security_level,
         )
 
-    def _generate_checksum(self):
-        # type: () -> AddressChecksum
+    def _generate_checksum(self) -> 'AddressChecksum':
         """
         Generates the correct checksum for this address.
         """
-        checksum_trits = []  # type: MutableSequence[int]
+        checksum_trits: MutableSequence[int] = []
 
         sponge = Kerl()
         sponge.absorb(self.address.as_trits())
@@ -1124,8 +1105,7 @@ class Address(TryteString):
 
         return AddressChecksum.from_trits(checksum_trits[-checksum_length:])
 
-    def add_checksum(self):
-        # type: () -> None
+    def add_checksum(self) -> None:
         """
         Adds checksum to :py:class:`Address` object.
 
@@ -1164,8 +1144,7 @@ class Address(TryteString):
         # Add generated checksum to internal buffer.
         self._trytes = self._trytes + self.checksum._trytes
 
-    def remove_checksum(self):
-        # type: () -> None
+    def remove_checksum(self) -> None:
         """
         Removes checksum from :py:class:`Address` object.
 
@@ -1198,6 +1177,7 @@ class Address(TryteString):
         self.checksum = None
         self._trytes = self._trytes[:self.LEN]
 
+
 class AddressChecksum(TryteString):
     """
     A :py:class:`TryteString` that acts as an address checksum.
@@ -1212,8 +1192,7 @@ class AddressChecksum(TryteString):
     Length of an address checksum.
     """
 
-    def __init__(self, trytes):
-        # type: (TrytesCompatible) -> None
+    def __init__(self, trytes: TrytesCompatible) -> None:
         super(AddressChecksum, self).__init__(trytes, pad=None)
 
         if len(self._trytes) != self.LEN:
@@ -1245,8 +1224,7 @@ class Tag(TryteString):
     Length of a tag.
     """
 
-    def __init__(self, trytes):
-        # type: (TrytesCompatible) -> None
+    def __init__(self, trytes: TrytesCompatible) -> None:
         super(Tag, self).__init__(trytes, pad=self.LEN)
 
         if len(self._trytes) > self.LEN:

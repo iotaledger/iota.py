@@ -12,7 +12,7 @@ from iota import (
   Tag,
   TryteString,
 )
-from address_generator import get_seed, output_seed
+from .address_generator import get_seed, output_seed
 
 
 def main(address, depth, message, tag, uri, value):

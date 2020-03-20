@@ -25,7 +25,7 @@ class StoreTransactionsCommand(FilterCommand):
 
 
 class StoreTransactionsRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(StoreTransactionsRequestFilter, self).__init__({
             'trytes':
                 StringifiedTrytesArray(TransactionTrytes) | f.Required,

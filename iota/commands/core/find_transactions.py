@@ -31,7 +31,7 @@ class FindTransactionsRequestFilter(RequestFilter):
         CODE_NO_SEARCH_VALUES: 'No search values specified.',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(FindTransactionsRequestFilter, self).__init__(
             {
                 'addresses':
@@ -53,9 +53,9 @@ class FindTransactionsRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        value = super(FindTransactionsRequestFilter, self)._apply(
+        value: dict = super(FindTransactionsRequestFilter, self)._apply(
             value
-        )  # type: dict
+        )
 
         if self._has_errors:
             return value
@@ -78,7 +78,7 @@ class FindTransactionsRequestFilter(RequestFilter):
 
 
 class FindTransactionsResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(FindTransactionsResponseFilter, self).__init__({
             'hashes':
                 f.FilterRepeater(

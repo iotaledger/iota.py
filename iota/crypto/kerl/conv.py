@@ -1,7 +1,10 @@
+from typing import List, Dict
+
+
 BYTE_HASH_LENGTH = 48
 TRIT_HASH_LENGTH = 243
 
-tryte_table = {
+tryte_table: Dict[str, List[int]] = {
     '9': [0, 0, 0],  # 0
     'A': [1, 0, 0],  # 1
     'B': [-1, 1, 0],  # 2
@@ -35,7 +38,7 @@ tryte_table = {
 trit_table = {tuple(v): k for k, v in tryte_table.items()}
 
 
-def trytes_to_trits(trytes):
+def trytes_to_trits(trytes: str) -> List[int]:
     trits = []
     for tryte in trytes:
         trits.extend(tryte_table[tryte])
@@ -43,7 +46,7 @@ def trytes_to_trits(trytes):
     return trits
 
 
-def trits_to_trytes(trits):
+def trits_to_trytes(trits: List[int]) -> str:
     trytes = []
     trits_chunks = [trits[i:i + 3] for i in range(0, len(trits), 3)]
 
@@ -53,19 +56,19 @@ def trits_to_trytes(trits):
     return ''.join(trytes)
 
 
-def convertToTrits(bytes_k):
+def convertToTrits(bytes_k: List[int]) -> List[int]:
     bigInt = convertBytesToBigInt(bytes_k)
     trits = convertBigintToBase(bigInt, 3, TRIT_HASH_LENGTH)
     return trits
 
 
-def convertToBytes(trits):
+def convertToBytes(trits: List[int]) -> List[int]:
     bigInt = convertBaseToBigint(trits, 3)
-    bytes_k = convertBigintToBytes(bigInt)
+    bytes_k = convertBigIntToBytes(bigInt)
     return bytes_k
 
 
-def convertBytesToBigInt(ba):
+def convertBytesToBigInt(ba: List[int]) -> int:
     # copy of array
     bytesArray = list(map(lambda x: x, ba))
 
@@ -88,7 +91,7 @@ def convertBytesToBigInt(ba):
                enumerate(reversed(bytesArray))) * signum
 
 
-def convertBigintToBytes(big):
+def convertBigIntToBytes(big: int) -> List[int]:
     bytesArrayTemp = [(abs(big) >> pos * 8) % (1 << 8) for pos in
                       range(48)]
 
@@ -112,7 +115,7 @@ def convertBigintToBytes(big):
     return bytesArray
 
 
-def convertBaseToBigint(array, base):
+def convertBaseToBigint(array: List[int], base: int) -> int:
     bigint = 0
 
     for i in range(len(array)):
@@ -121,7 +124,7 @@ def convertBaseToBigint(array, base):
     return bigint
 
 
-def convertBigintToBase(bigInt, base, length):
+def convertBigintToBase(bigInt: int, base: int, length: int) -> List[int]:
     result = []
 
     is_negative = bigInt < 0
@@ -147,7 +150,7 @@ def convertBigintToBase(bigInt, base, length):
     return result
 
 
-def convert_sign(byte):
+def convert_sign(byte: int) -> int:
     """
     Convert between signed and unsigned bytes.
     """

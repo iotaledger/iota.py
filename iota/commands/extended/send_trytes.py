@@ -29,11 +29,11 @@ class SendTrytesCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
-        depth = request['depth']  # type: int
-        min_weight_magnitude = request['minWeightMagnitude']  # type: int
-        trytes = request['trytes']  # type: List[TryteString]
-        reference = request['reference']  # type: Optional[TransactionHash]
+    async def _execute(self, request: dict) -> dict:
+        depth: int = request['depth']
+        min_weight_magnitude: int = request['minWeightMagnitude']
+        trytes: List[TryteString] = request['trytes']
+        reference: Optional[TransactionHash] = request['reference']
 
         # Call ``getTransactionsToApprove`` to locate trunk and branch
         # transactions so that we can attach the bundle to the Tangle.
@@ -61,7 +61,7 @@ class SendTrytesCommand(FilterCommand):
 
 
 class SendTrytesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(SendTrytesRequestFilter, self).__init__({
             'depth': f.Required | f.Type(int) | f.Min(1),
 

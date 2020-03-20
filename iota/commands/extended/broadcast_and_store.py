@@ -23,7 +23,7 @@ class BroadcastAndStoreCommand(FilterCommand):
     def get_response_filter(self):
         pass
 
-    async def _execute(self, request):
+    async def _execute(self, request: dict) -> dict:
         # Submit the two coroutines to the already running event loop
         await asyncio.gather(
             BroadcastTransactionsCommand(self.adapter)(**request),

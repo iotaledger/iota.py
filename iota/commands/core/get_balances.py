@@ -25,7 +25,7 @@ class GetBalancesCommand(FilterCommand):
 
 
 class GetBalancesRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetBalancesRequestFilter, self).__init__(
             {
                 'addresses':
@@ -50,9 +50,9 @@ class GetBalancesRequestFilter(RequestFilter):
         )
 
     def _apply(self, value):
-        value = super(GetBalancesRequestFilter, self)._apply(
+        value: dict = super(GetBalancesRequestFilter, self)._apply(
             value
-        )  # type: dict
+        )
 
         if self._has_errors:
             return value
@@ -69,7 +69,7 @@ class GetBalancesRequestFilter(RequestFilter):
 
 
 class GetBalancesResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetBalancesResponseFilter, self).__init__({
             'balances': f.Array | f.FilterRepeater(f.Int),
 

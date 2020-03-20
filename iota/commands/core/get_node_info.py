@@ -25,14 +25,14 @@ class GetNodeInfoCommand(FilterCommand):
 
 
 class GetNodeInfoRequestFilter(RequestFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         # ``getNodeInfo`` does not accept any parameters.
         # Using a filter here just to enforce that the request is empty.
         super(GetNodeInfoRequestFilter, self).__init__({})
 
 
 class GetNodeInfoResponseFilter(ResponseFilter):
-    def __init__(self):
+    def __init__(self) -> None:
         super(GetNodeInfoResponseFilter, self).__init__({
             'latestMilestone':
                 f.ByteString(encoding='ascii') | Trytes(TransactionHash),

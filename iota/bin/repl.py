@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from logging import basicConfig, getLogger, DEBUG
 from sys import stderr
 
+from typing import Any
 # Import all IOTA symbols into module scope, so that it's more
 # convenient for the user.
 from iota import *
@@ -19,8 +20,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
     Creates an IOTA API instance and drops the user into a REPL.
     """
 
-    def execute(self, api, **arguments):
-        # type: (Iota, ...) -> int
+    def execute(self, api: Iota, **arguments: Any) -> int:
         debug_requests = arguments['debug_requests']
         pow_uri = arguments['pow_uri']
 
@@ -51,8 +51,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
 
         return 0
 
-    def create_argument_parser(self):
-        # type: () -> ArgumentParser
+    def create_argument_parser(self) -> ArgumentParser:
         parser = super(IotaReplCommandLineApp, self).create_argument_parser()
 
         parser.add_argument(
@@ -74,8 +73,7 @@ class IotaReplCommandLineApp(IotaCommandLineApp):
         return parser
 
     @staticmethod
-    def _start_repl(api):
-        # type: (Iota) -> None
+    def _start_repl(api: Iota) -> None:
         """
         Starts the REPL.
         """

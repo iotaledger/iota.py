@@ -33,8 +33,11 @@ class Digest(TryteString):
         if length of ``trytes`` is not multiple of :py:attr:`iota.Hash.LEN`.
     """
 
-    def __init__(self, trytes, key_index=None):
-        # type: (TrytesCompatible, Optional[int]) -> None
+    def __init__(
+            self,
+            trytes: TrytesCompatible,
+            key_index: Optional[int] = None
+    ) -> None:
         super(Digest, self).__init__(trytes)
 
         # A digest is a series of hashes; its length should reflect
@@ -57,8 +60,7 @@ class Digest(TryteString):
         self.key_index = key_index
 
     @property
-    def security_level(self):
-        # type: () -> int
+    def security_level(self) -> int:
         """
         Returns the number of iterations that were used to generate this
         digest (also known as "security level").
@@ -68,8 +70,7 @@ class Digest(TryteString):
         """
         return len(self) // Hash.LEN
 
-    def as_json_compatible(self):
-        # type: () -> dict
+    def as_json_compatible(self) -> dict:
         """
         Returns a JSON-compatible representation of the digest.
 
@@ -77,7 +78,7 @@ class Digest(TryteString):
             ``dict`` with the following structure::
 
                 {
-                    trytes': Text,
+                    trytes': str,
                     'key_index': int,
                 }
 
@@ -113,8 +114,7 @@ class Seed(TryteString):
     Length of a Seed.
     """
 
-    def __init__(self, trytes=None):
-        # type: (Optional[TrytesCompatible]) -> None
+    def __init__(self, trytes: Optional[TrytesCompatible] = None) -> None:
         if trytes and len(trytes) > Hash.LEN:
             warnings.warn(
                 message=(
@@ -128,7 +128,7 @@ class Seed(TryteString):
         super(Seed, self).__init__(trytes)
 
     @classmethod
-    def random(cls, length=Hash.LEN):
+    def random(cls, length: int = Hash.LEN) -> 'Seed':
         """
         Generates a random seed using a CSPRNG.
 
@@ -175,8 +175,12 @@ class PrivateKey(TryteString):
         :py:attr:`iota.transaction.Fragement.LEN`.
     """
 
-    def __init__(self, trytes, key_index=None, security_level=None):
-        # type: (TrytesCompatible, Optional[int], Optional[int]) -> None
+    def __init__(
+            self,
+            trytes: TrytesCompatible,
+            key_index: Optional[int] = None,
+            security_level: Optional[int] = None
+    ) -> None:
         super(PrivateKey, self).__init__(trytes)
 
         if len(self._trytes) % FRAGMENT_LENGTH:
@@ -197,8 +201,7 @@ class PrivateKey(TryteString):
         self.key_index = key_index
         self.security_level = security_level
 
-    def as_json_compatible(self):
-        # type: () -> dict
+    def as_json_compatible(self) -> dict:
         """
         Returns a JSON-compatible representation of the private key.
 
@@ -206,7 +209,7 @@ class PrivateKey(TryteString):
             ``dict`` with the following structure::
 
                 {
-                    trytes': Text,
+                    trytes': str,
                     'key_index': int,
                     'security_level': int,
                 }
@@ -218,8 +221,7 @@ class PrivateKey(TryteString):
             'security_level': self.security_level,
         }
 
-    def get_digest(self):
-        # type: () -> Digest
+    def get_digest(self) -> Digest:
         """
         Generates the digest used to do the actual signing.
 
@@ -276,8 +278,11 @@ class PrivateKey(TryteString):
 
         return Digest(TryteString.from_trits(digest), self.key_index)
 
-    def sign_input_transactions(self, bundle, start_index):
-        # type: (Bundle, int) -> None
+    def sign_input_transactions(
+            self,
+            bundle: Bundle,
+            start_index: int
+    ) -> None:
         """
         Signs the inputs starting at the specified index.
 

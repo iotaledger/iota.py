@@ -4,8 +4,7 @@ __all__ = [
 ]
 
 
-def with_context(exc, context):
-    # type: (Exception, dict) -> Exception
+def with_context(exc: Exception, context: dict) -> Exception:
     """
     Attaches a ``context`` value to an Exception.
 

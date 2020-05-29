@@ -407,6 +407,9 @@ class StrictIota(AsyncStrictIota):
                 )
         )
 
+    # Add an alias for this call, more descriptive
+    is_confirmed = get_inclusion_states
+
     def get_missing_transactions(self) -> dict:
         """
         Returns all transaction hashes that a node is currently requesting

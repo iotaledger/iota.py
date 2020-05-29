@@ -67,6 +67,11 @@ tasks such as sending and receiving transfers.
 .. automethod:: Iota.get_transfers
 .. automethod:: AsyncIota.get_transfers
 
+``is_confirmed``
+-----------------
+.. automethod:: Iota.is_confirmed
+.. automethod:: AsyncIota.is_confirmed
+
 ``is_promotable``
 -----------------
 .. automethod:: Iota.is_promotable

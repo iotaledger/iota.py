@@ -369,21 +369,15 @@ class AsyncStrictIota:
     async def get_inclusion_states(
             self,
             transactions: Iterable[TransactionHash],
-            tips: Iterable[TransactionHash]
     ) -> dict:
         """
         Get the inclusion states of a set of transactions. This is for
         determining if a transaction was accepted and confirmed by the
-        network or not. You can search for multiple tips (and thus,
-        milestones) to get past inclusion states of transactions.
+        network or not.
 
         :param Iterable[TransactionHash] transactions:
             List of transactions you want to get the inclusion state
             for.
-
-        :param Iterable[TransactionHash] tips:
-            List of tips (including milestones) you want to search for
-            the inclusion state.
 
         :return:
             ``dict`` with the following structure::
@@ -403,7 +397,6 @@ class AsyncStrictIota:
         """
         return await core.GetInclusionStatesCommand(self.adapter)(
                 transactions=transactions,
-                tips=tips,
         )
 
     async def get_missing_transactions(self) -> dict:
@@ -1122,32 +1115,6 @@ class AsyncIota(AsyncStrictIota):
                 threshold=threshold,
                 securityLevel=security_level
         )
-
-    async def get_latest_inclusion(
-            self,
-            hashes: Iterable[TransactionHash]
-    ) -> Dict[str, Dict[TransactionHash, bool]]:
-        """
-        Fetches the inclusion state for the specified transaction
-        hashes, as of the latest milestone that the node has processed.
-
-        Effectively, this is :py:meth:`get_node_info` +
-        :py:meth:`get_inclusion_states`.
-
-        :param Iterable[TransactionHash] hashes:
-            List of transaction hashes.
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    "states": Dict[TransactionHash, bool]
-                        ``dict`` with one boolean per transaction hash in
-                        ``hashes``.
-                }
-
-        """
-        return await extended.GetLatestInclusionCommand(self.adapter)(hashes=hashes)
 
     async def get_new_addresses(
             self,

@@ -52,11 +52,6 @@ tasks such as sending and receiving transfers.
 .. automethod:: Iota.get_inputs
 .. automethod:: AsyncIota.get_inputs
 
-``get_latest_inclusion``
-------------------------
-.. automethod:: Iota.get_latest_inclusion
-.. automethod:: AsyncIota.get_latest_inclusion
-
 ``get_new_addresses``
 ---------------------
 .. automethod:: Iota.get_new_addresses

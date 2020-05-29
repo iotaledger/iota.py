@@ -33,35 +33,12 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
     request = {
       # Raw trytes are extracted to match the IRI's JSON protocol.
       'transactions': [self.trytes1, self.trytes2],
-
-      # These values would normally be different from
-      # ``transactions``, but for purposes of this unit test, we just
-      # need to make sure the format is correct.
-      'tips': [self.trytes1, self.trytes2],
     }
 
     filter_ = self._filter(request)
 
     self.assertFilterPasses(filter_)
     self.assertDictEqual(filter_.cleaned_data, request)
-
-  def test_pass_optional_parameters_omitted(self):
-    """
-    The request omits optional parameters.
-    """
-    filter_ = self._filter({
-      'transactions': [self.trytes1, self.trytes2],
-    })
-
-    self.assertFilterPasses(filter_)
-    self.assertDictEqual(
-      filter_.cleaned_data,
-
-      {
-        'tips':         [],
-        'transactions': [self.trytes1, self.trytes2],
-      },
-    )
 
   def test_pass_compatible_types(self):
     """
@@ -73,11 +50,6 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
         TransactionHash(self.trytes1),
         bytearray(self.trytes2.encode('ascii')),
       ],
-
-      'tips': [
-        TransactionHash(self.trytes1),
-        bytearray(self.trytes2.encode('ascii')),
-      ],
     })
 
     self.assertFilterPasses(filter_)
@@ -85,7 +57,6 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       filter_.cleaned_data,
 
       {
-        'tips':         [self.trytes1, self.trytes2],
         'transactions': [self.trytes1, self.trytes2],
       },
     )
@@ -110,12 +81,12 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       {
         'transactions': [TransactionHash(self.trytes1)],
 
-        # I bring scientists, you bring a rock star.
-        'foo': 'bar',
+        # 'tips' deprecated in IRI 1.9.0
+        'tips': [self.trytes1]
       },
 
       {
-        'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+        'tips': [f.FilterMapper.CODE_EXTRA_KEY],
       },
     )
 
@@ -195,61 +166,17 @@ class GetInclusionStatesRequestFilterTestCase(BaseFilterTestCase):
       },
     )
 
-  def test_fail_tips_wrong_type(self):
-    """
-    ``tips`` is not an array.
-    """
-    self.assertFilterErrors(
-      {
-        'tips': TransactionHash(self.trytes2),
-
-        'transactions': [TransactionHash(self.trytes1)],
-      },
-
-      {
-        'tips': [f.Type.CODE_WRONG_TYPE],
-      },
-    )
-
-  def test_fail_tips_contents_invalid(self):
-    """
-    ``tips`` contains invalid values.
-    """
-    self.assertFilterErrors(
-      {
-        'tips': [
-          b'',
-          True,
-          None,
-          b'not valid trytes',
-
-          # This is actually valid; I just added it to make sure the
-          # filter isn't cheating!
-          TryteString(self.trytes1),
-
-          2130706433,
-          b'9' * 82,
-        ],
-
-        'transactions': [TransactionHash(self.trytes1)],
-      },
-
-      {
-        'tips.0':  [f.Required.CODE_EMPTY],
-        'tips.1':  [f.Type.CODE_WRONG_TYPE],
-        'tips.2':  [f.Required.CODE_EMPTY],
-        'tips.3':  [Trytes.CODE_NOT_TRYTES],
-        'tips.5':  [f.Type.CODE_WRONG_TYPE],
-        'tips.6':  [Trytes.CODE_WRONG_FORMAT],
-      },
-    )
-
 
 class GetInclusionStatesCommandTestCase(TestCase):
   def setUp(self):
     super(GetInclusionStatesCommandTestCase, self).setUp()
 
     self.adapter = MockAdapter()
+
+    self.trytes1 = (
+      'TESTVALUE9DONTUSEINPRODUCTION99999GCXWZZ'
+      'ZKNRIZENRRXGPAGJOSSWQQOJDD9VGQRMEFCOIFLQB'
+    )
 
   def test_wireup(self):
     """
@@ -263,7 +190,8 @@ class GetInclusionStatesCommandTestCase(TestCase):
 
       api = Iota(self.adapter)
 
-      response = api.get_inclusion_states('transactions', 'tips')
+      # Don't need to call with proper args here.
+      response = api.get_inclusion_states('transactions')
 
       self.assertTrue(mocked_command.called)
 
@@ -285,11 +213,25 @@ class GetInclusionStatesCommandTestCase(TestCase):
 
       api = AsyncIota(self.adapter)
 
-      response = await api.get_inclusion_states('transactions', 'tips')
+      response = await api.get_inclusion_states('transactions')
 
       self.assertTrue(mocked_command.called)
 
       self.assertEqual(
         response,
         'You found me!'
+      )
+
+  def test_fail_on_tips(self):
+    """
+    Fail on provided 'tips' parameter.
+
+    Deprecated in IRI 1.8.6
+    """
+    api = Iota(self.adapter)
+
+    with self.assertRaises(TypeError):
+      response = api.get_inclusion_states(
+        transactions=[self.trytes1],
+        tips=[self.trytes1]
       )

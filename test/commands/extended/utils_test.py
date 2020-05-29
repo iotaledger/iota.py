@@ -450,7 +450,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
         )
 
         with mock.patch(
-                'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
+                'iota.commands.core.get_inclusion_states.GetInclusionStatesCommand.__call__',
                 MagicMock(return_value=async_return({
                     'states': {self.single_bundle.tail_transaction.hash: True}}))
         ) as mocked_glis:
@@ -470,7 +470,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
                 )
 
                 mocked_glis.assert_called_once_with(
-                        hashes=[self.single_bundle.tail_transaction.hash]
+                        transactions=[self.single_bundle.tail_transaction.hash]
                 )
 
                 mocked_get_bundles.assert_called_once_with(
@@ -494,7 +494,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
         )
 
         with mock.patch(
-                'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
+                'iota.commands.core.get_inclusion_states.GetInclusionStatesCommand.__call__',
                 MagicMock(return_value=async_return({'states': {
                     self.single_bundle.tail_transaction.hash: True
                 }}))
@@ -582,7 +582,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
         )
 
         with mock.patch(
-                'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
+                'iota.commands.core.get_inclusion_states.GetInclusionStatesCommand.__call__',
                 MagicMock(return_value=async_return({'states': {
                     self.single_bundle.tail_transaction.hash: True,
                     self.three_tx_bundle.tail_transaction.hash: True
@@ -620,11 +620,11 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
                 # Get the keyword arguments from that call
                 _, _, mocked_glis_kwargs = mocked_glis.mock_calls[0]
 
-                # 'hashes' keyword's value should be a list of hashes it was called
+                # 'transactions' keyword's value should be a list of hashes it was called
                 # with. Due to the set -> list conversion in the src code, we can't
                 # be sure of the order of the elements, so we check by value.
                 self.assertCountEqual(
-                        mocked_glis_kwargs.get('hashes'),
+                        mocked_glis_kwargs.get('transactions'),
                         [
                             self.three_tx_bundle.tail_transaction.hash,
                             self.single_bundle.tail_transaction.hash,
@@ -675,7 +675,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
         )
 
         with mock.patch(
-                'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
+                'iota.commands.core.get_inclusion_states.GetInclusionStatesCommand.__call__',
                 MagicMock(return_value=async_return({'states': {
                     self.three_tx_bundle.tail_transaction.hash: True
                 }}))
@@ -706,7 +706,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
                 )
 
                 mocked_glis.assert_called_once_with(
-                        hashes=[self.three_tx_bundle.tail_transaction.hash]
+                        transactions=[self.three_tx_bundle.tail_transaction.hash]
                 )
 
                 mocked_get_bundles.assert_called_once_with(
@@ -731,7 +731,7 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
         )
 
         with mock.patch(
-                'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand.__call__',
+                'iota.commands.core.get_inclusion_states.GetInclusionStatesCommand.__call__',
                 MagicMock(return_value=async_return({'states': {
                     self.three_tx_bundle.tail_transaction.hash: True,
                     self.single_bundle.tail_transaction.hash: True,
@@ -773,11 +773,11 @@ class GetBundlesFromTransactionHashesTestCase(TestCase):
                 # Get the keyword arguments from that call
                 _, _, mocked_glis_kwargs = mocked_glis.mock_calls[0]
 
-                # 'hashes' keyword's value should be a list of hashes it was called
+                # 'transactions' keyword's value should be a list of hashes it was called
                 # with. Due to the set -> list conversion in the src code, we can't
                 # be sure of the order of the elements, so we check by value.
                 self.assertCountEqual(
-                        mocked_glis_kwargs.get('hashes'),
+                        mocked_glis_kwargs.get('transactions'),
                         [
                             self.three_tx_bundle.tail_transaction.hash,
                             self.single_bundle.tail_transaction.hash,

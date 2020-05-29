@@ -768,10 +768,8 @@ class GetTransfersCommandTestCase(TestCase):
       'bundles': [Bundle([transaction])],
     }))
 
-    mock_get_latest_inclusion = mock.Mock(return_value=async_return({
-      'states': {
-        transaction.hash: True,
-      },
+    mock_get_inclusion_states = mock.Mock(return_value=async_return({
+      'states': [True],
     }))
 
     with mock.patch(
@@ -783,8 +781,8 @@ class GetTransfersCommandTestCase(TestCase):
           mock_get_bundles,
       ):
         with mock.patch(
-          'iota.commands.extended.get_latest_inclusion.GetLatestInclusionCommand._execute',
-          mock_get_latest_inclusion,
+          'iota.commands.core.get_inclusion_states.GetInclusionStatesCommand._execute',
+          mock_get_inclusion_states,
         ):
           response = await self.command(
             seed = Seed.random(),

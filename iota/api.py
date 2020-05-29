@@ -372,21 +372,15 @@ class StrictIota(AsyncStrictIota):
     def get_inclusion_states(
             self,
             transactions: Iterable[TransactionHash],
-            tips: Iterable[TransactionHash]
     ) -> dict:
         """
         Get the inclusion states of a set of transactions. This is for
         determining if a transaction was accepted and confirmed by the
-        network or not. You can search for multiple tips (and thus,
-        milestones) to get past inclusion states of transactions.
+        network or not.
 
         :param Iterable[TransactionHash] transactions:
             List of transactions you want to get the inclusion state
             for.
-
-        :param Iterable[TransactionHash] tips:
-            List of tips (including milestones) you want to search for
-            the inclusion state.
 
         :return:
             ``dict`` with the following structure::
@@ -410,7 +404,6 @@ class StrictIota(AsyncStrictIota):
         return asyncio.get_event_loop().run_until_complete(
                 super().get_inclusion_states(
                         transactions,
-                        tips,
                 )
         )
 
@@ -1199,36 +1192,6 @@ class Iota(StrictIota, AsyncIota):
                         threshold,
                         security_level,
                 )
-        )
-
-    def get_latest_inclusion(
-            self,
-            hashes: Iterable[TransactionHash]
-    ) -> Dict[str, Dict[TransactionHash, bool]]:
-        """
-        Fetches the inclusion state for the specified transaction
-        hashes, as of the latest milestone that the node has processed.
-
-        Effectively, this is :py:meth:`get_node_info` +
-        :py:meth:`get_inclusion_states`.
-
-        :param Iterable[TransactionHash] hashes:
-            List of transaction hashes.
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    "states": Dict[TransactionHash, bool]
-                        ``dict`` with one boolean per transaction hash in
-                        ``hashes``.
-                }
-
-        """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-                super().get_latest_inclusion(hashes)
         )
 
     def get_new_addresses(

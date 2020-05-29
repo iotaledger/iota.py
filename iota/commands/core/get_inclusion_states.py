@@ -31,14 +31,5 @@ class GetInclusionStatesRequestFilter(RequestFilter):
                 # Required parameters.
                 'transactions':
                     StringifiedTrytesArray(TransactionHash) | f.Required,
-
-                # Optional parameters.
-                'tips':
-                    StringifiedTrytesArray(TransactionHash) |
-                    f.Optional(default=[]),
-            },
-
-            allow_missing_keys={
-                'tips',
             },
         )

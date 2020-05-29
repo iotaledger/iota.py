@@ -533,28 +533,6 @@ class AsyncStrictIota:
         """
         return await core.GetNodeInfoCommand(self.adapter)()
 
-    async def get_tips(self) -> dict:
-        """
-        Returns the list of tips (transactions which have no other
-        transactions referencing them).
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    'hashes': List[TransactionHash],
-                        List of tip transaction hashes.
-                    'duration': int,
-                        Number of milliseconds it took to complete the request.
-                }
-
-        References:
-
-        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettips
-        - https://docs.iota.org/docs/dev-essentials/0.1/references/glossary
-        """
-        return await core.GetTipsCommand(self.adapter)()
-
     async def get_transactions_to_approve(
             self,
             depth: int,

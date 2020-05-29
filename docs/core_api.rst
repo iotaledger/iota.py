@@ -84,11 +84,6 @@ iri/references/api-reference>`__.
 .. automethod:: Iota.get_node_info
 .. automethod:: AsyncIota.get_node_info
 
-``get_tips``
-------------
-.. automethod:: Iota.get_tips
-.. automethod:: AsyncIota.get_tips
-
 ``get_transactions_to_approve``
 -------------------------------
 .. automethod:: Iota.get_transactions_to_approve

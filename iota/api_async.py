@@ -330,9 +330,6 @@ class AsyncStrictIota:
         :param Iterable[Address] addresses:
             List of addresses to get the confirmed balance for.
 
-        :param int threshold:
-            Confirmation threshold between 0 and 100.
-
         :param Optional[Iterable[TransactionHash]] tips:
             Tips whose history of transactions to traverse to find the balance.
 

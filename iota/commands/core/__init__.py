@@ -17,7 +17,6 @@ from .get_missing_transactions import *
 from .get_neighbors import *
 from .get_node_api_configuration import *
 from .get_node_info import *
-from .get_tips import *
 from .get_transactions_to_approve import *
 from .get_trytes import *
 from .interrupt_attaching_to_tangle import *

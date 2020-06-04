@@ -4,9 +4,9 @@ import filters as f
 
 from iota import Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
-from iota.commands.extended import FindTransactionObjectsCommand, \
-    GetLatestInclusionCommand
-from iota.filters import StringifiedTrytesArray
+from iota.commands.extended import FindTransactionObjectsCommand
+from iota.commands.core import GetInclusionStatesCommand
+from iota.filters import Trytes, StringifiedTrytesArray
 
 __all__ = [
     'IsReattachableCommand',
@@ -48,14 +48,15 @@ class IsReattachableCommand(FilterCommand):
         }
 
         # Fetch inclusion states.
-        inclusion_states = await GetLatestInclusionCommand(adapter=self.adapter)(
-            hashes=list(transaction_map.values()),
+        inclusion_states = GetInclusionStatesCommand(adapter=self.adapter)(
+            transactions=list(transaction_map.values()),
         )
-        inclusion_states = inclusion_states['states']
+        inclusion_states_map = dict(zip(
+            list(transaction_map.keys()), inclusion_states['states']))
 
         return {
             'reattachable': [
-                not inclusion_states[transaction_map[address]]
+                not inclusion_states_map[address]
                 for address in addresses
             ],
         }

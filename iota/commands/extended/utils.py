@@ -10,8 +10,8 @@ from iota.commands.core.were_addresses_spent_from import \
     WereAddressesSpentFromCommand
 from iota.commands.extended import FindTransactionObjectsCommand
 from iota.commands.extended.get_bundles import GetBundlesCommand
-from iota.commands.extended.get_latest_inclusion import \
-    GetLatestInclusionCommand
+from iota.commands.core.get_inclusion_states import \
+    GetInclusionStatesCommand
 from iota.crypto.addresses import AddressGenerator
 from iota.crypto.types import Seed
 
@@ -123,12 +123,12 @@ async def get_bundles_from_transaction_hashes(
 
     # Attach inclusion states, if requested.
     if inclusion_states:
-        gli_response = await GetLatestInclusionCommand(adapter)(
-            hashes=list(tail_transaction_hashes),
+        gli_response = await GetInclusionStatesCommand(adapter)(
+            transactions=list(tail_transaction_hashes),
         )
 
-        for txn in tail_transactions:
-            txn.is_confirmed = gli_response['states'].get(txn.hash)
+        for txn, state in zip(tail_transactions, gli_response['states']):
+            txn.is_confirmed = state
 
     # Find the bundles for each transaction.
     txn_bundles: List[Bundle] = (await GetBundlesCommand(adapter)(

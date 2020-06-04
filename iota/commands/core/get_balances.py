@@ -35,17 +35,11 @@ class GetBalancesRequestFilter(RequestFilter):
                         f.Unicode(encoding='ascii', normalize=False),
                     ),
 
-                'threshold':
-                    f.Type(int) |
-                    f.Min(0) |
-                    f.Max(100) |
-                    f.Optional(default=100),
-
                 'tips': StringifiedTrytesArray(TransactionHash),
             },
 
             allow_missing_keys={
-                'threshold', 'tips',
+                'tips',
             },
         )
 

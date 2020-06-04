@@ -200,7 +200,7 @@ with :py:class:`ProposedTransaction`.
     ]
 
     imaginary_bundle = api.send_transfer(
-        transfers=transactions
+        transfers=fictional_transactions
     )['bundle']
 
 As all API methods in PyOTA, :py:meth:`~Iota.send_transfer` also returns

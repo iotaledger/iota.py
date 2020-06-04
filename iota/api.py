@@ -314,13 +314,11 @@ class StrictIota(AsyncStrictIota):
     def get_balances(
             self,
             addresses: Iterable[Address],
-            threshold: int = 100,
             tips: Optional[Iterable[TransactionHash]] = None,
     ) -> dict:
         """
-        Similar to :py:meth:`get_inclusion_states`. Returns the
-        confirmed balance which a list of addresses have at the latest
-        confirmed milestone.
+        Returns the confirmed balance which a list of addresses have at the
+        latest confirmed milestone.
 
         In addition to the balances, it also returns the milestone as
         well as the index with which the confirmed balance was
@@ -329,9 +327,6 @@ class StrictIota(AsyncStrictIota):
 
         :param Iterable[Address] addresses:
             List of addresses to get the confirmed balance for.
-
-        :param int threshold:
-            Confirmation threshold between 0 and 100.
 
         :param Optional[Iterable[TransactionHash]] tips:
             Tips whose history of transactions to traverse to find the balance.
@@ -364,7 +359,6 @@ class StrictIota(AsyncStrictIota):
         return asyncio.get_event_loop().run_until_complete(
                 super().get_balances(
                         addresses,
-                        threshold,
                         tips,
                 )
         )

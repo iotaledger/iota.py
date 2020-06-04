@@ -40,8 +40,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
         request = {
             # Raw trytes are extracted to match the IRI's JSON protocol.
             'addresses': [self.trytes1, self.trytes2],
-
-            'threshold': 80,
         }
 
         filter_ = self._filter(request)
@@ -55,8 +53,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
         """
         request = {
             'addresses': [self.trytes1, self.trytes2],
-
-            'threshold': 80,
 
             'tips': [self.trytes3],
         }
@@ -76,8 +72,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
                 Address(self.trytes1),
                 bytearray(self.trytes2.encode('ascii')),
             ],
-
-            'threshold': 80,
         }
 
         filter_ = self._filter(request)
@@ -88,28 +82,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
 
             {
                 'addresses': [self.trytes1, self.trytes2],
-                'threshold': 80,
-            },
-        )
-
-    def test_pass_threshold_optional(self):
-        """
-        The incoming request does not contain a ``threshold`` value, so the
-        default value is assumed.
-        """
-        request = {
-            'addresses': [Address(self.trytes1)],
-        }
-
-        filter_ = self._filter(request)
-
-        self.assertFilterPasses(filter_)
-        self.assertDictEqual(
-            filter_.cleaned_data,
-
-            {
-                'addresses': [Address(self.trytes1)],
-                'threshold': 100,
             },
         )
 
@@ -133,13 +105,12 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
             {
                 'addresses': [Address(self.trytes1)],
 
-                # I've had a perfectly wonderful evening.
-                # But this wasn't it.
-                'foo': 'bar',
+                # `threshold` parameter deprecated in IRI 1.8.6
+                'threshold': 100,
             },
 
             {
-                'foo': [f.FilterMapper.CODE_EXTRA_KEY],
+                'threshold': [f.FilterMapper.CODE_EXTRA_KEY],
             },
         )
 
@@ -199,71 +170,6 @@ class GetBalancesRequestFilterTestCase(BaseFilterTestCase):
                 'addresses.3':  [Trytes.CODE_NOT_TRYTES],
                 'addresses.5':  [f.Type.CODE_WRONG_TYPE],
                 'addresses.6':  [Trytes.CODE_WRONG_FORMAT],
-            },
-        )
-
-    def test_fail_threshold_float(self):
-        """
-        `threshold` is a float.
-        """
-        self.assertFilterErrors(
-            {
-                # Even with an empty fpart, floats are not accepted.
-                'threshold': 86.0,
-
-                'addresses': [Address(self.trytes1)],
-            },
-
-            {
-                'threshold': [f.Type.CODE_WRONG_TYPE],
-            },
-        )
-
-    def test_fail_threshold_string(self):
-        """
-        ``threshold`` is a string.
-        """
-        self.assertFilterErrors(
-            {
-                'threshold': '86',
-
-                'addresses': [Address(self.trytes1)],
-            },
-
-            {
-                'threshold': [f.Type.CODE_WRONG_TYPE],
-            },
-        )
-
-    def test_fail_threshold_too_small(self):
-        """
-        ``threshold`` is less than 0.
-        """
-        self.assertFilterErrors(
-            {
-                'threshold': -1,
-
-                'addresses': [Address(self.trytes1)],
-            },
-
-            {
-                'threshold': [f.Min.CODE_TOO_SMALL],
-            },
-        )
-
-    def test_fail_threshold_too_big(self):
-        """
-        ``threshold`` is greater than 100.
-        """
-        self.assertFilterErrors(
-            {
-                'threshold': 101,
-
-                'addresses': [Address(self.trytes1)],
-            },
-
-            {
-                'threshold': [f.Max.CODE_TOO_BIG],
             },
         )
 

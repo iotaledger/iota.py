@@ -1,6 +1,6 @@
 import filters as f
 
-from iota import TransactionHash
+from iota import TransactionHash, Address
 from iota.commands import FilterCommand, RequestFilter, ResponseFilter
 from iota.filters import Trytes
 
@@ -34,6 +34,8 @@ class GetNodeInfoRequestFilter(RequestFilter):
 class GetNodeInfoResponseFilter(ResponseFilter):
     def __init__(self) -> None:
         super(GetNodeInfoResponseFilter, self).__init__({
+            'coordinatorAddress':
+                f.ByteString(encoding='ascii') | Trytes(Address),
             'latestMilestone':
                 f.ByteString(encoding='ascii') | Trytes(TransactionHash),
 

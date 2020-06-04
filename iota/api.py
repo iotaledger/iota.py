@@ -314,13 +314,11 @@ class StrictIota(AsyncStrictIota):
     def get_balances(
             self,
             addresses: Iterable[Address],
-            threshold: int = 100,
             tips: Optional[Iterable[TransactionHash]] = None,
     ) -> dict:
         """
-        Similar to :py:meth:`get_inclusion_states`. Returns the
-        confirmed balance which a list of addresses have at the latest
-        confirmed milestone.
+        Returns the confirmed balance which a list of addresses have at the
+        latest confirmed milestone.
 
         In addition to the balances, it also returns the milestone as
         well as the index with which the confirmed balance was
@@ -329,9 +327,6 @@ class StrictIota(AsyncStrictIota):
 
         :param Iterable[Address] addresses:
             List of addresses to get the confirmed balance for.
-
-        :param int threshold:
-            Confirmation threshold between 0 and 100.
 
         :param Optional[Iterable[TransactionHash]] tips:
             Tips whose history of transactions to traverse to find the balance.
@@ -364,7 +359,6 @@ class StrictIota(AsyncStrictIota):
         return asyncio.get_event_loop().run_until_complete(
                 super().get_balances(
                         addresses,
-                        threshold,
                         tips,
                 )
         )
@@ -372,21 +366,15 @@ class StrictIota(AsyncStrictIota):
     def get_inclusion_states(
             self,
             transactions: Iterable[TransactionHash],
-            tips: Iterable[TransactionHash]
     ) -> dict:
         """
         Get the inclusion states of a set of transactions. This is for
         determining if a transaction was accepted and confirmed by the
-        network or not. You can search for multiple tips (and thus,
-        milestones) to get past inclusion states of transactions.
+        network or not.
 
         :param Iterable[TransactionHash] transactions:
             List of transactions you want to get the inclusion state
             for.
-
-        :param Iterable[TransactionHash] tips:
-            List of tips (including milestones) you want to search for
-            the inclusion state.
 
         :return:
             ``dict`` with the following structure::
@@ -410,9 +398,11 @@ class StrictIota(AsyncStrictIota):
         return asyncio.get_event_loop().run_until_complete(
                 super().get_inclusion_states(
                         transactions,
-                        tips,
                 )
         )
+
+    # Add an alias for this call, more descriptive
+    is_confirmed = get_inclusion_states
 
     def get_missing_transactions(self) -> dict:
         """
@@ -566,33 +556,6 @@ class StrictIota(AsyncStrictIota):
         # synchronous
         return asyncio.get_event_loop().run_until_complete(
                 super().get_node_info()
-        )
-
-    def get_tips(self) -> dict:
-        """
-        Returns the list of tips (transactions which have no other
-        transactions referencing them).
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    'hashes': List[TransactionHash],
-                        List of tip transaction hashes.
-                    'duration': int,
-                        Number of milliseconds it took to complete the request.
-                }
-
-        References:
-
-        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettips
-        - https://docs.iota.org/docs/dev-essentials/0.1/references/glossary
-        """
-
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-                super().get_tips()
         )
 
     def get_transactions_to_approve(
@@ -1199,36 +1162,6 @@ class Iota(StrictIota, AsyncIota):
                         threshold,
                         security_level,
                 )
-        )
-
-    def get_latest_inclusion(
-            self,
-            hashes: Iterable[TransactionHash]
-    ) -> Dict[str, Dict[TransactionHash, bool]]:
-        """
-        Fetches the inclusion state for the specified transaction
-        hashes, as of the latest milestone that the node has processed.
-
-        Effectively, this is :py:meth:`get_node_info` +
-        :py:meth:`get_inclusion_states`.
-
-        :param Iterable[TransactionHash] hashes:
-            List of transaction hashes.
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    "states": Dict[TransactionHash, bool]
-                        ``dict`` with one boolean per transaction hash in
-                        ``hashes``.
-                }
-
-        """
-        # Execute original coroutine inside an event loop to make this method
-        # synchronous
-        return asyncio.get_event_loop().run_until_complete(
-                super().get_latest_inclusion(hashes)
         )
 
     def get_new_addresses(

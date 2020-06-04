@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import filters as f
 from filters.test import BaseFilterTestCase
-from iota import Iota, TransactionHash, AsyncIota
+from iota import Iota, TransactionHash, AsyncIota, Address
 from iota.adapter import MockAdapter, async_return
 from iota.commands.core.get_node_info import GetNodeInfoCommand
 from test import patch, MagicMock, async_test
@@ -50,6 +50,9 @@ class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
     response = {
       'appName': 'IRI',
       'appVersion': '1.0.8.nu',
+      'coordinatorAddress':
+          'BUPQSYFUFMUOJVGVFKPCOULCQNTJPYJOTATSILTN'
+          'ZKOPQWHENIDIH9HJEUOTNV9LNGHCTHMHWOPLZOJCJ',
       'duration': 1,
       'jreAvailableProcessors': 4,
       'jreFreeMemory': 91707424,
@@ -81,6 +84,11 @@ class GetNodeInfoResponseFilterTestCase(BaseFilterTestCase):
       {
         'appName': 'IRI',
         'appVersion': '1.0.8.nu',
+        'coordinatorAddress':
+          Address(
+            b'BUPQSYFUFMUOJVGVFKPCOULCQNTJPYJOTATSILTN'
+            b'ZKOPQWHENIDIH9HJEUOTNV9LNGHCTHMHWOPLZOJCJ'
+          ),
         'duration': 1,
         'jreAvailableProcessors': 4,
         'jreFreeMemory': 91707424,

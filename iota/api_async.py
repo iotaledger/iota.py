@@ -316,13 +316,11 @@ class AsyncStrictIota:
     async def get_balances(
             self,
             addresses: Iterable[Address],
-            threshold: int = 100,
             tips: Optional[Iterable[TransactionHash]] = None,
     ) -> dict:
         """
-        Similar to :py:meth:`get_inclusion_states`. Returns the
-        confirmed balance which a list of addresses have at the latest
-        confirmed milestone.
+        Returns the confirmed balance which a list of addresses have at the
+        latest confirmed milestone.
 
         In addition to the balances, it also returns the milestone as
         well as the index with which the confirmed balance was
@@ -331,9 +329,6 @@ class AsyncStrictIota:
 
         :param Iterable[Address] addresses:
             List of addresses to get the confirmed balance for.
-
-        :param int threshold:
-            Confirmation threshold between 0 and 100.
 
         :param Optional[Iterable[TransactionHash]] tips:
             Tips whose history of transactions to traverse to find the balance.
@@ -362,28 +357,21 @@ class AsyncStrictIota:
         """
         return await core.GetBalancesCommand(self.adapter)(
                 addresses=addresses,
-                threshold=threshold,
                 tips=tips,
         )
 
     async def get_inclusion_states(
             self,
             transactions: Iterable[TransactionHash],
-            tips: Iterable[TransactionHash]
     ) -> dict:
         """
         Get the inclusion states of a set of transactions. This is for
         determining if a transaction was accepted and confirmed by the
-        network or not. You can search for multiple tips (and thus,
-        milestones) to get past inclusion states of transactions.
+        network or not.
 
         :param Iterable[TransactionHash] transactions:
             List of transactions you want to get the inclusion state
             for.
-
-        :param Iterable[TransactionHash] tips:
-            List of tips (including milestones) you want to search for
-            the inclusion state.
 
         :return:
             ``dict`` with the following structure::
@@ -403,8 +391,10 @@ class AsyncStrictIota:
         """
         return await core.GetInclusionStatesCommand(self.adapter)(
                 transactions=transactions,
-                tips=tips,
         )
+
+    # Add an alias, more descriptive
+    is_confirmed = get_inclusion_states
 
     async def get_missing_transactions(self) -> dict:
         """
@@ -539,28 +529,6 @@ class AsyncStrictIota:
         - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#getnodeinfo
         """
         return await core.GetNodeInfoCommand(self.adapter)()
-
-    async def get_tips(self) -> dict:
-        """
-        Returns the list of tips (transactions which have no other
-        transactions referencing them).
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    'hashes': List[TransactionHash],
-                        List of tip transaction hashes.
-                    'duration': int,
-                        Number of milliseconds it took to complete the request.
-                }
-
-        References:
-
-        - https://docs.iota.org/docs/node-software/0.1/iri/references/api-reference#gettips
-        - https://docs.iota.org/docs/dev-essentials/0.1/references/glossary
-        """
-        return await core.GetTipsCommand(self.adapter)()
 
     async def get_transactions_to_approve(
             self,
@@ -1122,32 +1090,6 @@ class AsyncIota(AsyncStrictIota):
                 threshold=threshold,
                 securityLevel=security_level
         )
-
-    async def get_latest_inclusion(
-            self,
-            hashes: Iterable[TransactionHash]
-    ) -> Dict[str, Dict[TransactionHash, bool]]:
-        """
-        Fetches the inclusion state for the specified transaction
-        hashes, as of the latest milestone that the node has processed.
-
-        Effectively, this is :py:meth:`get_node_info` +
-        :py:meth:`get_inclusion_states`.
-
-        :param Iterable[TransactionHash] hashes:
-            List of transaction hashes.
-
-        :return:
-            ``dict`` with the following structure::
-
-                {
-                    "states": Dict[TransactionHash, bool]
-                        ``dict`` with one boolean per transaction hash in
-                        ``hashes``.
-                }
-
-        """
-        return await extended.GetLatestInclusionCommand(self.adapter)(hashes=hashes)
 
     async def get_new_addresses(
             self,

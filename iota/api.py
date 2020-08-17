@@ -61,7 +61,7 @@ class StrictIota(AsyncStrictIota):
     :param Optional[bool] devnet:
         Whether to use devnet settings for this instance.
         On the devnet, minimum weight magnitude is set to 9, on mainnet
-        it is 1 by default.
+        it is 14 by default.
 
     :param Optional[bool] local_pow:
         Whether to perform proof-of-work locally by redirecting all calls

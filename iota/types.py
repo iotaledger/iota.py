@@ -3,7 +3,7 @@ from codecs import decode, encode
 from itertools import chain
 from math import ceil
 from random import SystemRandom
-from typing import Any, AnyStr, Generator, Iterable, Iterator, List, \
+from typing import Any, Generator, Iterable, Iterator, List, \
     MutableSequence, Optional, Type, TypeVar, Union, Dict
 from warnings import warn
 
@@ -24,7 +24,7 @@ __all__ = [
 ]
 
 # Custom types for type hints and docstrings.
-TrytesCompatible = Union[AnyStr, bytearray, 'TryteString']
+TrytesCompatible = Union[str, bytes, bytearray, 'TryteString']
 
 T = TypeVar('T', bound='TryteString')
 
